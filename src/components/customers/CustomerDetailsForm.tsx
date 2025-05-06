@@ -51,9 +51,9 @@ const CustomerDetailsForm = ({ customer, isOpen, onClose }: CustomerDetailsFormP
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Edit Customer Details</DialogTitle>
+      <DialogContent className="sm:max-w-[600px] bg-white border-0 shadow-xl">
+        <DialogHeader className="bg-gradient-to-r from-broker-primary/10 to-broker-accent/10 p-4 -m-6 mb-6 rounded-t-lg">
+          <DialogTitle className="text-xl font-semibold text-broker-primary">Edit Customer Details</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
@@ -64,9 +64,9 @@ const CustomerDetailsForm = ({ customer, isOpen, onClose }: CustomerDetailsFormP
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel className="text-broker-dark font-medium">Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Customer name" {...field} />
+                      <Input placeholder="Customer name" {...field} className="border-gray-300 focus:border-broker-accent" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -78,9 +78,9 @@ const CustomerDetailsForm = ({ customer, isOpen, onClose }: CustomerDetailsFormP
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-broker-dark font-medium">Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Email address" {...field} />
+                      <Input type="email" placeholder="Email address" {...field} className="border-gray-300 focus:border-broker-accent" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -92,9 +92,9 @@ const CustomerDetailsForm = ({ customer, isOpen, onClose }: CustomerDetailsFormP
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel className="text-broker-dark font-medium">Phone</FormLabel>
                     <FormControl>
-                      <Input placeholder="Phone number" {...field} />
+                      <Input placeholder="Phone number" {...field} className="border-gray-300 focus:border-broker-accent" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -106,21 +106,21 @@ const CustomerDetailsForm = ({ customer, isOpen, onClose }: CustomerDetailsFormP
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel className="text-broker-dark font-medium">Status</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="border-gray-300 focus:border-broker-accent">
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="new">New</SelectItem>
-                        <SelectItem value="existing">Existing</SelectItem>
-                        <SelectItem value="pending">Pending Policy</SelectItem>
-                        <SelectItem value="finalised">Finalised Sale</SelectItem>
+                        <SelectItem value="new" className="text-blue-600">New</SelectItem>
+                        <SelectItem value="existing" className="text-green-600">Existing</SelectItem>
+                        <SelectItem value="pending" className="text-amber-600">Pending Policy</SelectItem>
+                        <SelectItem value="finalised" className="text-purple-600">Finalised Sale</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -134,11 +134,11 @@ const CustomerDetailsForm = ({ customer, isOpen, onClose }: CustomerDetailsFormP
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel className="text-broker-dark font-medium">Notes</FormLabel>
                   <FormControl>
                     <Textarea 
                       placeholder="Additional notes about the customer" 
-                      className="min-h-[100px]" 
+                      className="min-h-[100px] border-gray-300 focus:border-broker-accent" 
                       {...field} 
                     />
                   </FormControl>
@@ -147,12 +147,12 @@ const CustomerDetailsForm = ({ customer, isOpen, onClose }: CustomerDetailsFormP
               )}
             />
             
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
+            <DialogFooter className="mt-6 gap-2">
+              <Button type="button" variant="outline" onClick={onClose} className="border-gray-300">
                 <X className="mr-2 h-4 w-4" />
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button type="submit" className="bg-gradient-to-r from-broker-primary to-broker-accent hover:shadow-md transition-all">
                 <Save className="mr-2 h-4 w-4" />
                 Save Changes
               </Button>
