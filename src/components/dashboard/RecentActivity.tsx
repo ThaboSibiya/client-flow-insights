@@ -19,15 +19,15 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-gradient-to-r from-blue-100 to-blue-50 text-blue-800 border border-blue-200';
       case 'existing':
-        return 'bg-teal-100 text-teal-800';
+        return 'bg-gradient-to-r from-teal-100 to-teal-50 text-teal-800 border border-teal-200';
       case 'pending':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-gradient-to-r from-amber-100 to-amber-50 text-amber-800 border border-amber-200';
       case 'finalised':
-        return 'bg-green-100 text-green-800';
+        return 'bg-gradient-to-r from-emerald-100 to-emerald-50 text-emerald-800 border border-emerald-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-800 border border-gray-200';
     }
   };
 
@@ -41,19 +41,19 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
   };
 
   return (
-    <Card className="shadow-sm h-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-5 w-5 text-gray-500" />
+    <Card className="shadow-md h-full bg-gradient-to-br from-white to-gray-50 border-gray-200/70">
+      <CardHeader className="pb-2 border-b border-gray-100">
+        <CardTitle className="flex items-center gap-2 text-broker-primary">
+          <Clock className="h-5 w-5 text-broker-accent" />
           Recent Activity
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         <ScrollArea className="h-[250px] pr-4">
           <div className="space-y-4">
             {recentActivity.map((customer) => (
-              <div key={customer.id} className="flex items-center space-x-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+              <div key={customer.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-broker-primary to-broker-accent text-white flex items-center justify-center shadow-sm">
                   {customer.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -80,7 +80,7 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
                   </TooltipProvider>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${getStatusColor(customer.status)}`}>
+                  <span className={`text-xs px-3 py-1 rounded-full whitespace-nowrap shadow-sm ${getStatusColor(customer.status)}`}>
                     {customer.status}
                   </span>
                   <span className="text-xs text-gray-500 whitespace-nowrap">

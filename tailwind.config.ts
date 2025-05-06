@@ -64,11 +64,15 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				broker: {
-					primary: '#1A365D',
-					secondary: '#38B2AC',
-					accent: '#3182CE',
-					light: '#EDF2F7',
-					dark: '#2D3748',
+					primary: '#1E3A8A',
+					secondary: '#0EA5E9',
+					accent: '#3B82F6',
+					light: '#EFF6FF',
+					dark: '#1E293B',
+					success: '#10B981',
+					warning: '#F59E0B',
+					danger: '#EF4444',
+					neutral: '#E2E8F0',
 				},
 			},
 			borderRadius: {
@@ -92,11 +96,23 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-subtle': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.8' },
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-subtle': 'pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+			},
+			boxShadow: {
+				'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+				'gradient-subtle': 'linear-gradient(to right, #e6b980 0%, #eacda3 100%)',
 			}
 		}
 	},
