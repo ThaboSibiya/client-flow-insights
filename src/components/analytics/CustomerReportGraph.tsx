@@ -248,8 +248,12 @@ const CustomerReportGraph = ({ customers }: CustomerReportGraphProps) => {
                   fontSize: '12px'
                 }}
                 formatter={(value) => {
+                  // Fix the TypeScript error - ensure value is a string before using string methods
                   if (value === 'conversionRate') return 'Conversion Rate';
-                  return value.charAt(0).toUpperCase() + value.slice(1);
+                  if (typeof value === 'string') {
+                    return value.charAt(0).toUpperCase() + value.slice(1);
+                  }
+                  return value;
                 }}
               />
               <Bar yAxisId="left" dataKey="new" fill="url(#colorNew)" name="new" barSize={timeframe === 'yearly' ? 30 : 15} radius={[4, 4, 0, 0]} />
