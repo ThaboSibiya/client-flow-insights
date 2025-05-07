@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Customer } from '@/context/CRMContext';
+import { ChartBarIcon } from 'lucide-react';
 
 interface WeeklySummaryProps {
   customers: Customer[];
@@ -22,20 +23,24 @@ const WeeklySummary = ({ customers }: WeeklySummaryProps) => {
       const dayDate = day.getDate();
       
       // Filter customers created or with status changed on this day
-      const dailyNew = customers.filter(c => 
+      const acquisitions = customers.filter(c => 
         c.status === 'new' && 
         c.createdAt.toDateString() === day.toDateString()
       ).length;
       
-      const dailyFinalised = customers.filter(c => 
+      const sales = customers.filter(c => 
         c.status === 'finalised' && 
         c.updatedAt.toDateString() === day.toDateString()
       ).length;
+
+      // Estimate revenue (for visual purposes)
+      const estimatedRevenue = sales * 1500; // Assuming average sale value of $1500
       
       data.push({
         name: `${dayName} ${dayDate}`,
-        new: dailyNew,
-        finalised: dailyFinalised,
+        acquisitions,
+        sales,
+        revenue: estimatedRevenue
       });
     }
     
@@ -45,11 +50,14 @@ const WeeklySummary = ({ customers }: WeeklySummaryProps) => {
   const weeklyData = generateWeeklyData();
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader>
-        <CardTitle>Weekly Activity</CardTitle>
+    <Card className="shadow-lg border border-white/30 bg-gradient-to-br from-white via-white to-gray-50 hover:shadow-xl transition-all duration-300">
+      <CardHeader className="border-b border-gray-100 pb-2">
+        <CardTitle className="flex items-center gap-2 text-gradient">
+          <ChartBarIcon className="h-5 w-5 text-broker-accent" />
+          Weekly Activity
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
@@ -61,12 +69,48 @@ const WeeklySummary = ({ customers }: WeeklySummaryProps) => {
                 bottom: 5,
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="new" fill="#3182CE" name="New Onboarding" />
-              <Bar dataKey="finalised" fill="#48BB78" name="Finalised Sales" />
+              <defs>
+                <linearGradient id="colorAcquisitions" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.2}/>
+                </linearGradient>
+                <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#10B981" stopOpacity={0.2}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+              <XAxis dataKey="name" stroke="#4A5568" />
+              <YAxis stroke="#4A5568" />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                  borderRadius: '8px',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                  border: '1px solid #E2E8F0' 
+                }}
+                formatter={(value, name) => {
+                  if (name === 'revenue') {
+                    return [`$${value.toLocaleString()}`, 'Revenue'];
+                  }
+                  return [value, name.charAt(0).toUpperCase() + name.slice(1)];
+                }}
+              />
+              <Legend />
+              <Bar 
+                dataKey="acquisitions" 
+                name="Customer Acquisitions" 
+                fill="url(#colorAcquisitions)" 
+                radius={[4, 4, 0, 0]}
+                maxBarSize={40}
+              />
+              <Bar 
+                dataKey="sales" 
+                name="Sales Volume" 
+                fill="url(#colorSales)" 
+                radius={[4, 4, 0, 0]}
+                maxBarSize={40}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
