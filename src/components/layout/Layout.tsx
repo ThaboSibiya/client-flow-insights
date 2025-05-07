@@ -7,20 +7,20 @@ import AppSidebar from './Sidebar';
 const Layout = () => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/20">
         <AppSidebar />
         
         <div className="flex-1 flex flex-col">
-          <header className="bg-white border-b p-4 flex justify-between items-center">
+          <header className="bg-white border-b p-4 flex justify-between items-center shadow-sm backdrop-blur-sm bg-white/70">
             <SidebarTrigger className="md:hidden" />
             <div className="flex-1 flex justify-end">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Welcome, Broker</span>
+                <span className="text-sm font-medium bg-gradient-to-r from-broker-primary to-broker-accent bg-clip-text text-transparent">Welcome, Broker</span>
               </div>
             </div>
           </header>
           
-          <main className="flex-1 p-6 bg-gray-50">
+          <main className="flex-1 p-6 bg-gradient-to-br from-gray-50 via-blue-50/20 to-indigo-50/10">
             <Outlet />
           </main>
         </div>

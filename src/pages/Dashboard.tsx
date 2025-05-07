@@ -56,32 +56,35 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <div className="bg-gradient-to-r from-broker-primary/20 via-broker-secondary/15 to-broker-accent/20 p-8 rounded-xl mb-6 shadow-lg border border-white/20 backdrop-blur-sm">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-broker-primary via-broker-secondary to-broker-accent bg-clip-text text-transparent drop-shadow-sm">Dashboard Overview</h1>
+        <p className="text-muted-foreground mt-1">Monitor your business performance at a glance</p>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatusCard 
           title="New Customers" 
           count={newCustomers} 
           icon={<Users size={24} className="text-white" />} 
-          color="bg-broker-accent"
+          color="bg-gradient-to-br from-broker-accent to-blue-500"
         />
         <StatusCard 
           title="Existing Customers" 
           count={existingCustomers} 
           icon={<Database size={24} className="text-white" />} 
-          color="bg-broker-secondary"
+          color="bg-gradient-to-br from-broker-secondary to-cyan-500"
         />
         <StatusCard 
           title="Pending Policies" 
           count={pendingCustomers} 
           icon={<ChartBar size={24} className="text-white" />} 
-          color="bg-orange-500"
+          color="bg-gradient-to-br from-orange-400 to-amber-600"
         />
         <StatusCard 
           title="Finalised Sales" 
           count={finalisedCustomers} 
           icon={<CircleCheck size={24} className="text-white" />} 
-          color="bg-green-500"
+          color="bg-gradient-to-br from-green-400 to-emerald-600"
         />
       </div>
       

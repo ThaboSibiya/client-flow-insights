@@ -100,20 +100,20 @@ const CustomerTable = () => {
 
   const getStatusTriggerColor = (status: CustomerStatus) => {
     switch(status) {
-      case 'new': return 'border-blue-200 text-blue-700 hover:border-blue-300';
-      case 'existing': return 'border-green-200 text-green-700 hover:border-green-300';
-      case 'pending': return 'border-amber-200 text-amber-700 hover:border-amber-300';
-      case 'finalised': return 'border-purple-200 text-purple-700 hover:border-purple-300';
+      case 'new': return 'border-blue-200 text-blue-700 bg-gradient-to-r from-blue-50 to-blue-100 hover:border-blue-300';
+      case 'existing': return 'border-green-200 text-green-700 bg-gradient-to-r from-green-50 to-green-100 hover:border-green-300';
+      case 'pending': return 'border-amber-200 text-amber-700 bg-gradient-to-r from-amber-50 to-amber-100 hover:border-amber-300';
+      case 'finalised': return 'border-purple-200 text-purple-700 bg-gradient-to-r from-purple-50 to-purple-100 hover:border-purple-300';
       default: return '';
     }
   };
 
   return (
     <div className="space-y-4">
-      <div className="p-4 bg-gradient-to-r from-white to-gray-50 border rounded-lg shadow-sm">
+      <div className="p-6 bg-gradient-to-r from-white via-gray-50 to-white border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-            <span className="text-sm font-medium text-gray-500">Filter by status:</span>
+            <span className="text-sm font-medium text-gray-700">Filter by status:</span>
             <Select
               value={statusFilter}
               onValueChange={(value) => {
@@ -121,7 +121,7 @@ const CustomerTable = () => {
                 setCurrentPage(1);
               }}
             >
-              <SelectTrigger className="w-[180px] bg-white">
+              <SelectTrigger className="w-[180px] bg-white shadow-sm hover:shadow transform hover:translate-y-[-1px] transition-all">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -142,16 +142,16 @@ const CustomerTable = () => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-9 max-w-[300px] bg-white"
+              className="pl-9 max-w-[300px] bg-white shadow-sm hover:shadow focus:shadow-md transition-all"
             />
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
           </div>
         </div>
       </div>
 
-      <div className="rounded-lg overflow-hidden border shadow-sm bg-white">
+      <div className="rounded-xl overflow-hidden border shadow-md bg-white hover:shadow-lg transition-shadow duration-300">
         <Table>
-          <TableHeader className="bg-gray-50">
+          <TableHeader className="bg-gradient-to-r from-gray-50 to-gray-100">
             <TableRow>
               <TableHead className="font-medium">Name</TableHead>
               <TableHead className="font-medium">Email</TableHead>
@@ -163,7 +163,7 @@ const CustomerTable = () => {
           </TableHeader>
           <TableBody>
             {currentCustomers.map((customer) => (
-              <TableRow key={customer.id} className="hover:bg-gray-50/50">
+              <TableRow key={customer.id} className="hover:bg-gray-50/50 transition-colors">
                 <TableCell className="font-medium">{customer.name}</TableCell>
                 <TableCell>{customer.email}</TableCell>
                 <TableCell>{customer.phone}</TableCell>
@@ -172,7 +172,7 @@ const CustomerTable = () => {
                     value={customer.status}
                     onValueChange={(value) => handleStatusChange(customer.id, value as CustomerStatus)}
                   >
-                    <SelectTrigger className={`w-[140px] ${getStatusTriggerColor(customer.status)}`}>
+                    <SelectTrigger className={`w-[140px] ${getStatusTriggerColor(customer.status)} shadow-sm hover:shadow-md transition-all`}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -189,7 +189,7 @@ const CustomerTable = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="sm" onClick={() => handleEditCustomer(customer)}>
+                          <Button variant="ghost" size="sm" onClick={() => handleEditCustomer(customer)} className="hover:scale-110 transition-transform">
                             <Edit className="h-4 w-4 text-gray-500 hover:text-broker-primary" />
                           </Button>
                         </TooltipTrigger>
@@ -202,7 +202,7 @@ const CustomerTable = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="sm" onClick={() => handleDeleteCustomer(customer.id)}>
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteCustomer(customer.id)} className="hover:scale-110 transition-transform">
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         </TooltipTrigger>
@@ -234,7 +234,7 @@ const CustomerTable = () => {
             <PaginationItem>
               <PaginationPrevious 
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                className={`${currentPage === 1 ? 'pointer-events-none opacity-50' : 'hover:scale-105 hover:shadow-md transition-all'}`}
               />
             </PaginationItem>
             
@@ -243,7 +243,9 @@ const CustomerTable = () => {
                 <PaginationLink 
                   isActive={currentPage === i + 1} 
                   onClick={() => setCurrentPage(i + 1)}
-                  className={currentPage === i + 1 ? 'bg-broker-primary text-white' : ''}
+                  className={`${currentPage === i + 1 ? 
+                    'bg-gradient-to-r from-broker-primary to-broker-accent text-white shadow-md' : 
+                    'hover:scale-105 hover:shadow-sm transition-all'}`}
                 >
                   {i + 1}
                 </PaginationLink>
@@ -253,7 +255,7 @@ const CustomerTable = () => {
             <PaginationItem>
               <PaginationNext 
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                className={`${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'hover:scale-105 hover:shadow-md transition-all'}`}
               />
             </PaginationItem>
           </PaginationContent>
