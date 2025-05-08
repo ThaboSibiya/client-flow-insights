@@ -1,5 +1,8 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
+import { toast } from '@/components/ui/use-toast';
 
 export type CustomerStatus = 'new' | 'existing' | 'pending' | 'finalised';
 
@@ -24,90 +27,192 @@ interface CRMContextType {
 
 const CRMContext = createContext<CRMContextType | undefined>(undefined);
 
-// Generate a random ID for new customers
-const generateId = () => Math.random().toString(36).substring(2, 9);
-
-// Sample data for demo purposes
-const initialCustomers: Customer[] = [
-  {
-    id: generateId(),
-    name: 'John Smith',
-    email: 'john.smith@example.com',
-    phone: '(555) 123-4567',
-    status: 'new',
-    notes: 'Initial contact made via website',
-    createdAt: new Date('2025-05-01'),
-    updatedAt: new Date('2025-05-01'),
-  },
-  {
-    id: generateId(),
-    name: 'Emma Johnson',
-    email: 'emma.j@example.com',
-    phone: '(555) 987-6543',
-    status: 'existing',
-    notes: 'Looking for updated policy options',
-    createdAt: new Date('2025-04-15'),
-    updatedAt: new Date('2025-05-02'),
-  },
-  {
-    id: generateId(),
-    name: 'Michael Brown',
-    email: 'mbrown@example.com',
-    phone: '(555) 456-7890',
-    status: 'pending',
-    notes: 'Reviewing policy proposal',
-    createdAt: new Date('2025-04-28'),
-    updatedAt: new Date('2025-05-03'),
-  },
-  {
-    id: generateId(),
-    name: 'Sarah Wilson',
-    email: 'sarah.w@example.com',
-    phone: '(555) 333-2222',
-    status: 'finalised',
-    notes: 'Policy #A-12345 issued',
-    createdAt: new Date('2025-04-10'),
-    updatedAt: new Date('2025-05-01'),
-  },
-];
-
 export const CRMProvider = ({ children }: { children: ReactNode }) => {
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const { user } = useAuth();
 
-  const addCustomer = (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date();
-    const newCustomer: Customer = {
-      ...customerData,
-      id: generateId(),
-      createdAt: now,
-      updatedAt: now,
+  // Fetch customers data from Supabase
+  useEffect(() => {
+    if (!user) {
+      setCustomers([]);
+      return;
+    }
+
+    const fetchCustomers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('customers')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          // Transform data from Supabase format to our Customer format
+          const formattedCustomers: Customer[] = data.map(item => ({
+            id: item.id,
+            name: item.name,
+            email: item.email,
+            phone: item.phone || '',
+            status: item.status as CustomerStatus,
+            notes: item.notes || '',
+            createdAt: new Date(item.created_at),
+            updatedAt: new Date(item.updated_at),
+          }));
+          
+          setCustomers(formattedCustomers);
+        }
+      } catch (error: any) {
+        console.error('Error fetching customers:', error.message);
+        toast({
+          title: "Error",
+          description: "Failed to load customers",
+          variant: "destructive",
+        });
+      }
     };
+
+    fetchCustomers();
+
+    // Set up realtime subscription
+    const subscription = supabase
+      .channel('customers-channel')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'customers',
+        },
+        () => {
+          // Refresh data when changes occur
+          fetchCustomers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [user]);
+
+  const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!user) return;
     
-    setCustomers(prev => [newCustomer, ...prev]);
+    try {
+      const { data, error } = await supabase
+        .from('customers')
+        .insert([
+          { 
+            ...customerData,
+            user_id: user.id
+          }
+        ])
+        .select('*')
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        const newCustomer: Customer = {
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          phone: data.phone || '',
+          status: data.status as CustomerStatus,
+          notes: data.notes || '',
+          createdAt: new Date(data.created_at),
+          updatedAt: new Date(data.updated_at),
+        };
+        
+        setCustomers(prev => [newCustomer, ...prev]);
+      }
+    } catch (error: any) {
+      console.error('Error adding customer:', error.message);
+      toast({
+        title: "Error",
+        description: "Failed to add customer",
+        variant: "destructive",
+      });
+    }
   };
 
-  const updateCustomerStatus = (id: string, status: CustomerStatus) => {
-    setCustomers(prev =>
-      prev.map(customer =>
-        customer.id === id
-          ? { ...customer, status, updatedAt: new Date() }
-          : customer
-      )
-    );
+  const updateCustomerStatus = async (id: string, status: CustomerStatus) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('customers')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      // Update will be received through realtime subscription
+    } catch (error: any) {
+      console.error('Error updating customer status:', error.message);
+      toast({
+        title: "Error",
+        description: "Failed to update customer status",
+        variant: "destructive",
+      });
+    }
   };
 
-  const updateCustomer = (id: string, customerData: Partial<Customer>) => {
-    setCustomers(prev =>
-      prev.map(customer =>
-        customer.id === id
-          ? { ...customer, ...customerData, updatedAt: new Date() }
-          : customer
-      )
-    );
+  const updateCustomer = async (id: string, customerData: Partial<Customer>) => {
+    if (!user) return;
+    
+    try {
+      // Transform to database format
+      const dbData: any = { ...customerData, updated_at: new Date().toISOString() };
+      
+      // Remove fields that shouldn't be sent to the database
+      if (dbData.createdAt) delete dbData.createdAt;
+      if (dbData.updatedAt) delete dbData.updatedAt;
+      
+      const { error } = await supabase
+        .from('customers')
+        .update(dbData)
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      // Update will be received through realtime subscription
+    } catch (error: any) {
+      console.error('Error updating customer:', error.message);
+      toast({
+        title: "Error",
+        description: "Failed to update customer",
+        variant: "destructive",
+      });
+    }
   };
 
-  const deleteCustomer = (id: string) => {
-    setCustomers(prev => prev.filter(customer => customer.id !== id));
+  const deleteCustomer = async (id: string) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('customers')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      // Update will be received through realtime subscription
+    } catch (error: any) {
+      console.error('Error deleting customer:', error.message);
+      toast({
+        title: "Error",
+        description: "Failed to delete customer",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

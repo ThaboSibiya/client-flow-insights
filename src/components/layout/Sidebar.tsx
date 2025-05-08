@@ -1,78 +1,95 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarGroup,
-} from "@/components/ui/sidebar";
-import { Users, Home, CircleCheck, ChartBar } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { LayoutDashboard, Users, UserPlus, BarChart3, Home } from 'lucide-react';
+import UserProfile from '../auth/UserProfile';
 
-const AppSidebar = () => {
-  const location = useLocation();
-  
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
+interface SidebarItemProps {
+  icon: React.ReactNode;
+  label: string;
+  to: string;
+  isCollapsed?: boolean;
+}
 
+const SidebarItem = ({ icon, label, to, isCollapsed }: SidebarItemProps) => {
   return (
-    <Sidebar>
-      <SidebarHeader className="p-4 border-b">
-        <h1 className="text-xl font-bold text-broker-primary">Broker CRM</h1>
-      </SidebarHeader>
-      
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild className={isActive('/') ? 'bg-broker-light text-broker-primary' : ''}>
-                <Link to="/" className="flex items-center gap-3">
-                  <Home size={20} />
-                  <span>Dashboard</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild className={isActive('/customers') ? 'bg-broker-light text-broker-primary' : ''}>
-                <Link to="/customers" className="flex items-center gap-3">
-                  <Users size={20} />
-                  <span>Customers</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild className={isActive('/onboarding') ? 'bg-broker-light text-broker-primary' : ''}>
-                <Link to="/onboarding" className="flex items-center gap-3">
-                  <CircleCheck size={20} />
-                  <span>Onboarding</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild className={isActive('/analytics') ? 'bg-broker-light text-broker-primary' : ''}>
-                <Link to="/analytics" className="flex items-center gap-3">
-                  <ChartBar size={20} />
-                  <span>Analytics</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-      </SidebarContent>
-      
-      <SidebarFooter className="p-4 border-t">
-        <p className="text-sm text-gray-500">© 2025 Broker CRM</p>
-      </SidebarFooter>
-    </Sidebar>
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        cn(
+          'flex items-center space-x-2 px-4 py-3 rounded-lg transition-colors hover:bg-gray-100',
+          isActive
+            ? 'bg-gradient-to-r from-broker-primary/10 to-broker-accent/10 text-broker-primary'
+            : 'text-gray-600 hover:text-broker-primary',
+          isCollapsed ? 'justify-center' : ''
+        )
+      }
+    >
+      <div>{icon}</div>
+      {!isCollapsed && <span>{label}</span>}
+    </NavLink>
   );
 };
 
-export default AppSidebar;
+interface SidebarProps {
+  isCollapsed?: boolean;
+}
+
+const Sidebar = ({ isCollapsed = false }: SidebarProps) => {
+  return (
+    <div className={cn(
+      'h-full bg-white border-r border-gray-200 transition-all',
+      isCollapsed ? 'w-16' : 'w-64'
+    )}>
+      <div className={cn(
+        'flex items-center justify-center h-16 border-b border-gray-200',
+        isCollapsed ? 'px-2' : 'px-6'
+      )}>
+        {isCollapsed ? (
+          <span className="font-bold text-xl text-broker-primary">B</span>
+        ) : (
+          <span className="font-bold text-xl bg-gradient-to-r from-broker-primary to-broker-accent bg-clip-text text-transparent">Broker CRM</span>
+        )}
+      </div>
+      <div className="p-3 flex flex-col h-[calc(100%-4rem)] justify-between">
+        <nav className="space-y-1">
+          <SidebarItem 
+            icon={<Home size={isCollapsed ? 20 : 16} />} 
+            label="Home" 
+            to="/" 
+            isCollapsed={isCollapsed}
+          />
+          <SidebarItem 
+            icon={<LayoutDashboard size={isCollapsed ? 20 : 16} />} 
+            label="Dashboard" 
+            to="/dashboard" 
+            isCollapsed={isCollapsed}
+          />
+          <SidebarItem 
+            icon={<Users size={isCollapsed ? 20 : 16} />} 
+            label="Customers" 
+            to="/customers" 
+            isCollapsed={isCollapsed}
+          />
+          <SidebarItem 
+            icon={<UserPlus size={isCollapsed ? 20 : 16} />} 
+            label="Onboarding" 
+            to="/onboarding" 
+            isCollapsed={isCollapsed}
+          />
+          <SidebarItem 
+            icon={<BarChart3 size={isCollapsed ? 20 : 16} />} 
+            label="Analytics" 
+            to="/analytics" 
+            isCollapsed={isCollapsed}
+          />
+        </nav>
+        
+        {!isCollapsed && <UserProfile />}
+      </div>
+    </div>
+  );
+};
+
+export default Sidebar;
