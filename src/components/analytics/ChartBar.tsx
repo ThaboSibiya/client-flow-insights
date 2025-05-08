@@ -8,7 +8,7 @@ interface ChartBarProps {
   fill: string;
   name: string;
   barSize: number;
-  radius?: number[];
+  radius?: number | [number, number, number, number];
 }
 
 const ChartBar: React.FC<ChartBarProps> = ({ 
