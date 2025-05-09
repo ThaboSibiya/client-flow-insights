@@ -24,6 +24,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCRM, CustomerStatus } from '@/context/CRMContext';
 import { toast } from '@/components/ui/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -43,6 +45,9 @@ type FormValues = z.infer<typeof formSchema>;
 
 const OnboardingForm = () => {
   const { addCustomer } = useCRM();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -54,19 +59,43 @@ const OnboardingForm = () => {
     },
   });
 
-  const onSubmit = (values: FormValues) => {
-    addCustomer({
-      name: values.name,
-      email: values.email,
-      phone: values.phone,
-      status: values.status as CustomerStatus,
-      notes: values.notes || '',
-    });
-    form.reset();
-    toast({
-      title: 'Customer added',
-      description: `${values.name} has been successfully onboarded.`,
-    });
+  const onSubmit = async (values: FormValues) => {
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to add customers",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await addCustomer({
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        status: values.status as CustomerStatus,
+        notes: values.notes || '',
+      });
+      
+      form.reset();
+      
+      toast({
+        title: "Success",
+        description: `${values.name} has been successfully onboarded.`,
+      });
+      
+      // Optionally redirect to customers page after successful submission
+      setTimeout(() => {
+        navigate('/customers');
+      }, 1500);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: `Failed to add customer: ${error.message}`,
+        variant: "destructive",
+      });
+    }
   };
 
   return (

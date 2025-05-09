@@ -43,6 +43,7 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
         const { data, error } = await supabase
           .from('customers')
           .select('*')
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -85,6 +86,7 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
           event: '*',
           schema: 'public',
           table: 'customers',
+          filter: `user_id=eq.${user.id}`,
         },
         () => {
           // Refresh data when changes occur
@@ -99,9 +101,18 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add customers",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
+      console.log("Adding customer with data:", { ...customerData, user_id: user.id });
+      
       const { data, error } = await supabase
         .from('customers')
         .insert([
@@ -113,9 +124,14 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
         .select('*')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
       
       if (data) {
+        console.log("Customer added successfully:", data);
+        
         const newCustomer: Customer = {
           id: data.id,
           name: data.name,
@@ -128,12 +144,17 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
         };
         
         setCustomers(prev => [newCustomer, ...prev]);
+        
+        toast({
+          title: "Success",
+          description: "Customer added successfully",
+        });
       }
     } catch (error: any) {
       console.error('Error adding customer:', error.message);
       toast({
         title: "Error",
-        description: "Failed to add customer",
+        description: `Failed to add customer: ${error.message}`,
         variant: "destructive",
       });
     }
@@ -145,13 +166,20 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { error } = await supabase
         .from('customers')
-        .update({ status, updated_at: new Date().toISOString() })
+        .update({ 
+          status, 
+          updated_at: new Date().toISOString() 
+        })
         .eq('id', id)
         .eq('user_id', user.id);
 
       if (error) throw error;
       
       // Update will be received through realtime subscription
+      toast({
+        title: "Success",
+        description: "Customer status updated",
+      });
     } catch (error: any) {
       console.error('Error updating customer status:', error.message);
       toast({
@@ -182,6 +210,10 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Update will be received through realtime subscription
+      toast({
+        title: "Success",
+        description: "Customer updated successfully",
+      });
     } catch (error: any) {
       console.error('Error updating customer:', error.message);
       toast({
@@ -205,6 +237,10 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Update will be received through realtime subscription
+      toast({
+        title: "Success",
+        description: "Customer deleted successfully",
+      });
     } catch (error: any) {
       console.error('Error deleting customer:', error.message);
       toast({
