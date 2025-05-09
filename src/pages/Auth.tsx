@@ -14,6 +14,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('login');
   const navigate = useNavigate();
 
   // Check for existing session
@@ -49,10 +50,19 @@ const Auth = () => {
       
       if (error) throw error;
       
-      toast({
-        title: "Account created",
-        description: "Check your email for the confirmation link",
-      });
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        toast({
+          title: "Account already exists",
+          description: "Please log in instead",
+          variant: "destructive",
+        });
+        setActiveTab('login');
+      } else {
+        toast({
+          title: "Account created",
+          description: "Check your email for the confirmation link",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -101,7 +111,7 @@ const Auth = () => {
             <CardDescription className="text-center">Sign in to your account or create a new one</CardDescription>
           </CardHeader>
           
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
