@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useCRM } from '@/context/CRMContext';
 import StatusCard from '@/components/dashboard/StatusCard';
 import CustomerActivityChart from '@/components/dashboard/CustomerActivityChart';
 import RecentActivity from '@/components/dashboard/RecentActivity';
 import { Users, ChartBar, CircleCheck, Database } from 'lucide-react';
+import { generateMonthlyActivityData } from '@/utils/chart-utils';
 
 const Dashboard = () => {
   const { customers } = useCRM();
@@ -15,44 +16,8 @@ const Dashboard = () => {
   const pendingCustomers = customers.filter(c => c.status === 'pending').length;
   const finalisedCustomers = customers.filter(c => c.status === 'finalised').length;
   
-  // Sample data for the chart
-  const chartData = [
-    {
-      name: 'Jan',
-      new: 4,
-      existing: 3,
-      pending: 2,
-      finalised: 1,
-    },
-    {
-      name: 'Feb',
-      new: 3,
-      existing: 4,
-      pending: 3,
-      finalised: 2,
-    },
-    {
-      name: 'Mar',
-      new: 5,
-      existing: 2,
-      pending: 4,
-      finalised: 3,
-    },
-    {
-      name: 'Apr',
-      new: 2,
-      existing: 6,
-      pending: 1,
-      finalised: 4,
-    },
-    {
-      name: 'May',
-      new: 3,
-      existing: 4,
-      pending: 5,
-      finalised: 2,
-    },
-  ];
+  // Generate monthly data from actual customer records
+  const chartData = generateMonthlyActivityData(customers);
 
   return (
     <div className="space-y-6">
