@@ -1,12 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import CustomerTable from '@/components/customers/CustomerTable';
 import { Button } from '@/components/ui/button';
 import { Mail, UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import EmailCustomerForm from '@/components/customers/EmailCustomerForm';
 
 const Customers = () => {
   const navigate = useNavigate();
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   
   const handleOnboardNewCustomer = () => {
     navigate('/onboarding');
@@ -28,10 +31,29 @@ const Customers = () => {
               <UserPlus className="h-4 w-4" />
               New Customer
             </Button>
+            <Button
+              onClick={() => setEmailDialogOpen(true)}
+              variant="outline"
+              className="flex items-center gap-2 hover:shadow-md transition-all"
+            >
+              <Mail className="h-4 w-4" />
+              Send Email
+            </Button>
           </div>
         </div>
       </div>
       <CustomerTable />
+
+      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <EmailCustomerForm 
+            customerEmail="support@example.com"
+            customerName="Customer Support"
+            customerId="00000000-0000-0000-0000-000000000000"
+            onClose={() => setEmailDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
