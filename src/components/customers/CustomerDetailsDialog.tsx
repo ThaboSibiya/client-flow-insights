@@ -27,9 +27,8 @@ import {
 } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Mail, Save, X } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import CustomerFileUpload from './CustomerFileUpload';
-import EmailCustomerForm from './EmailCustomerForm';
 
 interface CustomerDetailsDialogProps {
   customer: Customer | null;
@@ -62,13 +61,10 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-          <TabsList className="grid grid-cols-4 mb-4">
+          <TabsList className="grid grid-cols-3 mb-4">
             <TabsTrigger value="details">Customer Details</TabsTrigger>
             <TabsTrigger value="notes">Notes</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="email" className="flex items-center gap-1">
-              <Mail className="h-3 w-3" /> Email
-            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="details">
@@ -205,17 +201,6 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
                 Close
               </Button>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="email">
-            {customer && (
-              <EmailCustomerForm 
-                customerEmail={customer.email}
-                customerName={customer.name}
-                customerId={customer.id}
-                onClose={() => setActiveTab('details')}
-              />
-            )}
           </TabsContent>
         </Tabs>
       </DialogContent>
