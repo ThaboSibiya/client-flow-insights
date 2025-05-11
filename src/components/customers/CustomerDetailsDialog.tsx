@@ -212,6 +212,7 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
               <EmailCustomerForm 
                 customerEmail={customer.email}
                 customerName={customer.name}
+                customerId={customer.id}
                 onClose={() => setActiveTab('details')}
               />
             )}

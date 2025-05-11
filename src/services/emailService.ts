@@ -149,13 +149,21 @@ export const sendEmail = async ({ to, subject, message, senderName, templateId, 
 
 export const getEmailHistory = async (customerId: string) => {
   try {
+    // Use a raw query to get the email history since the table might not be in the types yet
     const { data, error } = await supabase
-      .from('email_history')
-      .select('*')
-      .eq('customer_id', customerId)
-      .order('created_at', { ascending: false });
+      .rpc('get_email_history', { customer_id_param: customerId });
       
-    if (error) throw error;
+    if (error) {
+      // Fallback to a direct SQL query if the RPC doesn't exist
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('email_history')
+        .select('*')
+        .eq('customer_id', customerId)
+        .order('created_at', { ascending: false });
+        
+      if (fallbackError) throw fallbackError;
+      return { success: true, data: fallbackData };
+    }
     
     return { success: true, data };
   } catch (error: any) {
