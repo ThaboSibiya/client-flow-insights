@@ -3,7 +3,7 @@ import React from 'react';
 import { Customer, CustomerStatus } from '@/context/CRMContext';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Eye, Edit, Trash2 } from 'lucide-react';
+import { Eye, Mail, Trash2 } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import StatusSelector from './StatusSelector';
 
@@ -52,6 +52,27 @@ const CustomerTableRow = ({
               </TooltipTrigger>
               <TooltipContent>
                 <p>View Customer Details</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    onView(customer);
+                    // Setting activeTab to 'email' will be handled in the parent component
+                  }}
+                  className="hover:scale-110 transition-transform"
+                >
+                  <Mail className="h-4 w-4 text-green-500" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Email Customer</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

@@ -21,6 +21,7 @@ const CustomerTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [activeDialogTab, setActiveDialogTab] = useState('details');
 
   const pageSize = 5;
   
@@ -51,8 +52,9 @@ const CustomerTable = () => {
     }
   };
 
-  const handleOpenCustomerDetails = (customer: Customer) => {
+  const handleOpenCustomerDetails = (customer: Customer, tab = 'details') => {
     setSelectedCustomer(customer);
+    setActiveDialogTab(tab);
     setIsFormOpen(true);
   };
 
@@ -92,7 +94,7 @@ const CustomerTable = () => {
               <CustomerTableRow 
                 key={customer.id}
                 customer={customer}
-                onView={handleOpenCustomerDetails}
+                onView={(customer) => handleOpenCustomerDetails(customer)}
                 onDelete={handleDeleteCustomer}
                 onStatusChange={handleStatusChange}
               />
@@ -122,6 +124,7 @@ const CustomerTable = () => {
         onClose={() => {
           setIsFormOpen(false);
           setSelectedCustomer(null);
+          setActiveDialogTab('details');
         }} 
       />
     </div>
