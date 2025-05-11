@@ -107,18 +107,15 @@ export const sendEmail = async ({ to, subject, message, senderName, templateId, 
     
     // Save email history if customerId provided
     if (customerId) {
-      // Use raw SQL insert since the table might not be in the type system yet
-      const { error: historyError } = await supabase.rpc(
-        'insert_email_history', 
-        {
-          p_customer_id: customerId,
-          p_sender: senderName,
-          p_subject: emailSubject,
-          p_message: emailContent,
-          p_attachments: attachmentPaths.length > 0 ? attachmentPaths : null,
-          p_status: 'sent'
-        }
-      );
+      // Use the REST API instead of the typed approach to avoid TypeScript errors
+      const { error: historyError } = await supabase.rest.rpc('insert_email_history', {
+        p_customer_id: customerId,
+        p_sender: senderName,
+        p_subject: emailSubject,
+        p_message: emailContent,
+        p_attachments: attachmentPaths.length > 0 ? attachmentPaths : null,
+        p_status: 'sent'
+      });
         
       if (historyError) {
         console.error("Error logging email history:", historyError);
@@ -151,17 +148,17 @@ export const sendEmail = async ({ to, subject, message, senderName, templateId, 
 
 export const getEmailHistory = async (customerId: string) => {
   try {
-    // Use the RPC function to get email history
-    const { data, error } = await supabase
-      .rpc('get_email_history', { customer_id_param: customerId });
+    // Use the REST API instead of the typed approach to avoid TypeScript errors
+    const { data, error } = await supabase.rest.rpc('get_email_history', {
+      customer_id_param: customerId
+    });
       
     if (error) {
       console.error("RPC function error:", error);
       
-      // Fall back to a raw query
-      const { data: rawData, error: rawError } = await supabase
-        .from('email_history')
-        .select('*')
+      // Fall back to a REST query
+      const { data: rawData, error: rawError } = await supabase.rest.from('email_history')
+        .select()
         .eq('customer_id', customerId)
         .order('created_at', { ascending: false });
       
