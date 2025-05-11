@@ -3,20 +3,20 @@ import React from 'react';
 import { Customer, CustomerStatus } from '@/context/CRMContext';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2 } from 'lucide-react';
+import { Eye, Edit, Trash2 } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import StatusSelector from './StatusSelector';
 
 interface CustomerTableRowProps {
   customer: Customer;
-  onEdit: (customer: Customer) => void;
+  onView: (customer: Customer) => void;
   onDelete: (customerId: string) => void;
   onStatusChange: (customerId: string, newStatus: CustomerStatus) => void;
 }
 
 const CustomerTableRow = ({ 
   customer, 
-  onEdit, 
+  onView,
   onDelete, 
   onStatusChange 
 }: CustomerTableRowProps) => {
@@ -46,12 +46,12 @@ const CustomerTableRow = ({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={() => onEdit(customer)} className="hover:scale-110 transition-transform">
-                  <Edit className="h-4 w-4 text-gray-500 hover:text-broker-primary" />
+                <Button variant="ghost" size="sm" onClick={() => onView(customer)} className="hover:scale-110 transition-transform">
+                  <Eye className="h-4 w-4 text-blue-500 hover:text-broker-primary" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Edit Customer</p>
+                <p>View Customer Details</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

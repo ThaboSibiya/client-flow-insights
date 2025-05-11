@@ -9,7 +9,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
-import CustomerDetailsForm from './CustomerDetailsForm';
+import CustomerDetailsDialog from './CustomerDetailsDialog';
 import CustomerFilters from './CustomerFilters';
 import CustomerTableRow from './CustomerTableRow';
 import CustomerPagination from './CustomerPagination';
@@ -51,7 +51,7 @@ const CustomerTable = () => {
     }
   };
 
-  const handleEditCustomer = (customer: Customer) => {
+  const handleOpenCustomerDetails = (customer: Customer) => {
     setSelectedCustomer(customer);
     setIsFormOpen(true);
   };
@@ -92,7 +92,7 @@ const CustomerTable = () => {
               <CustomerTableRow 
                 key={customer.id}
                 customer={customer}
-                onEdit={handleEditCustomer}
+                onView={handleOpenCustomerDetails}
                 onDelete={handleDeleteCustomer}
                 onStatusChange={handleStatusChange}
               />
@@ -115,8 +115,8 @@ const CustomerTable = () => {
         onPageChange={setCurrentPage}
       />
 
-      {/* Edit Customer Dialog */}
-      <CustomerDetailsForm 
+      {/* Customer Details Dialog */}
+      <CustomerDetailsDialog 
         customer={selectedCustomer} 
         isOpen={isFormOpen} 
         onClose={() => {
