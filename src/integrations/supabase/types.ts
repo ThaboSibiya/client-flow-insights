@@ -45,6 +45,47 @@ export type Database = {
         }
         Relationships: []
       }
+      email_history: {
+        Row: {
+          attachments: string[] | null
+          created_at: string
+          customer_id: string
+          id: string
+          message: string
+          sender: string
+          status: string
+          subject: string
+        }
+        Insert: {
+          attachments?: string[] | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          message: string
+          sender: string
+          status?: string
+          subject: string
+        }
+        Update: {
+          attachments?: string[] | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          message?: string
+          sender?: string
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_history_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

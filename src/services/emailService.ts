@@ -107,16 +107,18 @@ export const sendEmail = async ({ to, subject, message, senderName, templateId, 
     
     // Save email history if customerId provided
     if (customerId) {
-      const { error: historyError } = await supabase
-        .from('email_history')
-        .insert({
-          customer_id: customerId,
-          sender: senderName,
-          subject: emailSubject,
-          message: emailContent,
-          attachments: attachmentPaths.length > 0 ? attachmentPaths : null,
-          status: 'sent'
-        });
+      // Use raw SQL insert since the table might not be in the type system yet
+      const { error: historyError } = await supabase.rpc(
+        'insert_email_history', 
+        {
+          p_customer_id: customerId,
+          p_sender: senderName,
+          p_subject: emailSubject,
+          p_message: emailContent,
+          p_attachments: attachmentPaths.length > 0 ? attachmentPaths : null,
+          p_status: 'sent'
+        }
+      );
         
       if (historyError) {
         console.error("Error logging email history:", historyError);
@@ -149,20 +151,26 @@ export const sendEmail = async ({ to, subject, message, senderName, templateId, 
 
 export const getEmailHistory = async (customerId: string) => {
   try {
-    // Use a raw query to get the email history since the table might not be in the types yet
+    // Use the RPC function to get email history
     const { data, error } = await supabase
       .rpc('get_email_history', { customer_id_param: customerId });
       
     if (error) {
-      // Fallback to a direct SQL query if the RPC doesn't exist
-      const { data: fallbackData, error: fallbackError } = await supabase
+      console.error("RPC function error:", error);
+      
+      // Fall back to a raw query
+      const { data: rawData, error: rawError } = await supabase
         .from('email_history')
         .select('*')
         .eq('customer_id', customerId)
         .order('created_at', { ascending: false });
-        
-      if (fallbackError) throw fallbackError;
-      return { success: true, data: fallbackData };
+      
+      if (rawError) {
+        console.error("Raw query error:", rawError);
+        throw rawError;
+      }
+      
+      return { success: true, data: rawData };
     }
     
     return { success: true, data };
