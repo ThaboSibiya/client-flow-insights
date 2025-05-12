@@ -61,9 +61,8 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-          <TabsList className="grid grid-cols-3 mb-4">
+          <TabsList className="grid grid-cols-2 mb-4">
             <TabsTrigger value="details">Customer Details</TabsTrigger>
-            <TabsTrigger value="notes">Notes</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
           </TabsList>
           
@@ -149,41 +148,6 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
                   <Button type="submit" className="bg-gradient-to-r from-broker-primary to-broker-accent hover:shadow-md transition-all">
                     <Save className="mr-2 h-4 w-4" />
                     Save Changes
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </TabsContent>
-          
-          <TabsContent value="notes">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-broker-dark font-medium">Customer Notes</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Enter detailed notes about this customer" 
-                          className="min-h-[200px] border-gray-300 focus:border-broker-accent" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="flex justify-end gap-2 mt-4">
-                  <Button type="button" variant="outline" onClick={onClose} className="border-gray-300">
-                    <X className="mr-2 h-4 w-4" />
-                    Cancel
-                  </Button>
-                  <Button type="submit" className="bg-gradient-to-r from-broker-primary to-broker-accent hover:shadow-md transition-all">
-                    <Save className="mr-2 h-4 w-4" />
-                    Save Notes
                   </Button>
                 </div>
               </form>
