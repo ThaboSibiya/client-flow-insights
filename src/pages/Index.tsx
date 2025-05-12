@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +22,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const backgroundRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   
   // Effect for parallax background movement
   useEffect(() => {
@@ -32,6 +33,13 @@ const Index = () => {
       const y = e.clientY / window.innerHeight;
       
       backgroundRef.current.style.transform = `translate(${x * -10}px, ${y * -10}px)`;
+
+      // 3D effect for title
+      if (titleRef.current) {
+        const rotateX = (y - 0.5) * 10; // -5 to 5 degrees
+        const rotateY = (0.5 - x) * 10; // -5 to 5 degrees
+        titleRef.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+      }
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -39,6 +47,25 @@ const Index = () => {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
+  }, []);
+
+  // Dynamic typing effect for subtitle
+  const [subtitle, setSubtitle] = useState("");
+  const fullSubtitle = "Your all-in-one platform for managing customer relationships, tracking policies, and growing your insurance business with powerful analytics.";
+  
+  useEffect(() => {
+    let index = 0;
+    
+    const typingInterval = setInterval(() => {
+      if (index < fullSubtitle.length) {
+        setSubtitle((prev) => prev + fullSubtitle.charAt(index));
+        index++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 30);
+    
+    return () => clearInterval(typingInterval);
   }, []);
 
   const features = [
@@ -82,21 +109,22 @@ const Index = () => {
       
       <div className="container max-w-6xl mx-auto px-4 py-16 relative z-10">
         <div className="flex flex-col items-center text-center mb-16">
-          <div className="relative">
-            <span className="absolute -inset-1 rounded-lg bg-gradient-to-r from-broker-primary via-broker-secondary to-broker-accent opacity-20 blur"></span>
-            <h1 className="relative text-5xl md:text-6xl font-bold bg-gradient-to-r from-broker-primary via-broker-secondary to-broker-accent bg-clip-text text-transparent leading-tight drop-shadow-sm">
-              Welcome to Broker CRM
-            </h1>
-          </div>
-          <p className="text-xl mt-6 text-gray-600 max-w-3xl leading-relaxed">
-            Your all-in-one platform for managing customer relationships, tracking policies, and growing your insurance business with powerful analytics.
+          <h1 
+            ref={titleRef}
+            className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-broker-primary via-broker-secondary to-broker-accent bg-clip-text text-transparent leading-tight transition-transform duration-300"
+            style={{ transformStyle: 'preserve-3d' }}
+          >
+            Welcome to Broker CRM
+          </h1>
+          <p className="text-xl mt-6 text-gray-600 max-w-3xl leading-relaxed min-h-[96px]">
+            {subtitle}
           </p>
         </div>
         
         {/* Desktop Cards */}
         <div className="hidden md:grid md:grid-cols-3 gap-8 mb-16">
           {features.map((feature, index) => (
-            <Card key={index} className="group relative overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border-0 bg-white/90 backdrop-blur-sm">
+            <Card key={index} className="group relative overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border-0 bg-white/90 backdrop-blur-sm hover:-translate-y-2">
               <div className={`absolute inset-x-0 top-0 h-1 ${feature.color} transform origin-left transition-transform duration-500 scale-x-0 group-hover:scale-x-100`}></div>
               <CardContent className="pt-10 pb-8 px-6 flex flex-col items-center text-center h-full">
                 <div className="mb-2 transform group-hover:scale-110 transition-transform duration-500">
@@ -158,7 +186,7 @@ const Index = () => {
             </div>
             <Button 
               onClick={() => navigate('/dashboard')} 
-              className="bg-gradient-to-r from-broker-primary to-broker-accent hover:from-broker-primary/90 hover:to-broker-accent/90 text-white px-6 py-4 h-auto shadow-lg hover:shadow-xl transition-all"
+              className="bg-gradient-to-r from-broker-primary to-broker-accent hover:from-broker-primary/90 hover:to-broker-accent/90 text-white px-6 py-4 h-auto shadow-lg hover:shadow-xl transition-all hover:scale-105"
             >
               Get Started Now
             </Button>
