@@ -23,7 +23,11 @@ export const addCustomer = async (
       .from('customers')
       .insert([
         { 
-          ...customerData,
+          name: customerData.name,
+          email: customerData.email,
+          phone: customerData.phone,
+          status: customerData.status,
+          notes: customerData.notes,
           user_id: userId
         }
       ])
@@ -47,6 +51,9 @@ export const addCustomer = async (
         notes: data.notes || '',
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
+        activeTickets: [],
+        ticketCount: 0,
+        lastTicketDate: undefined
       };
       
       toast({
