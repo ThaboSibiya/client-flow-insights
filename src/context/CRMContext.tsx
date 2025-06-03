@@ -8,7 +8,7 @@ import {
   deleteCustomer as deleteCustomerService
 } from '@/services/customerService';
 import { useAuth } from './AuthContext';
-import { Customer, CustomerStatus, CRMContextType } from '@/types/customer';
+import { Customer, CustomerStatus, CustomerTicket, TicketStatus, CRMContextType } from '@/types/customer';
 
 const CRMContext = createContext<CRMContextType | undefined>(undefined);
 
@@ -16,10 +16,14 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
   const { customers, setCustomers } = useCustomerData();
   const { user } = useAuth();
 
-  const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'activeTickets' | 'ticketCount'>) => {
     if (!user) return;
     
-    const newCustomer = await addCustomerService(customerData, user.id);
+    const newCustomer = await addCustomerService({
+      ...customerData,
+      activeTickets: [],
+      ticketCount: 0
+    }, user.id);
     if (newCustomer) {
       setCustomers(prev => [newCustomer, ...prev]);
     }
@@ -46,6 +50,46 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
     // Actual state update will happen via realtime subscription
   };
 
+  const createTicket = async (customerId: string, ticketData: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>) => {
+    if (!user) return;
+    
+    // Generate ticket number
+    const ticketNumber = `TKT-${Date.now().toString().slice(-6)}`;
+    
+    const newTicket: CustomerTicket = {
+      id: `ticket-${Date.now()}`,
+      ticketNumber,
+      ...ticketData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Update customer with new ticket
+    setCustomers(prev => prev.map(customer => 
+      customer.id === customerId 
+        ? {
+            ...customer,
+            activeTickets: [...(customer.activeTickets || []), newTicket],
+            ticketCount: (customer.ticketCount || 0) + 1,
+            lastTicketDate: new Date()
+          }
+        : customer
+    ));
+  };
+
+  const updateTicketStatus = async (ticketId: string, status: TicketStatus) => {
+    if (!user) return;
+    
+    setCustomers(prev => prev.map(customer => ({
+      ...customer,
+      activeTickets: (customer.activeTickets || []).map(ticket =>
+        ticket.id === ticketId 
+          ? { ...ticket, status, updatedAt: new Date() }
+          : ticket
+      )
+    })));
+  };
+
   return (
     <CRMContext.Provider
       value={{
@@ -54,6 +98,8 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
         updateCustomerStatus,
         updateCustomer,
         deleteCustomer,
+        createTicket,
+        updateTicketStatus,
       }}
     >
       {children}
@@ -70,4 +116,4 @@ export const useCRM = () => {
 };
 
 // Re-export types for easier imports elsewhere
-export type { Customer, CustomerStatus };
+export type { Customer, CustomerStatus, CustomerTicket, TicketStatus };

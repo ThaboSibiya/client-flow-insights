@@ -1,13 +1,40 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Customer, CustomerStatus } from '@/types/customer';
+import { Customer, CustomerStatus, CustomerTicket } from '@/types/customer';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 
 export const useCustomerData = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const { user } = useAuth();
+
+  // Generate sample ticket data for demonstration
+  const generateSampleTickets = (customerId: string): CustomerTicket[] => {
+    const sampleTickets: CustomerTicket[] = [
+      {
+        id: `ticket-${customerId}-1`,
+        ticketNumber: `TKT-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+        status: 'open',
+        priority: 'high',
+        subject: 'Policy inquiry regarding coverage',
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+        updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+      },
+      {
+        id: `ticket-${customerId}-2`,
+        ticketNumber: `TKT-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+        status: 'resolved',
+        priority: 'medium',
+        subject: 'Documentation request',
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+        updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      }
+    ];
+    
+    // Randomly assign tickets to some customers (not all)
+    return Math.random() > 0.6 ? sampleTickets : [];
+  };
 
   // Fetch customers data from Supabase
   useEffect(() => {
@@ -30,16 +57,22 @@ export const useCustomerData = () => {
 
         if (data) {
           // Transform data from Supabase format to our Customer format
-          const formattedCustomers: Customer[] = data.map(item => ({
-            id: item.id,
-            name: item.name,
-            email: item.email,
-            phone: item.phone || '',
-            status: item.status as CustomerStatus,
-            notes: item.notes || '',
-            createdAt: new Date(item.created_at),
-            updatedAt: new Date(item.updated_at),
-          }));
+          const formattedCustomers: Customer[] = data.map(item => {
+            const activeTickets = generateSampleTickets(item.id);
+            return {
+              id: item.id,
+              name: item.name,
+              email: item.email,
+              phone: item.phone || '',
+              status: item.status as CustomerStatus,
+              notes: item.notes || '',
+              createdAt: new Date(item.created_at),
+              updatedAt: new Date(item.updated_at),
+              activeTickets,
+              ticketCount: activeTickets.length,
+              lastTicketDate: activeTickets.length > 0 ? activeTickets[0].createdAt : undefined,
+            };
+          });
           
           setCustomers(formattedCustomers);
         }

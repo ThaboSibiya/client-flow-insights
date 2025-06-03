@@ -13,14 +13,16 @@ import CustomerDetailsDialog from './CustomerDetailsDialog';
 import CustomerFilters from './CustomerFilters';
 import CustomerTableRow from './CustomerTableRow';
 import CustomerPagination from './CustomerPagination';
+import TicketManagementDialog from './TicketManagementDialog';
 
 const CustomerTable = () => {
-  const { customers, updateCustomerStatus, deleteCustomer } = useCRM();
+  const { customers, updateCustomerStatus, deleteCustomer, createTicket, updateTicketStatus } = useCRM();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
   const [activeDialogTab, setActiveDialogTab] = useState('details');
 
   const pageSize = 5;
@@ -58,6 +60,11 @@ const CustomerTable = () => {
     setIsFormOpen(true);
   };
 
+  const handleManageTickets = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setIsTicketDialogOpen(true);
+  };
+
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value);
     setCurrentPage(1);
@@ -85,6 +92,7 @@ const CustomerTable = () => {
               <TableHead className="font-medium">Email</TableHead>
               <TableHead className="font-medium">Phone</TableHead>
               <TableHead className="font-medium">Status</TableHead>
+              <TableHead className="font-medium">Tickets</TableHead>
               <TableHead className="font-medium">Created</TableHead>
               <TableHead className="font-medium text-right">Actions</TableHead>
             </TableRow>
@@ -97,15 +105,16 @@ const CustomerTable = () => {
                 onView={(customer) => handleOpenCustomerDetails(customer)}
                 onDelete={handleDeleteCustomer}
                 onStatusChange={handleStatusChange}
+                onManageTickets={handleManageTickets}
               />
             ))}
             
             {currentCustomers.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                   {searchQuery || statusFilter !== 'all' ? 'No customers match your search' : 'No customers found'}
                 </TableCell>
-              </TableRow>
+              )}
             )}
           </TableBody>
         </Table>
@@ -126,6 +135,18 @@ const CustomerTable = () => {
           setSelectedCustomer(null);
           setActiveDialogTab('details');
         }} 
+      />
+
+      {/* Ticket Management Dialog */}
+      <TicketManagementDialog 
+        customer={selectedCustomer}
+        isOpen={isTicketDialogOpen}
+        onClose={() => {
+          setIsTicketDialogOpen(false);
+          setSelectedCustomer(null);
+        }}
+        onCreateTicket={createTicket}
+        onUpdateTicketStatus={updateTicketStatus}
       />
     </div>
   );
