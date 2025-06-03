@@ -3,6 +3,7 @@ import React from 'react';
 import { Customer, CustomerStatus } from '@/context/CRMContext';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Eye, Trash2, Ticket } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import StatusSelector from './StatusSelector';
@@ -10,6 +11,8 @@ import TicketIndicator from './TicketIndicator';
 
 interface CustomerTableRowProps {
   customer: Customer;
+  isSelected: boolean;
+  onSelect: (checked: boolean) => void;
   onView: (customer: Customer) => void;
   onDelete: (customerId: string) => void;
   onStatusChange: (customerId: string, newStatus: CustomerStatus) => void;
@@ -18,6 +21,8 @@ interface CustomerTableRowProps {
 
 const CustomerTableRow = ({ 
   customer, 
+  isSelected,
+  onSelect,
   onView,
   onDelete, 
   onStatusChange,
@@ -33,7 +38,13 @@ const CustomerTableRow = ({
   };
 
   return (
-    <TableRow className="hover:bg-gray-50/50 transition-colors">
+    <TableRow className={`hover:bg-gray-50/50 transition-colors ${isSelected ? 'bg-blue-50' : ''}`}>
+      <TableCell>
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={onSelect}
+        />
+      </TableCell>
       <TableCell className="font-medium">{customer.name}</TableCell>
       <TableCell>{customer.email}</TableCell>
       <TableCell>{customer.phone}</TableCell>

@@ -18,7 +18,7 @@ const Customers = () => {
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-broker-primary via-broker-secondary to-broker-accent bg-clip-text text-transparent drop-shadow-sm">Customer Management</h1>
-            <p className="text-muted-foreground mt-1">View, manage, and communicate with your customers. Click on a customer to see their details.</p>
+            <p className="text-muted-foreground mt-1">View, manage, and communicate with your customers. Use advanced filters, bulk actions, and real-time metrics.</p>
           </div>
           <div className="flex gap-2">
             <Button 
