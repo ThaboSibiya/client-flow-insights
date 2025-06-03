@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { 
   Table, 
@@ -223,10 +222,8 @@ const CustomerTable = () => {
               <TableHead className="w-12">
                 <Checkbox
                   checked={isAllSelected}
-                  ref={(el) => {
-                    if (el) el.indeterminate = isPartiallySelected;
-                  }}
                   onCheckedChange={handleSelectAll}
+                  className={isPartiallySelected ? 'data-[state=checked]:bg-primary data-[state=indeterminate]:bg-primary' : ''}
                 />
               </TableHead>
               <TableHead className="font-medium">Name</TableHead>
