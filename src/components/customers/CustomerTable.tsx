@@ -114,7 +114,7 @@ const CustomerTable = () => {
                 <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                   {searchQuery || statusFilter !== 'all' ? 'No customers match your search' : 'No customers found'}
                 </TableCell>
-              )}
+              </TableRow>
             )}
           </TableBody>
         </Table>
