@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Customer, CustomerStatus, CustomerTicket } from '@/types/customer';
+import { Customer, CustomerStatus, CustomerTicket, TimeEntry } from '@/types/customer';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 
@@ -9,8 +9,33 @@ export const useCustomerData = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const { user } = useAuth();
 
-  // Generate sample ticket data for demonstration
+  // Generate sample ticket data with time tracking for demonstration
   const generateSampleTickets = (customerId: string): CustomerTicket[] => {
+    const sampleTimeEntries: TimeEntry[] = [
+      {
+        id: 'time-1',
+        ticketId: `ticket-${customerId}-1`,
+        userId: 'user-1',
+        userName: 'John Doe',
+        description: 'Initial investigation',
+        duration: 45,
+        startTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        endTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 + 45 * 60000),
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: 'time-2',
+        ticketId: `ticket-${customerId}-1`,
+        userId: 'user-2',
+        userName: 'Jane Smith',
+        description: 'Customer follow-up',
+        duration: 30,
+        startTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        endTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 30 * 60000),
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      }
+    ];
+
     const sampleTickets: CustomerTicket[] = [
       {
         id: `ticket-${customerId}-1`,
@@ -18,6 +43,8 @@ export const useCustomerData = () => {
         status: 'open',
         priority: 'high',
         subject: 'Policy inquiry regarding coverage',
+        timeEntries: sampleTimeEntries,
+        totalTimeSpent: 75, // 45 + 30 minutes
         createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
         updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
       },
@@ -27,6 +54,8 @@ export const useCustomerData = () => {
         status: 'resolved',
         priority: 'medium',
         subject: 'Documentation request',
+        timeEntries: [],
+        totalTimeSpent: 0,
         createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
         updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
       }

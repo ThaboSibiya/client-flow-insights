@@ -10,14 +10,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CustomerTicket, TicketStatus } from '@/types/customer';
-import { User, Clock, AlertCircle } from 'lucide-react';
+import { User, Clock, AlertCircle, Timer } from 'lucide-react';
+import TimeTracker from './TimeTracker';
 
 interface TicketCardProps {
   ticket: CustomerTicket;
   onStatusUpdate: (ticketId: string, status: TicketStatus) => void;
+  onAddTimeEntry?: (ticketId: string, timeEntry: any) => void;
 }
 
-const TicketCard = ({ ticket, onStatusUpdate }: TicketCardProps) => {
+const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry }: TicketCardProps) => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
@@ -47,6 +49,18 @@ const TicketCard = ({ ticket, onStatusUpdate }: TicketCardProps) => {
     }).format(date);
   };
 
+  const formatTime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
+  const handleAddTimeEntry = (timeEntry: any) => {
+    if (onAddTimeEntry) {
+      onAddTimeEntry(ticket.id, timeEntry);
+    }
+  };
+
   return (
     <div className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start mb-3">
@@ -57,6 +71,12 @@ const TicketCard = ({ ticket, onStatusUpdate }: TicketCardProps) => {
               {ticket.priority === 'urgent' && <AlertCircle className="h-3 w-3 mr-1" />}
               {ticket.priority}
             </Badge>
+            {ticket.totalTimeSpent > 0 && (
+              <Badge variant="outline" className="text-xs">
+                <Timer className="h-3 w-3 mr-1" />
+                {formatTime(ticket.totalTimeSpent)}
+              </Badge>
+            )}
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">{ticket.subject}</h3>
           {ticket.description && (
@@ -76,6 +96,16 @@ const TicketCard = ({ ticket, onStatusUpdate }: TicketCardProps) => {
           </SelectContent>
         </Select>
       </div>
+
+      {onAddTimeEntry && (
+        <div className="mb-3 border-t pt-3">
+          <TimeTracker
+            timeEntries={ticket.timeEntries || []}
+            totalTimeSpent={ticket.totalTimeSpent || 0}
+            onAddTimeEntry={handleAddTimeEntry}
+          />
+        </div>
+      )}
 
       <div className="flex justify-between items-center text-xs text-gray-500">
         <div className="flex items-center gap-4">

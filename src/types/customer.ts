@@ -1,3 +1,4 @@
+
 export type CustomerStatus = 'new' | 'existing' | 'pending' | 'finalised';
 
 export type TicketStatus = 'open' | 'in-progress' | 'resolved' | 'closed';
@@ -18,6 +19,18 @@ export interface TeamMember {
   role: string;
 }
 
+export interface TimeEntry {
+  id: string;
+  ticketId: string;
+  userId: string;
+  userName: string;
+  description: string;
+  duration: number; // in minutes
+  startTime: Date;
+  endTime: Date;
+  createdAt: Date;
+}
+
 export interface CustomerTicket {
   id: string;
   ticketNumber: string;
@@ -28,6 +41,9 @@ export interface CustomerTicket {
   assignedTo?: TeamMember;
   createdAt: Date;
   updatedAt: Date;
+  timeEntries: TimeEntry[];
+  totalTimeSpent: number; // in minutes
+  estimatedTime?: number; // in minutes
 }
 
 export interface Customer {
@@ -52,4 +68,5 @@ export interface CRMContextType {
   deleteCustomer: (id: string) => void;
   createTicket: (customerId: string, ticket: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>) => void;
   updateTicketStatus: (ticketId: string, status: TicketStatus) => void;
+  addTimeEntry: (ticketId: string, timeEntry: Omit<TimeEntry, 'id' | 'ticketId' | 'createdAt'>) => void;
 }

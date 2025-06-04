@@ -19,6 +19,7 @@ interface TicketManagementDialogProps {
   onClose: () => void;
   onCreateTicket: (customerId: string, ticket: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>) => void;
   onUpdateTicketStatus: (ticketId: string, status: TicketStatus) => void;
+  onAddTimeEntry?: (ticketId: string, timeEntry: any) => void;
 }
 
 const TicketManagementDialog = ({ 
@@ -26,7 +27,8 @@ const TicketManagementDialog = ({
   isOpen, 
   onClose, 
   onCreateTicket, 
-  onUpdateTicketStatus 
+  onUpdateTicketStatus,
+  onAddTimeEntry 
 }: TicketManagementDialogProps) => {
   const [showNewTicketForm, setShowNewTicketForm] = useState(false);
 
@@ -37,6 +39,17 @@ const TicketManagementDialog = ({
     }
   };
 
+  const getTotalTimeSpent = () => {
+    if (!customer?.activeTickets) return 0;
+    return customer.activeTickets.reduce((total, ticket) => total + (ticket.totalTimeSpent || 0), 0);
+  };
+
+  const formatTime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()} modal={true}>
       <DialogContent className="sm:max-w-[800px] bg-white border-0 shadow-xl max-h-[80vh] overflow-y-auto">
@@ -44,6 +57,9 @@ const TicketManagementDialog = ({
           <DialogTitle className="text-xl font-semibold text-broker-primary flex items-center gap-2">
             Ticket Management - {customer?.name}
             <Badge variant="outline">{customer?.ticketCount || 0} Total Tickets</Badge>
+            {getTotalTimeSpent() > 0 && (
+              <Badge variant="secondary">{formatTime(getTotalTimeSpent())} Total Time</Badge>
+            )}
           </DialogTitle>
         </DialogHeader>
 
@@ -69,6 +85,7 @@ const TicketManagementDialog = ({
           <TicketsList
             tickets={customer?.activeTickets || []}
             onUpdateTicketStatus={onUpdateTicketStatus}
+            onAddTimeEntry={onAddTimeEntry}
           />
         </div>
 

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useCustomerData } from '@/hooks/useCustomerData';
 import { 
@@ -7,7 +8,7 @@ import {
   deleteCustomer as deleteCustomerService
 } from '@/services/customerService';
 import { useAuth } from './AuthContext';
-import { Customer, CustomerStatus, CustomerTicket, TicketStatus, CRMContextType } from '@/types/customer';
+import { Customer, CustomerStatus, CustomerTicket, TicketStatus, CRMContextType, TimeEntry } from '@/types/customer';
 
 const CRMContext = createContext<CRMContextType | undefined>(undefined);
 
@@ -59,6 +60,8 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
       id: `ticket-${Date.now()}`,
       ticketNumber,
       ...ticketData,
+      timeEntries: [],
+      totalTimeSpent: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -89,6 +92,31 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
     })));
   };
 
+  const addTimeEntry = async (ticketId: string, timeEntryData: Omit<TimeEntry, 'id' | 'ticketId' | 'createdAt'>) => {
+    if (!user) return;
+
+    const newTimeEntry: TimeEntry = {
+      id: `time-${Date.now()}`,
+      ticketId,
+      ...timeEntryData,
+      createdAt: new Date(),
+    };
+
+    setCustomers(prev => prev.map(customer => ({
+      ...customer,
+      activeTickets: (customer.activeTickets || []).map(ticket =>
+        ticket.id === ticketId 
+          ? { 
+              ...ticket, 
+              timeEntries: [...(ticket.timeEntries || []), newTimeEntry],
+              totalTimeSpent: (ticket.totalTimeSpent || 0) + newTimeEntry.duration,
+              updatedAt: new Date()
+            }
+          : ticket
+      )
+    })));
+  };
+
   return (
     <CRMContext.Provider
       value={{
@@ -99,6 +127,7 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
         deleteCustomer,
         createTicket,
         updateTicketStatus,
+        addTimeEntry,
       }}
     >
       {children}

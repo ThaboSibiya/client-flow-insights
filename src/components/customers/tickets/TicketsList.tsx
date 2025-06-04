@@ -6,9 +6,10 @@ import TicketCard from './TicketCard';
 interface TicketsListProps {
   tickets: CustomerTicket[];
   onUpdateTicketStatus: (ticketId: string, status: TicketStatus) => void;
+  onAddTimeEntry?: (ticketId: string, timeEntry: any) => void;
 }
 
-const TicketsList = ({ tickets, onUpdateTicketStatus }: TicketsListProps) => {
+const TicketsList = ({ tickets, onUpdateTicketStatus, onAddTimeEntry }: TicketsListProps) => {
   if (!tickets || tickets.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -24,6 +25,7 @@ const TicketsList = ({ tickets, onUpdateTicketStatus }: TicketsListProps) => {
           key={ticket.id}
           ticket={ticket}
           onStatusUpdate={onUpdateTicketStatus}
+          onAddTimeEntry={onAddTimeEntry}
         />
       ))}
     </div>

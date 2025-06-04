@@ -6,7 +6,7 @@ import TicketManagementDialog from './TicketManagementDialog';
 import { toast } from '@/hooks/use-toast';
 
 export const useCustomerActions = () => {
-  const { updateCustomerStatus, deleteCustomer, createTicket, updateTicketStatus } = useCRM();
+  const { updateCustomerStatus, deleteCustomer, createTicket, updateTicketStatus, addTimeEntry } = useCRM();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
@@ -74,6 +74,7 @@ export const useCustomerActions = () => {
         }}
         onCreateTicket={createTicket}
         onUpdateTicketStatus={updateTicketStatus}
+        onAddTimeEntry={addTimeEntry}
       />
     </>
   );
