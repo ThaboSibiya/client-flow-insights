@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -13,60 +13,42 @@ import CustomerDetailsDialog from './CustomerDetailsDialog';
 import CustomerTableRow from './CustomerTableRow';
 import CustomerPagination from './CustomerPagination';
 import TicketManagementDialog from './TicketManagementDialog';
-import AdvancedFilters from './AdvancedFilters';
+import EnhancedFilters from './EnhancedFilters';
 import BulkActions from './BulkActions';
 import CustomerMetrics from './CustomerMetrics';
+import QuickActionsBar from './QuickActionsBar';
+import { useCustomerFilters } from '@/hooks/useCustomerFilters';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { exportCustomers } from '@/utils/exportUtils';
 import { toast } from '@/components/ui/use-toast';
 
 const CustomerTable = () => {
   const { customers, updateCustomerStatus, deleteCustomer, createTicket, updateTicketStatus } = useCRM();
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
   const [activeDialogTab, setActiveDialogTab] = useState('details');
   const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
-  const [dateRange, setDateRange] = useState<{start: Date | null, end: Date | null}>({start: null, end: null});
-  const [ticketFilter, setTicketFilter] = useState<string>('all');
 
-  const pageSize = 10; // Increased page size for better UX
-  
-  // Enhanced filtering logic
-  const filteredCustomers = useMemo(() => {
-    return customers.filter(customer => {
-      // Status filter
-      if (statusFilter !== 'all' && customer.status !== statusFilter) return false;
-      
-      // Search filter
-      if (searchQuery && !customer.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          !customer.email.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          !customer.phone.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-      
-      // Date range filter
-      if (dateRange.start && customer.createdAt < dateRange.start) return false;
-      if (dateRange.end && customer.createdAt > dateRange.end) return false;
-      
-      // Ticket filter
-      switch (ticketFilter) {
-        case 'with-tickets':
-          if (customer.ticketCount === 0) return false;
-          break;
-        case 'no-tickets':
-          if (customer.ticketCount > 0) return false;
-          break;
-        case 'urgent-tickets':
-          if (!customer.activeTickets?.some(t => t.priority === 'urgent' && t.status !== 'closed')) return false;
-          break;
-        case 'open-tickets':
-          if (!customer.activeTickets?.some(t => t.status === 'open' || t.status === 'in-progress')) return false;
-          break;
-      }
-      
-      return true;
-    });
-  }, [customers, statusFilter, searchQuery, dateRange, ticketFilter]);
+  const pageSize = 10;
+
+  // Use the custom filter hook
+  const {
+    statusFilter,
+    setStatusFilter,
+    searchQuery,
+    setSearchQuery,
+    ticketFilter,
+    setTicketFilter,
+    dateRange,
+    setDateRange,
+    filteredCustomers,
+    savedPresets,
+    applyPreset,
+    saveCurrentAsPreset,
+    getQuickDateRange,
+  } = useCustomerFilters(customers);
 
   // Pagination
   const totalPages = Math.ceil(filteredCustomers.length / pageSize);
@@ -74,6 +56,90 @@ const CustomerTable = () => {
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
+
+  // Define keyboard shortcuts
+  const shortcuts = useKeyboardShortcuts([
+    {
+      key: 'n',
+      ctrlKey: true,
+      action: () => window.location.href = '/onboarding',
+      description: 'New Customer',
+    },
+    {
+      key: 'f',
+      ctrlKey: true,
+      action: () => document.querySelector('input[placeholder*="Search"]')?.focus(),
+      description: 'Focus Search',
+    },
+    {
+      key: 'e',
+      ctrlKey: true,
+      action: () => handleExportCSV(),
+      description: 'Export CSV',
+    },
+    {
+      key: 'a',
+      ctrlKey: true,
+      shiftKey: true,
+      action: () => handleSelectAll(!isAllSelected),
+      description: 'Select All',
+    },
+  ]);
+
+  // Export functions
+  const handleExportCSV = () => {
+    const dataToExport = selectedCustomers.size > 0 
+      ? customers.filter(c => selectedCustomers.has(c.id))
+      : filteredCustomers;
+    
+    exportCustomers({
+      customers: dataToExport,
+      format: 'csv',
+    });
+    
+    toast({
+      title: "Success",
+      description: `Exported ${dataToExport.length} customer(s) as CSV`,
+    });
+  };
+
+  const handleExportJSON = () => {
+    const dataToExport = selectedCustomers.size > 0 
+      ? customers.filter(c => selectedCustomers.has(c.id))
+      : filteredCustomers;
+    
+    exportCustomers({
+      customers: dataToExport,
+      format: 'json',
+    });
+    
+    toast({
+      title: "Success",
+      description: `Exported ${dataToExport.length} customer(s) as JSON`,
+    });
+  };
+
+  const handleExportExcel = () => {
+    const dataToExport = selectedCustomers.size > 0 
+      ? customers.filter(c => selectedCustomers.has(c.id))
+      : filteredCustomers;
+    
+    exportCustomers({
+      customers: dataToExport,
+      format: 'excel',
+    });
+    
+    toast({
+      title: "Success",
+      description: `Exported ${dataToExport.length} customer(s) as Excel`,
+    });
+  };
+
+  const handleQuickDateRange = (range: string) => {
+    const dateRange = getQuickDateRange(range);
+    setDateRange(dateRange);
+    setCurrentPage(1);
+  };
 
   const handleStatusChange = (customerId: string, newStatus: CustomerStatus) => {
     updateCustomerStatus(customerId, newStatus);
@@ -99,26 +165,6 @@ const CustomerTable = () => {
   const handleManageTickets = (customer: Customer) => {
     setSelectedCustomer(customer);
     setIsTicketDialogOpen(true);
-  };
-
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value);
-    setCurrentPage(1);
-  };
-
-  const handleSearchQueryChange = (value: string) => {
-    setSearchQuery(value);
-    setCurrentPage(1);
-  };
-
-  const handleDateRangeChange = (startDate: Date | null, endDate: Date | null) => {
-    setDateRange({ start: startDate, end: endDate });
-    setCurrentPage(1);
-  };
-
-  const handleTicketFilterChange = (filter: string) => {
-    setTicketFilter(filter);
-    setCurrentPage(1);
   };
 
   // Bulk selection handlers
@@ -164,31 +210,7 @@ const CustomerTable = () => {
   };
 
   const handleBulkExport = () => {
-    const selectedCustomerData = customers.filter(c => selectedCustomers.has(c.id));
-    const csv = [
-      ['Name', 'Email', 'Phone', 'Status', 'Created At', 'Ticket Count'].join(','),
-      ...selectedCustomerData.map(c => [
-        c.name,
-        c.email,
-        c.phone,
-        c.status,
-        c.createdAt.toLocaleDateString(),
-        c.ticketCount.toString()
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `customers-export-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-
-    toast({
-      title: "Success",
-      description: `Exported ${selectedCustomers.size} customer(s)`,
-    });
+    handleExportCSV();
   };
 
   const isAllSelected = currentCustomers.length > 0 && currentCustomers.every(c => selectedCustomers.has(c.id));
@@ -198,13 +220,26 @@ const CustomerTable = () => {
     <div className="space-y-6">
       <CustomerMetrics customers={customers} />
       
-      <AdvancedFilters 
+      <QuickActionsBar
+        onExportCSV={handleExportCSV}
+        onExportJSON={handleExportJSON}
+        onExportExcel={handleExportExcel}
+        shortcuts={shortcuts}
+      />
+
+      <EnhancedFilters 
         statusFilter={statusFilter}
-        onStatusFilterChange={handleStatusFilterChange}
+        onStatusFilterChange={setStatusFilter}
         searchQuery={searchQuery}
-        onSearchQueryChange={handleSearchQueryChange}
-        onDateRangeChange={handleDateRangeChange}
-        onTicketFilterChange={handleTicketFilterChange}
+        onSearchQueryChange={setSearchQuery}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        ticketFilter={ticketFilter}
+        onTicketFilterChange={setTicketFilter}
+        savedPresets={savedPresets}
+        onApplyPreset={applyPreset}
+        onSavePreset={saveCurrentAsPreset}
+        onQuickDateRange={handleQuickDateRange}
       />
 
       <BulkActions
@@ -223,7 +258,7 @@ const CustomerTable = () => {
                 <Checkbox
                   checked={isAllSelected}
                   onCheckedChange={handleSelectAll}
-                  className={isPartiallySelected ? 'data-[state=checked]:bg-primary data-[state=indeterminate]:bg-primary' : ''}
+                  indeterminate={isPartiallySelected}
                 />
               </TableHead>
               <TableHead className="font-medium">Name</TableHead>
