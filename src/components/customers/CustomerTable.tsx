@@ -1,36 +1,28 @@
+
 import React, { useState } from 'react';
 import { 
   Table, 
   TableBody, 
   TableCell, 
-  TableHead, 
-  TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
-import CustomerDetailsDialog from './CustomerDetailsDialog';
 import CustomerTableRow from './CustomerTableRow';
 import CustomerPagination from './CustomerPagination';
-import TicketManagementDialog from './TicketManagementDialog';
 import EnhancedFilters from './EnhancedFilters';
 import BulkActions from './BulkActions';
 import CustomerMetrics from './CustomerMetrics';
 import QuickActionsBar from './QuickActionsBar';
+import CustomerTableHeader from './CustomerTableHeader';
 import { useCustomerFilters } from '@/hooks/useCustomerFilters';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { exportCustomers } from '@/utils/exportUtils';
-import { toast } from '@/components/ui/use-toast';
+import { useTableSelection } from '@/hooks/useTableSelection';
+import { useCustomerExport } from './CustomerExportActions';
+import { useCustomerActions } from './CustomerActions';
 
 const CustomerTable = () => {
-  const { customers, updateCustomerStatus, deleteCustomer, createTicket, updateTicketStatus } = useCRM();
+  const { customers } = useCRM();
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
-  const [activeDialogTab, setActiveDialogTab] = useState('details');
-  const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
-
   const pageSize = 10;
 
   // Use the custom filter hook
@@ -57,6 +49,35 @@ const CustomerTable = () => {
     currentPage * pageSize
   );
 
+  // Table selection
+  const {
+    selectedItems: selectedCustomers,
+    setSelectedItems: setSelectedCustomers,
+    handleSelectAll,
+    handleSelectItem,
+    clearSelection,
+    isAllSelected,
+    isPartiallySelected,
+  } = useTableSelection(currentCustomers);
+
+  // Customer actions
+  const {
+    handleStatusChange,
+    handleDeleteCustomer,
+    handleOpenCustomerDetails,
+    handleManageTickets,
+    handleBulkStatusChange,
+    handleBulkDelete,
+    CustomerDialogs,
+  } = useCustomerActions();
+
+  // Export functionality
+  const { handleExportCSV, handleExportJSON, handleExportExcel } = useCustomerExport({
+    customers,
+    filteredCustomers,
+    selectedCustomers,
+  });
+
   // Define keyboard shortcuts
   const shortcuts = useKeyboardShortcuts([
     {
@@ -68,7 +89,10 @@ const CustomerTable = () => {
     {
       key: 'f',
       ctrlKey: true,
-      action: () => document.querySelector('input[placeholder*="Search"]')?.focus(),
+      action: () => {
+        const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
+        searchInput?.focus();
+      },
       description: 'Focus Search',
     },
     {
@@ -86,135 +110,30 @@ const CustomerTable = () => {
     },
   ]);
 
-  // Export functions
-  const handleExportCSV = () => {
-    const dataToExport = selectedCustomers.size > 0 
-      ? customers.filter(c => selectedCustomers.has(c.id))
-      : filteredCustomers;
-    
-    exportCustomers({
-      customers: dataToExport,
-      format: 'csv',
-    });
-    
-    toast({
-      title: "Success",
-      description: `Exported ${dataToExport.length} customer(s) as CSV`,
-    });
-  };
-
-  const handleExportJSON = () => {
-    const dataToExport = selectedCustomers.size > 0 
-      ? customers.filter(c => selectedCustomers.has(c.id))
-      : filteredCustomers;
-    
-    exportCustomers({
-      customers: dataToExport,
-      format: 'json',
-    });
-    
-    toast({
-      title: "Success",
-      description: `Exported ${dataToExport.length} customer(s) as JSON`,
-    });
-  };
-
-  const handleExportExcel = () => {
-    const dataToExport = selectedCustomers.size > 0 
-      ? customers.filter(c => selectedCustomers.has(c.id))
-      : filteredCustomers;
-    
-    exportCustomers({
-      customers: dataToExport,
-      format: 'excel',
-    });
-    
-    toast({
-      title: "Success",
-      description: `Exported ${dataToExport.length} customer(s) as Excel`,
-    });
-  };
-
   const handleQuickDateRange = (range: string) => {
-    const dateRange = getQuickDateRange(range);
-    setDateRange(dateRange);
+    const newDateRange = getQuickDateRange(range);
+    setDateRange(newDateRange);
     setCurrentPage(1);
   };
 
-  const handleStatusChange = (customerId: string, newStatus: CustomerStatus) => {
-    updateCustomerStatus(customerId, newStatus);
-  };
-
-  const handleDeleteCustomer = (customerId: string) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      deleteCustomer(customerId);
-      setSelectedCustomers(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(customerId);
-        return newSet;
-      });
-    }
-  };
-
-  const handleOpenCustomerDetails = (customer: Customer, tab = 'details') => {
-    setSelectedCustomer(customer);
-    setActiveDialogTab(tab);
-    setIsFormOpen(true);
-  };
-
-  const handleManageTickets = (customer: Customer) => {
-    setSelectedCustomer(customer);
-    setIsTicketDialogOpen(true);
-  };
-
-  // Bulk selection handlers
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedCustomers(new Set(currentCustomers.map(c => c.id)));
-    } else {
-      setSelectedCustomers(new Set());
-    }
-  };
-
   const handleSelectCustomer = (customerId: string, checked: boolean) => {
-    const newSelected = new Set(selectedCustomers);
-    if (checked) {
-      newSelected.add(customerId);
-    } else {
-      newSelected.delete(customerId);
-    }
-    setSelectedCustomers(newSelected);
+    handleSelectItem(customerId, checked);
   };
 
-  // Bulk actions
-  const handleBulkStatusChange = async (status: CustomerStatus) => {
-    const promises = Array.from(selectedCustomers).map(id => updateCustomerStatus(id, status));
-    await Promise.all(promises);
-    setSelectedCustomers(new Set());
-    toast({
-      title: "Success",
-      description: `Updated ${selectedCustomers.size} customer(s) to ${status}`,
-    });
+  // Bulk actions handlers
+  const onBulkStatusChange = async (status: CustomerStatus) => {
+    await handleBulkStatusChange(selectedCustomers, status);
+    clearSelection();
   };
 
-  const handleBulkDelete = async () => {
-    if (window.confirm(`Are you sure you want to delete ${selectedCustomers.size} customer(s)?`)) {
-      const promises = Array.from(selectedCustomers).map(id => deleteCustomer(id));
-      await Promise.all(promises);
-      setSelectedCustomers(new Set());
-      toast({
-        title: "Success",
-        description: `Deleted ${selectedCustomers.size} customer(s)`,
-      });
-    }
+  const onBulkDelete = async () => {
+    await handleBulkDelete(selectedCustomers);
+    clearSelection();
   };
 
-  const handleBulkExport = () => {
+  const onBulkExport = () => {
     handleExportCSV();
   };
-
-  const isAllSelected = currentCustomers.length > 0 && currentCustomers.every(c => selectedCustomers.has(c.id));
-  const isPartiallySelected = currentCustomers.some(c => selectedCustomers.has(c.id)) && !isAllSelected;
 
   return (
     <div className="space-y-6">
@@ -244,32 +163,19 @@ const CustomerTable = () => {
 
       <BulkActions
         selectedCount={selectedCustomers.size}
-        onBulkStatusChange={handleBulkStatusChange}
-        onBulkDelete={handleBulkDelete}
-        onBulkExport={handleBulkExport}
-        onClearSelection={() => setSelectedCustomers(new Set())}
+        onBulkStatusChange={onBulkStatusChange}
+        onBulkDelete={onBulkDelete}
+        onBulkExport={onBulkExport}
+        onClearSelection={clearSelection}
       />
 
       <div className="rounded-xl overflow-hidden border shadow-md bg-white hover:shadow-lg transition-shadow duration-300">
         <Table>
-          <TableHeader className="bg-gradient-to-r from-gray-50 to-gray-100">
-            <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={isAllSelected}
-                  onCheckedChange={handleSelectAll}
-                  indeterminate={isPartiallySelected}
-                />
-              </TableHead>
-              <TableHead className="font-medium">Name</TableHead>
-              <TableHead className="font-medium">Email</TableHead>
-              <TableHead className="font-medium">Phone</TableHead>
-              <TableHead className="font-medium">Status</TableHead>
-              <TableHead className="font-medium">Tickets</TableHead>
-              <TableHead className="font-medium">Created</TableHead>
-              <TableHead className="font-medium text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
+          <CustomerTableHeader
+            isAllSelected={isAllSelected}
+            isPartiallySelected={isPartiallySelected}
+            onSelectAll={handleSelectAll}
+          />
           <TableBody>
             {currentCustomers.map((customer) => (
               <CustomerTableRow 
@@ -277,7 +183,7 @@ const CustomerTable = () => {
                 customer={customer}
                 isSelected={selectedCustomers.has(customer.id)}
                 onSelect={(checked) => handleSelectCustomer(customer.id, checked)}
-                onView={(customer) => handleOpenCustomerDetails(customer)}
+                onView={handleOpenCustomerDetails}
                 onDelete={handleDeleteCustomer}
                 onStatusChange={handleStatusChange}
                 onManageTickets={handleManageTickets}
@@ -303,26 +209,7 @@ const CustomerTable = () => {
         onPageChange={setCurrentPage}
       />
 
-      <CustomerDetailsDialog 
-        customer={selectedCustomer} 
-        isOpen={isFormOpen} 
-        onClose={() => {
-          setIsFormOpen(false);
-          setSelectedCustomer(null);
-          setActiveDialogTab('details');
-        }} 
-      />
-
-      <TicketManagementDialog 
-        customer={selectedCustomer}
-        isOpen={isTicketDialogOpen}
-        onClose={() => {
-          setIsTicketDialogOpen(false);
-          setSelectedCustomer(null);
-        }}
-        onCreateTicket={createTicket}
-        onUpdateTicketStatus={updateTicketStatus}
-      />
+      <CustomerDialogs />
     </div>
   );
 };
