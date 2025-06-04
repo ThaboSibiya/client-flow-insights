@@ -27,16 +27,24 @@ interface NewTicketFormProps {
   onCancel: () => void;
 }
 
+type FormData = {
+  subject: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: 'open' | 'in-progress' | 'resolved' | 'closed';
+  assignedTo?: string;
+};
+
 const NewTicketForm = ({ onSubmit, onCancel }: NewTicketFormProps) => {
   const { templates, teamMembers } = useTicketData();
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
 
-  const form = useForm({
+  const form = useForm<FormData>({
     defaultValues: {
       subject: '',
       description: '',
-      priority: 'medium' as const,
-      status: 'open' as const,
+      priority: 'medium',
+      status: 'open',
       assignedTo: undefined,
     },
   });
@@ -51,7 +59,7 @@ const NewTicketForm = ({ onSubmit, onCancel }: NewTicketFormProps) => {
     }
   };
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: FormData) => {
     const assignedMember = data.assignedTo ? 
       teamMembers.find(member => member.id === data.assignedTo) : undefined;
     
