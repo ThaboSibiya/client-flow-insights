@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -18,8 +19,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
-import { Plus } from 'lucide-react';
 import { CustomerTicket } from '@/types/customer';
+import { useTicketData } from '@/hooks/useTicketData';
 
 interface NewTicketFormProps {
   onSubmit: (data: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>) => void;
@@ -27,21 +28,62 @@ interface NewTicketFormProps {
 }
 
 const NewTicketForm = ({ onSubmit, onCancel }: NewTicketFormProps) => {
+  const { templates, teamMembers } = useTicketData();
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+
   const form = useForm({
     defaultValues: {
       subject: '',
+      description: '',
       priority: 'medium' as const,
       status: 'open' as const,
+      assignedTo: undefined,
     },
   });
 
+  const handleTemplateSelect = (templateId: string) => {
+    setSelectedTemplate(templateId);
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      form.setValue('subject', template.subject);
+      form.setValue('description', template.description);
+      form.setValue('priority', template.priority);
+    }
+  };
+
   const handleSubmit = (data: any) => {
-    onSubmit(data);
+    const assignedMember = data.assignedTo ? 
+      teamMembers.find(member => member.id === data.assignedTo) : undefined;
+    
+    onSubmit({
+      ...data,
+      assignedTo: assignedMember,
+    });
     form.reset();
+    setSelectedTemplate('');
   };
 
   return (
     <div className="border rounded-lg p-4 bg-gray-50">
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Use Template (Optional)</label>
+        <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a template..." />
+          </SelectTrigger>
+          <SelectContent>
+            {templates.map((template) => (
+              <SelectItem key={template.id} value={template.id}>
+                <div className="flex flex-col">
+                  <span className="font-medium">{template.name}</span>
+                  <span className="text-xs text-gray-500">{template.category}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           <FormField
@@ -57,30 +99,78 @@ const NewTicketForm = ({ onSubmit, onCancel }: NewTicketFormProps) => {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
-            name="priority"
+            name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Priority</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
-                  </SelectContent>
-                </Select>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Detailed description of the issue..." 
+                    rows={3}
+                    {...field} 
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+          
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Priority</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="assignedTo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assign To</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select team member..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {teamMembers.map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{member.name}</span>
+                            <span className="text-xs text-gray-500">{member.role}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           
           <div className="flex gap-2">
             <Button type="submit" size="sm">Create Ticket</Button>

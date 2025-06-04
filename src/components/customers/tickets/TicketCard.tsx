@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -7,10 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import { CustomerTicket, TicketStatus } from '@/types/customer';
-import { formatDistanceToNow } from 'date-fns';
+import { User, Clock, AlertCircle } from 'lucide-react';
 
 interface TicketCardProps {
   ticket: CustomerTicket;
@@ -18,70 +18,81 @@ interface TicketCardProps {
 }
 
 const TicketCard = ({ ticket, onStatusUpdate }: TicketCardProps) => {
-  const getStatusIcon = (status: TicketStatus) => {
-    switch (status) {
-      case 'open':
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-      case 'in-progress':
-        return <Clock className="h-4 w-4 text-amber-500" />;
-      case 'resolved':
-      case 'closed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      default:
-        return <AlertCircle className="h-4 w-4 text-gray-500" />;
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
+      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low': return 'bg-green-100 text-green-800 border-green-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'bg-red-500';
-      case 'high':
-        return 'bg-orange-500';
-      case 'medium':
-        return 'bg-yellow-500';
-      case 'low':
-        return 'bg-green-500';
-      default:
-        return 'bg-gray-500';
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'open': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'in-progress': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'resolved': return 'bg-green-100 text-green-800 border-green-200';
+      case 'closed': return 'bg-gray-100 text-gray-800 border-gray-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
   };
 
   return (
-    <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-      <div className="flex items-start justify-between">
+    <div className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            {getStatusIcon(ticket.status)}
-            <span className="font-medium">{ticket.ticketNumber}</span>
-            <Badge 
-              className={`text-white text-xs ${getPriorityColor(ticket.priority)}`}
-            >
+          <div className="flex items-center gap-2 mb-2">
+            <h4 className="font-medium text-sm">{ticket.ticketNumber}</h4>
+            <Badge className={getPriorityColor(ticket.priority)}>
+              {ticket.priority === 'urgent' && <AlertCircle className="h-3 w-3 mr-1" />}
               {ticket.priority}
             </Badge>
           </div>
-          <p className="text-sm text-gray-700 mb-2">{ticket.subject}</p>
-          <p className="text-xs text-gray-500">
-            Created {formatDistanceToNow(ticket.createdAt, { addSuffix: true })}
-          </p>
+          <h3 className="font-semibold text-gray-900 mb-1">{ticket.subject}</h3>
+          {ticket.description && (
+            <p className="text-sm text-gray-600 mb-2">{ticket.description}</p>
+          )}
         </div>
         
-        <div className="flex items-center gap-2">
-          <Select 
-            value={ticket.status} 
-            onValueChange={(status: TicketStatus) => onStatusUpdate(ticket.id, status)}
-          >
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
-            </SelectContent>
-          </Select>
+        <Select value={ticket.status} onValueChange={(value: TicketStatus) => onStatusUpdate(ticket.id, value)}>
+          <SelectTrigger className={`w-32 ${getStatusColor(ticket.status)}`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="open">Open</SelectItem>
+            <SelectItem value="in-progress">In Progress</SelectItem>
+            <SelectItem value="resolved">Resolved</SelectItem>
+            <SelectItem value="closed">Closed</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex justify-between items-center text-xs text-gray-500">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            <span>Created {formatDate(ticket.createdAt)}</span>
+          </div>
+          {ticket.assignedTo && (
+            <div className="flex items-center gap-1">
+              <User className="h-3 w-3" />
+              <span>Assigned to {ticket.assignedTo.name}</span>
+            </div>
+          )}
         </div>
+        {ticket.updatedAt && ticket.updatedAt !== ticket.createdAt && (
+          <span>Updated {formatDate(ticket.updatedAt)}</span>
+        )}
       </div>
     </div>
   );

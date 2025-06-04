@@ -1,7 +1,22 @@
-
 export type CustomerStatus = 'new' | 'existing' | 'pending' | 'finalised';
 
 export type TicketStatus = 'open' | 'in-progress' | 'resolved' | 'closed';
+
+export interface TicketTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  category: string;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
 
 export interface CustomerTicket {
   id: string;
@@ -9,6 +24,8 @@ export interface CustomerTicket {
   status: TicketStatus;
   priority: 'low' | 'medium' | 'high' | 'urgent';
   subject: string;
+  description?: string;
+  assignedTo?: TeamMember;
   createdAt: Date;
   updatedAt: Date;
 }

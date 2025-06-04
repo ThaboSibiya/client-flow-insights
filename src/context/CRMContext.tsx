@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useCustomerData } from '@/hooks/useCustomerData';
 import { 
