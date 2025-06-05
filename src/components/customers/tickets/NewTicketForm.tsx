@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -66,6 +65,8 @@ const NewTicketForm = ({ onSubmit, onCancel }: NewTicketFormProps) => {
     onSubmit({
       ...data,
       assignedTo: assignedMember,
+      timeEntries: [],
+      totalTimeSpent: 0,
     });
     form.reset();
     setSelectedTemplate('');
