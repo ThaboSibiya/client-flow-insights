@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare } from 'lucide-react';
@@ -11,14 +10,17 @@ import {
   deleteTicketComment,
   type TicketComment
 } from '@/services/ticketCommentService';
+import { sendTicketNotification } from '@/services/ticketNotificationService';
 import CommentForm from './comments/CommentForm';
 import CommentsList from './comments/CommentsList';
 
 interface TicketCommentsProps {
   ticketId: string;
+  customerEmail?: string;
+  customerName?: string;
 }
 
-const TicketComments = ({ ticketId }: TicketCommentsProps) => {
+const TicketComments = ({ ticketId, customerEmail, customerName }: TicketCommentsProps) => {
   const { user } = useAuth();
   const [comments, setComments] = useState<TicketComment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -62,6 +64,24 @@ const TicketComments = ({ ticketId }: TicketCommentsProps) => {
       if (comment) {
         setComments(prev => [...prev, comment]);
         setNewComment('');
+        
+        // Send email notification if not internal and customer info is available
+        if (!isInternal && customerEmail && customerName) {
+          await sendTicketNotification({
+            ticketId,
+            customerEmail,
+            customerName,
+            ticketNumber: `TKT-${ticketId.slice(-6)}`,
+            subject: 'Ticket Update',
+            type: 'comment_added',
+            details: {
+              comment: newComment.trim(),
+              isInternal,
+              userName: user.email || 'Support Team'
+            }
+          });
+        }
+        
         setIsInternal(false);
         toast({
           title: "Success",
@@ -129,7 +149,7 @@ const TicketComments = ({ ticketId }: TicketCommentsProps) => {
   if (!user) return null;
 
   return (
-    <div className="border-t pt-3 mt-3">
+    <div className="space-y-4">
       <div className="flex items-center gap-2 mb-3">
         <MessageSquare className="h-4 w-4" />
         <span className="font-medium text-sm">Comments</span>

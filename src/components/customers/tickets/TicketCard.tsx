@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -10,19 +11,46 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CustomerTicket, TicketStatus } from '@/types/customer';
-import { User, Clock, AlertCircle, Timer, ChevronDown, ChevronUp } from 'lucide-react';
+import { User, Clock, AlertCircle, Timer, ChevronDown, ChevronUp, History } from 'lucide-react';
 import TimeTracker from './TimeTracker';
 import TicketAttachments from './TicketAttachments';
 import TicketComments from './TicketComments';
+import TicketHistory, { TicketHistoryItem } from './TicketHistory';
+import { sendTicketNotification } from '@/services/ticketNotificationService';
 
 interface TicketCardProps {
   ticket: CustomerTicket;
   onStatusUpdate: (ticketId: string, status: TicketStatus) => void;
   onAddTimeEntry?: (ticketId: string, timeEntry: any) => void;
+  customerEmail?: string;
+  customerName?: string;
 }
 
-const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry }: TicketCardProps) => {
+const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, customerName }: TicketCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Generate sample history data - in real app, this would come from the database
+  const generateTicketHistory = (): TicketHistoryItem[] => {
+    return [
+      {
+        id: '1',
+        type: 'created',
+        timestamp: ticket.createdAt,
+        user: 'Customer',
+        details: {}
+      },
+      {
+        id: '2',
+        type: 'status_change',
+        timestamp: new Date(ticket.createdAt.getTime() + 30000),
+        user: 'Support Agent',
+        details: {
+          oldStatus: 'new',
+          newStatus: ticket.status
+        }
+      }
+    ];
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -59,6 +87,27 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry }: TicketCardProps)
     return `${hours}h ${mins}m`;
   };
 
+  const handleStatusUpdate = async (newStatus: TicketStatus) => {
+    const oldStatus = ticket.status;
+    onStatusUpdate(ticket.id, newStatus);
+
+    // Send email notification if customer info is available
+    if (customerEmail && customerName && oldStatus !== newStatus) {
+      await sendTicketNotification({
+        ticketId: ticket.id,
+        customerEmail,
+        customerName,
+        ticketNumber: ticket.ticketNumber,
+        subject: ticket.subject,
+        type: 'status_changed',
+        details: {
+          oldStatus,
+          newStatus,
+        }
+      });
+    }
+  };
+
   const handleAddTimeEntry = (timeEntry: any) => {
     if (onAddTimeEntry) {
       onAddTimeEntry(ticket.id, timeEntry);
@@ -89,7 +138,7 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry }: TicketCardProps)
         </div>
         
         <div className="flex items-center gap-2">
-          <Select value={ticket.status} onValueChange={(value: TicketStatus) => onStatusUpdate(ticket.id, value)}>
+          <Select value={ticket.status} onValueChange={handleStatusUpdate}>
             <SelectTrigger className={`w-32 ${getStatusColor(ticket.status)}`}>
               <SelectValue />
             </SelectTrigger>
@@ -117,19 +166,47 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry }: TicketCardProps)
       </div>
 
       {isExpanded && (
-        <div className="space-y-4">
-          {onAddTimeEntry && (
-            <div className="border-t pt-3">
-              <TimeTracker
-                timeEntries={ticket.timeEntries || []}
-                totalTimeSpent={ticket.totalTimeSpent || 0}
-                onAddTimeEntry={handleAddTimeEntry}
+        <div className="border-t pt-4">
+          <Tabs defaultValue="comments" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="comments">Comments</TabsTrigger>
+              <TabsTrigger value="history">
+                <History className="h-4 w-4 mr-1" />
+                History
+              </TabsTrigger>
+              <TabsTrigger value="time">Time Tracking</TabsTrigger>
+              <TabsTrigger value="attachments">Attachments</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="comments" className="mt-4">
+              <TicketComments 
+                ticketId={ticket.id} 
+                customerEmail={customerEmail}
+                customerName={customerName}
               />
-            </div>
-          )}
-
-          <TicketAttachments ticketId={ticket.id} />
-          <TicketComments ticketId={ticket.id} />
+            </TabsContent>
+            
+            <TabsContent value="history" className="mt-4">
+              <TicketHistory
+                history={generateTicketHistory()}
+                formatDate={(dateString) => formatDate(new Date(dateString))}
+              />
+            </TabsContent>
+            
+            <TabsContent value="time" className="mt-4">
+              {onAddTimeEntry && (
+                <TimeTracker
+                  timeEntries={ticket.timeEntries || []}
+                  totalTimeSpent={ticket.totalTimeSpent || 0}
+                  onAddTimeEntry={handleAddTimeEntry}
+                />
+              )}
+            </TabsContent>
+            
+            <TabsContent value="attachments" className="mt-4">
+              <TicketAttachments ticketId={ticket.id} />
+            </TabsContent>
+          </Tabs>
         </div>
       )}
 
