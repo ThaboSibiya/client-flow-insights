@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,8 +10,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CustomerTicket, TicketStatus } from '@/types/customer';
-import { User, Clock, AlertCircle, Timer } from 'lucide-react';
+import { User, Clock, AlertCircle, Timer, ChevronDown, ChevronUp } from 'lucide-react';
 import TimeTracker from './TimeTracker';
+import TicketAttachments from './TicketAttachments';
+import TicketComments from './TicketComments';
 
 interface TicketCardProps {
   ticket: CustomerTicket;
@@ -20,6 +22,8 @@ interface TicketCardProps {
 }
 
 const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry }: TicketCardProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
@@ -84,30 +88,52 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry }: TicketCardProps)
           )}
         </div>
         
-        <Select value={ticket.status} onValueChange={(value: TicketStatus) => onStatusUpdate(ticket.id, value)}>
-          <SelectTrigger className={`w-32 ${getStatusColor(ticket.status)}`}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="open">Open</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="resolved">Resolved</SelectItem>
-            <SelectItem value="closed">Closed</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select value={ticket.status} onValueChange={(value: TicketStatus) => onStatusUpdate(ticket.id, value)}>
+            <SelectTrigger className={`w-32 ${getStatusColor(ticket.status)}`}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="open">Open</SelectItem>
+              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+              <SelectItem value="closed">Closed</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="ml-2"
+          >
+            {isExpanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
       </div>
 
-      {onAddTimeEntry && (
-        <div className="mb-3 border-t pt-3">
-          <TimeTracker
-            timeEntries={ticket.timeEntries || []}
-            totalTimeSpent={ticket.totalTimeSpent || 0}
-            onAddTimeEntry={handleAddTimeEntry}
-          />
+      {isExpanded && (
+        <div className="space-y-4">
+          {onAddTimeEntry && (
+            <div className="border-t pt-3">
+              <TimeTracker
+                timeEntries={ticket.timeEntries || []}
+                totalTimeSpent={ticket.totalTimeSpent || 0}
+                onAddTimeEntry={handleAddTimeEntry}
+              />
+            </div>
+          )}
+
+          <TicketAttachments ticketId={ticket.id} />
+          <TicketComments ticketId={ticket.id} />
         </div>
       )}
 
-      <div className="flex justify-between items-center text-xs text-gray-500">
+      <div className="flex justify-between items-center text-xs text-gray-500 mt-3">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
