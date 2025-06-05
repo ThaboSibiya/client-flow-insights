@@ -118,6 +118,10 @@ const TicketComments = ({ ticketId }: TicketCommentsProps) => {
     }
   };
 
+  const handleInternalChange = (checked: boolean | "indeterminate") => {
+    setIsInternal(checked === true);
+  };
+
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
@@ -155,7 +159,7 @@ const TicketComments = ({ ticketId }: TicketCommentsProps) => {
             <Checkbox
               id="internal-comment"
               checked={isInternal}
-              onCheckedChange={setIsInternal}
+              onCheckedChange={handleInternalChange}
             />
             <label htmlFor="internal-comment" className="text-xs text-gray-600">
               Internal note (not visible to customer)
