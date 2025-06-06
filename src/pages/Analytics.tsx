@@ -7,7 +7,8 @@ import StatusDistribution from '@/components/analytics/StatusDistribution';
 import MonthlyTrends from '@/components/analytics/MonthlyTrends';
 import WeeklySummary from '@/components/analytics/WeeklySummary';
 import TicketAnalyticsDashboard from '@/components/analytics/TicketAnalyticsDashboard';
-import { Users, Ticket } from 'lucide-react';
+import AdvancedAnalyticsDashboard from '@/components/analytics/AdvancedAnalyticsDashboard';
+import { Users, Ticket, TrendingUp } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
 import { generateReportData, calculateSummary } from '@/utils/customer-analytics';
 
@@ -35,7 +36,7 @@ const Analytics = () => {
       </div>
 
       <Tabs defaultValue="customers" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="customers" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Customer Analytics
@@ -43,6 +44,10 @@ const Analytics = () => {
           <TabsTrigger value="tickets" className="flex items-center gap-2">
             <Ticket className="h-4 w-4" />
             Ticket Analytics
+          </TabsTrigger>
+          <TabsTrigger value="advanced" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Advanced Analytics
           </TabsTrigger>
         </TabsList>
 
@@ -60,6 +65,10 @@ const Analytics = () => {
 
         <TabsContent value="tickets" className="space-y-6">
           <TicketAnalyticsDashboard />
+        </TabsContent>
+
+        <TabsContent value="advanced" className="space-y-6">
+          <AdvancedAnalyticsDashboard />
         </TabsContent>
       </Tabs>
     </div>
