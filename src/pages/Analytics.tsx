@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CustomerChart from '@/components/analytics/CustomerChart';
 import CustomerMetricsSummary from '@/components/analytics/CustomerMetricsSummary';
@@ -8,8 +8,17 @@ import MonthlyTrends from '@/components/analytics/MonthlyTrends';
 import WeeklySummary from '@/components/analytics/WeeklySummary';
 import TicketAnalyticsDashboard from '@/components/analytics/TicketAnalyticsDashboard';
 import { Users, Ticket } from 'lucide-react';
+import { useCRM } from '@/context/CRMContext';
+import { generateReportData, calculateSummary } from '@/utils/customer-analytics';
 
 const Analytics = () => {
+  const { customers } = useCRM();
+  const [timeframe, setTimeframe] = useState<'monthly' | 'yearly'>('monthly');
+  
+  // Generate analytics data from customer data
+  const reportData = generateReportData(customers, timeframe);
+  const summary = calculateSummary(reportData);
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-broker-primary/20 via-broker-secondary/15 to-broker-accent/20 p-8 rounded-xl mb-6 shadow-lg transform hover:scale-[1.01] transition-all duration-300 border border-white/20 backdrop-blur-sm">
@@ -38,14 +47,14 @@ const Analytics = () => {
         </TabsList>
 
         <TabsContent value="customers" className="space-y-6">
-          <CustomerMetricsSummary />
+          <CustomerMetricsSummary summary={summary} />
           <div className="grid gap-6 md:grid-cols-2">
-            <CustomerChart />
-            <StatusDistribution />
+            <CustomerChart reportData={reportData} timeframe={timeframe} />
+            <StatusDistribution customers={customers} />
           </div>
           <div className="grid gap-6 md:grid-cols-2">
-            <MonthlyTrends />
-            <WeeklySummary />
+            <MonthlyTrends customers={customers} />
+            <WeeklySummary customers={customers} />
           </div>
         </TabsContent>
 
