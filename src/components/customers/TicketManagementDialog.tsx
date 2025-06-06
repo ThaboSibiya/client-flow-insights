@@ -86,6 +86,9 @@ const TicketManagementDialog = ({
             tickets={customer?.activeTickets || []}
             onUpdateTicketStatus={onUpdateTicketStatus}
             onAddTimeEntry={onAddTimeEntry}
+            customerEmail={customer?.email}
+            customerName={customer?.name}
+            customerId={customer?.id}
           />
         </div>
 

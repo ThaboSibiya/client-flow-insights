@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,11 +10,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CustomerTicket, TicketStatus } from '@/types/customer';
-import { User, Clock, AlertCircle, Timer, ChevronDown, ChevronUp, History } from 'lucide-react';
+import { User, Clock, AlertCircle, Timer, ChevronDown, ChevronUp, History, Star } from 'lucide-react';
 import TimeTracker from './TimeTracker';
 import TicketAttachments from './TicketAttachments';
 import TicketComments from './TicketComments';
 import TicketHistory, { TicketHistoryItem } from './TicketHistory';
+import SatisfactionRating from './SatisfactionRating';
 import { sendTicketNotification } from '@/services/ticketNotificationService';
 
 interface TicketCardProps {
@@ -24,10 +24,12 @@ interface TicketCardProps {
   onAddTimeEntry?: (ticketId: string, timeEntry: any) => void;
   customerEmail?: string;
   customerName?: string;
+  customerId?: string;
 }
 
-const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, customerName }: TicketCardProps) => {
+const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, customerName, customerId }: TicketCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showSatisfactionRating, setShowSatisfactionRating] = useState(false);
 
   // Generate sample history data - in real app, this would come from the database
   const generateTicketHistory = (): TicketHistoryItem[] => {
@@ -106,6 +108,11 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
         }
       });
     }
+
+    // Show satisfaction rating dialog when ticket is resolved or closed
+    if ((newStatus === 'resolved' || newStatus === 'closed') && customerId && oldStatus !== newStatus) {
+      setShowSatisfactionRating(true);
+    }
   };
 
   const handleAddTimeEntry = (timeEntry: any) => {
@@ -115,119 +122,132 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
   };
 
   return (
-    <div className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <h4 className="font-medium text-sm">{ticket.ticketNumber}</h4>
-            <Badge className={getPriorityColor(ticket.priority)}>
-              {ticket.priority === 'urgent' && <AlertCircle className="h-3 w-3 mr-1" />}
-              {ticket.priority}
-            </Badge>
-            {ticket.totalTimeSpent > 0 && (
-              <Badge variant="outline" className="text-xs">
-                <Timer className="h-3 w-3 mr-1" />
-                {formatTime(ticket.totalTimeSpent)}
+    <>
+      <div className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <h4 className="font-medium text-sm">{ticket.ticketNumber}</h4>
+              <Badge className={getPriorityColor(ticket.priority)}>
+                {ticket.priority === 'urgent' && <AlertCircle className="h-3 w-3 mr-1" />}
+                {ticket.priority}
               </Badge>
-            )}
-          </div>
-          <h3 className="font-semibold text-gray-900 mb-1">{ticket.subject}</h3>
-          {ticket.description && (
-            <p className="text-sm text-gray-600 mb-2">{ticket.description}</p>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Select value={ticket.status} onValueChange={handleStatusUpdate}>
-            <SelectTrigger className={`w-32 ${getStatusColor(ticket.status)}`}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="ml-2"
-          >
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {isExpanded && (
-        <div className="border-t pt-4">
-          <Tabs defaultValue="comments" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="comments">Comments</TabsTrigger>
-              <TabsTrigger value="history">
-                <History className="h-4 w-4 mr-1" />
-                History
-              </TabsTrigger>
-              <TabsTrigger value="time">Time Tracking</TabsTrigger>
-              <TabsTrigger value="attachments">Attachments</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="comments" className="mt-4">
-              <TicketComments 
-                ticketId={ticket.id} 
-                customerEmail={customerEmail}
-                customerName={customerName}
-              />
-            </TabsContent>
-            
-            <TabsContent value="history" className="mt-4">
-              <TicketHistory
-                history={generateTicketHistory()}
-                formatDate={(dateString) => formatDate(new Date(dateString))}
-              />
-            </TabsContent>
-            
-            <TabsContent value="time" className="mt-4">
-              {onAddTimeEntry && (
-                <TimeTracker
-                  timeEntries={ticket.timeEntries || []}
-                  totalTimeSpent={ticket.totalTimeSpent || 0}
-                  onAddTimeEntry={handleAddTimeEntry}
-                />
+              {ticket.totalTimeSpent > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  <Timer className="h-3 w-3 mr-1" />
+                  {formatTime(ticket.totalTimeSpent)}
+                </Badge>
               )}
-            </TabsContent>
-            
-            <TabsContent value="attachments" className="mt-4">
-              <TicketAttachments ticketId={ticket.id} />
-            </TabsContent>
-          </Tabs>
-        </div>
-      )}
-
-      <div className="flex justify-between items-center text-xs text-gray-500 mt-3">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            <span>Created {formatDate(ticket.createdAt)}</span>
-          </div>
-          {ticket.assignedTo && (
-            <div className="flex items-center gap-1">
-              <User className="h-3 w-3" />
-              <span>Assigned to {ticket.assignedTo.name}</span>
             </div>
+            <h3 className="font-semibold text-gray-900 mb-1">{ticket.subject}</h3>
+            {ticket.description && (
+              <p className="text-sm text-gray-600 mb-2">{ticket.description}</p>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Select value={ticket.status} onValueChange={handleStatusUpdate}>
+              <SelectTrigger className={`w-32 ${getStatusColor(ticket.status)}`}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="ml-2"
+            >
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {isExpanded && (
+          <div className="border-t pt-4">
+            <Tabs defaultValue="comments" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="comments">Comments</TabsTrigger>
+                <TabsTrigger value="history">
+                  <History className="h-4 w-4 mr-1" />
+                  History
+                </TabsTrigger>
+                <TabsTrigger value="time">Time Tracking</TabsTrigger>
+                <TabsTrigger value="attachments">Attachments</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="comments" className="mt-4">
+                <TicketComments 
+                  ticketId={ticket.id} 
+                  customerEmail={customerEmail}
+                  customerName={customerName}
+                />
+              </TabsContent>
+              
+              <TabsContent value="history" className="mt-4">
+                <TicketHistory
+                  history={generateTicketHistory()}
+                  formatDate={(dateString) => formatDate(new Date(dateString))}
+                />
+              </TabsContent>
+              
+              <TabsContent value="time" className="mt-4">
+                {onAddTimeEntry && (
+                  <TimeTracker
+                    timeEntries={ticket.timeEntries || []}
+                    totalTimeSpent={ticket.totalTimeSpent || 0}
+                    onAddTimeEntry={handleAddTimeEntry}
+                  />
+                )}
+              </TabsContent>
+              
+              <TabsContent value="attachments" className="mt-4">
+                <TicketAttachments ticketId={ticket.id} />
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center text-xs text-gray-500 mt-3">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span>Created {formatDate(ticket.createdAt)}</span>
+            </div>
+            {ticket.assignedTo && (
+              <div className="flex items-center gap-1">
+                <User className="h-3 w-3" />
+                <span>Assigned to {ticket.assignedTo.name}</span>
+              </div>
+            )}
+          </div>
+          {ticket.updatedAt && ticket.updatedAt !== ticket.createdAt && (
+            <span>Updated {formatDate(ticket.updatedAt)}</span>
           )}
         </div>
-        {ticket.updatedAt && ticket.updatedAt !== ticket.createdAt && (
-          <span>Updated {formatDate(ticket.updatedAt)}</span>
-        )}
       </div>
-    </div>
+
+      {/* Satisfaction Rating Dialog */}
+      {customerId && (
+        <SatisfactionRating
+          isOpen={showSatisfactionRating}
+          onClose={() => setShowSatisfactionRating(false)}
+          ticketId={ticket.id}
+          customerId={customerId}
+          ticketNumber={ticket.ticketNumber}
+        />
+      )}
+    </>
   );
 };
 

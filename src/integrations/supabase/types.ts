@@ -125,6 +125,50 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+          ticket_id: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          ticket_id: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          ticket_id?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_activities_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_attachments: {
         Row: {
           file_name: string
@@ -190,6 +234,113 @@ export type Database = {
           user_name?: string
         }
         Relationships: []
+      }
+      ticket_satisfaction: {
+        Row: {
+          created_at: string
+          customer_id: string
+          feedback: string | null
+          id: string
+          rating: number
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          feedback?: string | null
+          id?: string
+          rating: number
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          feedback?: string | null
+          id?: string
+          rating?: number
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_satisfaction_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_satisfaction_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          assigned_to_id: string | null
+          assigned_to_name: string | null
+          closed_at: string | null
+          created_at: string
+          customer_id: string
+          description: string | null
+          estimated_time_minutes: number | null
+          id: string
+          priority: string
+          resolution_time_minutes: number | null
+          resolved_at: string | null
+          status: string
+          subject: string
+          ticket_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to_id?: string | null
+          assigned_to_name?: string | null
+          closed_at?: string | null
+          created_at?: string
+          customer_id: string
+          description?: string | null
+          estimated_time_minutes?: number | null
+          id?: string
+          priority?: string
+          resolution_time_minutes?: number | null
+          resolved_at?: string | null
+          status?: string
+          subject: string
+          ticket_number: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to_id?: string | null
+          assigned_to_name?: string | null
+          closed_at?: string | null
+          created_at?: string
+          customer_id?: string
+          description?: string | null
+          estimated_time_minutes?: number | null
+          id?: string
+          priority?: string
+          resolution_time_minutes?: number | null
+          resolved_at?: string | null
+          status?: string
+          subject?: string
+          ticket_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

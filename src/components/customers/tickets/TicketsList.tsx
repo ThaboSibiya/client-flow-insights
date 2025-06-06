@@ -7,9 +7,19 @@ interface TicketsListProps {
   tickets: CustomerTicket[];
   onUpdateTicketStatus: (ticketId: string, status: TicketStatus) => void;
   onAddTimeEntry?: (ticketId: string, timeEntry: any) => void;
+  customerEmail?: string;
+  customerName?: string;
+  customerId?: string;
 }
 
-const TicketsList = ({ tickets, onUpdateTicketStatus, onAddTimeEntry }: TicketsListProps) => {
+const TicketsList = ({ 
+  tickets, 
+  onUpdateTicketStatus, 
+  onAddTimeEntry, 
+  customerEmail, 
+  customerName, 
+  customerId 
+}: TicketsListProps) => {
   if (!tickets || tickets.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -26,6 +36,9 @@ const TicketsList = ({ tickets, onUpdateTicketStatus, onAddTimeEntry }: TicketsL
           ticket={ticket}
           onStatusUpdate={onUpdateTicketStatus}
           onAddTimeEntry={onAddTimeEntry}
+          customerEmail={customerEmail}
+          customerName={customerName}
+          customerId={customerId}
         />
       ))}
     </div>
