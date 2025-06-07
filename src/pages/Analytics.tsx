@@ -8,7 +8,8 @@ import MonthlyTrends from '@/components/analytics/MonthlyTrends';
 import WeeklySummary from '@/components/analytics/WeeklySummary';
 import TicketAnalyticsDashboard from '@/components/analytics/TicketAnalyticsDashboard';
 import AdvancedAnalyticsDashboard from '@/components/analytics/AdvancedAnalyticsDashboard';
-import { Users, Ticket, TrendingUp } from 'lucide-react';
+import InteractiveReports from '@/components/analytics/InteractiveReports';
+import { Users, Ticket, TrendingUp, FileBarChart } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
 import { generateReportData, calculateSummary } from '@/utils/customer-analytics';
 
@@ -36,7 +37,7 @@ const Analytics = () => {
       </div>
 
       <Tabs defaultValue="customers" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="customers" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Customer Analytics
@@ -48,6 +49,10 @@ const Analytics = () => {
           <TabsTrigger value="advanced" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Advanced Analytics
+          </TabsTrigger>
+          <TabsTrigger value="interactive" className="flex items-center gap-2">
+            <FileBarChart className="h-4 w-4" />
+            Interactive Reports
           </TabsTrigger>
         </TabsList>
 
@@ -69,6 +74,10 @@ const Analytics = () => {
 
         <TabsContent value="advanced" className="space-y-6">
           <AdvancedAnalyticsDashboard />
+        </TabsContent>
+
+        <TabsContent value="interactive" className="space-y-6">
+          <InteractiveReports />
         </TabsContent>
       </Tabs>
     </div>
