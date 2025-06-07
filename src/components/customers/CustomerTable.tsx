@@ -7,18 +7,18 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
-import CustomerTableRow from './CustomerTableRow';
-import CustomerPagination from './CustomerPagination';
-import EnhancedFilters from './EnhancedFilters';
-import BulkActions from './BulkActions';
+import CustomerTableRow from './table/CustomerTableRow';
+import CustomerPagination from './table/CustomerPagination';
+import EnhancedFilters from './filters/EnhancedFilters';
+import BulkActions from './actions/BulkActions';
 import CustomerMetrics from './CustomerMetrics';
 import QuickActionsBar from './QuickActionsBar';
-import CustomerTableHeader from './CustomerTableHeader';
+import CustomerTableHeader from './table/CustomerTableHeader';
 import { useCustomerFilters } from '@/hooks/useCustomerFilters';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useTableSelection } from '@/hooks/useTableSelection';
 import { useCustomerExport } from './CustomerExportActions';
-import { useCustomerActions } from './CustomerActions';
+import { useCustomerActions } from './actions/CustomerActions';
 
 const CustomerTable = () => {
   const { customers } = useCRM();
