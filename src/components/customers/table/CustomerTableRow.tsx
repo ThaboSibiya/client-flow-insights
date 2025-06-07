@@ -1,21 +1,21 @@
 
 import React from 'react';
-import { TableCell, TableRow } from '@/components/ui/table';
+import { Customer, CustomerStatus } from '@/types/customer';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { Eye, Trash2, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Customer, CustomerStatus } from '@/context/CRMContext';
+import { Edit, Trash2, Ticket } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import StatusSelector from '../StatusSelector';
 import TicketIndicator from '../TicketIndicator';
 
 interface CustomerTableRowProps {
   customer: Customer;
   isSelected: boolean;
-  onSelect: (checked: boolean) => void;
-  onView: (customer: Customer) => void;
-  onDelete: (customerId: string) => void;
+  onSelect: (customerId: string, selected: boolean) => void;
   onStatusChange: (customerId: string, status: CustomerStatus) => void;
+  onEdit: (customer: Customer) => void;
+  onDelete: (customerId: string) => void;
   onManageTickets: (customer: Customer) => void;
 }
 
@@ -23,92 +23,83 @@ const CustomerTableRow = ({
   customer,
   isSelected,
   onSelect,
-  onView,
-  onDelete,
   onStatusChange,
-  onManageTickets
+  onEdit,
+  onDelete,
+  onManageTickets,
 }: CustomerTableRowProps) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
-
   return (
-    <TableRow className="hover:bg-gray-50/50 transition-colors group">
-      <TableCell>
+    <tr className={`hover:bg-gray-50 ${isSelected ? 'bg-blue-50' : ''}`}>
+      <td className="px-6 py-4 whitespace-nowrap">
         <Checkbox
           checked={isSelected}
-          onCheckedChange={onSelect}
+          onCheckedChange={(checked) => onSelect(customer.id, checked as boolean)}
           aria-label={`Select ${customer.name}`}
         />
-      </TableCell>
-      <TableCell>
-        <div>
-          <div className="font-medium text-gray-900">{customer.name}</div>
-          <div className="text-sm text-gray-500">{customer.company}</div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="flex items-center">
+          <div className="flex-shrink-0 h-10 w-10">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-r from-broker-primary to-broker-accent flex items-center justify-center text-white font-medium">
+              {customer.name.charAt(0).toUpperCase()}
+            </div>
+          </div>
+          <div className="ml-4">
+            <div className="text-sm font-medium text-gray-900">{customer.name}</div>
+          </div>
         </div>
-      </TableCell>
-      <TableCell>
-        <div>
-          <div className="text-sm text-gray-900">{customer.email}</div>
-          <div className="text-sm text-gray-500">{customer.phone}</div>
-        </div>
-      </TableCell>
-      <TableCell>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-gray-900">{customer.email}</div>
+        <div className="text-sm text-gray-500">{customer.phone}</div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
         <StatusSelector
-          currentStatus={customer.status}
+          status={customer.status}
           onStatusChange={(status) => onStatusChange(customer.id, status)}
           customerId={customer.id}
         />
-      </TableCell>
-      <TableCell>
-        <TicketIndicator 
-          tickets={customer.tickets} 
-          onClick={() => onManageTickets(customer)}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <TicketIndicator
+          tickets={customer.activeTickets || []}
         />
-      </TableCell>
-      <TableCell>
-        <div className="text-sm text-gray-600">
-          {formatDate(customer.createdAt)}
-        </div>
-      </TableCell>
-      <TableCell>
-        <div className="text-sm text-gray-600">
-          {formatDate(customer.updatedAt)}
-        </div>
-      </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-1">
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {formatDistanceToNow(new Date(customer.createdAt), { addSuffix: true })}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {formatDistanceToNow(new Date(customer.updatedAt), { addSuffix: true })}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+        <div className="flex items-center space-x-2">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onView(customer)}
-            className="opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={() => onEdit(customer)}
+            className="text-blue-600 hover:text-blue-900"
           >
-            <Eye className="h-4 w-4" />
+            <Edit className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onManageTickets(customer)}
-            className="opacity-0 group-hover:opacity-100 transition-opacity"
+            className="text-green-600 hover:text-green-900"
           >
-            <MessageSquare className="h-4 w-4" />
+            <Ticket className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onDelete(customer.id)}
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-700"
+            className="text-red-600 hover:text-red-900"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-      </TableCell>
-    </TableRow>
+      </td>
+    </tr>
   );
 };
 

@@ -1,39 +1,83 @@
 
 import React from 'react';
-import { TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { ArrowUpDown } from 'lucide-react';
 
 interface CustomerTableHeaderProps {
   isAllSelected: boolean;
-  isPartiallySelected: boolean;
+  isIndeterminate: boolean;
   onSelectAll: (checked: boolean) => void;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+  onSort: (field: string) => void;
 }
 
-const CustomerTableHeader = ({ 
-  isAllSelected, 
-  isPartiallySelected, 
-  onSelectAll 
+const CustomerTableHeader = ({
+  isAllSelected,
+  isIndeterminate,
+  onSelectAll,
+  sortBy,
+  sortOrder,
+  onSort,
 }: CustomerTableHeaderProps) => {
   return (
-    <TableHeader>
-      <TableRow className="bg-gray-50/50 hover:bg-gray-50/80">
-        <TableHead className="w-12">
+    <thead className="bg-gray-50">
+      <tr>
+        <th className="w-12 px-6 py-3 text-left">
           <Checkbox
             checked={isAllSelected}
-            indeterminate={isPartiallySelected}
+            ref={(el) => {
+              if (el) el.indeterminate = isIndeterminate;
+            }}
             onCheckedChange={onSelectAll}
             aria-label="Select all customers"
           />
-        </TableHead>
-        <TableHead className="font-semibold">Customer</TableHead>
-        <TableHead className="font-semibold">Contact</TableHead>
-        <TableHead className="font-semibold">Status</TableHead>
-        <TableHead className="font-semibold">Tickets</TableHead>
-        <TableHead className="font-semibold">Created</TableHead>
-        <TableHead className="font-semibold">Last Updated</TableHead>
-        <TableHead className="w-32 font-semibold">Actions</TableHead>
-      </TableRow>
-    </TableHeader>
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onSort('name')}
+            className="h-auto p-0 font-medium text-gray-500 hover:text-gray-700"
+          >
+            Name
+            <ArrowUpDown className="ml-1 h-3 w-3" />
+          </Button>
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Contact Info
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onSort('status')}
+            className="h-auto p-0 font-medium text-gray-500 hover:text-gray-700"
+          >
+            Status
+            <ArrowUpDown className="ml-1 h-3 w-3" />
+          </Button>
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Tickets
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onSort('createdAt')}
+            className="h-auto p-0 font-medium text-gray-500 hover:text-gray-700"
+          >
+            Created
+            <ArrowUpDown className="ml-1 h-3 w-3" />
+          </Button>
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Actions
+        </th>
+      </tr>
+    </thead>
   );
 };
 

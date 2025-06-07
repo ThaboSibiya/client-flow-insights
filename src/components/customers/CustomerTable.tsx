@@ -1,66 +1,51 @@
 
 import React, { useState } from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableRow 
-} from '@/components/ui/table';
-import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
+import { Customer } from '@/types/customer';
+import { useCustomerFilters } from '@/hooks/useCustomerFilters';
+import { useTableSelection } from '@/hooks/useTableSelection';
+import { useCustomerActions } from './CustomerActions';
+import CustomerTableHeader from './table/CustomerTableHeader';
 import CustomerTableRow from './table/CustomerTableRow';
 import CustomerPagination from './table/CustomerPagination';
 import EnhancedFilters from './filters/EnhancedFilters';
-import BulkActions from './actions/BulkActions';
-import CustomerMetrics from './CustomerMetrics';
-import QuickActionsBar from './QuickActionsBar';
-import CustomerTableHeader from './table/CustomerTableHeader';
-import { useCustomerFilters } from '@/hooks/useCustomerFilters';
-import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { useTableSelection } from '@/hooks/useTableSelection';
-import { useCustomerExport } from './CustomerExportActions';
-import { useCustomerActions } from './actions/CustomerActions';
 
-const CustomerTable = () => {
-  const { customers } = useCRM();
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+interface CustomerTableProps {
+  customers: Customer[];
+  loading?: boolean;
+}
 
-  // Use the custom filter hook
+const CustomerTable = ({ customers, loading = false }: CustomerTableProps) => {
   const {
+    filteredCustomers,
+    searchTerm,
+    setSearchTerm,
     statusFilter,
     setStatusFilter,
-    searchQuery,
-    setSearchQuery,
-    ticketFilter,
-    setTicketFilter,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
+    resetFilters,
+    activeFilters,
     dateRange,
     setDateRange,
-    filteredCustomers,
-    savedPresets,
-    applyPreset,
-    saveCurrentAsPreset,
-    getQuickDateRange,
+    ticketCountFilter,
+    setTicketCountFilter,
+    saveFilterPreset,
+    loadFilterPreset,
+    deleteFilterPreset,
+    savedPresets
   } = useCustomerFilters(customers);
 
-  // Pagination
-  const totalPages = Math.ceil(filteredCustomers.length / pageSize);
-  const currentCustomers = filteredCustomers.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
-
-  // Table selection
   const {
-    selectedItems: selectedCustomers,
-    setSelectedItems: setSelectedCustomers,
-    handleSelectAll,
-    handleSelectItem,
-    clearSelection,
+    selectedCustomers,
     isAllSelected,
-    isPartiallySelected,
-  } = useTableSelection(currentCustomers);
+    isIndeterminate,
+    handleSelectAll,
+    handleSelectCustomer,
+    clearSelection
+  } = useTableSelection(filteredCustomers);
 
-  // Customer actions
   const {
     handleStatusChange,
     handleDeleteCustomer,
@@ -71,142 +56,104 @@ const CustomerTable = () => {
     CustomerDialogs,
   } = useCustomerActions();
 
-  // Export functionality
-  const { handleExportCSV, handleExportJSON, handleExportExcel } = useCustomerExport({
-    customers,
-    filteredCustomers,
-    selectedCustomers,
-  });
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCustomers = filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
 
-  // Define keyboard shortcuts
-  const shortcuts = useKeyboardShortcuts([
-    {
-      key: 'n',
-      ctrlKey: true,
-      action: () => window.location.href = '/onboarding',
-      description: 'New Customer',
-    },
-    {
-      key: 'f',
-      ctrlKey: true,
-      action: () => {
-        const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
-        searchInput?.focus();
-      },
-      description: 'Focus Search',
-    },
-    {
-      key: 'e',
-      ctrlKey: true,
-      action: () => handleExportCSV(),
-      description: 'Export CSV',
-    },
-    {
-      key: 'a',
-      ctrlKey: true,
-      shiftKey: true,
-      action: () => handleSelectAll(!isAllSelected),
-      description: 'Select All',
-    },
-  ]);
-
-  const handleQuickDateRange = (range: string) => {
-    const newDateRange = getQuickDateRange(range);
-    setDateRange(newDateRange);
-    setCurrentPage(1);
+  const handleFilterPresetLoad = (preset: any) => {
+    loadFilterPreset(preset.id);
   };
 
-  const handleSelectCustomer = (customerId: string, checked: boolean) => {
-    handleSelectItem(customerId, checked);
-  };
-
-  // Bulk actions handlers
-  const onBulkStatusChange = async (status: CustomerStatus) => {
-    await handleBulkStatusChange(selectedCustomers, status);
-    clearSelection();
-  };
-
-  const onBulkDelete = async () => {
-    await handleBulkDelete(selectedCustomers);
-    clearSelection();
-  };
-
-  const onBulkExport = () => {
-    handleExportCSV();
-  };
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+        <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <CustomerMetrics customers={customers} />
-      
-      <QuickActionsBar
-        onExportCSV={handleExportCSV}
-        onExportJSON={handleExportJSON}
-        onExportExcel={handleExportExcel}
-        shortcuts={shortcuts}
-      />
-
-      <EnhancedFilters 
+      <EnhancedFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
+        sortBy={sortBy}
+        onSortByChange={setSortBy}
+        sortOrder={sortOrder}
+        onSortOrderChange={setSortOrder}
+        onResetFilters={resetFilters}
+        activeFilters={activeFilters}
         dateRange={dateRange}
         onDateRangeChange={setDateRange}
-        ticketFilter={ticketFilter}
-        onTicketFilterChange={setTicketFilter}
+        ticketCountFilter={ticketCountFilter}
+        onTicketCountFilterChange={setTicketCountFilter}
+        onSavePreset={saveFilterPreset}
+        onLoadPreset={handleFilterPresetLoad}
+        onDeletePreset={deleteFilterPreset}
         savedPresets={savedPresets}
-        onApplyPreset={applyPreset}
-        onSavePreset={saveCurrentAsPreset}
-        onQuickDateRange={handleQuickDateRange}
-      />
-
-      <BulkActions
         selectedCount={selectedCustomers.size}
-        onBulkStatusChange={onBulkStatusChange}
-        onBulkDelete={onBulkDelete}
-        onBulkExport={onBulkExport}
+        onBulkStatusChange={handleBulkStatusChange}
+        onBulkDelete={handleBulkDelete}
         onClearSelection={clearSelection}
       />
 
-      <div className="rounded-xl overflow-hidden border shadow-md bg-white hover:shadow-lg transition-shadow duration-300">
-        <Table>
-          <CustomerTableHeader
-            isAllSelected={isAllSelected}
-            isPartiallySelected={isPartiallySelected}
-            onSelectAll={handleSelectAll}
-          />
-          <TableBody>
-            {currentCustomers.map((customer) => (
-              <CustomerTableRow 
-                key={customer.id}
-                customer={customer}
-                isSelected={selectedCustomers.has(customer.id)}
-                onSelect={(checked) => handleSelectCustomer(customer.id, checked)}
-                onView={handleOpenCustomerDetails}
-                onDelete={handleDeleteCustomer}
-                onStatusChange={handleStatusChange}
-                onManageTickets={handleManageTickets}
-              />
-            ))}
-            
-            {currentCustomers.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                  {searchQuery || statusFilter !== 'all' || ticketFilter !== 'all' || dateRange.start || dateRange.end
-                    ? 'No customers match your filters' 
-                    : 'No customers found'}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <CustomerTableHeader
+              isAllSelected={isAllSelected}
+              isIndeterminate={isIndeterminate}
+              onSelectAll={handleSelectAll}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSort={(field) => {
+                if (sortBy === field) {
+                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                } else {
+                  setSortBy(field);
+                  setSortOrder('asc');
+                }
+              }}
+            />
+            <tbody className="divide-y divide-gray-200">
+              {paginatedCustomers.map((customer) => (
+                <CustomerTableRow
+                  key={customer.id}
+                  customer={customer}
+                  isSelected={selectedCustomers.has(customer.id)}
+                  onSelect={handleSelectCustomer}
+                  onStatusChange={handleStatusChange}
+                  onEdit={handleOpenCustomerDetails}
+                  onDelete={handleDeleteCustomer}
+                  onManageTickets={handleManageTickets}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {filteredCustomers.length === 0 && (
+          <div className="text-center py-12 text-gray-500">
+            <p className="text-lg font-medium">No customers found</p>
+            <p className="text-sm">Try adjusting your search criteria</p>
+          </div>
+        )}
       </div>
-      
-      <CustomerPagination 
+
+      <CustomerPagination
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
+        totalItems={filteredCustomers.length}
+        itemsPerPage={itemsPerPage}
+        startIndex={startIndex}
+        endIndex={Math.min(startIndex + itemsPerPage, filteredCustomers.length)}
       />
 
       <CustomerDialogs />
