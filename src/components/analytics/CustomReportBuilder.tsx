@@ -300,7 +300,7 @@ const CustomReportBuilder = () => {
                     <SelectValue placeholder="Select field" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     <SelectItem value="status">Status</SelectItem>
                     <SelectItem value="created_date">Created Date</SelectItem>
                     <SelectItem value="updated_date">Updated Date</SelectItem>
