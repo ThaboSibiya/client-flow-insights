@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useCustomerData } from '@/hooks/useCustomerData';
 import { useCustomerStore } from '@/stores/customerStore';
@@ -22,10 +21,10 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
   const { updateCustomerOptimistically, deleteCustomerOptimistically, addCustomerOptimistically, updateTicketOptimistically } = useOptimisticUpdates();
   const { user } = useAuth();
 
-  // Sync raw customer data with store
+  // Sync raw customer data with store - removed customerStore from dependency array to prevent infinite loop
   useEffect(() => {
     customerStore.setCustomers(rawCustomers);
-  }, [rawCustomers, customerStore]);
+  }, [rawCustomers]);
 
   const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'activeTickets' | 'ticketCount'>) => {
     if (!user) return;
