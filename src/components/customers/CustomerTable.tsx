@@ -4,11 +4,14 @@ import { Customer } from '@/types/customer';
 import { useCustomerFilters } from '@/hooks/useCustomerFilters';
 import { useTableSelection } from '@/hooks/useTableSelection';
 import { useCustomerActions } from './actions/CustomerActions';
+import { useCustomerBulkActions } from '@/hooks/useCustomerBulkActions';
+import { useCustomerExport } from '@/hooks/useCustomerExport';
 import { useCRM } from '@/context/CRMContext';
 import CustomerTableHeader from './table/CustomerTableHeader';
 import CustomerTableRow from './table/CustomerTableRow';
 import CustomerPagination from './table/CustomerPagination';
 import EnhancedFilters from './filters/EnhancedFilters';
+import BulkActions from './actions/BulkActions';
 
 const CustomerTable = () => {
   const { customers } = useCRM();
@@ -44,13 +47,19 @@ const CustomerTable = () => {
     clearSelection
   } = useTableSelection(filteredCustomers);
 
+  const { handleBulkStatusChange, handleBulkDelete } = useCustomerBulkActions();
+
+  const { handleExportCSV, handleExportJSON, handleExportExcel } = useCustomerExport({
+    customers,
+    filteredCustomers,
+    selectedCustomers,
+  });
+
   const {
     handleStatusChange,
     handleDeleteCustomer,
     handleOpenCustomerDetails,
     handleManageTickets,
-    handleBulkStatusChange,
-    handleBulkDelete,
     CustomerDialogs,
   } = useCustomerActions();
 
@@ -63,6 +72,10 @@ const CustomerTable = () => {
 
   const handleFilterPresetLoad = (preset: any) => {
     loadFilterPreset(preset.id);
+  };
+
+  const handleBulkExport = () => {
+    handleExportCSV(); // Default to CSV for bulk export
   };
 
   return (
@@ -103,6 +116,14 @@ const CustomerTable = () => {
           }
           setDateRange(newRange);
         }}
+      />
+
+      <BulkActions
+        selectedCount={selectedCustomers.size}
+        onBulkStatusChange={(status) => handleBulkStatusChange(selectedCustomers, status)}
+        onBulkDelete={() => handleBulkDelete(selectedCustomers)}
+        onBulkExport={handleBulkExport}
+        onClearSelection={clearSelection}
       />
 
       <div className="bg-white rounded-lg shadow-sm border">

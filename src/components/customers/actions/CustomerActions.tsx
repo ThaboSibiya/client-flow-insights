@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
 import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
+import { useTicketManagement } from '@/hooks/useTicketManagement';
 import CustomerDetailsDialog from '../forms/CustomerDetailsDialog';
 import TicketManagementDialog from '../TicketManagementDialog';
 import { toast } from '@/hooks/use-toast';
 
 export const useCustomerActions = () => {
-  const { updateCustomerStatus, deleteCustomer, createTicket, updateTicketStatus, addTimeEntry } = useCRM();
+  const { updateCustomerStatus, deleteCustomer } = useCRM();
+  const { handleCreateTicket, handleUpdateTicketStatus, handleAddTimeEntry } = useTicketManagement();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
@@ -33,26 +35,6 @@ export const useCustomerActions = () => {
     setIsTicketDialogOpen(true);
   };
 
-  const handleBulkStatusChange = async (selectedCustomers: Set<string>, status: CustomerStatus) => {
-    const promises = Array.from(selectedCustomers).map(id => updateCustomerStatus(id, status));
-    await Promise.all(promises);
-    toast({
-      title: "Success",
-      description: `Updated ${selectedCustomers.size} customer(s) to ${status}`,
-    });
-  };
-
-  const handleBulkDelete = async (selectedCustomers: Set<string>) => {
-    if (window.confirm(`Are you sure you want to delete ${selectedCustomers.size} customer(s)?`)) {
-      const promises = Array.from(selectedCustomers).map(id => deleteCustomer(id));
-      await Promise.all(promises);
-      toast({
-        title: "Success",
-        description: `Deleted ${selectedCustomers.size} customer(s)`,
-      });
-    }
-  };
-
   const CustomerDialogs = () => (
     <>
       <CustomerDetailsDialog 
@@ -72,9 +54,9 @@ export const useCustomerActions = () => {
           setIsTicketDialogOpen(false);
           setSelectedCustomer(null);
         }}
-        onCreateTicket={createTicket}
-        onUpdateTicketStatus={updateTicketStatus}
-        onAddTimeEntry={addTimeEntry}
+        onCreateTicket={handleCreateTicket}
+        onUpdateTicketStatus={handleUpdateTicketStatus}
+        onAddTimeEntry={handleAddTimeEntry}
       />
     </>
   );
@@ -84,8 +66,6 @@ export const useCustomerActions = () => {
     handleDeleteCustomer,
     handleOpenCustomerDetails,
     handleManageTickets,
-    handleBulkStatusChange,
-    handleBulkDelete,
     CustomerDialogs,
   };
 };
