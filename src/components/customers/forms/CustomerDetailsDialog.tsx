@@ -1,7 +1,12 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Customer } from '@/context/CRMContext';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Customer } from '@/types/customer';
 import CustomerDetailsForm from './CustomerDetailsForm';
 
 interface CustomerDetailsDialogProps {
@@ -11,15 +16,20 @@ interface CustomerDetailsDialogProps {
 }
 
 const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDialogProps) => {
-  if (!customer) return null;
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Customer Details - {customer.name}</DialogTitle>
+          <DialogTitle>
+            {customer ? `Edit ${customer.name}` : 'Customer Details'}
+          </DialogTitle>
         </DialogHeader>
-        <CustomerDetailsForm customer={customer} onClose={onClose} />
+        {customer && (
+          <CustomerDetailsForm 
+            customer={customer}
+            onClose={onClose}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

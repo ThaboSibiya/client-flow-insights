@@ -1,135 +1,138 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Customer } from '@/types/customer';
+import { Textarea } from '@/components/ui/textarea';
+import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
 import StatusSelector from '../StatusSelector';
+import { toast } from '@/hooks/use-toast';
 
 interface CustomerDetailsFormProps {
-  customer?: Customer | null;
-  onSave: (customerData: any) => void;
-  onCancel: () => void;
+  customer: Customer;
+  onClose: () => void;
 }
 
-const CustomerDetailsForm = ({ customer, onSave, onCancel }: CustomerDetailsFormProps) => {
+const CustomerDetailsForm = ({ customer, onClose }: CustomerDetailsFormProps) => {
+  const { updateCustomer } = useCRM();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    notes: '',
+    name: customer.name || '',
+    email: customer.email || '',
+    phone: customer.phone || '',
+    address: customer.address || '',
+    notes: customer.notes || '',
+    status: customer.status
   });
 
-  useEffect(() => {
-    if (customer) {
-      setFormData({
-        name: customer.name || '',
-        email: customer.email || '',
-        phone: customer.phone || '',
-        notes: customer.notes || '',
-      });
-    }
-  }, [customer]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleStatusChange = (status: CustomerStatus) => {
+    setFormData(prev => ({ ...prev, status }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
-  };
-
-  const handleStatusChange = (status: any) => {
-    // Status changes are handled separately
-    console.log('Status changed to:', status);
+    setIsLoading(true);
+    
+    try {
+      await updateCustomer(customer.id, formData);
+      toast({
+        title: "Success",
+        description: "Customer updated successfully",
+      });
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update customer",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Customer Overview */}
-      <div className="bg-gradient-to-r from-broker-primary/10 to-broker-accent/10 p-4 rounded-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-broker-primary">
-              {customer ? customer.name : 'New Customer'}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {customer ? customer.email : 'Enter customer details'}
-            </p>
-          </div>
-          {customer && (
-            <StatusSelector
-              status={customer.status}
-              onStatusChange={handleStatusChange}
-              customerId={customer.id}
-            />
-          )}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="name">Name</Label>
+          <Input
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            required
+          />
         </div>
       </div>
 
-      {/* Basic Information */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="Enter full name"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address *</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              placeholder="Enter email address"
-              required
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone Number</Label>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="phone">Phone</Label>
           <Input
             id="phone"
+            name="phone"
             value={formData.phone}
-            onChange={(e) => handleInputChange('phone', e.target.value)}
-            placeholder="Enter phone number"
+            onChange={handleInputChange}
           />
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="notes">Notes</Label>
-          <Textarea
-            id="notes"
-            value={formData.notes}
-            onChange={(e) => handleInputChange('notes', e.target.value)}
-            placeholder="Add any additional notes..."
-            rows={3}
+        <div>
+          <Label>Status</Label>
+          <StatusSelector
+            status={formData.status}
+            onChange={handleStatusChange}
+            customerId={customer.id}
           />
         </div>
+      </div>
 
-        <div className="flex gap-2 pt-4">
-          <Button type="submit" className="bg-gradient-to-r from-broker-primary to-broker-accent">
-            {customer ? 'Update Customer' : 'Add Customer'}
-          </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        </div>
-      </form>
-    </div>
+      <div>
+        <Label htmlFor="address">Address</Label>
+        <Input
+          id="address"
+          name="address"
+          value={formData.address}
+          onChange={handleInputChange}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="notes">Notes</Label>
+        <Textarea
+          id="notes"
+          name="notes"
+          value={formData.notes}
+          onChange={handleInputChange}
+          rows={3}
+        />
+      </div>
+
+      <div className="flex justify-end gap-2 pt-4">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Saving...' : 'Save Changes'}
+        </Button>
+      </div>
+    </form>
   );
 };
 

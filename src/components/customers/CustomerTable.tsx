@@ -3,22 +3,20 @@ import React, { useState } from 'react';
 import { Customer } from '@/types/customer';
 import { useCustomerFilters } from '@/hooks/useCustomerFilters';
 import { useTableSelection } from '@/hooks/useTableSelection';
-import { useCustomerActions } from './CustomerActions';
+import { useCustomerActions } from './actions/CustomerActions';
+import { useCRM } from '@/context/CRMContext';
 import CustomerTableHeader from './table/CustomerTableHeader';
 import CustomerTableRow from './table/CustomerTableRow';
 import CustomerPagination from './table/CustomerPagination';
 import EnhancedFilters from './filters/EnhancedFilters';
 
-interface CustomerTableProps {
-  customers: Customer[];
-  loading?: boolean;
-}
-
-const CustomerTable = ({ customers, loading = false }: CustomerTableProps) => {
+const CustomerTable = () => {
+  const { customers } = useCRM();
+  
   const {
     filteredCustomers,
-    searchTerm,
-    setSearchTerm,
+    searchQuery: searchTerm,
+    setSearchQuery: setSearchTerm,
     statusFilter,
     setStatusFilter,
     sortBy,
@@ -38,11 +36,11 @@ const CustomerTable = ({ customers, loading = false }: CustomerTableProps) => {
   } = useCustomerFilters(customers);
 
   const {
-    selectedCustomers,
+    selectedItems: selectedCustomers,
     isAllSelected,
-    isIndeterminate,
+    isPartiallySelected: isIndeterminate,
     handleSelectAll,
-    handleSelectCustomer,
+    handleSelectItem: handleSelectCustomer,
     clearSelection
   } = useTableSelection(filteredCustomers);
 
@@ -67,19 +65,10 @@ const CustomerTable = ({ customers, loading = false }: CustomerTableProps) => {
     loadFilterPreset(preset.id);
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
-        <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <EnhancedFilters
-        searchTerm={searchTerm}
+        searchQuery={searchTerm}
         onSearchChange={setSearchTerm}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
@@ -150,7 +139,7 @@ const CustomerTable = ({ customers, loading = false }: CustomerTableProps) => {
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
-        totalItems={filteredCustomers.length}
+        totalCount={filteredCustomers.length}
         itemsPerPage={itemsPerPage}
         startIndex={startIndex}
         endIndex={Math.min(startIndex + itemsPerPage, filteredCustomers.length)}

@@ -27,11 +27,9 @@ const CustomerTableHeader = ({
         <th className="w-12 px-6 py-3 text-left">
           <Checkbox
             checked={isAllSelected}
-            ref={(el) => {
-              if (el) el.indeterminate = isIndeterminate;
-            }}
             onCheckedChange={onSelectAll}
             aria-label="Select all customers"
+            className={isIndeterminate ? "data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" : ""}
           />
         </th>
         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
