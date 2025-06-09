@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
-import { CustomerTicket, TicketStatus, TimeEntry, useCRM } from '@/context/CRMContext';
+import { CustomerTicket, TicketStatus, useCRM } from '@/context/CRMContext';
+import { TimeEntry } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
 
 export const useTicketManagement = () => {
