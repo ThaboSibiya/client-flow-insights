@@ -1,6 +1,9 @@
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useCustomerData } from '@/hooks/useCustomerData';
+import { useCustomerStore } from '@/stores/customerStore';
+import { useTicketStore } from '@/stores/ticketStore';
+import { useOptimisticUpdates } from '@/hooks/useOptimisticUpdates';
 import { 
   addCustomer as addCustomerService,
   updateCustomerStatus as updateCustomerStatusService,
@@ -13,49 +16,71 @@ import { Customer, CustomerStatus, CustomerTicket, TicketStatus, CRMContextType,
 const CRMContext = createContext<CRMContextType | undefined>(undefined);
 
 export const CRMProvider = ({ children }: { children: ReactNode }) => {
-  const { customers, setCustomers } = useCustomerData();
+  const { customers: rawCustomers, setCustomers: setRawCustomers } = useCustomerData();
+  const customerStore = useCustomerStore();
+  const ticketStore = useTicketStore();
+  const { updateCustomerOptimistically, deleteCustomerOptimistically, addCustomerOptimistically, updateTicketOptimistically } = useOptimisticUpdates();
   const { user } = useAuth();
+
+  // Sync raw customer data with store
+  useEffect(() => {
+    customerStore.setCustomers(rawCustomers);
+  }, [rawCustomers, customerStore]);
 
   const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'activeTickets' | 'ticketCount'>) => {
     if (!user) return;
     
-    const newCustomer = await addCustomerService({
+    const tempId = `temp-${Date.now()}`;
+    const newCustomer: Customer = {
       ...customerData,
+      id: tempId,
       activeTickets: [],
-      ticketCount: 0
-    }, user.id);
-    if (newCustomer) {
-      setCustomers(prev => [newCustomer, ...prev]);
-    }
+      ticketCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    await addCustomerOptimistically(newCustomer, async () => {
+      const actualCustomer = await addCustomerService({
+        ...customerData,
+        activeTickets: [],
+        ticketCount: 0
+      }, user.id);
+      
+      if (actualCustomer) {
+        setRawCustomers(prev => [actualCustomer, ...prev.filter(c => c.id !== tempId)]);
+      }
+    });
   };
 
   const updateCustomerStatus = async (id: string, status: CustomerStatus) => {
     if (!user) return;
     
-    await updateCustomerStatusService(id, status, user.id);
-    // Actual state update will happen via realtime subscription
+    await updateCustomerOptimistically(id, { status }, async () => {
+      await updateCustomerStatusService(id, status, user.id);
+    });
   };
 
   const updateCustomer = async (id: string, customerData: Partial<Customer>) => {
     if (!user) return;
     
-    await updateCustomerService(id, customerData, user.id);
-    // Actual state update will happen via realtime subscription
+    await updateCustomerOptimistically(id, customerData, async () => {
+      await updateCustomerService(id, customerData, user.id);
+    });
   };
 
   const deleteCustomer = async (id: string) => {
     if (!user) return;
     
-    await deleteCustomerService(id, user.id);
-    // Actual state update will happen via realtime subscription
+    await deleteCustomerOptimistically(id, async () => {
+      await deleteCustomerService(id, user.id);
+    });
   };
 
   const createTicket = async (customerId: string, ticketData: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>) => {
     if (!user) return;
     
-    // Generate ticket number
     const ticketNumber = `TKT-${Date.now().toString().slice(-6)}`;
-    
     const newTicket: CustomerTicket = {
       id: `ticket-${Date.now()}`,
       ticketNumber,
@@ -66,30 +91,36 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
       updatedAt: new Date(),
     };
 
-    // Update customer with new ticket
-    setCustomers(prev => prev.map(customer => 
-      customer.id === customerId 
-        ? {
-            ...customer,
-            activeTickets: [...(customer.activeTickets || []), newTicket],
-            ticketCount: (customer.ticketCount || 0) + 1,
-            lastTicketDate: new Date()
-          }
-        : customer
-    ));
+    // Apply optimistic update to both stores
+    ticketStore.optimisticAddTicket(customerId, newTicket);
+    customerStore.optimisticUpdateCustomer(customerId, {
+      activeTickets: [...(customerStore.customers.find(c => c.id === customerId)?.activeTickets || []), newTicket],
+      ticketCount: (customerStore.customers.find(c => c.id === customerId)?.ticketCount || 0) + 1,
+      lastTicketDate: new Date()
+    });
+
+    // Note: In a real app, you'd make a server call here
   };
 
   const updateTicketStatus = async (ticketId: string, status: TicketStatus) => {
     if (!user) return;
     
-    setCustomers(prev => prev.map(customer => ({
-      ...customer,
-      activeTickets: (customer.activeTickets || []).map(ticket =>
-        ticket.id === ticketId 
-          ? { ...ticket, status, updatedAt: new Date() }
-          : ticket
-      )
-    })));
+    await updateTicketOptimistically(ticketId, { status, updatedAt: new Date() }, async () => {
+      // Note: In a real app, you'd make a server call here
+      console.log(`Updating ticket ${ticketId} status to ${status}`);
+    });
+
+    // Also update in customer store
+    customerStore.setCustomers(
+      customerStore.customers.map(customer => ({
+        ...customer,
+        activeTickets: (customer.activeTickets || []).map(ticket =>
+          ticket.id === ticketId 
+            ? { ...ticket, status, updatedAt: new Date() }
+            : ticket
+        )
+      }))
+    );
   };
 
   const addTimeEntry = async (ticketId: string, timeEntryData: Omit<TimeEntry, 'id' | 'ticketId' | 'createdAt'>) => {
@@ -102,25 +133,38 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
       createdAt: new Date(),
     };
 
-    setCustomers(prev => prev.map(customer => ({
-      ...customer,
-      activeTickets: (customer.activeTickets || []).map(ticket =>
-        ticket.id === ticketId 
-          ? { 
-              ...ticket, 
-              timeEntries: [...(ticket.timeEntries || []), newTimeEntry],
-              totalTimeSpent: (ticket.totalTimeSpent || 0) + newTimeEntry.duration,
-              updatedAt: new Date()
-            }
-          : ticket
-      )
-    })));
+    const updates = {
+      timeEntries: [...(customerStore.customers
+        .flatMap(c => c.activeTickets || [])
+        .find(t => t.id === ticketId)?.timeEntries || []), newTimeEntry],
+      totalTimeSpent: (customerStore.customers
+        .flatMap(c => c.activeTickets || [])
+        .find(t => t.id === ticketId)?.totalTimeSpent || 0) + newTimeEntry.duration,
+      updatedAt: new Date()
+    };
+
+    await updateTicketOptimistically(ticketId, updates, async () => {
+      // Note: In a real app, you'd make a server call here
+      console.log(`Adding time entry to ticket ${ticketId}`);
+    });
+
+    // Also update in customer store
+    customerStore.setCustomers(
+      customerStore.customers.map(customer => ({
+        ...customer,
+        activeTickets: (customer.activeTickets || []).map(ticket =>
+          ticket.id === ticketId 
+            ? { ...ticket, ...updates }
+            : ticket
+        )
+      }))
+    );
   };
 
   return (
     <CRMContext.Provider
       value={{
-        customers,
+        customers: customerStore.customers,
         addCustomer,
         updateCustomerStatus,
         updateCustomer,
