@@ -51,6 +51,7 @@ export interface Customer {
   name: string;
   email: string;
   phone: string;
+  address?: string;
   status: CustomerStatus;
   notes: string;
   createdAt: Date;

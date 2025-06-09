@@ -1,7 +1,13 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface CustomerPaginationProps {
   currentPage: number;
@@ -11,35 +17,39 @@ interface CustomerPaginationProps {
 
 const CustomerPagination = ({ currentPage, totalPages, onPageChange }: CustomerPaginationProps) => {
   if (totalPages <= 1) return null;
-
+  
   return (
-    <div className="flex items-center justify-between">
-      <div className="text-sm text-gray-700">
-        Page {currentPage} of {totalPages}
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Previous
-        </Button>
+    <Pagination className="mt-4">
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious 
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            className={`${currentPage === 1 ? 'pointer-events-none opacity-50' : 'hover:scale-105 hover:shadow-md transition-all'}`}
+          />
+        </PaginationItem>
         
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        >
-          Next
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
-      </div>
-    </div>
+        {Array.from({ length: totalPages }, (_, i) => (
+          <PaginationItem key={i}>
+            <PaginationLink 
+              isActive={currentPage === i + 1} 
+              onClick={() => onPageChange(i + 1)}
+              className={`${currentPage === i + 1 ? 
+                'bg-gradient-to-r from-broker-primary to-broker-accent text-white shadow-md' : 
+                'hover:scale-105 hover:shadow-sm transition-all'}`}
+            >
+              {i + 1}
+            </PaginationLink>
+          </PaginationItem>
+        ))}
+        
+        <PaginationItem>
+          <PaginationNext 
+            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+            className={`${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'hover:scale-105 hover:shadow-md transition-all'}`}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   );
 };
 

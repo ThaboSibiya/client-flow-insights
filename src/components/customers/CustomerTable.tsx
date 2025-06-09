@@ -15,8 +15,8 @@ const CustomerTable = () => {
   
   const {
     filteredCustomers,
-    searchQuery: searchTerm,
-    setSearchQuery: setSearchTerm,
+    searchQuery,
+    setSearchQuery,
     statusFilter,
     setStatusFilter,
     sortBy,
@@ -68,28 +68,41 @@ const CustomerTable = () => {
   return (
     <div className="space-y-6">
       <EnhancedFilters
-        searchQuery={searchTerm}
-        onSearchChange={setSearchTerm}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
-        sortBy={sortBy}
-        onSortByChange={setSortBy}
-        sortOrder={sortOrder}
-        onSortOrderChange={setSortOrder}
-        onResetFilters={resetFilters}
-        activeFilters={activeFilters}
         dateRange={dateRange}
         onDateRangeChange={setDateRange}
-        ticketCountFilter={ticketCountFilter}
-        onTicketCountFilterChange={setTicketCountFilter}
-        onSavePreset={saveFilterPreset}
-        onLoadPreset={handleFilterPresetLoad}
-        onDeletePreset={deleteFilterPreset}
+        ticketFilter={ticketCountFilter}
+        onTicketFilterChange={setTicketCountFilter}
         savedPresets={savedPresets}
-        selectedCount={selectedCustomers.size}
-        onBulkStatusChange={handleBulkStatusChange}
-        onBulkDelete={handleBulkDelete}
-        onClearSelection={clearSelection}
+        onApplyPreset={handleFilterPresetLoad}
+        onSavePreset={saveFilterPreset}
+        onQuickDateRange={(range) => {
+          const newRange = { start: null, end: null };
+          const now = new Date();
+          switch (range) {
+            case 'today':
+              newRange.start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+              newRange.end = now;
+              break;
+            case 'week':
+              newRange.start = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+              newRange.end = now;
+              break;
+            case 'month':
+              newRange.start = new Date(now.getFullYear(), now.getMonth(), 1);
+              newRange.end = now;
+              break;
+            case 'quarter':
+              const quarter = Math.floor(now.getMonth() / 3);
+              newRange.start = new Date(now.getFullYear(), quarter * 3, 1);
+              newRange.end = now;
+              break;
+          }
+          setDateRange(newRange);
+        }}
       />
 
       <div className="bg-white rounded-lg shadow-sm border">
@@ -139,10 +152,6 @@ const CustomerTable = () => {
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
-        totalCount={filteredCustomers.length}
-        itemsPerPage={itemsPerPage}
-        startIndex={startIndex}
-        endIndex={Math.min(startIndex + itemsPerPage, filteredCustomers.length)}
       />
 
       <CustomerDialogs />

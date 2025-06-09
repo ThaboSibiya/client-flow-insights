@@ -98,7 +98,6 @@ const CustomerDetailsForm = ({ customer, onClose }: CustomerDetailsFormProps) =>
           <StatusSelector
             status={formData.status}
             onChange={handleStatusChange}
-            customerId={customer.id}
           />
         </div>
       </div>

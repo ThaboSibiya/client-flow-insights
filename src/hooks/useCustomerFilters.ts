@@ -56,12 +56,14 @@ export const useCustomerFilters = (customers: Customer[]) => {
   const [ticketFilter, setTicketFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<{start: Date | null, end: Date | null}>({start: null, end: null});
   const [savedPresets, setSavedPresets] = useState<FilterPreset[]>(DEFAULT_PRESETS);
+  const [sortBy, setSortBy] = useState<string>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Debounce search query to reduce unnecessary filtering
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const filteredCustomers = useMemo(() => {
-    return customers.filter(customer => {
+    let result = customers.filter(customer => {
       // Status filter
       if (statusFilter !== 'all' && customer.status !== statusFilter) return false;
       
@@ -93,7 +95,37 @@ export const useCustomerFilters = (customers: Customer[]) => {
       
       return true;
     });
-  }, [customers, statusFilter, debouncedSearchQuery, dateRange, ticketFilter]);
+
+    // Sort the results
+    result.sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'createdAt':
+          aValue = a.createdAt;
+          bValue = b.createdAt;
+          break;
+        default:
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }, [customers, statusFilter, debouncedSearchQuery, dateRange, ticketFilter, sortBy, sortOrder]);
 
   const applyPreset = useCallback((presetId: string) => {
     const preset = savedPresets.find(p => p.id === presetId);
@@ -136,19 +168,50 @@ export const useCustomerFilters = (customers: Customer[]) => {
     }
   }, []);
 
+  const resetFilters = useCallback(() => {
+    setStatusFilter('all');
+    setSearchQuery('');
+    setTicketFilter('all');
+    setDateRange({ start: null, end: null });
+    setSortBy('name');
+    setSortOrder('asc');
+  }, []);
+
+  const activeFilters = useMemo(() => {
+    const filters = [];
+    if (statusFilter !== 'all') filters.push(`Status: ${statusFilter}`);
+    if (searchQuery) filters.push(`Search: ${searchQuery}`);
+    if (ticketFilter !== 'all') filters.push(`Tickets: ${ticketFilter}`);
+    if (dateRange.start || dateRange.end) filters.push('Date range');
+    return filters;
+  }, [statusFilter, searchQuery, ticketFilter, dateRange]);
+
   return {
     statusFilter,
     setStatusFilter,
     searchQuery,
     setSearchQuery,
     ticketFilter,
-    setTicketFilter,
+    setTicketFilter: setTicketFilter,
+    ticketCountFilter: ticketFilter,
+    setTicketCountFilter: setTicketFilter,
     dateRange,
     setDateRange,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
+    resetFilters,
+    activeFilters,
     filteredCustomers,
     savedPresets,
     applyPreset,
+    loadFilterPreset: applyPreset,
     saveCurrentAsPreset,
+    saveFilterPreset: saveCurrentAsPreset,
+    deleteFilterPreset: (presetId: string) => {
+      setSavedPresets(prev => prev.filter(p => p.id !== presetId));
+    },
     getQuickDateRange,
   };
 };

@@ -59,7 +59,6 @@ const CustomerTableRow = ({
         <StatusSelector
           status={customer.status}
           onChange={handleStatusChange}
-          customerId={customer.id}
         />
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
