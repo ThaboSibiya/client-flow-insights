@@ -19,9 +19,9 @@ const StatusSelector = ({ status, onChange, className }: StatusSelectorProps) =>
   
   const getStatusTriggerColor = (status: CustomerStatus) => {
     switch(status) {
-      case 'new': return 'border-blue-300 text-blue-800 bg-gradient-to-r from-blue-50 to-blue-100 hover:border-blue-400';
+      case 'new': return 'border-quikle-primary/30 text-quikle-primary bg-gradient-to-r from-quikle-crystal to-quikle-platinum hover:border-quikle-primary/50';
       case 'existing': return 'border-emerald-300 text-emerald-800 bg-gradient-to-r from-emerald-50 to-emerald-100 hover:border-emerald-400';
-      case 'pending': return 'border-slate-300 text-slate-800 bg-gradient-to-r from-slate-50 to-slate-100 hover:border-slate-400';
+      case 'pending': return 'border-quikle-accent/30 text-quikle-accent bg-gradient-to-r from-quikle-crystal to-quikle-platinum hover:border-quikle-accent/50';
       case 'finalised': return 'border-purple-300 text-purple-800 bg-gradient-to-r from-purple-50 to-purple-100 hover:border-purple-400';
       default: return '';
     }
@@ -35,10 +35,10 @@ const StatusSelector = ({ status, onChange, className }: StatusSelectorProps) =>
       <SelectTrigger className={`w-[140px] ${getStatusTriggerColor(status)} shadow-sm hover:shadow-md transition-all ${className}`}>
         <SelectValue />
       </SelectTrigger>
-      <SelectContent className="bg-white border border-gray-200 shadow-lg">
-        <SelectItem value="new" className="text-blue-700 hover:bg-blue-50">New</SelectItem>
+      <SelectContent className="bg-white border border-quikle-silver/30 shadow-lg z-50">
+        <SelectItem value="new" className="text-quikle-primary hover:bg-quikle-crystal">New</SelectItem>
         <SelectItem value="existing" className="text-emerald-700 hover:bg-emerald-50">Existing</SelectItem>
-        <SelectItem value="pending" className="text-slate-700 hover:bg-slate-50">Pending</SelectItem>
+        <SelectItem value="pending" className="text-quikle-accent hover:bg-quikle-crystal">Pending</SelectItem>
         <SelectItem value="finalised" className="text-purple-700 hover:bg-purple-50">Finalised</SelectItem>
       </SelectContent>
     </Select>
