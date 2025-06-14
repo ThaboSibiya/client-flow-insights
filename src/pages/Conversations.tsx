@@ -53,9 +53,9 @@ const Conversations = () => {
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-quikle-primary">Conversations</h1>
                 {isConnected ? (
-                  <Wifi className="h-4 w-4 text-green-500" title="Real-time connected" />
+                  <Wifi className="h-4 w-4 text-green-500" />
                 ) : (
-                  <WifiOff className="h-4 w-4 text-red-500" title="Real-time disconnected" />
+                  <WifiOff className="h-4 w-4 text-red-500" />
                 )}
               </div>
               <p className="text-quikle-neutral mt-1">Unified communication center</p>
