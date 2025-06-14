@@ -99,14 +99,23 @@ const ValidatedCustomerForm = ({ customer, onClose, onSuccess }: ValidatedCustom
     
     try {
       if (isEditing && customer) {
-        const updatedCustomer = await updateCustomer(customer.id, formData);
+        await updateCustomer(customer.id, formData);
+        const updatedCustomer = { ...customer, ...formData, updatedAt: new Date() };
         toast({
           title: "Success",
           description: "Customer updated successfully",
         });
         onSuccess?.(updatedCustomer);
       } else {
-        const newCustomer = await addCustomer(formData);
+        await addCustomer(formData);
+        const newCustomer: Customer = {
+          ...formData,
+          id: `temp-${Date.now()}`, // This will be replaced by the actual ID from the service
+          activeTickets: [],
+          ticketCount: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
         toast({
           title: "Success", 
           description: "Customer added successfully",
