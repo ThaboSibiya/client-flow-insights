@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
@@ -61,16 +60,16 @@ const RevenueForecastChart = () => {
     <Card className="shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-green-600" />
+          <DollarSign className="h-5 w-5 text-quikle-accent" />
           Revenue Forecast
         </CardTitle>
         <div className="flex gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500 rounded"></div>
+            <div className="w-3 h-3 bg-quikle-primary rounded"></div>
             <span>Actual: ${currentRevenue.toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded"></div>
+            <div className="w-3 h-3 bg-quikle-accent rounded"></div>
             <span>Forecast: ${forecastedRevenue.toLocaleString()}</span>
           </div>
         </div>
@@ -88,9 +87,9 @@ const RevenueForecastChart = () => {
                   name === 'actual' ? 'Actual' : name === 'forecast' ? 'Forecast' : 'Target'
                 ]}
               />
-              <Area type="monotone" dataKey="target" stackId="1" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.1} />
-              <Area type="monotone" dataKey="forecast" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.2} />
-              <Line type="monotone" dataKey="actual" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6' }} />
+              <Area type="monotone" dataKey="target" stackId="1" stroke="#9CA3AF" fill="#9CA3AF" fillOpacity={0.1} />
+              <Area type="monotone" dataKey="forecast" stackId="1" stroke="#6B7280" fill="#6B7280" fillOpacity={0.2} />
+              <Line type="monotone" dataKey="actual" stroke="#1F2937" strokeWidth={3} dot={{ fill: '#1F2937' }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>

@@ -21,24 +21,24 @@ const CustomerLifecycleTracker = () => {
   const conversionRate = total > 0 ? Math.round((stages.closed / total) * 100) : 0;
 
   const stageData = [
-    { name: 'Prospects', count: stages.prospect, color: 'bg-blue-500', icon: <Users className="h-4 w-4" /> },
-    { name: 'Qualified', count: stages.qualified, color: 'bg-yellow-500', icon: <Target className="h-4 w-4" /> },
-    { name: 'Negotiation', count: stages.negotiation, color: 'bg-orange-500', icon: <TrendingUp className="h-4 w-4" /> },
-    { name: 'Closed Won', count: stages.closed, color: 'bg-green-500', icon: <CheckCircle className="h-4 w-4" /> },
+    { name: 'Prospects', count: stages.prospect, color: 'bg-quikle-charcoal', icon: <Users className="h-4 w-4" /> },
+    { name: 'Qualified', count: stages.qualified, color: 'bg-quikle-slate', icon: <Target className="h-4 w-4" /> },
+    { name: 'Negotiation', count: stages.negotiation, color: 'bg-quikle-neutral', icon: <TrendingUp className="h-4 w-4" /> },
+    { name: 'Closed Won', count: stages.closed, color: 'bg-quikle-accent', icon: <CheckCircle className="h-4 w-4" /> },
   ];
 
   return (
     <Card className="shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-broker-primary" />
+          <TrendingUp className="h-5 w-5 text-quikle-primary" />
           Customer Lifecycle Pipeline
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           {stageData.map((stage) => (
-            <div key={stage.name} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
+            <div key={stage.name} className="flex items-center gap-3 p-3 rounded-lg bg-quikle-crystal">
               <div className={`p-2 rounded-full ${stage.color} text-white`}>
                 {stage.icon}
               </div>

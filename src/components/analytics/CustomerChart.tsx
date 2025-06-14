@@ -33,30 +33,30 @@ const CustomerChart = ({ reportData, timeframe }: CustomerChartProps) => {
         >
           <defs>
             <linearGradient id="colorNew" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#E67E22" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#E67E22" stopOpacity={0.2} />
+              <stop offset="5%" stopColor="#1F2937" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#1F2937" stopOpacity={0.3} />
             </linearGradient>
             <linearGradient id="colorExisting" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#2C3E50" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#2C3E50" stopOpacity={0.2} />
+              <stop offset="5%" stopColor="#374151" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#374151" stopOpacity={0.3} />
             </linearGradient>
             <linearGradient id="colorPending" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#F39C12" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#F39C12" stopOpacity={0.2} />
+              <stop offset="5%" stopColor="#9CA3AF" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#9CA3AF" stopOpacity={0.3} />
             </linearGradient>
             <linearGradient id="colorFinalised" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#27AE60" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#27AE60" stopOpacity={0.2} />
+              <stop offset="5%" stopColor="#6B7280" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#6B7280" stopOpacity={0.3} />
             </linearGradient>
             <linearGradient id="colorConversion" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#9B59B6" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#9B59B6" stopOpacity={0.2} />
+              <stop offset="5%" stopColor="#4B5563" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#4B5563" stopOpacity={0.3} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
           <XAxis dataKey="name" stroke="#6B7280" />
           <YAxis yAxisId="left" stroke="#6B7280" />
-          <YAxis yAxisId="right" orientation="right" stroke="#9B59B6" domain={[0, 100]} unit="%" />
+          <YAxis yAxisId="right" orientation="right" stroke="#4B5563" domain={[0, 100]} unit="%" />
           
           <Tooltip content={<ChartTooltipFormatter />} />
           
@@ -104,10 +104,10 @@ const CustomerChart = ({ reportData, timeframe }: CustomerChartProps) => {
             yAxisId="right"
             type="monotone"
             dataKey="conversionRate"
-            stroke="#9B59B6"
+            stroke="#4B5563"
             strokeWidth={3}
             dot={{ r: 5, strokeWidth: 2 }}
-            activeDot={{ r: 7, stroke: '#9B59B6', strokeWidth: 2 }}
+            activeDot={{ r: 7, stroke: '#4B5563', strokeWidth: 2 }}
             name="conversionRate"
           />
         </ComposedChart>

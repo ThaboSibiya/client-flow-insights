@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
@@ -47,16 +46,16 @@ const CustomerAcquisitionCost = () => {
     <Card className="shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-blue-600" />
+          <DollarSign className="h-5 w-5 text-quikle-primary" />
           Customer Acquisition Cost (CAC)
         </CardTitle>
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
             <span>Average CAC: ${averageCAC}</span>
             {trend === 'up' ? (
-              <TrendingUp className="h-4 w-4 text-red-500" />
+              <TrendingUp className="h-4 w-4 text-quikle-neutral" />
             ) : (
-              <TrendingDown className="h-4 w-4 text-green-500" />
+              <TrendingDown className="h-4 w-4 text-quikle-accent" />
             )}
           </div>
         </div>
@@ -76,7 +75,7 @@ const CustomerAcquisitionCost = () => {
                   name === 'marketingSpend' ? 'Marketing Spend' : 'New Customers'
                 ]}
               />
-              <Bar dataKey="cac" fill="#3b82f6" />
+              <Bar dataKey="cac" fill="#1F2937" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -84,19 +83,19 @@ const CustomerAcquisitionCost = () => {
         <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
           <div className="text-center">
             <p className="text-sm text-gray-600">Total Spend</p>
-            <p className="text-lg font-bold text-blue-600">
+            <p className="text-lg font-bold text-quikle-primary">
               ${cacData.reduce((sum, month) => sum + month.marketingSpend, 0).toLocaleString()}
             </p>
           </div>
           <div className="text-center">
             <p className="text-sm text-gray-600">New Customers</p>
-            <p className="text-lg font-bold text-green-600">
+            <p className="text-lg font-bold text-quikle-accent">
               {cacData.reduce((sum, month) => sum + month.newCustomers, 0)}
             </p>
           </div>
           <div className="text-center">
             <p className="text-sm text-gray-600">CAC Trend</p>
-            <p className={`text-lg font-bold ${trend === 'down' ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`text-lg font-bold ${trend === 'down' ? 'text-quikle-accent' : 'text-quikle-neutral'}`}>
               {trend === 'down' ? '↓ Improving' : '↑ Rising'}
             </p>
           </div>
