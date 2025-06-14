@@ -163,11 +163,17 @@ const CustomerPipeline = () => {
           <p className="text-quikle-slate">Drag customers between stages to update their status</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="flex items-center gap-2 border-quikle-silver/50 text-quikle-charcoal hover:bg-quikle-crystal">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2 border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal hover:border-quikle-slate"
+          >
             <Settings className="h-4 w-4" />
             Pipeline Settings
           </Button>
-          <Button onClick={() => setIsAddStageOpen(true)} className="flex items-center gap-2 bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white">
+          <Button 
+            onClick={() => setIsAddStageOpen(true)} 
+            className="flex items-center gap-2 bg-quikle-primary hover:bg-quikle-secondary text-white border-none"
+          >
             <Plus className="h-4 w-4" />
             Add Stage
           </Button>

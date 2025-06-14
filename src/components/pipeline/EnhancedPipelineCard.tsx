@@ -55,7 +55,7 @@ const EnhancedPipelineCard = ({
       case 'urgent': return 'bg-red-500';
       case 'high': return 'bg-red-400';
       case 'medium': return 'bg-quikle-accent';
-      case 'low': return 'bg-green-500';
+      case 'low': return 'bg-quikle-success';
       default: return 'bg-quikle-neutral';
     }
   };
@@ -86,7 +86,7 @@ const EnhancedPipelineCard = ({
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0 text-quikle-slate hover:text-quikle-primary"
+              className="h-6 w-6 p-0 text-quikle-slate hover:text-quikle-primary hover:bg-quikle-crystal"
               onClick={(e) => {
                 e.stopPropagation();
                 onView?.(item);
@@ -97,7 +97,7 @@ const EnhancedPipelineCard = ({
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0 text-quikle-slate hover:text-quikle-primary"
+              className="h-6 w-6 p-0 text-quikle-slate hover:text-quikle-primary hover:bg-quikle-crystal"
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit?.(item);
@@ -168,7 +168,7 @@ const EnhancedPipelineCard = ({
           <Button
             size="sm"
             variant="ghost"
-            className="h-6 w-6 p-0 text-quikle-slate hover:text-quikle-primary"
+            className="h-6 w-6 p-0 text-quikle-slate hover:text-quikle-primary hover:bg-quikle-crystal"
             onClick={(e) => {
               e.stopPropagation();
               onView?.(item);
@@ -179,7 +179,7 @@ const EnhancedPipelineCard = ({
           <Button
             size="sm"
             variant="ghost"
-            className="h-6 w-6 p-0 text-quikle-slate hover:text-quikle-primary"
+            className="h-6 w-6 p-0 text-quikle-slate hover:text-quikle-primary hover:bg-quikle-crystal"
             onClick={(e) => {
               e.stopPropagation();
               onEdit?.(item);

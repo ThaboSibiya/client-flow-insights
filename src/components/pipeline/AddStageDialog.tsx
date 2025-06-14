@@ -56,8 +56,8 @@ const AddStageDialog = ({ open, onOpenChange, onAddStage }: AddStageDialogProps)
                 <button
                   key={color}
                   type="button"
-                  className={`w-8 h-8 rounded-full border-2 ${
-                    selectedColor === color ? 'border-quikle-slate' : 'border-quikle-silver'
+                  className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-105 ${
+                    selectedColor === color ? 'border-quikle-primary ring-2 ring-quikle-primary/30' : 'border-quikle-silver hover:border-quikle-slate'
                   }`}
                   style={{ backgroundColor: color }}
                   onClick={() => setSelectedColor(color)}
@@ -67,10 +67,20 @@ const AddStageDialog = ({ open, onOpenChange, onAddStage }: AddStageDialogProps)
           </div>
           
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="border-quikle-silver/50 text-quikle-charcoal hover:bg-quikle-crystal">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)} 
+              className="border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal hover:border-quikle-slate"
+            >
               Cancel
             </Button>
-            <Button type="submit" className="bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white">Add Stage</Button>
+            <Button 
+              type="submit" 
+              className="bg-quikle-primary hover:bg-quikle-secondary text-white border-none"
+            >
+              Add Stage
+            </Button>
           </div>
         </form>
       </DialogContent>

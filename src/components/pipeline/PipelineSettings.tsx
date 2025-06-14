@@ -193,11 +193,18 @@ const PipelineSettings = () => {
       </Card>
 
       <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={handleReset} className="border-quikle-silver/50 text-quikle-charcoal hover:bg-quikle-crystal">
+        <Button 
+          variant="outline" 
+          onClick={handleReset} 
+          className="border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal hover:border-quikle-slate"
+        >
           <RefreshCw className="h-4 w-4 mr-2" />
           Reset to Defaults
         </Button>
-        <Button onClick={handleSave} className="bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white">
+        <Button 
+          onClick={handleSave} 
+          className="bg-quikle-primary hover:bg-quikle-secondary text-white border-none"
+        >
           <Save className="h-4 w-4 mr-2" />
           Save Settings
         </Button>
