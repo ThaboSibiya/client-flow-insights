@@ -41,7 +41,7 @@ const InteractiveMetrics = () => {
       previousValue: Math.max(0, totalCustomers - 3),
       icon: <Users className="h-5 w-5" />,
       color: 'text-quikle-primary',
-      bgColor: 'bg-quikle-light',
+      bgColor: 'bg-blue-50',
     },
     {
       id: 'new-customers',
@@ -49,8 +49,8 @@ const InteractiveMetrics = () => {
       value: newCustomers,
       previousValue: Math.max(0, newCustomers - 1),
       icon: <TrendingUp className="h-5 w-5" />,
-      color: 'text-quikle-success',
-      bgColor: 'bg-green-50',
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
     },
     {
       id: 'active-tickets',
@@ -58,8 +58,8 @@ const InteractiveMetrics = () => {
       value: activeTickets,
       previousValue: Math.max(0, activeTickets + 2),
       icon: <Ticket className="h-5 w-5" />,
-      color: 'text-quikle-warning',
-      bgColor: 'bg-amber-50',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
     },
     {
       id: 'resolved-tickets',
@@ -67,7 +67,7 @@ const InteractiveMetrics = () => {
       value: resolvedTickets,
       previousValue: Math.max(0, resolvedTickets - 1),
       icon: <CheckCircle className="h-5 w-5" />,
-      color: 'text-quikle-success',
+      color: 'text-emerald-600',
       bgColor: 'bg-emerald-50',
     }
   ];
@@ -120,8 +120,8 @@ const InteractiveMetrics = () => {
                       variant={isPositive ? "default" : "destructive"}
                       className={`text-xs ${
                         isPositive 
-                          ? "bg-quikle-success/10 text-quikle-success hover:bg-quikle-success/10" 
-                          : "bg-quikle-danger/10 text-quikle-danger hover:bg-quikle-danger/10"
+                          ? "bg-emerald-100 text-emerald-700 border-emerald-300 hover:bg-emerald-100" 
+                          : "bg-red-100 text-red-700 border-red-300 hover:bg-red-100"
                       }`}
                     >
                       {isPositive ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}

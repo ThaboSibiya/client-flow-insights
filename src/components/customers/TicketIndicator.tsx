@@ -16,9 +16,9 @@ const TicketIndicator = ({ tickets, ticketCount, lastTicketDate }: TicketIndicat
   const urgentTickets = tickets.filter(ticket => ticket.priority === 'urgent' && ticket.status !== 'closed');
   
   const getStatusColor = () => {
-    if (urgentTickets.length > 0) return 'bg-red-500';
-    if (openTickets.length > 0) return 'bg-quikle-neutral';
-    return 'bg-green-500';
+    if (urgentTickets.length > 0) return 'bg-red-600 text-white';
+    if (openTickets.length > 0) return 'bg-slate-600 text-white';
+    return 'bg-emerald-600 text-white';
   };
 
   const getStatusText = () => {
@@ -30,7 +30,7 @@ const TicketIndicator = ({ tickets, ticketCount, lastTicketDate }: TicketIndicat
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1">
-        <Ticket className="h-4 w-4 text-gray-500" />
+        <Ticket className="h-4 w-4 text-slate-600" />
         <span className="text-sm font-medium">{ticketCount}</span>
       </div>
       
@@ -38,17 +38,17 @@ const TicketIndicator = ({ tickets, ticketCount, lastTicketDate }: TicketIndicat
         <>
           <Badge 
             variant="secondary" 
-            className={`text-white text-xs ${getStatusColor()}`}
+            className={`text-xs ${getStatusColor()}`}
           >
             {getStatusText()}
           </Badge>
           
           {urgentTickets.length > 0 && (
-            <AlertTriangle className="h-4 w-4 text-red-500" />
+            <AlertTriangle className="h-4 w-4 text-red-600" />
           )}
           
           {lastTicketDate && (
-            <div className="flex items-center gap-1 text-xs text-gray-500">
+            <div className="flex items-center gap-1 text-xs text-slate-600">
               <Clock className="h-3 w-3" />
               <span>{formatDistanceToNow(lastTicketDate, { addSuffix: true })}</span>
             </div>
@@ -57,7 +57,7 @@ const TicketIndicator = ({ tickets, ticketCount, lastTicketDate }: TicketIndicat
       )}
       
       {ticketCount === 0 && (
-        <Badge variant="outline" className="text-xs">
+        <Badge variant="outline" className="text-xs border-slate-300 text-slate-600">
           No Tickets
         </Badge>
       )}

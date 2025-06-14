@@ -56,21 +56,21 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
-      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'urgent': return 'bg-red-100 text-red-800 border-red-300';
+      case 'high': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'medium': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'low': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      default: return 'bg-slate-100 text-slate-800 border-slate-300';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'in-progress': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'resolved': return 'bg-green-100 text-green-800 border-green-200';
-      case 'closed': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'open': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'in-progress': return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'resolved': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      case 'closed': return 'bg-slate-100 text-slate-800 border-slate-300';
+      default: return 'bg-slate-100 text-slate-800 border-slate-300';
     }
   };
 
@@ -133,7 +133,7 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
                 {ticket.priority}
               </Badge>
               {ticket.totalTimeSpent > 0 && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs border-slate-300 text-slate-600">
                   <Timer className="h-3 w-3 mr-1" />
                   {formatTime(ticket.totalTimeSpent)}
                 </Badge>
@@ -150,11 +150,11 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
               <SelectTrigger className={`w-32 ${getStatusColor(ticket.status)}`}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="resolved">Resolved</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
+              <SelectContent className="bg-white border border-gray-200 shadow-lg">
+                <SelectItem value="open" className="text-blue-700 hover:bg-blue-50">Open</SelectItem>
+                <SelectItem value="in-progress" className="text-purple-700 hover:bg-purple-50">In Progress</SelectItem>
+                <SelectItem value="resolved" className="text-emerald-700 hover:bg-emerald-50">Resolved</SelectItem>
+                <SelectItem value="closed" className="text-slate-700 hover:bg-slate-50">Closed</SelectItem>
               </SelectContent>
             </Select>
             

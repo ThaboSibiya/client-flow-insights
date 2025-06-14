@@ -28,10 +28,10 @@ const CustomerMetrics = ({ customers }: CustomerMetricsProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new': return 'bg-blue-100 text-blue-800';
-      case 'existing': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-quikle-crystal text-quikle-slate border border-quikle-silver';
-      case 'finalised': return 'bg-purple-100 text-purple-800';
+      case 'new': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'existing': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      case 'pending': return 'bg-slate-100 text-slate-800 border-slate-300';
+      case 'finalised': return 'bg-purple-100 text-purple-800 border-purple-300';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -82,10 +82,10 @@ const CustomerMetrics = ({ customers }: CustomerMetricsProps) => {
         <CardContent>
           <div className="text-2xl font-bold">{metrics.withTickets}</div>
           <div className="flex gap-1 mt-2 flex-wrap">
-            <Badge className="bg-red-100 text-red-800" variant="secondary">
+            <Badge className="bg-red-100 text-red-800 border-red-300" variant="secondary">
               {metrics.urgentTickets} Urgent
             </Badge>
-            <Badge className="bg-gray-100 text-gray-800" variant="secondary">
+            <Badge className="bg-slate-100 text-slate-800 border-slate-300" variant="secondary">
               {metrics.withTickets} Active
             </Badge>
           </div>
