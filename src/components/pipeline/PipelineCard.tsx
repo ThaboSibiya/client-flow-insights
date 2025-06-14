@@ -41,7 +41,7 @@ const PipelineCard = ({ item, type, stageId, onMove }: PipelineCardProps) => {
       case 'urgent': return 'bg-red-500';
       case 'high': return 'bg-red-400';
       case 'medium': return 'bg-quikle-accent';
-      case 'low': return 'bg-green-500';
+      case 'low': return 'bg-quikle-success';
       default: return 'bg-quikle-neutral';
     }
   };
