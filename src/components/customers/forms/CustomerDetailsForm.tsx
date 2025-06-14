@@ -58,80 +58,87 @@ const CustomerDetailsForm = ({ customer, onClose }: CustomerDetailsFormProps) =>
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="name">Name</Label>
+    <div className="bg-gradient-to-br from-white to-quikle-crystal p-6 rounded-xl shadow-luxury">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-quikle-primary font-semibold">Name</Label>
+            <Input
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+              className="shadow-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-quikle-primary font-semibold">Email</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              className="shadow-sm"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="phone" className="text-quikle-primary font-semibold">Phone</Label>
+            <Input
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              className="shadow-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-quikle-primary font-semibold">Status</Label>
+            <StatusSelector
+              status={formData.status}
+              onChange={handleStatusChange}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="address" className="text-quikle-primary font-semibold">Address</Label>
           <Input
-            id="name"
-            name="name"
-            value={formData.name}
+            id="address"
+            name="address"
+            value={formData.address}
             onChange={handleInputChange}
-            required
+            className="shadow-sm"
           />
         </div>
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            value={formData.email}
+
+        <div className="space-y-2">
+          <Label htmlFor="notes" className="text-quikle-primary font-semibold">Notes</Label>
+          <Textarea
+            id="notes"
+            name="notes"
+            value={formData.notes}
             onChange={handleInputChange}
-            required
+            rows={3}
+            className="shadow-sm"
           />
         </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="phone">Phone</Label>
-          <Input
-            id="phone"
-            name="phone"
-            value={formData.phone}
-            onChange={handleInputChange}
-          />
+        <div className="flex justify-end gap-3 pt-6 border-t border-quikle-silver/20">
+          <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? 'Saving...' : 'Save Changes'}
+          </Button>
         </div>
-        <div>
-          <Label>Status</Label>
-          <StatusSelector
-            status={formData.status}
-            onChange={handleStatusChange}
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="address">Address</Label>
-        <Input
-          id="address"
-          name="address"
-          value={formData.address}
-          onChange={handleInputChange}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea
-          id="notes"
-          name="notes"
-          value={formData.notes}
-          onChange={handleInputChange}
-          rows={3}
-        />
-      </div>
-
-      <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 };
 

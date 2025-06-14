@@ -18,9 +18,9 @@ interface CustomerDetailsDialogProps {
 const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="sm:max-w-[700px] bg-gradient-to-br from-white via-quikle-crystal to-quikle-platinum border-quikle-silver/30 shadow-luxury">
+        <DialogHeader className="border-b border-quikle-silver/20 pb-4">
+          <DialogTitle className="text-2xl bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">
             {customer ? `Edit ${customer.name}` : 'Customer Details'}
           </DialogTitle>
         </DialogHeader>
