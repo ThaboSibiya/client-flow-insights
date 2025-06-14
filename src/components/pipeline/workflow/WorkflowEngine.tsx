@@ -9,7 +9,7 @@ import LoopConfiguration from './LoopConfiguration';
 import ErrorHandlingConfig from './ErrorHandlingConfig';
 import ApprovalWorkflow from './ApprovalWorkflow';
 
-interface WorkflowNode {
+export interface WorkflowNode {
   id: string;
   type: 'action' | 'condition' | 'loop' | 'approval' | 'error_handler';
   name: string;

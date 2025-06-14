@@ -7,15 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { AlertTriangle, RefreshCw, AlertCircle } from "lucide-react";
-
-interface WorkflowNode {
-  id: string;
-  type: string;
-  name: string;
-  config: Record<string, any>;
-  connections: string[];
-  position: { x: number; y: number };
-}
+import { WorkflowNode } from './WorkflowEngine';
 
 interface ErrorHandlingConfigProps {
   node: WorkflowNode;
