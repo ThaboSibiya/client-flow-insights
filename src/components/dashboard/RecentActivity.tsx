@@ -19,15 +19,15 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new':
-        return 'bg-gradient-to-r from-blue-100 to-blue-50 text-blue-800 border border-blue-300';
+        return 'bg-gradient-to-r from-quikle-crystal to-quikle-platinum text-quikle-primary border border-quikle-primary/30';
       case 'existing':
         return 'bg-gradient-to-r from-emerald-100 to-emerald-50 text-emerald-800 border border-emerald-300';
       case 'pending':
-        return 'bg-gradient-to-r from-slate-100 to-slate-50 text-slate-800 border border-slate-300';
+        return 'bg-gradient-to-r from-quikle-crystal to-quikle-platinum text-quikle-accent border border-quikle-accent/30';
       case 'finalised':
         return 'bg-gradient-to-r from-purple-100 to-purple-50 text-purple-800 border border-purple-300';
       default:
-        return 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-800 border border-gray-200';
+        return 'bg-gradient-to-r from-quikle-crystal to-quikle-platinum text-quikle-slate border border-quikle-silver/30';
     }
   };
 
@@ -41,8 +41,8 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
   };
 
   return (
-    <Card className="shadow-md h-full bg-gradient-to-br from-white to-gray-50 border-gray-200/70">
-      <CardHeader className="pb-2 border-b border-gray-100">
+    <Card className="shadow-md h-full bg-gradient-to-br from-white to-quikle-crystal border-quikle-silver/30">
+      <CardHeader className="pb-2 border-b border-quikle-silver/20">
         <CardTitle className="flex items-center gap-2 text-quikle-primary">
           <Clock className="h-5 w-5 text-quikle-accent" />
           Recent Activity
@@ -52,7 +52,7 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
         <ScrollArea className="h-[250px] pr-4">
           <div className="space-y-4">
             {recentActivity.map((customer) => (
-              <div key={customer.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <div key={customer.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-quikle-crystal/50 transition-colors">
                 <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-quikle-primary to-quikle-accent text-white flex items-center justify-center shadow-sm">
                   {customer.name.charAt(0)}
                 </div>
@@ -60,7 +60,7 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <p className="font-medium text-gray-900 truncate max-w-[120px] sm:max-w-[150px] md:max-w-[180px]">
+                        <p className="font-medium text-quikle-charcoal truncate max-w-[120px] sm:max-w-[150px] md:max-w-[180px]">
                           {customer.name}
                         </p>
                       </TooltipTrigger>
@@ -71,7 +71,7 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <p className="text-xs text-gray-500 truncate max-w-[120px] sm:max-w-[150px] md:max-w-[180px]">
+                        <p className="text-xs text-quikle-slate truncate max-w-[120px] sm:max-w-[150px] md:max-w-[180px]">
                           {customer.email}
                         </p>
                       </TooltipTrigger>
@@ -83,7 +83,7 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
                   <span className={`text-xs px-3 py-1 rounded-full whitespace-nowrap shadow-sm ${getStatusColor(customer.status)}`}>
                     {customer.status}
                   </span>
-                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                  <span className="text-xs text-quikle-slate whitespace-nowrap">
                     {formatDate(customer.updatedAt)}
                   </span>
                 </div>
@@ -91,7 +91,7 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
             ))}
 
             {recentActivity.length === 0 && (
-              <p className="text-center text-gray-500">No recent activity</p>
+              <p className="text-center text-quikle-slate">No recent activity</p>
             )}
           </div>
         </ScrollArea>

@@ -28,7 +28,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-8 rounded-xl mb-6 shadow-lg border border-white/20 backdrop-blur-sm quikle-card">
         <h1 className="text-3xl font-bold text-gradient-quikle drop-shadow-sm">Dashboard Overview</h1>
-        <p className="text-muted-foreground mt-1">Monitor your business performance at a glance</p>
+        <p className="text-quikle-slate mt-1">Monitor your business performance at a glance</p>
       </div>
 
       <DashboardLayoutManager 
@@ -53,7 +53,7 @@ const Dashboard = () => {
             title="Pending Policies" 
             count={pendingCustomers} 
             icon={<ChartBar size={24} className="text-white" />} 
-            color="bg-gradient-to-br from-quikle-warning to-amber-600"
+            color="bg-gradient-to-br from-quikle-accent to-quikle-neutral"
           />
           <StatusCard 
             title="Finalised Sales" 

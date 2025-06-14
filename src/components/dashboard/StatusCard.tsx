@@ -13,11 +13,11 @@ const StatusCard = ({ title, count, icon, color }: StatusCardProps) => {
   return (
     <Card className="shadow-md hover:shadow-lg transform hover:translate-y-[-3px] transition-all duration-300 border border-white/40">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-gray-500">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-quikle-slate">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between">
-          <span className="text-3xl font-bold bg-gradient-to-br from-gray-700 to-gray-900 bg-clip-text text-transparent">{count}</span>
+          <span className="text-3xl font-bold bg-gradient-to-br from-quikle-charcoal to-quikle-primary bg-clip-text text-transparent">{count}</span>
           <div className={`p-3 rounded-full ${color} shadow-lg transform hover:scale-105 transition-transform`}>
             {icon}
           </div>
