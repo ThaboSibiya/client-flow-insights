@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Mail, Phone, Calendar, Building } from "lucide-react";
+import { Edit, Mail, Phone, Calendar, Building, Users } from "lucide-react";
 
 interface Employee {
   id: string;

@@ -17,6 +17,9 @@ interface EmployeeFormProps {
   onCancel: () => void;
 }
 
+type EmployeeRole = 'admin' | 'manager' | 'supervisor' | 'employee' | 'intern';
+type EmployeeStatus = 'active' | 'inactive' | 'suspended' | 'terminated';
+
 const EmployeeForm = ({ employee, onSave, onCancel }: EmployeeFormProps) => {
   const [formData, setFormData] = useState({
     first_name: '',
@@ -26,8 +29,8 @@ const EmployeeForm = ({ employee, onSave, onCancel }: EmployeeFormProps) => {
     designation: '',
     title: '',
     department: '',
-    role: 'employee',
-    status: 'active',
+    role: 'employee' as EmployeeRole,
+    status: 'active' as EmployeeStatus,
     hire_date: new Date().toISOString().split('T')[0],
     salary: ''
   });
@@ -44,8 +47,8 @@ const EmployeeForm = ({ employee, onSave, onCancel }: EmployeeFormProps) => {
         designation: employee.designation || '',
         title: employee.title || '',
         department: employee.department || '',
-        role: employee.role || 'employee',
-        status: employee.status || 'active',
+        role: (employee.role as EmployeeRole) || 'employee',
+        status: (employee.status as EmployeeStatus) || 'active',
         hire_date: employee.hire_date ? employee.hire_date.split('T')[0] : new Date().toISOString().split('T')[0],
         salary: employee.salary || ''
       });
@@ -53,7 +56,13 @@ const EmployeeForm = ({ employee, onSave, onCancel }: EmployeeFormProps) => {
   }, [employee]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'role') {
+      setFormData(prev => ({ ...prev, [field]: value as EmployeeRole }));
+    } else if (field === 'status') {
+      setFormData(prev => ({ ...prev, [field]: value as EmployeeStatus }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,10 +101,10 @@ const EmployeeForm = ({ employee, onSave, onCancel }: EmployeeFormProps) => {
           description: "Employee updated successfully"
         });
       } else {
-        // Create new employee
+        // Create new employee - note: using single object, not array
         const { error } = await supabase
           .from('employees')
-          .insert([employeeData]);
+          .insert(employeeData);
 
         if (error) throw error;
 
