@@ -87,7 +87,7 @@ const AutomationManager = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-yellow-500" />
+                    <Zap className="h-5 w-5 text-quikle-primary" />
                     {automation.name}
                     <Badge variant={automation.type === 'customer' ? 'default' : 'secondary'}>
                       {automation.type}
@@ -118,7 +118,7 @@ const AutomationManager = () => {
                     <div key={index} className="flex items-center gap-2 text-sm">
                       {action.includes('email') && <Mail className="h-4 w-4 text-blue-500" />}
                       {action.includes('SMS') && <span className="text-green-500">📱</span>}
-                      {action.includes('task') && <span className="text-orange-500">📋</span>}
+                      {action.includes('task') && <span className="text-quikle-slate">📋</span>}
                       {action.includes('Assign') && <span className="text-purple-500">👤</span>}
                       <span>{action}</span>
                     </div>
