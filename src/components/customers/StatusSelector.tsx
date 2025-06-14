@@ -21,7 +21,7 @@ const StatusSelector = ({ status, onChange, className }: StatusSelectorProps) =>
     switch(status) {
       case 'new': return 'border-blue-200 text-blue-700 bg-gradient-to-r from-blue-50 to-blue-100 hover:border-blue-300';
       case 'existing': return 'border-green-200 text-green-700 bg-gradient-to-r from-green-50 to-green-100 hover:border-green-300';
-      case 'pending': return 'border-amber-200 text-amber-700 bg-gradient-to-r from-amber-50 to-amber-100 hover:border-amber-300';
+      case 'pending': return 'border-quikle-silver text-quikle-slate bg-gradient-to-r from-quikle-crystal to-quikle-platinum hover:border-quikle-neutral';
       case 'finalised': return 'border-purple-200 text-purple-700 bg-gradient-to-r from-purple-50 to-purple-100 hover:border-purple-300';
       default: return '';
     }
@@ -38,7 +38,7 @@ const StatusSelector = ({ status, onChange, className }: StatusSelectorProps) =>
       <SelectContent>
         <SelectItem value="new" className="text-blue-600">New</SelectItem>
         <SelectItem value="existing" className="text-green-600">Existing</SelectItem>
-        <SelectItem value="pending" className="text-amber-600">Pending</SelectItem>
+        <SelectItem value="pending" className="text-quikle-slate">Pending</SelectItem>
         <SelectItem value="finalised" className="text-purple-600">Finalised</SelectItem>
       </SelectContent>
     </Select>

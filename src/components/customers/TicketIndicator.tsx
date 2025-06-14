@@ -17,7 +17,7 @@ const TicketIndicator = ({ tickets, ticketCount, lastTicketDate }: TicketIndicat
   
   const getStatusColor = () => {
     if (urgentTickets.length > 0) return 'bg-red-500';
-    if (openTickets.length > 0) return 'bg-amber-500';
+    if (openTickets.length > 0) return 'bg-quikle-neutral';
     return 'bg-green-500';
   };
 

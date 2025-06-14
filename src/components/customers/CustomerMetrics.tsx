@@ -30,7 +30,7 @@ const CustomerMetrics = ({ customers }: CustomerMetricsProps) => {
     switch (status) {
       case 'new': return 'bg-blue-100 text-blue-800';
       case 'existing': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-amber-100 text-amber-800';
+      case 'pending': return 'bg-quikle-crystal text-quikle-slate border border-quikle-silver';
       case 'finalised': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }

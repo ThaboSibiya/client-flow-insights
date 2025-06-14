@@ -35,14 +35,14 @@ const CommentItem = ({
     <div
       className={`relative p-4 rounded-lg border-l-4 ${
         comment.is_internal 
-          ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-l-amber-400 border border-amber-200' 
+          ? 'bg-gradient-to-r from-quikle-crystal to-quikle-platinum border-l-quikle-neutral border border-quikle-silver' 
           : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-blue-400 border border-blue-200'
       }`}
     >
       {/* Comment type indicator */}
       <div className="absolute top-2 right-2">
         {comment.is_internal ? (
-          <Lock className="h-4 w-4 text-amber-600" />
+          <Lock className="h-4 w-4 text-quikle-slate" />
         ) : (
           <MessageSquare className="h-4 w-4 text-blue-600" />
         )}
@@ -51,7 +51,7 @@ const CommentItem = ({
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className={`font-semibold text-sm ${
-            comment.is_internal ? 'text-amber-800' : 'text-blue-800'
+            comment.is_internal ? 'text-quikle-charcoal' : 'text-blue-800'
           }`}>
             {comment.user_name}
           </span>
@@ -59,7 +59,7 @@ const CommentItem = ({
             variant={comment.is_internal ? "secondary" : "default"}
             className={`text-xs ${
               comment.is_internal 
-                ? 'bg-amber-100 text-amber-800 border-amber-300' 
+                ? 'bg-quikle-platinum text-quikle-slate border-quikle-silver' 
                 : 'bg-blue-100 text-blue-800 border-blue-300'
             }`}
           >
@@ -128,7 +128,7 @@ const CommentItem = ({
       ) : (
         <div className={`p-3 rounded-md ${
           comment.is_internal 
-            ? 'bg-white/60 border border-amber-200' 
+            ? 'bg-white/60 border border-quikle-silver' 
             : 'bg-white/60 border border-blue-200'
         }`}>
           <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
