@@ -9,6 +9,60 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      conversations: {
+        Row: {
+          company_owner_id: string
+          created_at: string
+          customer_id: string | null
+          employee_id: string | null
+          id: string
+          last_message_at: string | null
+          status: string
+          subject: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          company_owner_id: string
+          created_at?: string
+          customer_id?: string | null
+          employee_id?: string | null
+          id?: string
+          last_message_at?: string | null
+          status?: string
+          subject?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          company_owner_id?: string
+          created_at?: string
+          customer_id?: string | null
+          employee_id?: string | null
+          id?: string
+          last_message_at?: string | null
+          status?: string
+          subject?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           created_at: string
@@ -259,6 +313,107 @@ export type Database = {
             columns: ["manager_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_submissions: {
+        Row: {
+          company_owner_id: string
+          created_at: string
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          form_data: Json
+          form_name: string
+          id: string
+          ip_address: string | null
+          processed: boolean | null
+          source_url: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          company_owner_id: string
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          form_data: Json
+          form_name: string
+          id?: string
+          ip_address?: string | null
+          processed?: boolean | null
+          source_url?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          company_owner_id?: string
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          form_data?: Json
+          form_name?: string
+          id?: string
+          ip_address?: string | null
+          processed?: boolean | null
+          source_url?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          attachments: Json | null
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message_type: string
+          metadata: Json | null
+          sender_email: string | null
+          sender_id: string | null
+          sender_name: string
+          sender_phone: string | null
+          sender_type: string
+        }
+        Insert: {
+          attachments?: Json | null
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message_type: string
+          metadata?: Json | null
+          sender_email?: string | null
+          sender_id?: string | null
+          sender_name: string
+          sender_phone?: string | null
+          sender_type: string
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message_type?: string
+          metadata?: Json | null
+          sender_email?: string | null
+          sender_id?: string | null
+          sender_name?: string
+          sender_phone?: string | null
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]
