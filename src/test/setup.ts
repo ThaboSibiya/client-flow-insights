@@ -1,6 +1,6 @@
 
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { vi, expect } from 'vitest';
 import { toHaveNoViolations } from 'jest-axe';
 
 // Extend expect with jest-dom and jest-axe matchers
