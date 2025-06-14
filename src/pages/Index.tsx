@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { 
-  Briefcase, 
+  Users, 
   BarChart3, 
   LayoutDashboard, 
   ArrowRight 
@@ -51,7 +51,7 @@ const Index = () => {
 
   // Dynamic typing effect for subtitle
   const [subtitle, setSubtitle] = useState("");
-  const fullSubtitle = "Your all-in-one platform for managing customer relationships, tracking policies, and growing your insurance business with powerful analytics.";
+  const fullSubtitle = "Universal business management platform designed for any industry. Manage clients, track projects, automate workflows, and analyze performance - all in one place.";
   
   useEffect(() => {
     let index = 0;
@@ -70,28 +70,28 @@ const Index = () => {
 
   const features = [
     {
-      title: "Customer Management",
-      description: "Track all your customer interactions and policy information in one place.",
-      icon: <Briefcase className="h-10 w-10 mb-4 text-broker-primary opacity-90" />,
+      title: "Client Management",
+      description: "Track all your client interactions and project information in one centralized location.",
+      icon: <Users className="h-10 w-10 mb-4 text-blue-600 opacity-90" />,
       path: "/customers",
-      color: "border-broker-primary",
-      hoverColor: "hover:bg-broker-primary",
+      color: "border-blue-600",
+      hoverColor: "hover:bg-blue-600",
     },
     {
       title: "Dashboard",
-      description: "Get a comprehensive overview of your business at a glance.",
-      icon: <LayoutDashboard className="h-10 w-10 mb-4 text-broker-secondary opacity-90" />,
+      description: "Get a comprehensive overview of your business performance and key metrics.",
+      icon: <LayoutDashboard className="h-10 w-10 mb-4 text-purple-600 opacity-90" />,
       path: "/dashboard",
-      color: "border-broker-secondary",
-      hoverColor: "hover:bg-broker-secondary",
+      color: "border-purple-600",
+      hoverColor: "hover:bg-purple-600",
     },
     {
       title: "Analytics",
-      description: "Analyze your sales data and customer conversion metrics.",
-      icon: <BarChart3 className="h-10 w-10 mb-4 text-broker-accent opacity-90" />,
+      description: "Analyze your business data and performance metrics to make informed decisions.",
+      icon: <BarChart3 className="h-10 w-10 mb-4 text-indigo-600 opacity-90" />,
       path: "/analytics",
-      color: "border-broker-accent",
-      hoverColor: "hover:bg-broker-accent",
+      color: "border-indigo-600",
+      hoverColor: "hover:bg-indigo-600",
     },
   ];
   
@@ -101,20 +101,20 @@ const Index = () => {
       <div className="absolute inset-0 overflow-hidden">
         <div 
           ref={backgroundRef}
-          className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_10%_20%,rgb(21,68,145)_0%,rgb(92,46,145)_90%)]"
+          className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_10%_20%,rgb(59,130,246)_0%,rgb(147,51,234)_90%)]"
           style={{ filter: 'blur(50px)' }}
         ></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj4KPHJlY3Qgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0iIzI5NTRiNiIgb3BhY2l0eT0iMC4wMyI+PC9yZWN0Pgo8cmVjdCB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMjk1NGI2IiBvcGFjaXR5PSIwLjAzIiB4PSI1Ij48L3JlY3Q+CjxyZWN0IHdpZHRoPSIzIiBoZWlnaHQ9IjMiIGZpbGw9IiMyOTU0YjYiIG9wYWNpdHk9IjAuMDMiIHg9IjEwIj48L3JlY3Q+Cjwvc3ZnPg==')] opacity-50"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj4KPHJlY3Qgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0iIzM5ODJmNiIgb3BhY2l0eT0iMC4wMyI+PC9yZWN0Pgo8cmVjdCB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMzk4MmY2IiBvcGFjaXR5PSIwLjAzIiB4PSI1Ij48L3JlY3Q+CjxyZWN0IHdpZHRoPSIzIiBoZWlnaHQ9IjMiIGZpbGw9IiMzOTgyZjYiIG9wYWNpdHk9IjAuMDMiIHg9IjEwIj48L3JlY3Q+Cjwvc3ZnPg==')] opacity-50"></div>
       </div>
       
       <div className="container max-w-6xl mx-auto px-4 py-16 relative z-10">
         <div className="flex flex-col items-center text-center mb-16">
           <h1 
             ref={titleRef}
-            className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-broker-primary via-broker-secondary to-broker-accent bg-clip-text text-transparent leading-tight transition-transform duration-300"
+            className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent leading-tight transition-transform duration-300"
             style={{ transformStyle: 'preserve-3d' }}
           >
-            Welcome to Broker CRM
+            Welcome to QUIKLE
           </h1>
           <p className="text-xl mt-6 text-gray-600 max-w-3xl leading-relaxed min-h-[96px]">
             {subtitle}
@@ -178,15 +178,15 @@ const Index = () => {
         </div>
         
         {/* Premium Footer */}
-        <div className="mt-16 bg-gradient-to-r from-broker-primary/10 via-broker-secondary/10 to-broker-accent/10 p-8 rounded-2xl backdrop-blur-sm">
+        <div className="mt-16 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-indigo-600/10 p-8 rounded-2xl backdrop-blur-sm">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="text-xl md:text-2xl font-semibold text-gray-800">Ready to grow your brokerage?</h3>
-              <p className="text-gray-600 mt-2">Start managing your clients more effectively today.</p>
+              <h3 className="text-xl md:text-2xl font-semibold text-gray-800">Ready to transform your business?</h3>
+              <p className="text-gray-600 mt-2">Start managing your operations more effectively today.</p>
             </div>
             <Button 
               onClick={() => navigate('/dashboard')} 
-              className="bg-gradient-to-r from-broker-primary to-broker-accent hover:from-broker-primary/90 hover:to-broker-accent/90 text-white px-6 py-4 h-auto shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-600/90 hover:to-purple-600/90 text-white px-6 py-4 h-auto shadow-lg hover:shadow-xl transition-all hover:scale-105"
             >
               Get Started Now
             </Button>

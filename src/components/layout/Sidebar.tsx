@@ -20,8 +20,8 @@ const SidebarItem = ({ icon, label, to, isCollapsed }: SidebarItemProps) => {
         cn(
           'flex items-center space-x-2 px-4 py-3 rounded-lg transition-colors hover:bg-gray-100',
           isActive
-            ? 'bg-gradient-to-r from-broker-primary/10 to-broker-accent/10 text-broker-primary'
-            : 'text-gray-600 hover:text-broker-primary',
+            ? 'bg-gradient-to-r from-blue-600/10 to-purple-600/10 text-blue-600'
+            : 'text-gray-600 hover:text-blue-600',
           isCollapsed ? 'justify-center' : ''
         )
       }
@@ -47,9 +47,9 @@ const Sidebar = ({ isCollapsed = false }: SidebarProps) => {
         isCollapsed ? 'px-2' : 'px-6'
       )}>
         {isCollapsed ? (
-          <span className="font-bold text-xl text-broker-primary">B</span>
+          <span className="font-bold text-xl text-blue-600">Q</span>
         ) : (
-          <span className="font-bold text-xl bg-gradient-to-r from-broker-primary to-broker-accent bg-clip-text text-transparent">Broker CRM</span>
+          <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">QUIKLE</span>
         )}
       </div>
       <div className="p-3 flex flex-col h-[calc(100%-4rem)] justify-between">
@@ -68,7 +68,7 @@ const Sidebar = ({ isCollapsed = false }: SidebarProps) => {
           />
           <SidebarItem 
             icon={<Users size={isCollapsed ? 20 : 16} />} 
-            label="Customers" 
+            label="Clients" 
             to="/customers" 
             isCollapsed={isCollapsed}
           />
@@ -80,7 +80,7 @@ const Sidebar = ({ isCollapsed = false }: SidebarProps) => {
           />
           <SidebarItem 
             icon={<Move size={isCollapsed ? 20 : 16} />} 
-            label="Pipeline" 
+            label="Workflow" 
             to="/pipeline" 
             isCollapsed={isCollapsed}
           />

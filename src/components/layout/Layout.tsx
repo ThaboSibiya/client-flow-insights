@@ -15,7 +15,7 @@ const Layout = () => {
             <SidebarTrigger className="md:hidden" />
             <div className="flex-1 flex justify-end">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium bg-gradient-to-r from-broker-primary to-broker-accent bg-clip-text text-transparent">Welcome, Broker</span>
+                <span className="text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Welcome to QUIKLE</span>
               </div>
             </div>
           </header>
