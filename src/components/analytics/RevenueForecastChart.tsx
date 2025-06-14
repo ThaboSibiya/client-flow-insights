@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
@@ -78,6 +79,16 @@ const RevenueForecastChart = () => {
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={revenueData}>
+              <defs>
+                <linearGradient id="targetGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#64748B" stopOpacity={0.1} />
+                  <stop offset="95%" stopColor="#64748B" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="forecastGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#6B7280" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#6B7280" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
@@ -87,8 +98,8 @@ const RevenueForecastChart = () => {
                   name === 'actual' ? 'Actual' : name === 'forecast' ? 'Forecast' : 'Target'
                 ]}
               />
-              <Area type="monotone" dataKey="target" stackId="1" stroke="#9CA3AF" fill="#9CA3AF" fillOpacity={0.1} />
-              <Area type="monotone" dataKey="forecast" stackId="1" stroke="#6B7280" fill="#6B7280" fillOpacity={0.2} />
+              <Area type="monotone" dataKey="target" stackId="1" stroke="#64748B" fill="url(#targetGradient)" />
+              <Area type="monotone" dataKey="forecast" stackId="1" stroke="#6B7280" fill="url(#forecastGradient)" />
               <Line type="monotone" dataKey="actual" stroke="#1F2937" strokeWidth={3} dot={{ fill: '#1F2937' }} />
             </AreaChart>
           </ResponsiveContainer>

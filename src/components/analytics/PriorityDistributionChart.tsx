@@ -15,10 +15,10 @@ const PriorityDistributionChart = ({ distribution, isLoading }: PriorityDistribu
   const total = Object.values(distribution).reduce((sum, count) => sum + count, 0);
 
   const pieData = [
-    { name: 'Urgent', value: distribution.urgent, color: '#ef4444' },
-    { name: 'High', value: distribution.high, color: '#f97316' },
-    { name: 'Medium', value: distribution.medium, color: '#eab308' },
-    { name: 'Low', value: distribution.low, color: '#22c55e' },
+    { name: 'Urgent', value: distribution.urgent, color: '#DC2626' },
+    { name: 'High', value: distribution.high, color: '#EA580C' },
+    { name: 'Medium', value: distribution.medium, color: '#0369A1' },
+    { name: 'Low', value: distribution.low, color: '#16A34A' },
   ].filter(item => item.value > 0);
 
   const barData = [
@@ -156,7 +156,7 @@ const PriorityDistributionChart = ({ distribution, isLoading }: PriorityDistribu
                     name === 'count' ? 'Count' : 'Percentage'
                   ]}
                 />
-                <Bar dataKey="count" fill="#8884d8" />
+                <Bar dataKey="count" fill="#1E40AF" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

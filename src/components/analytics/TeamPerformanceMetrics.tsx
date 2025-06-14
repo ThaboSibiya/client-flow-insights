@@ -45,20 +45,20 @@ const TeamPerformanceMetrics = () => {
     <Card className="shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-broker-primary" />
+          <Users className="h-5 w-5 text-quikle-primary" />
           Team Performance
         </CardTitle>
         <div className="grid grid-cols-3 gap-4 mt-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-green-600">${(totalRevenue / 1000).toFixed(0)}k</p>
+            <p className="text-2xl font-bold text-quikle-success">${(totalRevenue / 1000).toFixed(0)}k</p>
             <p className="text-sm text-gray-600">Total Revenue</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-blue-600">{avgPerformance}%</p>
+            <p className="text-2xl font-bold text-quikle-info">{avgPerformance}%</p>
             <p className="text-sm text-gray-600">Avg Performance</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-purple-600">{teamData.length}</p>
+            <p className="text-2xl font-bold text-quikle-purple">{teamData.length}</p>
             <p className="text-sm text-gray-600">Team Members</p>
           </div>
         </div>
@@ -67,7 +67,7 @@ const TeamPerformanceMetrics = () => {
         <div className="space-y-4">
           {teamData.map((member) => (
             <div key={member.name} className="flex items-center gap-4 p-3 rounded-lg bg-gray-50">
-              <div className="w-10 h-10 bg-broker-primary text-white rounded-full flex items-center justify-center font-semibold">
+              <div className="w-10 h-10 bg-quikle-primary text-white rounded-full flex items-center justify-center font-semibold">
                 {member.avatar}
               </div>
               <div className="flex-1">
@@ -109,8 +109,8 @@ const TeamPerformanceMetrics = () => {
                     name === 'closedDeals' ? 'Closed Deals' : 'Performance'
                   ]}
                 />
-                <Bar dataKey="closedDeals" fill="#3b82f6" name="closedDeals" />
-                <Bar dataKey="performance" fill="#10b981" name="performance" />
+                <Bar dataKey="closedDeals" fill="#1E40AF" name="closedDeals" />
+                <Bar dataKey="performance" fill="#059669" name="performance" />
               </BarChart>
             </ResponsiveContainer>
           </div>

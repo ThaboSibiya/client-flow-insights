@@ -31,32 +31,11 @@ const CustomerChart = ({ reportData, timeframe }: CustomerChartProps) => {
           data={reportData}
           margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
         >
-          <defs>
-            <linearGradient id="colorNew" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#1F2937" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#1F2937" stopOpacity={0.3} />
-            </linearGradient>
-            <linearGradient id="colorExisting" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#374151" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#374151" stopOpacity={0.3} />
-            </linearGradient>
-            <linearGradient id="colorPending" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#9CA3AF" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#9CA3AF" stopOpacity={0.3} />
-            </linearGradient>
-            <linearGradient id="colorFinalised" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#6B7280" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#6B7280" stopOpacity={0.3} />
-            </linearGradient>
-            <linearGradient id="colorConversion" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#4B5563" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#4B5563" stopOpacity={0.3} />
-            </linearGradient>
-          </defs>
+          <ChartDefinitions />
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
           <XAxis dataKey="name" stroke="#6B7280" />
           <YAxis yAxisId="left" stroke="#6B7280" />
-          <YAxis yAxisId="right" orientation="right" stroke="#4B5563" domain={[0, 100]} unit="%" />
+          <YAxis yAxisId="right" orientation="right" stroke="#1F2937" domain={[0, 100]} unit="%" />
           
           <Tooltip content={<ChartTooltipFormatter />} />
           
@@ -104,10 +83,10 @@ const CustomerChart = ({ reportData, timeframe }: CustomerChartProps) => {
             yAxisId="right"
             type="monotone"
             dataKey="conversionRate"
-            stroke="#4B5563"
+            stroke="#1F2937"
             strokeWidth={3}
             dot={{ r: 5, strokeWidth: 2 }}
-            activeDot={{ r: 7, stroke: '#4B5563', strokeWidth: 2 }}
+            activeDot={{ r: 7, stroke: '#1F2937', strokeWidth: 2 }}
             name="conversionRate"
           />
         </ComposedChart>

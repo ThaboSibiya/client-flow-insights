@@ -62,7 +62,7 @@ const MonthlyTrends = ({ customers }: MonthlyTrendsProps) => {
           value={viewOption}
           onValueChange={(value) => setViewOption(value as 'all' | 'new' | 'finalised')}
         >
-          <SelectTrigger className="w-[180px] bg-white border-broker-primary/20 shadow-sm">
+          <SelectTrigger className="w-[180px] bg-white border-quikle-primary/20 shadow-sm">
             <SelectValue placeholder="Select view" />
           </SelectTrigger>
           <SelectContent>
@@ -88,12 +88,12 @@ const MonthlyTrends = ({ customers }: MonthlyTrendsProps) => {
             >
               <defs>
                 <linearGradient id="colorNew" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3182CE" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#3182CE" stopOpacity={0.2}/>
+                  <stop offset="5%" stopColor="#1E40AF" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#1E40AF" stopOpacity={0.2}/>
                 </linearGradient>
                 <linearGradient id="colorFinalised" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#48BB78" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#48BB78" stopOpacity={0.2}/>
+                  <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#7C3AED" stopOpacity={0.2}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
@@ -112,22 +112,22 @@ const MonthlyTrends = ({ customers }: MonthlyTrendsProps) => {
                 <Line 
                   type="monotone" 
                   dataKey="new" 
-                  stroke="#3182CE" 
+                  stroke="#1E40AF" 
                   strokeWidth={3}
                   fill="url(#colorNew)"
                   name="New Customers" 
-                  activeDot={{ r: 8, fill: '#2B6CB0', stroke: '#2B6CB0', strokeWidth: 1 }} 
+                  activeDot={{ r: 8, fill: '#1E40AF', stroke: '#1E40AF', strokeWidth: 1 }} 
                 />
               )}
               {(viewOption === 'all' || viewOption === 'finalised') && (
                 <Line 
                   type="monotone" 
                   dataKey="finalised" 
-                  stroke="#48BB78" 
+                  stroke="#7C3AED" 
                   strokeWidth={3}
                   fill="url(#colorFinalised)"
                   name="Finalised Sales" 
-                  activeDot={{ r: 8, fill: '#2F855A', stroke: '#2F855A', strokeWidth: 1 }}
+                  activeDot={{ r: 8, fill: '#7C3AED', stroke: '#7C3AED', strokeWidth: 1 }}
                 />
               )}
             </LineChart>

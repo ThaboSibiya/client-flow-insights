@@ -20,10 +20,10 @@ const TicketResolutionMetrics = ({ metrics, isLoading }: TicketResolutionMetrics
   };
 
   const priorityData = [
-    { priority: 'Urgent', time: metrics.resolutionTimeByPriority.urgent, color: '#ef4444' },
-    { priority: 'High', time: metrics.resolutionTimeByPriority.high, color: '#f97316' },
-    { priority: 'Medium', time: metrics.resolutionTimeByPriority.medium, color: '#eab308' },
-    { priority: 'Low', time: metrics.resolutionTimeByPriority.low, color: '#22c55e' },
+    { priority: 'Urgent', time: metrics.resolutionTimeByPriority.urgent, color: '#DC2626' },
+    { priority: 'High', time: metrics.resolutionTimeByPriority.high, color: '#EA580C' },
+    { priority: 'Medium', time: metrics.resolutionTimeByPriority.medium, color: '#0369A1' },
+    { priority: 'Low', time: metrics.resolutionTimeByPriority.low, color: '#16A34A' },
   ];
 
   if (isLoading) {
@@ -119,7 +119,7 @@ const TicketResolutionMetrics = ({ metrics, isLoading }: TicketResolutionMetrics
                 <XAxis dataKey="priority" />
                 <YAxis tickFormatter={(value) => formatTime(value)} />
                 <Tooltip formatter={(value) => [formatTime(value as number), 'Resolution Time']} />
-                <Bar dataKey="time" fill="#8884d8" />
+                <Bar dataKey="time" fill="#1E40AF" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -140,7 +140,7 @@ const TicketResolutionMetrics = ({ metrics, isLoading }: TicketResolutionMetrics
                   formatter={(value) => [formatTime(value as number), 'Average Time']}
                   labelFormatter={(date) => new Date(date).toLocaleDateString()}
                 />
-                <Line type="monotone" dataKey="averageTime" stroke="#8884d8" strokeWidth={2} />
+                <Line type="monotone" dataKey="averageTime" stroke="#1E40AF" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>

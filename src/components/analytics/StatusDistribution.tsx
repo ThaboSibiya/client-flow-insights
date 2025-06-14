@@ -8,7 +8,7 @@ interface StatusDistributionProps {
   customers: Customer[];
 }
 
-const COLORS = ['#1F2937', '#374151', '#9CA3AF', '#6B7280'];
+const COLORS = ['#1E40AF', '#059669', '#64748B', '#7C3AED'];
 
 const StatusDistribution = ({ customers }: StatusDistributionProps) => {
   // Count customers by status

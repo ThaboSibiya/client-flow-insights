@@ -53,7 +53,7 @@ const WeeklySummary = ({ customers }: WeeklySummaryProps) => {
     <Card className="shadow-lg border border-white/30 bg-gradient-to-br from-white via-white to-gray-50 hover:shadow-xl transition-all duration-300">
       <CardHeader className="border-b border-gray-100 pb-2">
         <CardTitle className="flex items-center gap-2 text-gradient">
-          <ChartBarIcon className="h-5 w-5 text-broker-accent" />
+          <ChartBarIcon className="h-5 w-5 text-quikle-accent" />
           Weekly Activity
         </CardTitle>
       </CardHeader>
@@ -71,12 +71,12 @@ const WeeklySummary = ({ customers }: WeeklySummaryProps) => {
             >
               <defs>
                 <linearGradient id="colorAcquisitions" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.2}/>
+                  <stop offset="5%" stopColor="#1E40AF" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#1E40AF" stopOpacity={0.2}/>
                 </linearGradient>
                 <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0.2}/>
+                  <stop offset="5%" stopColor="#059669" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#059669" stopOpacity={0.2}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />

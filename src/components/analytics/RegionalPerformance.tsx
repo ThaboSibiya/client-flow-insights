@@ -33,7 +33,7 @@ const RegionalPerformance = () => {
     return regions.map((region, index) => ({
       ...region,
       conversionRate: region.customers > 0 ? Math.round((region.revenue / (region.customers * 2500)) * 100) : 0,
-      color: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][index],
+      color: ['#1E40AF', '#059669', '#EA580C', '#DC2626', '#7C3AED'][index],
     }));
   };
 
@@ -58,7 +58,7 @@ const RegionalPerformance = () => {
         <Card className="shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-green-600" />
+              <MapPin className="h-5 w-5 text-quikle-success" />
               Regional Revenue Performance
             </CardTitle>
           </CardHeader>
@@ -75,7 +75,7 @@ const RegionalPerformance = () => {
                       name === 'revenue' ? 'Revenue' : name === 'customers' ? 'Customers' : 'Conversion Rate'
                     ]}
                   />
-                  <Bar dataKey="revenue" fill="#10b981" />
+                  <Bar dataKey="revenue" fill="#059669" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -85,7 +85,7 @@ const RegionalPerformance = () => {
         <Card className="shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-gold-600" />
+              <Trophy className="h-5 w-5 text-quikle-purple" />
               Regional Distribution
             </CardTitle>
           </CardHeader>
@@ -123,7 +123,7 @@ const RegionalPerformance = () => {
             {cityData.map((city, index) => (
               <div key={city.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="w-8 h-8 bg-quikle-info text-white rounded-full flex items-center justify-center text-sm font-bold">
                     {index + 1}
                   </div>
                   <div>
@@ -132,7 +132,7 @@ const RegionalPerformance = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-green-600">${city.revenue.toLocaleString()}</p>
+                  <p className="font-bold text-quikle-success">${city.revenue.toLocaleString()}</p>
                   <p className="text-sm text-gray-600">Revenue</p>
                 </div>
               </div>
@@ -143,17 +143,17 @@ const RegionalPerformance = () => {
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <p className="text-sm text-gray-600">Total Revenue</p>
-                <p className="text-lg font-bold text-green-600">${totalRevenue.toLocaleString()}</p>
+                <p className="text-lg font-bold text-quikle-success">${totalRevenue.toLocaleString()}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Top Region</p>
-                <p className="text-lg font-bold text-blue-600">
+                <p className="text-lg font-bold text-quikle-info">
                   {regionalData.sort((a, b) => b.revenue - a.revenue)[0]?.name || 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Best Conversion</p>
-                <p className="text-lg font-bold text-purple-600">
+                <p className="text-lg font-bold text-quikle-purple">
                   {regionalData.sort((a, b) => b.conversionRate - a.conversionRate)[0]?.conversionRate || 0}%
                 </p>
               </div>
