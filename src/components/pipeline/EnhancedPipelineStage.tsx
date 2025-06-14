@@ -83,7 +83,7 @@ const EnhancedPipelineStage = ({
       onMouseLeave={() => setIsHovered(false)}
     >
       <Card className={`h-[650px] flex flex-col transition-all duration-200 ${
-        isHovered ? 'shadow-lg ring-2 ring-primary/20' : 'shadow-md'
+        isHovered ? 'shadow-lg ring-2 ring-quikle-primary/20' : 'shadow-md'
       } ${isDragging ? 'rotate-2 scale-105' : ''}`}>
         <CardHeader 
           {...listeners}
@@ -91,31 +91,31 @@ const EnhancedPipelineStage = ({
           style={{ borderTop: `4px solid ${stage.color}` }}
         >
           {/* Drag indicator */}
-          <div className={`absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gray-300 rounded-full transition-opacity ${
+          <div className={`absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-quikle-silver rounded-full transition-opacity ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`} />
           
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CardTitle className="text-lg">{stage.name}</CardTitle>
+              <CardTitle className="text-lg text-quikle-charcoal">{stage.name}</CardTitle>
               {stage.automationEnabled && (
-                <Zap className="h-4 w-4 text-yellow-500" />
+                <Zap className="h-4 w-4 text-quikle-accent" />
               )}
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-quikle-slate hover:text-quikle-primary">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => onStageEdit?.(stage.id)}>
+              <DropdownMenuContent className="bg-white border-quikle-silver/30 z-50">
+                <DropdownMenuItem onClick={() => onStageEdit?.(stage.id)} className="text-quikle-charcoal hover:bg-quikle-crystal">
                   Edit Stage
                 </DropdownMenuItem>
-                <DropdownMenuItem>Set Target</DropdownMenuItem>
-                <DropdownMenuItem>Set Automation</DropdownMenuItem>
+                <DropdownMenuItem className="text-quikle-charcoal hover:bg-quikle-crystal">Set Target</DropdownMenuItem>
+                <DropdownMenuItem className="text-quikle-charcoal hover:bg-quikle-crystal">Set Automation</DropdownMenuItem>
                 <DropdownMenuItem 
-                  className="text-red-600"
+                  className="text-red-600 hover:bg-red-50"
                   onClick={() => onStageDelete?.(stage.id)}
                 >
                   Delete Stage
@@ -126,12 +126,12 @@ const EnhancedPipelineStage = ({
           
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="flex items-center gap-1 bg-quikle-crystal text-quikle-primary border-quikle-silver/30">
                 {type === 'customer' ? <User className="h-3 w-3" /> : <Ticket className="h-3 w-3" />}
                 {itemCount} {type === 'customer' ? 'customers' : 'tickets'}
               </Badge>
               {stage.target && (
-                <Badge variant="outline" className="flex items-center gap-1">
+                <Badge variant="outline" className="flex items-center gap-1 border-quikle-primary/30 text-quikle-primary">
                   <TrendingUp className="h-3 w-3" />
                   Target: {stage.target}
                 </Badge>
@@ -141,7 +141,7 @@ const EnhancedPipelineStage = ({
             {/* Progress bar */}
             {progressPercentage !== null && (
               <div className="space-y-1">
-                <div className="flex justify-between text-xs text-muted-foreground">
+                <div className="flex justify-between text-xs text-quikle-slate">
                   <span>Progress</span>
                   <span>{Math.round(progressPercentage)}%</span>
                 </div>
@@ -151,12 +151,12 @@ const EnhancedPipelineStage = ({
             
             {/* Search input */}
             <div className="relative">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-quikle-slate" />
               <Input
                 placeholder={`Search ${type}s...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 h-8 text-sm"
+                className="pl-8 h-8 text-sm border-quikle-silver/50 text-quikle-charcoal"
               />
             </div>
           </div>
@@ -167,7 +167,7 @@ const EnhancedPipelineStage = ({
           <Button
             variant="outline"
             size="sm"
-            className="w-full border-dashed"
+            className="w-full border-dashed border-quikle-primary/30 text-quikle-primary hover:bg-quikle-crystal"
             onClick={() => onAddItem?.(stage.id)}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -185,14 +185,14 @@ const EnhancedPipelineStage = ({
           ))}
           
           {filteredItems.length === 0 && searchTerm && (
-            <div className="text-center text-muted-foreground py-4">
+            <div className="text-center text-quikle-slate py-4">
               <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p>No {type}s found matching "{searchTerm}"</p>
             </div>
           )}
           
           {filteredItems.length === 0 && !searchTerm && (
-            <div className="text-center text-muted-foreground py-8">
+            <div className="text-center text-quikle-slate py-8">
               <div className="text-4xl mb-2">📋</div>
               <p>No {type === 'customer' ? 'customers' : 'tickets'} in this stage</p>
             </div>
