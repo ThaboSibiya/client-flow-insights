@@ -156,7 +156,7 @@ const CustomerTableContent = ({
                   key={customer.id}
                   customer={customer}
                   isSelected={selectedCustomers.has(customer.id)}
-                  onSelect={(checked) => onSelectCustomer(customer.id, checked)}
+                  onSelect={(customerId, checked) => onSelectCustomer(customerId, checked)}
                   onStatusChange={handleStatusChange}
                   onEdit={handleOpenCustomerDetails}
                   onDelete={handleDeleteCustomer}

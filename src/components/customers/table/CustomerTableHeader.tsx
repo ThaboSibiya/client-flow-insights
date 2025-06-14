@@ -44,6 +44,11 @@ const CustomerTableHeader = ({
     return `Sort by ${displayName}, currently ${direction}`;
   };
 
+  const getAriaSortValue = (field: string): "none" | "ascending" | "descending" => {
+    if (sortBy !== field) return 'none';
+    return sortOrder === 'asc' ? 'ascending' : 'descending';
+  };
+
   return (
     <thead className="bg-gray-50" role="rowgroup">
       <tr role="row">
@@ -65,7 +70,7 @@ const CustomerTableHeader = ({
           className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           scope="col"
           role="columnheader"
-          aria-sort={sortBy === 'name' ? sortOrder : 'none'}
+          aria-sort={getAriaSortValue('name')}
         >
           <Button
             variant="ghost"
@@ -90,7 +95,7 @@ const CustomerTableHeader = ({
           className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           scope="col"
           role="columnheader"
-          aria-sort={sortBy === 'status' ? sortOrder : 'none'}
+          aria-sort={getAriaSortValue('status')}
         >
           <Button
             variant="ghost"
@@ -115,7 +120,7 @@ const CustomerTableHeader = ({
           className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           scope="col"
           role="columnheader"
-          aria-sort={sortBy === 'createdAt' ? sortOrder : 'none'}
+          aria-sort={getAriaSortValue('createdAt')}
         >
           <Button
             variant="ghost"
