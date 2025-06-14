@@ -86,6 +86,183 @@ export type Database = {
           },
         ]
       }
+      employee_attendance: {
+        Row: {
+          check_in_time: string | null
+          check_out_time: string | null
+          created_at: string
+          date: string
+          employee_id: string
+          hours_worked: number | null
+          id: string
+          notes: string | null
+        }
+        Insert: {
+          check_in_time?: string | null
+          check_out_time?: string | null
+          created_at?: string
+          date?: string
+          employee_id: string
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+        }
+        Update: {
+          check_in_time?: string | null
+          check_out_time?: string | null
+          created_at?: string
+          date?: string
+          employee_id?: string
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_attendance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_privileges: {
+        Row: {
+          can_create_quotes: boolean | null
+          can_delete_customers: boolean | null
+          can_delete_quotes: boolean | null
+          can_edit_customers: boolean | null
+          can_edit_quotes: boolean | null
+          can_manage_company_settings: boolean | null
+          can_manage_employees: boolean | null
+          can_view_analytics: boolean | null
+          can_view_customers: boolean | null
+          can_view_quotes: boolean | null
+          created_at: string
+          employee_id: string
+          id: string
+          privilege_description: string | null
+          privilege_name: string
+          updated_at: string
+        }
+        Insert: {
+          can_create_quotes?: boolean | null
+          can_delete_customers?: boolean | null
+          can_delete_quotes?: boolean | null
+          can_edit_customers?: boolean | null
+          can_edit_quotes?: boolean | null
+          can_manage_company_settings?: boolean | null
+          can_manage_employees?: boolean | null
+          can_view_analytics?: boolean | null
+          can_view_customers?: boolean | null
+          can_view_quotes?: boolean | null
+          created_at?: string
+          employee_id: string
+          id?: string
+          privilege_description?: string | null
+          privilege_name: string
+          updated_at?: string
+        }
+        Update: {
+          can_create_quotes?: boolean | null
+          can_delete_customers?: boolean | null
+          can_delete_quotes?: boolean | null
+          can_edit_customers?: boolean | null
+          can_edit_quotes?: boolean | null
+          can_manage_company_settings?: boolean | null
+          can_manage_employees?: boolean | null
+          can_view_analytics?: boolean | null
+          can_view_customers?: boolean | null
+          can_view_quotes?: boolean | null
+          created_at?: string
+          employee_id?: string
+          id?: string
+          privilege_description?: string | null
+          privilege_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_privileges_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          company_owner_id: string
+          created_at: string
+          department: string | null
+          designation: string
+          email: string
+          employee_number: string
+          first_name: string
+          hire_date: string
+          id: string
+          last_name: string
+          manager_id: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["employee_role"]
+          salary: number | null
+          status: Database["public"]["Enums"]["employee_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_owner_id: string
+          created_at?: string
+          department?: string | null
+          designation: string
+          email: string
+          employee_number: string
+          first_name: string
+          hire_date?: string
+          id?: string
+          last_name: string
+          manager_id?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["employee_role"]
+          salary?: number | null
+          status?: Database["public"]["Enums"]["employee_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_owner_id?: string
+          created_at?: string
+          department?: string | null
+          designation?: string
+          email?: string
+          employee_number?: string
+          first_name?: string
+          hire_date?: string
+          id?: string
+          last_name?: string
+          manager_id?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["employee_role"]
+          salary?: number | null
+          status?: Database["public"]["Enums"]["employee_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -347,10 +524,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_employee_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      employee_role: "admin" | "manager" | "supervisor" | "employee" | "intern"
+      employee_status: "active" | "inactive" | "suspended" | "terminated"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -465,6 +646,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      employee_role: ["admin", "manager", "supervisor", "employee", "intern"],
+      employee_status: ["active", "inactive", "suspended", "terminated"],
+    },
   },
 } as const

@@ -1,115 +1,58 @@
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, UserPlus, BarChart3, Home, Move, FileText } from 'lucide-react';
-import UserProfile from '../auth/UserProfile';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from "@/lib/utils";
+import { 
+  LayoutDashboard, 
+  Users, 
+  MessageCircle, 
+  BarChart3, 
+  FileText, 
+  UserPlus,
+  UserCog
+} from 'lucide-react';
 
-interface SidebarItemProps {
-  icon: React.ReactNode;
-  label: string;
-  to: string;
-  isCollapsed?: boolean;
-}
+const Sidebar = () => {
+  const location = useLocation();
 
-const SidebarItem = ({ icon, label, to, isCollapsed }: SidebarItemProps) => {
+  const menuItems = [
+    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/customers', icon: Users, label: 'Customers' },
+    { path: '/employees', icon: UserCog, label: 'Employees' },
+    { path: '/pipeline', icon: MessageCircle, label: 'Pipeline' },
+    { path: '/quotes', icon: FileText, label: 'Quotes & Invoices' },
+    { path: '/analytics', icon: BarChart3, label: 'Analytics' },
+    { path: '/onboarding', icon: UserPlus, label: 'Onboarding' },
+  ];
+
   return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        cn(
-          'flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-white/10 hover:backdrop-blur-sm',
-          isActive
-            ? 'bg-white/15 text-white border-l-4 border-white/50 shadow-lg backdrop-blur-sm'
-            : 'text-white/90 hover:text-white',
-          isCollapsed ? 'justify-center' : ''
-        )
-      }
-    >
-      <div className="text-white/90">{icon}</div>
-      {!isCollapsed && <span className="font-medium">{label}</span>}
-    </NavLink>
-  );
-};
-
-interface SidebarProps {
-  isCollapsed?: boolean;
-}
-
-const Sidebar = ({ isCollapsed = false }: SidebarProps) => {
-  return (
-    <div className={cn(
-      'h-full bg-gradient-to-b from-quikle-obsidian via-quikle-dark to-quikle-primary border-r border-quikle-secondary/20 transition-all shadow-luxury backdrop-blur-xl',
-      isCollapsed ? 'w-16' : 'w-64'
-    )}>
-      <div className={cn(
-        'flex items-center justify-center h-16 border-b border-white/10 bg-white/5 backdrop-blur-sm',
-        isCollapsed ? 'px-2' : 'px-6'
-      )}>
-        {isCollapsed ? (
-          <div className="w-10 h-10 bg-gradient-to-br from-white/20 to-white/10 rounded-xl flex items-center justify-center shadow-elegant backdrop-blur-sm">
-            <span className="font-bold text-white text-lg">Q</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-white/20 to-white/10 rounded-xl flex items-center justify-center shadow-elegant backdrop-blur-sm">
-              <span className="font-bold text-white text-lg">Q</span>
-            </div>
-            <div>
-              <span className="font-bold text-xl text-white">QUIKLE</span>
-              <p className="text-xs text-white/70">Business Suite</p>
-            </div>
-          </div>
-        )}
+    <div className="w-64 bg-white border-r border-quikle-silver min-h-screen">
+      <div className="p-6">
+        <h1 className="text-2xl font-bold text-quikle-primary">Quikle CRM</h1>
       </div>
-      <div className="p-3 flex flex-col h-[calc(100%-4rem)] justify-between">
-        <nav className="space-y-2">
-          <SidebarItem 
-            icon={<Home size={isCollapsed ? 20 : 18} />} 
-            label="Home" 
-            to="/" 
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem 
-            icon={<LayoutDashboard size={isCollapsed ? 20 : 18} />} 
-            label="Dashboard" 
-            to="/dashboard" 
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem 
-            icon={<Users size={isCollapsed ? 20 : 18} />} 
-            label="Clients" 
-            to="/customers" 
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem 
-            icon={<UserPlus size={isCollapsed ? 20 : 18} />} 
-            label="Onboarding" 
-            to="/onboarding" 
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem 
-            icon={<Move size={isCollapsed ? 20 : 18} />} 
-            label="Workflow" 
-            to="/pipeline" 
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem 
-            icon={<FileText size={isCollapsed ? 20 : 18} />} 
-            label="Quotes & Invoices" 
-            to="/quotes" 
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem 
-            icon={<BarChart3 size={isCollapsed ? 20 : 18} />} 
-            label="Analytics" 
-            to="/analytics" 
-            isCollapsed={isCollapsed}
-          />
-        </nav>
-        
-        {!isCollapsed && <UserProfile />}
-      </div>
+      
+      <nav className="mt-6">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.path;
+          
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                "flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-quikle-crystal",
+                isActive 
+                  ? "bg-quikle-crystal text-quikle-primary border-r-2 border-quikle-primary" 
+                  : "text-quikle-charcoal"
+              )}
+            >
+              <Icon className="mr-3 h-5 w-5" />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 };
