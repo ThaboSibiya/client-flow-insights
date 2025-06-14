@@ -14,16 +14,16 @@ const Customers = () => {
   
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-blue-600/20 via-purple-600/15 to-indigo-600/20 p-8 rounded-xl mb-6 shadow-lg transform hover:scale-[1.01] transition-all duration-300 border border-white/20 backdrop-blur-sm">
+      <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-8 rounded-xl mb-6 shadow-lg transform hover:scale-[1.01] transition-all duration-300 border border-white/20 backdrop-blur-sm quikle-card">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-sm">Client Management</h1>
+            <h1 className="text-3xl font-bold text-gradient-quikle drop-shadow-sm">Client Management</h1>
             <p className="text-muted-foreground mt-1">View, manage, and communicate with your clients. Use advanced filters, bulk actions, and real-time metrics.</p>
           </div>
           <div className="flex gap-2">
             <Button 
               onClick={handleOnboardNewCustomer} 
-              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg transition-all transform hover:translate-y-[-2px] shadow-md"
+              className="flex items-center gap-2 quikle-button-primary shadow-md"
             >
               <UserPlus className="h-4 w-4" />
               New Client

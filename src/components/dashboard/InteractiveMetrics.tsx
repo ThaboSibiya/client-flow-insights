@@ -40,8 +40,8 @@ const InteractiveMetrics = () => {
       value: totalCustomers,
       previousValue: Math.max(0, totalCustomers - 3),
       icon: <Users className="h-5 w-5" />,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
+      color: 'text-quikle-primary',
+      bgColor: 'bg-quikle-light',
     },
     {
       id: 'new-customers',
@@ -49,7 +49,7 @@ const InteractiveMetrics = () => {
       value: newCustomers,
       previousValue: Math.max(0, newCustomers - 1),
       icon: <TrendingUp className="h-5 w-5" />,
-      color: 'text-green-600',
+      color: 'text-quikle-success',
       bgColor: 'bg-green-50',
     },
     {
@@ -58,8 +58,8 @@ const InteractiveMetrics = () => {
       value: activeTickets,
       previousValue: Math.max(0, activeTickets + 2),
       icon: <Ticket className="h-5 w-5" />,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
+      color: 'text-quikle-warning',
+      bgColor: 'bg-amber-50',
     },
     {
       id: 'resolved-tickets',
@@ -67,7 +67,7 @@ const InteractiveMetrics = () => {
       value: resolvedTickets,
       previousValue: Math.max(0, resolvedTickets - 1),
       icon: <CheckCircle className="h-5 w-5" />,
-      color: 'text-emerald-600',
+      color: 'text-quikle-success',
       bgColor: 'bg-emerald-50',
     }
   ];
@@ -79,11 +79,11 @@ const InteractiveMetrics = () => {
   ];
 
   return (
-    <Card className="shadow-md bg-gradient-to-br from-white to-gray-50 border-gray-200/70">
+    <Card className="shadow-md quikle-card">
       <CardHeader className="pb-3 border-b border-gray-100">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-broker-primary">
-            <TrendingUp className="h-5 w-5 text-broker-accent" />
+          <CardTitle className="flex items-center gap-2 text-gradient-quikle">
+            <TrendingUp className="h-5 w-5 text-quikle-accent" />
             Performance Metrics
           </CardTitle>
           <Tabs value={selectedPeriod} onValueChange={(value: any) => setSelectedPeriod(value)}>
@@ -120,8 +120,8 @@ const InteractiveMetrics = () => {
                       variant={isPositive ? "default" : "destructive"}
                       className={`text-xs ${
                         isPositive 
-                          ? "bg-green-100 text-green-700 hover:bg-green-100" 
-                          : "bg-red-100 text-red-700 hover:bg-red-100"
+                          ? "bg-quikle-success/10 text-quikle-success hover:bg-quikle-success/10" 
+                          : "bg-quikle-danger/10 text-quikle-danger hover:bg-quikle-danger/10"
                       }`}
                     >
                       {isPositive ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}

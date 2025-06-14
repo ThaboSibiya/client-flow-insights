@@ -26,8 +26,8 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-broker-primary/20 via-broker-secondary/15 to-broker-accent/20 p-8 rounded-xl mb-6 shadow-lg border border-white/20 backdrop-blur-sm">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-broker-primary via-broker-secondary to-broker-accent bg-clip-text text-transparent drop-shadow-sm">Dashboard Overview</h1>
+      <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-8 rounded-xl mb-6 shadow-lg border border-white/20 backdrop-blur-sm quikle-card">
+        <h1 className="text-3xl font-bold text-gradient-quikle drop-shadow-sm">Dashboard Overview</h1>
         <p className="text-muted-foreground mt-1">Monitor your business performance at a glance</p>
       </div>
 
@@ -41,25 +41,25 @@ const Dashboard = () => {
             title="New Customers" 
             count={newCustomers} 
             icon={<Users size={24} className="text-white" />} 
-            color="bg-gradient-to-br from-broker-accent to-blue-500"
+            color="bg-gradient-to-br from-quikle-primary to-quikle-accent"
           />
           <StatusCard 
             title="Existing Customers" 
             count={existingCustomers} 
             icon={<Database size={24} className="text-white" />} 
-            color="bg-gradient-to-br from-broker-secondary to-cyan-500"
+            color="bg-gradient-to-br from-quikle-blue to-quikle-secondary"
           />
           <StatusCard 
             title="Pending Policies" 
             count={pendingCustomers} 
             icon={<ChartBar size={24} className="text-white" />} 
-            color="bg-gradient-to-br from-orange-400 to-amber-600"
+            color="bg-gradient-to-br from-quikle-warning to-amber-600"
           />
           <StatusCard 
             title="Finalised Sales" 
             count={finalisedCustomers} 
             icon={<CircleCheck size={24} className="text-white" />} 
-            color="bg-gradient-to-br from-green-400 to-emerald-600"
+            color="bg-gradient-to-br from-quikle-success to-emerald-600"
           />
         </div>
 

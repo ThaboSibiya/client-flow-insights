@@ -72,26 +72,26 @@ const Index = () => {
     {
       title: "Client Management",
       description: "Track all your client interactions and project information in one centralized location.",
-      icon: <Users className="h-10 w-10 mb-4 text-blue-600 opacity-90" />,
+      icon: <Users className="h-10 w-10 mb-4 text-quikle-primary opacity-90" />,
       path: "/customers",
-      color: "border-blue-600",
-      hoverColor: "hover:bg-blue-600",
+      color: "border-quikle-primary",
+      hoverColor: "hover:bg-quikle-primary",
     },
     {
       title: "Dashboard",
       description: "Get a comprehensive overview of your business performance and key metrics.",
-      icon: <LayoutDashboard className="h-10 w-10 mb-4 text-purple-600 opacity-90" />,
+      icon: <LayoutDashboard className="h-10 w-10 mb-4 text-quikle-secondary opacity-90" />,
       path: "/dashboard",
-      color: "border-purple-600",
-      hoverColor: "hover:bg-purple-600",
+      color: "border-quikle-secondary",
+      hoverColor: "hover:bg-quikle-secondary",
     },
     {
       title: "Analytics",
       description: "Analyze your business data and performance metrics to make informed decisions.",
-      icon: <BarChart3 className="h-10 w-10 mb-4 text-indigo-600 opacity-90" />,
+      icon: <BarChart3 className="h-10 w-10 mb-4 text-quikle-accent opacity-90" />,
       path: "/analytics",
-      color: "border-indigo-600",
-      hoverColor: "hover:bg-indigo-600",
+      color: "border-quikle-accent",
+      hoverColor: "hover:bg-quikle-accent",
     },
   ];
   
@@ -101,17 +101,17 @@ const Index = () => {
       <div className="absolute inset-0 overflow-hidden">
         <div 
           ref={backgroundRef}
-          className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_10%_20%,rgb(59,130,246)_0%,rgb(147,51,234)_90%)]"
+          className="absolute inset-0 opacity-20 bg-gradient-to-br from-quikle-primary via-quikle-accent to-quikle-secondary"
           style={{ filter: 'blur(50px)' }}
         ></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj4KPHJlY3Qgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0iIzM5ODJmNiIgb3BhY2l0eT0iMC4wMyI+PC9yZWN0Pgo8cmVjdCB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMzk4MmY2IiBvcGFjaXR5PSIwLjAzIiB4PSI1Ij48L3JlY3Q+CjxyZWN0IHdpZHRoPSIzIiBoZWlnaHQ9IjMiIGZpbGw9IiMzOTgyZjYiIG9wYWNpdHk9IjAuMDMiIHg9IjEwIj48L3JlY3Q+Cjwvc3ZnPg==')] opacity-50"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj4KPHJlY3Qgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0iI0U2N0UyMiIgb3BhY2l0eT0iMC4wMyI+PC9yZWN0Pgo8cmVjdCB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjRTY3RTIyIiBvcGFjaXR5PSIwLjAzIiB4PSI1Ij48L3JlY3Q+CjxyZWN0IHdpZHRoPSIzIiBoZWlnaHQ9IjMiIGZpbGw9IiNFNjdFMjIiIG9wYWNpdHk9IjAuMDMiIHg9IjEwIj48L3JlY3Q+Cjwvc3ZnPg==')] opacity-50"></div>
       </div>
       
       <div className="container max-w-6xl mx-auto px-4 py-16 relative z-10">
         <div className="flex flex-col items-center text-center mb-16">
           <h1 
             ref={titleRef}
-            className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent leading-tight transition-transform duration-300"
+            className="text-5xl md:text-6xl font-bold text-gradient-quikle leading-tight transition-transform duration-300"
             style={{ transformStyle: 'preserve-3d' }}
           >
             Welcome to QUIKLE
@@ -124,7 +124,7 @@ const Index = () => {
         {/* Desktop Cards */}
         <div className="hidden md:grid md:grid-cols-3 gap-8 mb-16">
           {features.map((feature, index) => (
-            <Card key={index} className="group relative overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border-0 bg-white/90 backdrop-blur-sm hover:-translate-y-2">
+            <Card key={index} className="group relative overflow-hidden quikle-card hover:shadow-quikle-glow hover:-translate-y-2">
               <div className={`absolute inset-x-0 top-0 h-1 ${feature.color} transform origin-left transition-transform duration-500 scale-x-0 group-hover:scale-x-100`}></div>
               <CardContent className="pt-10 pb-8 px-6 flex flex-col items-center text-center h-full">
                 <div className="mb-2 transform group-hover:scale-110 transition-transform duration-500">
@@ -151,7 +151,7 @@ const Index = () => {
             <CarouselContent>
               {features.map((feature, index) => (
                 <CarouselItem key={index} className="pl-4">
-                  <Card className="overflow-hidden shadow-md border-0 bg-white/90 backdrop-blur-sm">
+                  <Card className="overflow-hidden shadow-md border-0 quikle-card">
                     <CardContent className="pt-8 pb-8 px-6 flex flex-col items-center text-center">
                       <div className="mb-2">
                         {feature.icon}
@@ -178,7 +178,7 @@ const Index = () => {
         </div>
         
         {/* Premium Footer */}
-        <div className="mt-16 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-indigo-600/10 p-8 rounded-2xl backdrop-blur-sm">
+        <div className="mt-16 bg-gradient-to-r from-quikle-primary/10 via-quikle-accent/10 to-quikle-secondary/10 p-8 rounded-2xl backdrop-blur-sm quikle-card">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               <h3 className="text-xl md:text-2xl font-semibold text-gray-800">Ready to transform your business?</h3>
@@ -186,7 +186,7 @@ const Index = () => {
             </div>
             <Button 
               onClick={() => navigate('/dashboard')} 
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-600/90 hover:to-purple-600/90 text-white px-6 py-4 h-auto shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              className="quikle-button-primary px-6 py-4 h-auto shadow-lg hover:shadow-xl"
             >
               Get Started Now
             </Button>

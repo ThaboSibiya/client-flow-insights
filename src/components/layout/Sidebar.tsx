@@ -18,10 +18,10 @@ const SidebarItem = ({ icon, label, to, isCollapsed }: SidebarItemProps) => {
       to={to}
       className={({ isActive }) =>
         cn(
-          'flex items-center space-x-2 px-4 py-3 rounded-lg transition-colors hover:bg-gray-100',
+          'flex items-center space-x-2 px-4 py-3 rounded-lg transition-colors hover:bg-quikle-primary/10',
           isActive
-            ? 'bg-gradient-to-r from-blue-600/10 to-purple-600/10 text-blue-600'
-            : 'text-gray-600 hover:text-blue-600',
+            ? 'bg-gradient-to-r from-quikle-primary/20 to-quikle-accent/20 text-quikle-primary border-l-4 border-quikle-primary'
+            : 'text-white/90 hover:text-quikle-accent',
           isCollapsed ? 'justify-center' : ''
         )
       }
@@ -39,17 +39,26 @@ interface SidebarProps {
 const Sidebar = ({ isCollapsed = false }: SidebarProps) => {
   return (
     <div className={cn(
-      'h-full bg-white border-r border-gray-200 transition-all',
+      'h-full bg-gradient-to-b from-quikle-secondary to-quikle-dark border-r border-quikle-secondary/30 transition-all shadow-xl',
       isCollapsed ? 'w-16' : 'w-64'
     )}>
       <div className={cn(
-        'flex items-center justify-center h-16 border-b border-gray-200',
+        'flex items-center justify-center h-16 border-b border-quikle-secondary/30 bg-quikle-secondary/50',
         isCollapsed ? 'px-2' : 'px-6'
       )}>
         {isCollapsed ? (
-          <span className="font-bold text-xl text-blue-600">Q</span>
+          <div className="w-8 h-8 bg-quikle-primary rounded-lg flex items-center justify-center">
+            <span className="font-bold text-white">Q</span>
+          </div>
         ) : (
-          <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">QUIKLE</span>
+          <div className="flex items-center gap-2">
+            <img 
+              src="https://www.quikle.co.za/wp-content/uploads/2023/07/Quikle-Logo.png" 
+              alt="Quikle Logo" 
+              className="h-8 w-auto"
+            />
+            <span className="font-bold text-xl text-gradient-quikle">QUIKLE</span>
+          </div>
         )}
       </div>
       <div className="p-3 flex flex-col h-[calc(100%-4rem)] justify-between">

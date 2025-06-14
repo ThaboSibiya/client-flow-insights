@@ -22,9 +22,9 @@ const CustomerActivityChart = ({ data }: ChartProps) => {
   const [chartType, setChartType] = useState<'stacked' | 'grouped'>('stacked');
   
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow">
+    <Card className="shadow-sm hover:shadow-md transition-shadow quikle-card">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Monthly Activity</CardTitle>
+        <CardTitle className="text-gradient-quikle">Monthly Activity</CardTitle>
         <div className="flex gap-2">
           <Tabs defaultValue="stacked" onValueChange={(value) => setChartType(value as 'stacked' | 'grouped')}>
             <TabsList className="grid grid-cols-2 h-8 w-40">
@@ -37,7 +37,7 @@ const CustomerActivityChart = ({ data }: ChartProps) => {
             value={viewOption}
             onValueChange={(value) => setViewOption(value as 'all' | 'new' | 'existing' | 'pending' | 'finalised')}
           >
-            <SelectTrigger className="w-[180px] bg-white border-broker-primary/20 shadow-sm h-8">
+            <SelectTrigger className="w-[180px] bg-white border-quikle-primary/20 shadow-sm h-8">
               <SelectValue placeholder="Select view" />
             </SelectTrigger>
             <SelectContent>
@@ -71,20 +71,20 @@ const CustomerActivityChart = ({ data }: ChartProps) => {
               >
                 <defs>
                   <linearGradient id="colorNew" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3182CE" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#3182CE" stopOpacity={0.2}/>
+                    <stop offset="5%" stopColor="#E67E22" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#E67E22" stopOpacity={0.2}/>
                   </linearGradient>
                   <linearGradient id="colorExisting" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#38B2AC" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#38B2AC" stopOpacity={0.2}/>
+                    <stop offset="5%" stopColor="#2C3E50" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#2C3E50" stopOpacity={0.2}/>
                   </linearGradient>
                   <linearGradient id="colorPending" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#DD6B20" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#DD6B20" stopOpacity={0.2}/>
+                    <stop offset="5%" stopColor="#F39C12" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#F39C12" stopOpacity={0.2}/>
                   </linearGradient>
                   <linearGradient id="colorFinalised" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#48BB78" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#48BB78" stopOpacity={0.2}/>
+                    <stop offset="5%" stopColor="#27AE60" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#27AE60" stopOpacity={0.2}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" />

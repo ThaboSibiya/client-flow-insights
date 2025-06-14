@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,16 +62,31 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
+				// Quikle Brand Colors
+				quikle: {
+					primary: '#E67E22',     // Orange from Quikle
+					secondary: '#2C3E50',   // Dark blue/navy
+					accent: '#F39C12',      // Light orange
+					light: '#FDF2E9',       // Very light orange
+					dark: '#1A252F',        // Very dark blue
+					success: '#27AE60',     // Green
+					warning: '#F1C40F',     // Yellow
+					danger: '#E74C3C',      // Red
+					neutral: '#BDC3C7',     // Light gray
+					blue: '#3498DB',        // Bright blue
+					purple: '#9B59B6',      // Purple for variety
+				},
+				// Keep legacy broker colors for compatibility
 				broker: {
-					primary: '#1E3A8A',
-					secondary: '#0EA5E9',
-					accent: '#3B82F6',
-					light: '#EFF6FF',
-					dark: '#1E293B',
-					success: '#10B981',
-					warning: '#F59E0B',
-					danger: '#EF4444',
-					neutral: '#E2E8F0',
+					primary: '#E67E22',
+					secondary: '#2C3E50',
+					accent: '#F39C12',
+					light: '#FDF2E9',
+					dark: '#1A252F',
+					success: '#27AE60',
+					warning: '#F1C40F',
+					danger: '#E74C3C',
+					neutral: '#BDC3C7',
 				},
 			},
 			borderRadius: {
@@ -109,10 +123,12 @@ export default {
 			},
 			boxShadow: {
 				'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+				'quikle-glow': '0 0 20px rgba(230, 126, 34, 0.3)',
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-				'gradient-subtle': 'linear-gradient(to right, #e6b980 0%, #eacda3 100%)',
+				'gradient-quikle': 'linear-gradient(135deg, #E67E22 0%, #F39C12 50%, #2C3E50 100%)',
+				'gradient-quikle-light': 'linear-gradient(135deg, #FDF2E9 0%, #FCF3CF 100%)',
 			}
 		}
 	},

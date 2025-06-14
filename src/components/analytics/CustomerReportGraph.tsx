@@ -19,10 +19,10 @@ const CustomerReportGraph = ({ customers }: CustomerReportGraphProps) => {
   const summary = calculateSummary(reportData);
 
   return (
-    <Card className="shadow-lg border border-white/30 bg-gradient-to-br from-white via-white to-gray-50 transform hover:scale-[1.01] transition-all duration-300">
+    <Card className="shadow-lg border border-white/30 quikle-card transform hover:scale-[1.01] transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-2">
-        <CardTitle className="flex items-center gap-2 text-lg font-bold bg-gradient-to-r from-broker-primary via-broker-secondary to-broker-accent bg-clip-text text-transparent">
-          <ChartPieIcon className="h-5 w-5 text-broker-primary" />
+        <CardTitle className="flex items-center gap-2 text-lg font-bold text-gradient-quikle">
+          <ChartPieIcon className="h-5 w-5 text-quikle-primary" />
           Customer Conversion Report
         </CardTitle>
         <TimeframeSelector timeframe={timeframe} setTimeframe={setTimeframe} />
