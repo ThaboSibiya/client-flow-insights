@@ -14,13 +14,15 @@ import {
   Archive, 
   Trash2,
   User,
-  Bot
+  Bot,
+  CheckCheck
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useMessages } from '@/hooks/useMessages';
 import { useAuth } from '@/context/AuthContext';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import { useReadStatus } from '@/hooks/useReadStatus';
+import MessageActions from './MessageActions';
 
 interface MessageThreadProps {
   conversationId: string;
@@ -32,7 +34,7 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
   const { user } = useAuth();
   const { messages, conversation, loading, sendMessage } = useMessages(conversationId);
   const { typingUsers, startTyping, stopTyping } = useTypingIndicator(conversationId);
-  const { markConversationAsRead } = useReadStatus();
+  const { markConversationAsRead, markAllAsRead } = useReadStatus();
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -81,6 +83,10 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
     }, 2000);
   };
 
+  const handleMarkAllAsRead = () => {
+    markAllAsRead(conversationId);
+  };
+
   const getSenderAvatar = (message: any) => {
     const initial = message.sender_name?.charAt(0)?.toUpperCase() || 'U';
     return (
@@ -109,6 +115,8 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
     );
   }
 
+  const unreadCount = messages?.filter(msg => !msg.is_read).length || 0;
+
   return (
     <div className="flex-1 flex flex-col">
       {/* Conversation Header */}
@@ -125,9 +133,24 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
               <Badge variant="outline">
                 {conversation?.type}
               </Badge>
+              {unreadCount > 0 && (
+                <Badge variant="destructive">
+                  {unreadCount} unread
+                </Badge>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleMarkAllAsRead}
+              >
+                <CheckCheck className="h-4 w-4 mr-2" />
+                Mark all read
+              </Button>
+            )}
             <Button variant="outline" size="sm">
               <Archive className="h-4 w-4" />
             </Button>
@@ -164,15 +187,17 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
                     </Badge>
                   )}
                   
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium">
-                      {message.sender_name}
-                    </span>
-                    <span className={`text-xs ${
-                      message.sender_type === 'employee' ? 'text-white/70' : 'text-quikle-neutral'
-                    }`}>
-                      {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-                    </span>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">
+                        {message.sender_name}
+                      </span>
+                      <span className={`text-xs ${
+                        message.sender_type === 'employee' ? 'text-white/70' : 'text-quikle-neutral'
+                      }`}>
+                        {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                      </span>
+                    </div>
                   </div>
                   
                   <div className={`text-sm ${
@@ -189,6 +214,16 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
                       </pre>
                     </div>
                   )}
+
+                  <MessageActions
+                    messageId={message.id}
+                    conversationId={conversationId}
+                    content={message.content}
+                    senderEmail={message.sender_email}
+                    createdAt={message.created_at}
+                    currentUserEmail={user?.email || null}
+                    isEdited={message.metadata?.edited}
+                  />
                 </CardContent>
               </Card>
               

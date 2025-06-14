@@ -7,6 +7,29 @@ export const useReadStatus = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const markMessageAsRead = useMutation({
+    mutationFn: async (messageId: string) => {
+      const { error } = await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('id', messageId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, messageId) => {
+      // Invalidate queries to refresh the UI
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to mark message as read",
+        variant: "destructive",
+      });
+    },
+  });
+
   const markMessagesAsRead = useMutation({
     mutationFn: async (conversationId: string) => {
       const { error } = await supabase
@@ -25,6 +48,32 @@ export const useReadStatus = () => {
       toast({
         title: "Error",
         description: "Failed to mark messages as read",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const markAllAsRead = useMutation({
+    mutationFn: async (conversationId: string) => {
+      const { error } = await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('conversation_id', conversationId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, conversationId) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      toast({
+        title: "Success",
+        description: "All messages marked as read",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to mark all messages as read",
         variant: "destructive",
       });
     },
@@ -55,8 +104,10 @@ export const useReadStatus = () => {
   });
 
   return {
+    markMessageAsRead: markMessageAsRead.mutate,
     markMessagesAsRead: markMessagesAsRead.mutate,
+    markAllAsRead: markAllAsRead.mutate,
     markConversationAsRead: markConversationAsRead.mutate,
-    isMarkingAsRead: markMessagesAsRead.isPending || markConversationAsRead.isPending
+    isMarkingAsRead: markMessageAsRead.isPending || markMessagesAsRead.isPending || markAllAsRead.isPending || markConversationAsRead.isPending
   };
 };
