@@ -76,61 +76,6 @@ export const useOptimisticUpdates = <T>(entityType?: string) => {
     return result;
   }, [optimisticUpdates]);
 
-  // Customer-specific methods
-  const addCustomerOptimistically = useCallback(async (customerData: any, apiCall: () => Promise<any>) => {
-    const tempId = `temp-${Date.now()}`;
-    const update = addOptimisticUpdate(tempId, customerData, 'add');
-    
-    try {
-      const result = await apiCall();
-      resolveOptimisticUpdate(tempId, result);
-      return result;
-    } catch (error) {
-      rejectOptimisticUpdate(tempId, error instanceof Error ? error.message : 'Unknown error');
-      throw error;
-    }
-  }, [addOptimisticUpdate, resolveOptimisticUpdate, rejectOptimisticUpdate]);
-
-  const updateCustomerOptimistically = useCallback(async (customerId: string, customerData: any, apiCall: () => Promise<any>) => {
-    const update = addOptimisticUpdate(customerId, customerData, 'update');
-    
-    try {
-      const result = await apiCall();
-      resolveOptimisticUpdate(customerId, result);
-      return result;
-    } catch (error) {
-      rejectOptimisticUpdate(customerId, error instanceof Error ? error.message : 'Unknown error');
-      throw error;
-    }
-  }, [addOptimisticUpdate, resolveOptimisticUpdate, rejectOptimisticUpdate]);
-
-  const deleteCustomerOptimistically = useCallback(async (customerId: string, apiCall: () => Promise<any>) => {
-    const update = addOptimisticUpdate(customerId, {} as T, 'delete');
-    
-    try {
-      const result = await apiCall();
-      resolveOptimisticUpdate(customerId);
-      return result;
-    } catch (error) {
-      rejectOptimisticUpdate(customerId, error instanceof Error ? error.message : 'Unknown error');
-      throw error;
-    }
-  }, [addOptimisticUpdate, resolveOptimisticUpdate, rejectOptimisticUpdate]);
-
-  // Ticket-specific methods
-  const updateTicketOptimistically = useCallback(async (ticketId: string, ticketData: any, apiCall: () => Promise<any>) => {
-    const update = addOptimisticUpdate(ticketId, ticketData, 'update');
-    
-    try {
-      const result = await apiCall();
-      resolveOptimisticUpdate(ticketId, result);
-      return result;
-    } catch (error) {
-      rejectOptimisticUpdate(ticketId, error instanceof Error ? error.message : 'Unknown error');
-      throw error;
-    }
-  }, [addOptimisticUpdate, resolveOptimisticUpdate, rejectOptimisticUpdate]);
-
   // Message-specific method
   const sendMessageOptimistically = useCallback(async (messageData: any, apiCall: () => Promise<any>) => {
     const tempId = `temp-${Date.now()}`;
@@ -162,10 +107,11 @@ export const useOptimisticUpdates = <T>(entityType?: string) => {
     rejectOptimisticUpdate,
     clearOptimisticUpdate,
     mergeWithOptimisticUpdates,
-    addCustomerOptimistically,
-    updateCustomerOptimistically,
-    deleteCustomerOptimistically,
-    updateTicketOptimistically,
     sendMessageOptimistically,
   };
+};
+
+// Export specialized hook for messages
+export const useOptimisticMessages = (conversationId: string) => {
+  return useOptimisticUpdates<any>('message');
 };
