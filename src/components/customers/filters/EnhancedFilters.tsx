@@ -2,6 +2,7 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
   Select, 
   SelectContent, 
@@ -9,15 +10,10 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
-import { Search, Calendar as CalendarIcon, Filter, X, Save, Clock } from 'lucide-react';
-import { format } from 'date-fns';
+import { Search, Filter, X } from 'lucide-react';
+import QuickFilters from './QuickFilters';
+import DateRangeSelector from './DateRangeSelector';
+import PresetManager from './PresetManager';
 
 interface FilterPreset {
   id: string;
@@ -60,8 +56,6 @@ const EnhancedFilters = ({
   onQuickDateRange
 }: EnhancedFiltersProps) => {
   const [showAdvanced, setShowAdvanced] = React.useState(false);
-  const [presetName, setPresetName] = React.useState('');
-  const [showPresetInput, setShowPresetInput] = React.useState(false);
 
   const activeFiltersCount = [
     statusFilter !== 'all',
@@ -75,14 +69,6 @@ const EnhancedFilters = ({
     onSearchQueryChange('');
     onDateRangeChange({ start: null, end: null });
     onTicketFilterChange('all');
-  };
-
-  const handleSavePreset = () => {
-    if (presetName.trim()) {
-      onSavePreset(presetName.trim());
-      setPresetName('');
-      setShowPresetInput(false);
-    }
   };
 
   return (
@@ -150,76 +136,13 @@ const EnhancedFilters = ({
         {/* Advanced Filters */}
         {showAdvanced && (
           <div className="pt-4 border-t border-quikle-silver/30 space-y-4">
-            {/* Quick Date Ranges */}
-            <div className="flex flex-wrap gap-2">
-              <span className="text-sm font-medium text-quikle-charcoal mr-2">Quick filters:</span>
-              {['today', 'week', 'month', 'quarter'].map((range) => (
-                <Button
-                  key={range}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onQuickDateRange(range)}
-                  className="capitalize border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal hover:text-quikle-primary"
-                >
-                  <Clock className="h-3 w-3 mr-1" />
-                  {range === 'week' ? 'This Week' : 
-                   range === 'month' ? 'This Month' : 
-                   range === 'quarter' ? 'This Quarter' : 'Today'}
-                </Button>
-              ))}
-            </div>
-
+            <QuickFilters onQuickDateRange={onQuickDateRange} />
+            
             <div className="flex flex-col sm:flex-row gap-4">
-              {/* Date Range Filter */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-quikle-charcoal min-w-fit">Created:</span>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-[140px] justify-start text-left font-normal border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange.start ? format(dateRange.start, 'MMM dd') : 'From'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-white border-quikle-silver/30 z-50">
-                    <Calendar
-                      mode="single"
-                      selected={dateRange.start || undefined}
-                      onSelect={(date) => onDateRangeChange({ ...dateRange, start: date || null })}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                
-                <span className="text-quikle-slate">to</span>
-                
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-[140px] justify-start text-left font-normal border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange.end ? format(dateRange.end, 'MMM dd') : 'To'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-white border-quikle-silver/30 z-50">
-                    <Calendar
-                      mode="single"
-                      selected={dateRange.end || undefined}
-                      onSelect={(date) => onDateRangeChange({ ...dateRange, end: date || null })}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                
-                {(dateRange.start || dateRange.end) && (
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    onClick={() => onDateRangeRange({ start: null, end: null })}
-                    className="text-quikle-slate hover:text-red-600 hover:bg-red-50"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+              <DateRangeSelector 
+                dateRange={dateRange}
+                onDateRangeChange={onDateRangeChange}
+              />
 
               {/* Ticket Filter */}
               <div className="flex items-center gap-2">
@@ -239,62 +162,12 @@ const EnhancedFilters = ({
               </div>
             </div>
 
-            {/* Saved Presets */}
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-quikle-charcoal">Presets:</span>
-                {savedPresets.map((preset) => (
-                  <Button
-                    key={preset.id}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onApplyPreset(preset)}
-                    className="border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal hover:text-quikle-primary"
-                  >
-                    {preset.name}
-                  </Button>
-                ))}
-              </div>
-              
-              <div className="flex items-center gap-2">
-                {showPresetInput ? (
-                  <>
-                    <Input
-                      placeholder="Preset name"
-                      value={presetName}
-                      onChange={(e) => setPresetName(e.target.value)}
-                      className="w-32 border-quikle-silver/50 text-quikle-charcoal"
-                      onKeyPress={(e) => e.key === 'Enter' && handleSavePreset()}
-                    />
-                    <Button size="sm" onClick={handleSavePreset} className="bg-quikle-primary hover:bg-quikle-secondary text-white">
-                      <Save className="h-3 w-3" />
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={() => {
-                        setShowPresetInput(false);
-                        setPresetName('');
-                      }}
-                      className="text-quikle-slate hover:text-red-600 hover:bg-red-50"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowPresetInput(true)}
-                    disabled={activeFiltersCount === 0}
-                    className="border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal disabled:text-quikle-neutral"
-                  >
-                    <Save className="h-3 w-3 mr-1" />
-                    Save Preset
-                  </Button>
-                )}
-              </div>
-            </div>
+            <PresetManager 
+              savedPresets={savedPresets}
+              onApplyPreset={onApplyPreset}
+              onSavePreset={onSavePreset}
+              activeFiltersCount={activeFiltersCount}
+            />
           </div>
         )}
       </div>
