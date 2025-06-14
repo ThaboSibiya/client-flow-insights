@@ -46,12 +46,20 @@ export const useMessages = (conversationId: string) => {
       sender_type: string;
       sender_name: string;
       sender_email?: string;
+      attachments?: any[];
+      attachment_count?: number;
     }) => {
       const { error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
-          ...messageData,
+          content: messageData.content,
+          message_type: messageData.message_type,
+          sender_type: messageData.sender_type,
+          sender_name: messageData.sender_name,
+          sender_email: messageData.sender_email,
+          attachments: messageData.attachments,
+          attachment_count: messageData.attachment_count || 0,
         });
 
       if (error) throw error;

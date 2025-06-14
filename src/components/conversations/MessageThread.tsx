@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMessages } from '@/hooks/useMessages';
@@ -36,19 +35,22 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
     }
   }, [conversationId, markConversationAsRead]);
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+  const handleSendMessage = async (attachments?: any[]) => {
+    if (!newMessage.trim() && (!attachments || attachments.length === 0)) return;
     
     stopTyping();
     
-    await sendMessage({
+    const messageData = {
       content: newMessage,
       message_type: isInternal ? 'internal_note' : 'text',
       sender_type: 'employee',
       sender_name: user?.email || 'Unknown',
       sender_email: user?.email,
-    });
-    
+      attachments: attachments || [],
+      attachment_count: attachments?.length || 0,
+    };
+
+    await sendMessage(messageData);
     setNewMessage('');
   };
 
@@ -114,6 +116,7 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
       <MessageInput
         newMessage={newMessage}
         isInternal={isInternal}
+        conversationId={conversationId}
         onMessageChange={handleTyping}
         onInternalToggle={() => setIsInternal(!isInternal)}
         onSendMessage={handleSendMessage}

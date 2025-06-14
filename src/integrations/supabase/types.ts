@@ -364,6 +364,7 @@ export type Database = {
       }
       messages: {
         Row: {
+          attachment_count: number | null
           attachments: Json | null
           content: string
           conversation_id: string
@@ -379,6 +380,7 @@ export type Database = {
           sender_type: string
         }
         Insert: {
+          attachment_count?: number | null
           attachments?: Json | null
           content: string
           conversation_id: string
@@ -394,6 +396,7 @@ export type Database = {
           sender_type: string
         }
         Update: {
+          attachment_count?: number | null
           attachments?: Json | null
           content?: string
           conversation_id?: string

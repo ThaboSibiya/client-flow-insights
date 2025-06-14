@@ -2,27 +2,51 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Paperclip, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
+import { useAttachments } from '@/hooks/useAttachments';
+import FileUpload from './FileUpload';
+import AttachmentPreview from './AttachmentPreview';
 
 interface MessageInputProps {
   newMessage: string;
   isInternal: boolean;
+  conversationId: string;
   onMessageChange: (value: string) => void;
   onInternalToggle: () => void;
-  onSendMessage: () => void;
+  onSendMessage: (attachments?: any[]) => void;
 }
 
 const MessageInput = ({
   newMessage,
   isInternal,
+  conversationId,
   onMessageChange,
   onInternalToggle,
   onSendMessage
 }: MessageInputProps) => {
+  const { attachments, uploading, handleUpload, handleDelete, clearAttachments } = useAttachments(conversationId);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      onSendMessage();
+      handleSend();
     }
+  };
+
+  const handleSend = async () => {
+    const attachmentData = attachments.map(att => ({
+      name: att.name,
+      size: att.size,
+      type: att.type,
+      url: att.url,
+      path: att.path
+    }));
+
+    await onSendMessage(attachmentData);
+    clearAttachments();
+  };
+
+  const handleFilesSelected = async (files: File[]) => {
+    await handleUpload(files);
   };
 
   return (
@@ -38,6 +62,20 @@ const MessageInput = ({
             {isInternal ? "Internal Note" : "Public Reply"}
           </Button>
         </div>
+
+        {attachments.length > 0 && (
+          <div className="space-y-2 max-h-32 overflow-y-auto">
+            {attachments.map((attachment) => (
+              <AttachmentPreview
+                key={attachment.id}
+                attachment={attachment}
+                showDelete
+                onDelete={handleDelete}
+                compact
+              />
+            ))}
+          </div>
+        )}
         
         <div className="flex gap-2">
           <Textarea
@@ -48,12 +86,14 @@ const MessageInput = ({
             onKeyDown={handleKeyDown}
           />
           <div className="flex flex-col gap-2">
-            <Button variant="outline" size="sm">
-              <Paperclip className="h-4 w-4" />
-            </Button>
+            <FileUpload
+              onFilesSelected={handleFilesSelected}
+              disabled={uploading}
+              maxSize={10}
+            />
             <Button 
-              onClick={onSendMessage}
-              disabled={!newMessage.trim()}
+              onClick={handleSend}
+              disabled={(!newMessage.trim() && attachments.length === 0) || uploading}
               className="bg-quikle-primary hover:bg-quikle-primary/90"
             >
               <Send className="h-4 w-4" />

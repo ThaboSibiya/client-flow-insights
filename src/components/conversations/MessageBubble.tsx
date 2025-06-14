@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Bot } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import MessageActions from './MessageActions';
+import AttachmentPreview from './AttachmentPreview';
 
 interface MessageBubbleProps {
   message: any;
@@ -33,6 +34,11 @@ const MessageBubble = ({ message, conversationId, currentUserEmail }: MessageBub
 
   const isEdited = message.metadata && typeof message.metadata === 'object' && 
     message.metadata !== null && 'edited' in message.metadata && message.metadata.edited;
+
+  // Parse attachments from the message
+  const attachments = message.attachments && Array.isArray(message.attachments) 
+    ? message.attachments 
+    : [];
 
   return (
     <div
@@ -69,11 +75,25 @@ const MessageBubble = ({ message, conversationId, currentUserEmail }: MessageBub
             </div>
           </div>
           
-          <div className={`text-sm ${
-            message.sender_type === 'employee' ? 'text-white' : 'text-quikle-charcoal'
-          }`}>
-            {message.content}
-          </div>
+          {message.content && (
+            <div className={`text-sm mb-2 ${
+              message.sender_type === 'employee' ? 'text-white' : 'text-quikle-charcoal'
+            }`}>
+              {message.content}
+            </div>
+          )}
+
+          {attachments.length > 0 && (
+            <div className="space-y-2 mb-2">
+              {attachments.map((attachment: any, index: number) => (
+                <AttachmentPreview
+                  key={index}
+                  attachment={attachment}
+                  compact
+                />
+              ))}
+            </div>
+          )}
           
           {message.metadata && message.message_type === 'form_data' && (
             <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
