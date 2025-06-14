@@ -1,16 +1,20 @@
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
 const alertVariants = cva(
-  "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+  "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
   {
     variants: {
       variant: {
-        default: "bg-background text-foreground",
+        default: "bg-gradient-to-r from-quikle-crystal to-quikle-platinum border-quikle-silver/30 text-quikle-charcoal shadow-platinum",
         destructive:
-          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive bg-gradient-to-r from-red-50 to-red-100",
+        warning: "bg-gradient-to-r from-quikle-crystal to-quikle-platinum border-quikle-accent/30 text-quikle-charcoal shadow-platinum [&>svg]:text-quikle-accent",
+        success: "bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-300 text-emerald-800 [&>svg]:text-emerald-600",
+        info: "bg-gradient-to-r from-quikle-crystal to-quikle-platinum border-quikle-primary/30 text-quikle-charcoal shadow-platinum [&>svg]:text-quikle-primary",
       },
     },
     defaultVariants: {

@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -9,12 +10,15 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+          "border-transparent bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white hover:shadow-md",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "border-transparent bg-gradient-to-r from-quikle-crystal to-quikle-platinum text-quikle-primary hover:shadow-md",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
+          "border-transparent bg-gradient-to-r from-red-600 to-red-700 text-white hover:shadow-md",
+        outline: "text-quikle-primary border-quikle-silver bg-white hover:bg-quikle-crystal",
+        success: "border-transparent bg-gradient-to-r from-emerald-600 to-emerald-700 text-white hover:shadow-md",
+        warning: "border-transparent bg-gradient-to-r from-quikle-accent to-quikle-neutral text-white hover:shadow-md",
+        info: "border-transparent bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white hover:shadow-md",
       },
     },
     defaultVariants: {
