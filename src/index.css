@@ -5,83 +5,83 @@
 
 @layer base {
   :root {
-    --background: 253 242 233;
-    --foreground: 26 37 47;
+    --background: 255 255 255;
+    --foreground: 45 55 72;
 
     --card: 255 255 255;
-    --card-foreground: 26 37 47;
+    --card-foreground: 45 55 72;
 
     --popover: 255 255 255;
-    --popover-foreground: 26 37 47;
+    --popover-foreground: 45 55 72;
 
-    --primary: 230 126 34;
+    --primary: 45 55 72;
     --primary-foreground: 255 255 255;
 
-    --secondary: 44 62 80;
-    --secondary-foreground: 255 255 255;
+    --secondary: 226 232 240;
+    --secondary-foreground: 45 55 72;
 
-    --muted: 253 242 233;
-    --muted-foreground: 108 117 125;
+    --muted: 248 250 252;
+    --muted-foreground: 100 116 139;
 
-    --accent: 243 156 18;
-    --accent-foreground: 255 255 255;
+    --accent: 241 245 249;
+    --accent-foreground: 45 55 72;
 
-    --destructive: 231 76 60;
+    --destructive: 229 62 62;
     --destructive-foreground: 255 255 255;
 
-    --border: 189 195 199;
-    --input: 189 195 199;
-    --ring: 230 126 34;
+    --border: 226 232 240;
+    --input: 203 213 224;
+    --ring: 45 55 72;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 44 62 80;
+    --sidebar-background: 26 32 44;
     --sidebar-foreground: 255 255 255;
-    --sidebar-primary: 230 126 34;
+    --sidebar-primary: 113 128 150;
     --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 52 73 94;
+    --sidebar-accent: 45 55 72;
     --sidebar-accent-foreground: 255 255 255;
-    --sidebar-border: 52 73 94;
-    --sidebar-ring: 230 126 34;
+    --sidebar-border: 45 55 72;
+    --sidebar-ring: 113 128 150;
   }
 
   .dark {
-    --background: 26 37 47;
-    --foreground: 253 242 233;
+    --background: 26 32 44;
+    --foreground: 248 250 252;
 
-    --card: 44 62 80;
-    --card-foreground: 253 242 233;
+    --card: 45 55 72;
+    --card-foreground: 248 250 252;
 
-    --popover: 44 62 80;
-    --popover-foreground: 253 242 233;
+    --popover: 45 55 72;
+    --popover-foreground: 248 250 252;
 
-    --primary: 230 126 34;
-    --primary-foreground: 26 37 47;
+    --primary: 226 232 240;
+    --primary-foreground: 26 32 44;
 
-    --secondary: 52 73 94;
-    --secondary-foreground: 253 242 233;
+    --secondary: 74 85 104;
+    --secondary-foreground: 248 250 252;
 
-    --muted: 52 73 94;
-    --muted-foreground: 149 165 166;
+    --muted: 74 85 104;
+    --muted-foreground: 160 174 192;
 
-    --accent: 243 156 18;
-    --accent-foreground: 26 37 47;
+    --accent: 74 85 104;
+    --accent-foreground: 248 250 252;
 
-    --destructive: 231 76 60;
-    --destructive-foreground: 253 242 233;
+    --destructive: 229 62 62;
+    --destructive-foreground: 248 250 252;
 
-    --border: 52 73 94;
-    --input: 52 73 94;
-    --ring: 230 126 34;
+    --border: 74 85 104;
+    --input: 74 85 104;
+    --ring: 226 232 240;
     
-    --sidebar-background: 26 37 47;
-    --sidebar-foreground: 253 242 233;
-    --sidebar-primary: 230 126 34;
-    --sidebar-primary-foreground: 26 37 47;
-    --sidebar-accent: 44 62 80;
-    --sidebar-accent-foreground: 253 242 233;
-    --sidebar-border: 44 62 80;
-    --sidebar-ring: 230 126 34;
+    --sidebar-background: 26 32 44;
+    --sidebar-foreground: 248 250 252;
+    --sidebar-primary: 113 128 150;
+    --sidebar-primary-foreground: 26 32 44;
+    --sidebar-accent: 45 55 72;
+    --sidebar-accent-foreground: 248 250 252;
+    --sidebar-border: 45 55 72;
+    --sidebar-ring: 226 232 240;
   }
 }
 
@@ -118,7 +118,7 @@
 
 @layer components {
   .card-gradient {
-    @apply bg-gradient-to-br from-white to-quikle-light/30;
+    @apply bg-gradient-to-br from-white to-quikle-pearl;
   }
 
   .status-badge {
@@ -126,11 +126,11 @@
   }
   
   .text-gradient {
-    @apply bg-gradient-to-r from-quikle-primary to-quikle-accent bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-quikle-charcoal to-quikle-slate bg-clip-text text-transparent;
   }
 
   .text-gradient-quikle {
-    @apply bg-gradient-to-r from-quikle-primary via-quikle-accent to-quikle-secondary bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent;
   }
 
   /* Custom animations */
@@ -185,7 +185,7 @@
   }
 
   .hover-glow {
-    @apply transition-shadow duration-200 hover:shadow-quikle-glow;
+    @apply transition-shadow duration-200 hover:shadow-elegant;
   }
 
   /* Mobile touch targets */
@@ -196,16 +196,29 @@
     }
   }
 
-  /* Quikle specific styles */
+  /* Quikle specific styles - Premium Edition */
   .quikle-gradient-bg {
-    @apply bg-gradient-to-br from-quikle-light via-orange-50/30 to-amber-50/20;
+    @apply bg-gradient-premium;
   }
 
   .quikle-card {
-    @apply bg-white/90 backdrop-blur-sm border border-quikle-neutral/20 shadow-lg hover:shadow-quikle-glow transition-all duration-300;
+    @apply bg-white/95 backdrop-blur-sm border border-quikle-platinum/50 shadow-premium hover:shadow-elegant transition-all duration-300;
   }
 
   .quikle-button-primary {
-    @apply bg-gradient-to-r from-quikle-primary to-quikle-accent text-white hover:shadow-quikle-glow transition-all transform hover:scale-105;
+    @apply bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white hover:shadow-elegant transition-all transform hover:scale-105;
+  }
+
+  /* Premium surface styles */
+  .premium-surface {
+    @apply bg-white/90 backdrop-blur-md border border-white/20 shadow-elegant;
+  }
+
+  .elegant-card {
+    @apply bg-white border border-quikle-platinum shadow-elegant hover:shadow-premium transition-all duration-300;
+  }
+
+  .sophisticated-gradient {
+    @apply bg-gradient-to-br from-white via-quikle-pearl to-quikle-platinum/30;
   }
 }

@@ -62,31 +62,37 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Quikle Brand Colors
+				// Premium Quikle Colors - Sophisticated Palette
 				quikle: {
-					primary: '#E67E22',     // Orange from Quikle
-					secondary: '#2C3E50',   // Dark blue/navy
-					accent: '#F39C12',      // Light orange
-					light: '#FDF2E9',       // Very light orange
-					dark: '#1A252F',        // Very dark blue
-					success: '#27AE60',     // Green
-					warning: '#F1C40F',     // Yellow
-					danger: '#E74C3C',      // Red
-					neutral: '#BDC3C7',     // Light gray
-					blue: '#3498DB',        // Bright blue
-					purple: '#9B59B6',      // Purple for variety
+					primary: '#2D3748',       // Sophisticated dark gray
+					secondary: '#4A5568',     // Medium gray
+					accent: '#718096',        // Light gray
+					light: '#F7FAFC',         // Very light gray/white
+					dark: '#1A202C',          // Very dark gray
+					success: '#38A169',       // Refined green
+					warning: '#D69E2E',       // Muted gold instead of bright yellow
+					danger: '#E53E3E',        // Refined red
+					neutral: '#A0AEC0',       // Neutral gray
+					blue: '#4299E1',          // Refined blue
+					purple: '#805AD5',        // Refined purple
+					platinum: '#E2E8F0',      // Platinum gray
+					silver: '#CBD5E0',        // Silver gray
+					pearl: '#F8F9FA',         // Pearl white
+					charcoal: '#2D3748',      // Charcoal gray
+					slate: '#64748B',         // Slate gray
+					stone: '#78716C',         // Stone gray
 				},
-				// Keep legacy broker colors for compatibility
+				// Keep legacy broker colors for compatibility but update to premium palette
 				broker: {
-					primary: '#E67E22',
-					secondary: '#2C3E50',
-					accent: '#F39C12',
-					light: '#FDF2E9',
-					dark: '#1A252F',
-					success: '#27AE60',
-					warning: '#F1C40F',
-					danger: '#E74C3C',
-					neutral: '#BDC3C7',
+					primary: '#2D3748',
+					secondary: '#4A5568',
+					accent: '#718096',
+					light: '#F7FAFC',
+					dark: '#1A202C',
+					success: '#38A169',
+					warning: '#D69E2E',
+					danger: '#E53E3E',
+					neutral: '#A0AEC0',
 				},
 			},
 			borderRadius: {
@@ -123,12 +129,15 @@ export default {
 			},
 			boxShadow: {
 				'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-				'quikle-glow': '0 0 20px rgba(230, 126, 34, 0.3)',
+				'quikle-glow': '0 0 20px rgba(45, 55, 72, 0.15)',
+				'premium': '0 25px 50px -12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+				'elegant': '0 4px 20px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05)',
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-				'gradient-quikle': 'linear-gradient(135deg, #E67E22 0%, #F39C12 50%, #2C3E50 100%)',
-				'gradient-quikle-light': 'linear-gradient(135deg, #FDF2E9 0%, #FCF3CF 100%)',
+				'gradient-quikle': 'linear-gradient(135deg, #F7FAFC 0%, #E2E8F0 30%, #CBD5E0 100%)',
+				'gradient-quikle-light': 'linear-gradient(135deg, #FFFFFF 0%, #F7FAFC 100%)',
+				'gradient-premium': 'linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 50%, #F1F5F9 100%)',
 			}
 		}
 	},
