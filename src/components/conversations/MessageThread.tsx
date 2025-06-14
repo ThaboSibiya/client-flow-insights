@@ -117,7 +117,7 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
                 message.sender_type === 'employee' 
                   ? 'bg-quikle-primary text-white' 
                   : message.message_type === 'internal_note'
-                  ? 'bg-yellow-50 border-yellow-200'
+                  ? 'bg-gray-50 border-gray-200'
                   : 'bg-white'
               }`}>
                 <CardContent className="p-3">
@@ -169,7 +169,7 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
               variant={isInternal ? "default" : "outline"}
               size="sm"
               onClick={() => setIsInternal(!isInternal)}
-              className={isInternal ? "bg-yellow-500 hover:bg-yellow-600" : ""}
+              className={isInternal ? "bg-gray-600 hover:bg-gray-700" : ""}
             >
               {isInternal ? "Internal Note" : "Public Reply"}
             </Button>
