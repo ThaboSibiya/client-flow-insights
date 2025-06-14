@@ -13,7 +13,7 @@ const mockUseCRM = {
       name: 'John Doe',
       email: 'john@example.com',
       phone: '123-456-7890',
-      status: 'new',
+      status: 'new' as const,
       notes: 'Test customer',
       createdAt: new Date('2024-01-01'),
       updatedAt: new Date('2024-01-01'),

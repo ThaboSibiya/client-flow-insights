@@ -1,12 +1,9 @@
 
 import React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render } from '../test-utils';
-import { axe, toHaveNoViolations } from '@axe-core/react';
+import { axe } from 'jest-axe';
 import CustomerTable from '@/components/customers/CustomerTable';
-
-// Extend Jest matchers
-expect.extend(toHaveNoViolations);
 
 // Mock the CRM context for accessibility testing
 const mockUseCRM = {
@@ -16,7 +13,7 @@ const mockUseCRM = {
       name: 'John Doe',
       email: 'john@example.com',
       phone: '123-456-7890',
-      status: 'new',
+      status: 'new' as const,
       notes: 'Test customer',
       createdAt: new Date('2024-01-01'),
       updatedAt: new Date('2024-01-01'),

@@ -1,6 +1,10 @@
 
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import { toHaveNoViolations } from 'jest-axe';
+
+// Extend expect with jest-dom and jest-axe matchers
+expect.extend(toHaveNoViolations);
 
 // Mock Supabase client
 vi.mock('@/integrations/supabase/client', () => ({

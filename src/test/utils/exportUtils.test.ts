@@ -19,7 +19,7 @@ describe('Export Utils', () => {
       name: 'John Doe',
       email: 'john@example.com',
       phone: '123-456-7890',
-      status: 'active',
+      status: 'new',
       notes: 'Test customer',
       createdAt: new Date('2024-01-01'),
       updatedAt: new Date('2024-01-01'),
