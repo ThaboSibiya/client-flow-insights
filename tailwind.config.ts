@@ -62,37 +62,40 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Premium Quikle Colors - Sophisticated Palette
+				// Premium Quikle Colors - Ultra Sophisticated Palette
 				quikle: {
-					primary: '#2D3748',       // Sophisticated dark gray
-					secondary: '#4A5568',     // Medium gray
-					accent: '#718096',        // Light gray
-					light: '#F7FAFC',         // Very light gray/white
-					dark: '#1A202C',          // Very dark gray
-					success: '#38A169',       // Refined green
-					warning: '#D69E2E',       // Muted gold instead of bright yellow
-					danger: '#E53E3E',        // Refined red
-					neutral: '#A0AEC0',       // Neutral gray
-					blue: '#4299E1',          // Refined blue
-					purple: '#805AD5',        // Refined purple
-					platinum: '#E2E8F0',      // Platinum gray
-					silver: '#CBD5E0',        // Silver gray
-					pearl: '#F8F9FA',         // Pearl white
-					charcoal: '#2D3748',      // Charcoal gray
-					slate: '#64748B',         // Slate gray
-					stone: '#78716C',         // Stone gray
+					primary: '#1F2937',       // Rich charcoal
+					secondary: '#374151',     // Sophisticated gray
+					accent: '#6B7280',        // Refined medium gray
+					light: '#FAFAFA',         // Ultra clean white
+					dark: '#111827',          // Deep charcoal
+					success: '#059669',       // Elegant emerald
+					info: '#0369A1',          // Premium blue
+					danger: '#DC2626',        // Refined red
+					neutral: '#9CA3AF',       // Balanced gray
+					blue: '#1E40AF',          // Deep professional blue
+					purple: '#7C3AED',        // Luxurious purple
+					platinum: '#F3F4F6',      // Platinum white
+					silver: '#E5E7EB',        // Silver gray
+					pearl: '#FEFEFE',         // Pearl white
+					charcoal: '#1F2937',      // Charcoal
+					slate: '#64748B',         // Professional slate
+					stone: '#78716C',         // Warm stone
+					obsidian: '#0F172A',      // Deep obsidian
+					diamond: '#FFFFFF',       // Pure diamond white
+					crystal: '#F8FAFC',       // Crystal clear
 				},
 				// Keep legacy broker colors for compatibility but update to premium palette
 				broker: {
-					primary: '#2D3748',
-					secondary: '#4A5568',
-					accent: '#718096',
-					light: '#F7FAFC',
-					dark: '#1A202C',
-					success: '#38A169',
-					warning: '#D69E2E',
-					danger: '#E53E3E',
-					neutral: '#A0AEC0',
+					primary: '#1F2937',
+					secondary: '#374151',
+					accent: '#6B7280',
+					light: '#FAFAFA',
+					dark: '#111827',
+					success: '#059669',
+					info: '#0369A1',
+					danger: '#DC2626',
+					neutral: '#9CA3AF',
 				},
 			},
 			borderRadius: {
@@ -119,25 +122,34 @@ export default {
 				},
 				'pulse-subtle': {
 					'0%, 100%': { opacity: '1' },
-					'50%': { opacity: '0.8' },
+					'50%': { opacity: '0.9' },
+				},
+				'shimmer': {
+					'0%': { transform: 'translateX(-100%)' },
+					'100%': { transform: 'translateX(100%)' },
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'pulse-subtle': 'pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+				'shimmer': 'shimmer 2s infinite',
 			},
 			boxShadow: {
-				'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-				'quikle-glow': '0 0 20px rgba(45, 55, 72, 0.15)',
-				'premium': '0 25px 50px -12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-				'elegant': '0 4px 20px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+				'card-hover': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+				'quikle-glow': '0 0 30px rgba(31, 41, 55, 0.1)',
+				'premium': '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.8)',
+				'elegant': '0 8px 30px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+				'luxury': '0 20px 40px -10px rgba(0, 0, 0, 0.15), 0 10px 20px -5px rgba(0, 0, 0, 0.1)',
+				'platinum': '0 4px 20px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.06)',
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-				'gradient-quikle': 'linear-gradient(135deg, #F7FAFC 0%, #E2E8F0 30%, #CBD5E0 100%)',
-				'gradient-quikle-light': 'linear-gradient(135deg, #FFFFFF 0%, #F7FAFC 100%)',
-				'gradient-premium': 'linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 50%, #F1F5F9 100%)',
+				'gradient-quikle': 'linear-gradient(135deg, #FAFAFA 0%, #F3F4F6 30%, #E5E7EB 100%)',
+				'gradient-quikle-light': 'linear-gradient(135deg, #FFFFFF 0%, #FAFAFA 100%)',
+				'gradient-premium': 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 50%, #F1F5F9 100%)',
+				'gradient-luxury': 'linear-gradient(135deg, #FEFEFE 0%, #F3F4F6 100%)',
+				'gradient-platinum': 'linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 50%, #F3F4F6 100%)',
 			}
 		}
 	},

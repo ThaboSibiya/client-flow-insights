@@ -51,7 +51,7 @@ const Index = () => {
 
   // Dynamic typing effect for subtitle
   const [subtitle, setSubtitle] = useState("");
-  const fullSubtitle = "Universal business management platform designed for any industry. Manage clients, track projects, automate workflows, and analyze performance - all in one place.";
+  const fullSubtitle = "Premium business management platform designed for discerning professionals. Manage clients, track projects, automate workflows, and analyze performance with unparalleled sophistication.";
   
   useEffect(() => {
     let index = 0;
@@ -71,52 +71,53 @@ const Index = () => {
   const features = [
     {
       title: "Client Management",
-      description: "Track all your client interactions and project information in one centralized location.",
+      description: "Sophisticated client relationship management with advanced tracking and analytics.",
       icon: <Users className="h-10 w-10 mb-4 text-quikle-primary opacity-90" />,
       path: "/customers",
-      color: "border-quikle-primary",
-      hoverColor: "hover:bg-quikle-primary",
+      color: "border-quikle-primary/30",
+      hoverColor: "hover:bg-quikle-primary/5",
     },
     {
-      title: "Dashboard",
-      description: "Get a comprehensive overview of your business performance and key metrics.",
+      title: "Executive Dashboard",
+      description: "Comprehensive business intelligence and performance metrics at your fingertips.",
       icon: <LayoutDashboard className="h-10 w-10 mb-4 text-quikle-secondary opacity-90" />,
       path: "/dashboard",
-      color: "border-quikle-secondary",
-      hoverColor: "hover:bg-quikle-secondary",
+      color: "border-quikle-secondary/30",
+      hoverColor: "hover:bg-quikle-secondary/5",
     },
     {
-      title: "Analytics",
-      description: "Analyze your business data and performance metrics to make informed decisions.",
+      title: "Advanced Analytics",
+      description: "Deep insights and predictive analytics to drive strategic business decisions.",
       icon: <BarChart3 className="h-10 w-10 mb-4 text-quikle-accent opacity-90" />,
       path: "/analytics",
-      color: "border-quikle-accent",
-      hoverColor: "hover:bg-quikle-accent",
+      color: "border-quikle-accent/30",
+      hoverColor: "hover:bg-quikle-accent/5",
     },
   ];
   
   return (
     <div className="relative min-h-[90vh] overflow-hidden">
-      {/* Abstract Background Pattern */}
+      {/* Sophisticated Background Pattern */}
       <div className="absolute inset-0 overflow-hidden">
         <div 
           ref={backgroundRef}
-          className="absolute inset-0 opacity-20 bg-gradient-to-br from-quikle-primary via-quikle-accent to-quikle-secondary"
-          style={{ filter: 'blur(50px)' }}
+          className="absolute inset-0 opacity-10 bg-gradient-to-br from-quikle-primary via-quikle-secondary to-quikle-accent"
+          style={{ filter: 'blur(60px)' }}
         ></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj4KPHJlY3Qgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0iI0U2N0UyMiIgb3BhY2l0eT0iMC4wMyI+PC9yZWN0Pgo8cmVjdCB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjRTY3RTIyIiBvcGFjaXR5PSIwLjAzIiB4PSI1Ij48L3JlY3Q+CjxyZWN0IHdpZHRoPSIzIiBoZWlnaHQ9IjMiIGZpbGw9IiNFNjdFMjIiIG9wYWNpdHk9IjAuMDMiIHg9IjEwIj48L3JlY3Q+Cjwvc3ZnPg==')] opacity-50"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(31,41,55,0.02)_0%,transparent_50%)]"></div>
       </div>
       
       <div className="container max-w-6xl mx-auto px-4 py-16 relative z-10">
         <div className="flex flex-col items-center text-center mb-16">
           <h1 
             ref={titleRef}
-            className="text-5xl md:text-6xl font-bold text-gradient-quikle leading-tight transition-transform duration-300"
+            className="text-5xl md:text-6xl font-bold luxury-text leading-tight transition-transform duration-300 mb-4"
             style={{ transformStyle: 'preserve-3d' }}
           >
             Welcome to QUIKLE
           </h1>
-          <p className="text-xl mt-6 text-gray-600 max-w-3xl leading-relaxed min-h-[96px]">
+          <div className="w-24 h-1 bg-gradient-to-r from-quikle-primary to-quikle-secondary rounded-full mb-6"></div>
+          <p className="text-xl mt-6 text-quikle-slate max-w-3xl leading-relaxed min-h-[96px]">
             {subtitle}
           </p>
         </div>
@@ -124,21 +125,21 @@ const Index = () => {
         {/* Desktop Cards */}
         <div className="hidden md:grid md:grid-cols-3 gap-8 mb-16">
           {features.map((feature, index) => (
-            <Card key={index} className="group relative overflow-hidden quikle-card hover:shadow-quikle-glow hover:-translate-y-2">
-              <div className={`absolute inset-x-0 top-0 h-1 ${feature.color} transform origin-left transition-transform duration-500 scale-x-0 group-hover:scale-x-100`}></div>
+            <Card key={index} className="group relative overflow-hidden glass-effect hover:shadow-luxury hover:-translate-y-3 transition-all duration-500">
+              <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-quikle-primary to-quikle-secondary transform origin-left transition-transform duration-700 scale-x-0 group-hover:scale-x-100`}></div>
               <CardContent className="pt-10 pb-8 px-6 flex flex-col items-center text-center h-full">
-                <div className="mb-2 transform group-hover:scale-110 transition-transform duration-500">
+                <div className="mb-4 transform group-hover:scale-110 transition-transform duration-500">
                   {feature.icon}
                 </div>
-                <h3 className="text-2xl font-semibold mb-3 text-gray-800">{feature.title}</h3>
-                <p className="text-gray-600 mb-6 flex-1">{feature.description}</p>
+                <h3 className="text-2xl font-semibold mb-3 luxury-text">{feature.title}</h3>
+                <p className="text-quikle-slate mb-6 flex-1 leading-relaxed">{feature.description}</p>
                 <Button 
                   onClick={() => navigate(feature.path)} 
                   variant="outline" 
-                  className={`w-full border-2 ${feature.color} text-gray-700 ${feature.hoverColor} hover:text-white transition-all duration-300 flex items-center justify-center gap-2 group`}
+                  className={`w-full border-2 ${feature.color} text-quikle-primary ${feature.hoverColor} hover:border-quikle-primary/50 transition-all duration-300 flex items-center justify-center gap-2 group/btn shadow-platinum hover:shadow-elegant`}
                 >
-                  <span>View {feature.title}</span>
-                  <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                  <span>Explore {feature.title}</span>
+                  <ArrowRight className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" />
                 </Button>
               </CardContent>
             </Card>
@@ -151,19 +152,19 @@ const Index = () => {
             <CarouselContent>
               {features.map((feature, index) => (
                 <CarouselItem key={index} className="pl-4">
-                  <Card className="overflow-hidden shadow-md border-0 quikle-card">
+                  <Card className="overflow-hidden shadow-platinum border-quikle-silver/20 glass-effect">
                     <CardContent className="pt-8 pb-8 px-6 flex flex-col items-center text-center">
-                      <div className="mb-2">
+                      <div className="mb-4">
                         {feature.icon}
                       </div>
-                      <h3 className="text-xl font-semibold mb-2 text-gray-800">{feature.title}</h3>
-                      <p className="text-gray-600 mb-4">{feature.description}</p>
+                      <h3 className="text-xl font-semibold mb-2 luxury-text">{feature.title}</h3>
+                      <p className="text-quikle-slate mb-4 leading-relaxed">{feature.description}</p>
                       <Button 
                         onClick={() => navigate(feature.path)} 
                         variant="outline" 
-                        className={`w-full border-2 ${feature.color} text-gray-700 ${feature.hoverColor} hover:text-white transition-all`}
+                        className={`w-full border-2 ${feature.color} text-quikle-primary ${feature.hoverColor} hover:border-quikle-primary/50 transition-all`}
                       >
-                        View {feature.title}
+                        Explore {feature.title}
                       </Button>
                     </CardContent>
                   </Card>
@@ -171,24 +172,24 @@ const Index = () => {
               ))}
             </CarouselContent>
             <div className="flex justify-center gap-2 mt-4">
-              <CarouselPrevious className="static transform-none mx-0 bg-white/50 backdrop-blur-sm" />
-              <CarouselNext className="static transform-none mx-0 bg-white/50 backdrop-blur-sm" />
+              <CarouselPrevious className="static transform-none mx-0 glass-effect" />
+              <CarouselNext className="static transform-none mx-0 glass-effect" />
             </div>
           </Carousel>
         </div>
         
         {/* Premium Footer */}
-        <div className="mt-16 bg-gradient-to-r from-quikle-primary/10 via-quikle-accent/10 to-quikle-secondary/10 p-8 rounded-2xl backdrop-blur-sm quikle-card">
+        <div className="mt-16 glass-effect p-8 rounded-2xl backdrop-blur-xl shadow-luxury">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="text-xl md:text-2xl font-semibold text-gray-800">Ready to transform your business?</h3>
-              <p className="text-gray-600 mt-2">Start managing your operations more effectively today.</p>
+              <h3 className="text-xl md:text-2xl font-semibold luxury-text">Elevate Your Business Operations</h3>
+              <p className="text-quikle-slate mt-2">Experience enterprise-grade management tools designed for excellence.</p>
             </div>
             <Button 
               onClick={() => navigate('/dashboard')} 
-              className="quikle-button-primary px-6 py-4 h-auto shadow-lg hover:shadow-xl"
+              className="quikle-button-primary px-8 py-4 h-auto shadow-luxury hover:shadow-platinum text-lg font-medium"
             >
-              Get Started Now
+              Begin Your Journey
             </Button>
           </div>
         </div>

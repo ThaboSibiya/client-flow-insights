@@ -20,10 +20,10 @@ const QuickActions = () => {
   const quickActions = [
     {
       id: 'add-customer',
-      title: 'Add Customer',
-      description: 'Create a new customer record',
+      title: 'Add Client',
+      description: 'Create a new client record',
       icon: <UserPlus className="h-5 w-5" />,
-      color: 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
+      color: 'bg-gradient-to-r from-quikle-primary to-quikle-secondary hover:from-quikle-secondary hover:to-quikle-primary',
       action: () => navigate('/customers')
     },
     {
@@ -31,7 +31,7 @@ const QuickActions = () => {
       title: 'New Ticket',
       description: 'Create a support ticket',
       icon: <Ticket className="h-5 w-5" />,
-      color: 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700',
+      color: 'bg-gradient-to-r from-quikle-info to-quikle-blue hover:from-quikle-blue hover:to-quikle-info',
       action: () => navigate('/customers')
     },
     {
@@ -39,23 +39,23 @@ const QuickActions = () => {
       title: 'Analytics',
       description: 'View performance reports',
       icon: <BarChart3 className="h-5 w-5" />,
-      color: 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700',
+      color: 'bg-gradient-to-r from-quikle-purple to-quikle-accent hover:from-quikle-accent hover:to-quikle-purple',
       action: () => navigate('/analytics')
     },
     {
       id: 'generate-report',
       title: 'Generate Report',
-      description: 'Export customer data',
+      description: 'Export business data',
       icon: <FileText className="h-5 w-5" />,
-      color: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
+      color: 'bg-gradient-to-r from-quikle-success to-emerald-600 hover:from-emerald-600 hover:to-quikle-success',
       action: () => navigate('/analytics')
     },
     {
       id: 'search-customers',
       title: 'Search',
-      description: 'Find customers quickly',
+      description: 'Find clients quickly',
       icon: <Search className="h-5 w-5" />,
-      color: 'bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700',
+      color: 'bg-gradient-to-r from-quikle-slate to-quikle-stone hover:from-quikle-stone hover:to-quikle-slate',
       action: () => navigate('/customers')
     },
     {
@@ -63,16 +63,16 @@ const QuickActions = () => {
       title: 'Schedule',
       description: 'Plan follow-up tasks',
       icon: <Calendar className="h-5 w-5" />,
-      color: 'bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700',
+      color: 'bg-gradient-to-r from-indigo-500 to-quikle-blue hover:from-quikle-blue hover:to-indigo-500',
       action: () => console.log('Schedule feature coming soon!')
     }
   ];
 
   return (
-    <Card className="shadow-md bg-gradient-to-br from-white to-gray-50 border-gray-200/70">
-      <CardHeader className="pb-3 border-b border-gray-100">
-        <CardTitle className="flex items-center gap-2 text-broker-primary">
-          <Settings className="h-5 w-5 text-broker-accent" />
+    <Card className="shadow-platinum glass-effect border-quikle-silver/20">
+      <CardHeader className="pb-3 border-b border-quikle-silver/20">
+        <CardTitle className="flex items-center gap-2 luxury-text">
+          <Settings className="h-5 w-5 text-quikle-accent" />
           Quick Actions
         </CardTitle>
       </CardHeader>
@@ -82,7 +82,7 @@ const QuickActions = () => {
             <Button
               key={action.id}
               variant="outline"
-              className={`h-auto p-4 flex flex-col items-center gap-2 text-white border-0 ${action.color} transform hover:scale-105 transition-all duration-200 shadow-md hover:shadow-lg`}
+              className={`h-auto p-4 flex flex-col items-center gap-2 text-white border-0 ${action.color} transform hover:scale-105 transition-all duration-300 shadow-platinum hover:shadow-luxury`}
               onClick={action.action}
             >
               {action.icon}
@@ -94,11 +94,11 @@ const QuickActions = () => {
           ))}
         </div>
         
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-4 pt-4 border-t border-quikle-silver/20">
           <Button
             variant="ghost" 
             size="sm"
-            className="w-full text-gray-600 hover:text-broker-primary"
+            className="w-full text-quikle-slate hover:text-quikle-primary hover:bg-quikle-primary/5"
             onClick={() => navigate('/onboarding')}
           >
             <Mail className="h-4 w-4 mr-2" />
