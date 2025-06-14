@@ -1,132 +1,171 @@
 
 import { useState, useCallback } from 'react';
-import { messageCacheService } from '@/services/messageCacheService';
 
-interface OptimisticUpdate<T> {
+export interface OptimisticUpdate<T> {
   id: string;
+  type: 'add' | 'update' | 'delete';
   data: T;
-  pending: boolean;
+  timestamp: number;
+  status: 'pending' | 'resolved' | 'rejected';
   error?: string;
 }
 
-export const useOptimisticUpdates = <T>() => {
-  const [optimisticUpdates, setOptimisticUpdates] = useState<Map<string, OptimisticUpdate<T>>>(
-    new Map()
-  );
+export const useOptimisticUpdates = <T>(entityType?: string) => {
+  const [optimisticUpdates, setOptimisticUpdates] = useState<OptimisticUpdate<T>[]>([]);
 
-  const addOptimisticUpdate = useCallback((id: string, data: T) => {
-    setOptimisticUpdates(prev => {
-      const newMap = new Map(prev);
-      newMap.set(id, { id, data, pending: true });
-      return newMap;
-    });
+  const addOptimisticUpdate = useCallback((id: string, data: T, type: 'add' | 'update' | 'delete' = 'add') => {
+    const update: OptimisticUpdate<T> = {
+      id,
+      type,
+      data,
+      timestamp: Date.now(),
+      status: 'pending',
+    };
+    
+    setOptimisticUpdates(prev => [...prev, update]);
+    return update;
   }, []);
 
   const resolveOptimisticUpdate = useCallback((id: string, finalData?: T) => {
-    setOptimisticUpdates(prev => {
-      const newMap = new Map(prev);
-      if (finalData) {
-        newMap.set(id, { id, data: finalData, pending: false });
-      } else {
-        newMap.delete(id);
-      }
-      return newMap;
-    });
+    setOptimisticUpdates(prev =>
+      prev.map(update =>
+        update.id === id
+          ? { ...update, status: 'resolved' as const, data: finalData || update.data }
+          : update
+      )
+    );
   }, []);
 
   const rejectOptimisticUpdate = useCallback((id: string, error: string) => {
-    setOptimisticUpdates(prev => {
-      const newMap = new Map(prev);
-      const update = newMap.get(id);
-      if (update) {
-        newMap.set(id, { ...update, pending: false, error });
-      }
-      return newMap;
-    });
+    setOptimisticUpdates(prev =>
+      prev.map(update =>
+        update.id === id
+          ? { ...update, status: 'rejected' as const, error }
+          : update
+      )
+    );
   }, []);
 
   const clearOptimisticUpdate = useCallback((id: string) => {
-    setOptimisticUpdates(prev => {
-      const newMap = new Map(prev);
-      newMap.delete(id);
-      return newMap;
-    });
+    setOptimisticUpdates(prev => prev.filter(update => update.id !== id));
   }, []);
 
-  const mergeWithOptimisticUpdates = useCallback((serverData: T[], keyExtractor: (item: T) => string): T[] => {
-    const result = [...serverData];
+  const mergeWithOptimisticUpdates = useCallback((
+    serverData: T[],
+    keyExtractor: (item: T) => string
+  ): T[] => {
+    const pendingUpdates = optimisticUpdates.filter(update => update.status === 'pending');
     
-    // Add optimistic updates that aren't in server data yet
-    for (const [id, update] of optimisticUpdates) {
-      const existsInServer = serverData.some(item => keyExtractor(item) === id);
-      if (!existsInServer && update.pending && !update.error) {
-        result.push(update.data);
+    let result = [...serverData];
+    
+    pendingUpdates.forEach(update => {
+      if (update.type === 'add') {
+        const exists = result.some(item => keyExtractor(item) === update.id);
+        if (!exists) {
+          result = [...result, update.data];
+        }
+      } else if (update.type === 'update') {
+        result = result.map(item =>
+          keyExtractor(item) === update.id ? { ...item, ...update.data } : item
+        );
+      } else if (update.type === 'delete') {
+        result = result.filter(item => keyExtractor(item) !== update.id);
       }
-    }
-
+    });
+    
     return result;
   }, [optimisticUpdates]);
 
+  // Customer-specific methods
+  const addCustomerOptimistically = useCallback(async (customerData: any, apiCall: () => Promise<any>) => {
+    const tempId = `temp-${Date.now()}`;
+    const update = addOptimisticUpdate(tempId, customerData, 'add');
+    
+    try {
+      const result = await apiCall();
+      resolveOptimisticUpdate(tempId, result);
+      return result;
+    } catch (error) {
+      rejectOptimisticUpdate(tempId, error instanceof Error ? error.message : 'Unknown error');
+      throw error;
+    }
+  }, [addOptimisticUpdate, resolveOptimisticUpdate, rejectOptimisticUpdate]);
+
+  const updateCustomerOptimistically = useCallback(async (customerId: string, customerData: any, apiCall: () => Promise<any>) => {
+    const update = addOptimisticUpdate(customerId, customerData, 'update');
+    
+    try {
+      const result = await apiCall();
+      resolveOptimisticUpdate(customerId, result);
+      return result;
+    } catch (error) {
+      rejectOptimisticUpdate(customerId, error instanceof Error ? error.message : 'Unknown error');
+      throw error;
+    }
+  }, [addOptimisticUpdate, resolveOptimisticUpdate, rejectOptimisticUpdate]);
+
+  const deleteCustomerOptimistically = useCallback(async (customerId: string, apiCall: () => Promise<any>) => {
+    const update = addOptimisticUpdate(customerId, {} as T, 'delete');
+    
+    try {
+      const result = await apiCall();
+      resolveOptimisticUpdate(customerId);
+      return result;
+    } catch (error) {
+      rejectOptimisticUpdate(customerId, error instanceof Error ? error.message : 'Unknown error');
+      throw error;
+    }
+  }, [addOptimisticUpdate, resolveOptimisticUpdate, rejectOptimisticUpdate]);
+
+  // Ticket-specific methods
+  const updateTicketOptimistically = useCallback(async (ticketId: string, ticketData: any, apiCall: () => Promise<any>) => {
+    const update = addOptimisticUpdate(ticketId, ticketData, 'update');
+    
+    try {
+      const result = await apiCall();
+      resolveOptimisticUpdate(ticketId, result);
+      return result;
+    } catch (error) {
+      rejectOptimisticUpdate(ticketId, error instanceof Error ? error.message : 'Unknown error');
+      throw error;
+    }
+  }, [addOptimisticUpdate, resolveOptimisticUpdate, rejectOptimisticUpdate]);
+
+  // Message-specific method
+  const sendMessageOptimistically = useCallback(async (messageData: any, apiCall: () => Promise<any>) => {
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage = {
+      id: tempId,
+      ...messageData,
+      created_at: new Date().toISOString(),
+      status: 'sending' as const,
+    };
+    
+    const update = addOptimisticUpdate(tempId, optimisticMessage, 'add');
+    
+    try {
+      const result = await apiCall();
+      resolveOptimisticUpdate(tempId, result);
+      clearOptimisticUpdate(tempId);
+      return result;
+    } catch (error) {
+      rejectOptimisticUpdate(tempId, error instanceof Error ? error.message : 'Unknown error');
+      setTimeout(() => clearOptimisticUpdate(tempId), 5000); // Auto-clear failed messages
+      throw error;
+    }
+  }, [addOptimisticUpdate, resolveOptimisticUpdate, rejectOptimisticUpdate, clearOptimisticUpdate]);
+
   return {
-    optimisticUpdates: Array.from(optimisticUpdates.values()),
+    optimisticUpdates,
     addOptimisticUpdate,
     resolveOptimisticUpdate,
     rejectOptimisticUpdate,
     clearOptimisticUpdate,
     mergeWithOptimisticUpdates,
-  };
-};
-
-/**
- * Hook specifically for optimistic message updates
- */
-export const useOptimisticMessages = (conversationId: string) => {
-  const {
-    optimisticUpdates,
-    addOptimisticUpdate,
-    resolveOptimisticUpdate,
-    rejectOptimisticUpdate,
-    mergeWithOptimisticUpdates,
-  } = useOptimisticUpdates<any>();
-
-  const sendMessageOptimistically = useCallback(async (
-    messageData: any,
-    sendFunction: () => Promise<any>
-  ) => {
-    const tempId = `temp-${Date.now()}-${Math.random()}`;
-    const optimisticMessage = {
-      ...messageData,
-      id: tempId,
-      created_at: new Date().toISOString(),
-      pending: true,
-    };
-
-    // Add to optimistic updates and cache
-    addOptimisticUpdate(tempId, optimisticMessage);
-    messageCacheService.cacheMessage(conversationId, optimisticMessage);
-
-    try {
-      const result = await sendFunction();
-      
-      // Remove temporary message from cache and replace with real one
-      messageCacheService.removeCachedMessage(conversationId, tempId);
-      if (result) {
-        messageCacheService.cacheMessage(conversationId, result);
-        resolveOptimisticUpdate(tempId, result);
-      }
-
-      return result;
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      messageCacheService.removeCachedMessage(conversationId, tempId);
-      rejectOptimisticUpdate(tempId, error instanceof Error ? error.message : 'Failed to send message');
-      throw error;
-    }
-  }, [conversationId, addOptimisticUpdate, resolveOptimisticUpdate, rejectOptimisticUpdate]);
-
-  return {
-    optimisticUpdates,
+    addCustomerOptimistically,
+    updateCustomerOptimistically,
+    deleteCustomerOptimistically,
+    updateTicketOptimistically,
     sendMessageOptimistically,
-    mergeWithOptimisticUpdates,
   };
 };
