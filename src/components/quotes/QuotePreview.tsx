@@ -10,6 +10,14 @@ interface QuotePreviewProps {
 }
 
 const QuotePreview = ({ quote }: QuotePreviewProps) => {
+  // Safety check - if no quote is provided, return null
+  if (!quote) {
+    return null;
+  }
+
+  // Ensure items array exists and is an array
+  const items = Array.isArray(quote.items) ? quote.items : [];
+
   const handleDownloadPDF = () => {
     // This would generate and download a PDF
     toast({
@@ -30,7 +38,7 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
     // This would open email sending dialog
     toast({
       title: "Email Sent",
-      description: `${quote.type === 'quote' ? 'Quote' : 'Invoice'} has been sent to ${quote.customerEmail}`
+      description: `${quote.type === 'quote' ? 'Quote' : 'Invoice'} has been sent to ${quote.customerEmail || 'customer'}`
     });
   };
 
@@ -106,8 +114,8 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div>
               <h3 className="font-semibold text-quikle-charcoal mb-2">Bill To:</h3>
-              <p className="font-semibold text-quikle-charcoal">{quote.customerName}</p>
-              <p className="text-quikle-slate">{quote.customerEmail}</p>
+              <p className="font-semibold text-quikle-charcoal">{quote.customerName || 'N/A'}</p>
+              <p className="text-quikle-slate">{quote.customerEmail || ''}</p>
               {quote.customerPhone && <p className="text-quikle-slate">{quote.customerPhone}</p>}
             </div>
             <div>
@@ -116,14 +124,19 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
                   <span className="text-quikle-charcoal">
                     {quote.type === 'quote' ? 'Quote Date:' : 'Invoice Date:'}
                   </span>
-                  <span className="text-quikle-charcoal">{new Date(quote.issueDate).toLocaleDateString()}</span>
+                  <span className="text-quikle-charcoal">
+                    {quote.issueDate ? new Date(quote.issueDate).toLocaleDateString() : 'N/A'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-quikle-charcoal">
                     {quote.type === 'quote' ? 'Valid Until:' : 'Due Date:'}
                   </span>
                   <span className="text-quikle-charcoal">
-                    {new Date(quote.type === 'quote' ? quote.validUntil : quote.dueDate).toLocaleDateString()}
+                    {quote.type === 'quote' 
+                      ? (quote.validUntil ? new Date(quote.validUntil).toLocaleDateString() : 'N/A')
+                      : (quote.dueDate ? new Date(quote.dueDate).toLocaleDateString() : 'N/A')
+                    }
                   </span>
                 </div>
                 {quote.status && (
@@ -143,10 +156,12 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
           </div>
 
           {/* Subject */}
-          <div className="mb-6">
-            <h3 className="font-semibold text-quikle-charcoal mb-2">Subject:</h3>
-            <p className="text-quikle-slate">{quote.subject}</p>
-          </div>
+          {quote.subject && (
+            <div className="mb-6">
+              <h3 className="font-semibold text-quikle-charcoal mb-2">Subject:</h3>
+              <p className="text-quikle-slate">{quote.subject}</p>
+            </div>
+          )}
 
           {/* Items Table */}
           <div className="mb-8">
@@ -160,12 +175,12 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
                 </tr>
               </thead>
               <tbody>
-                {quote.items.map((item: any, index: number) => (
+                {items.map((item: any, index: number) => (
                   <tr key={index} className="border-b border-quikle-silver/30">
-                    <td className="py-3 text-quikle-charcoal">{item.description}</td>
-                    <td className="py-3 text-right text-quikle-charcoal">{item.quantity}</td>
-                    <td className="py-3 text-right text-quikle-charcoal">R{item.rate.toFixed(2)}</td>
-                    <td className="py-3 text-right text-quikle-charcoal">R{item.amount.toFixed(2)}</td>
+                    <td className="py-3 text-quikle-charcoal">{item.description || 'N/A'}</td>
+                    <td className="py-3 text-right text-quikle-charcoal">{item.quantity || 0}</td>
+                    <td className="py-3 text-right text-quikle-charcoal">R{(item.rate || 0).toFixed(2)}</td>
+                    <td className="py-3 text-right text-quikle-charcoal">R{(item.amount || 0).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -177,21 +192,21 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
             <div className="w-64 space-y-2">
               <div className="flex justify-between">
                 <span className="text-quikle-charcoal">Subtotal:</span>
-                <span className="text-quikle-charcoal">R{quote.subtotal.toFixed(2)}</span>
+                <span className="text-quikle-charcoal">R{(quote.subtotal || 0).toFixed(2)}</span>
               </div>
-              {quote.discount > 0 && (
+              {(quote.discount || 0) > 0 && (
                 <div className="flex justify-between">
                   <span className="text-quikle-charcoal">Discount:</span>
-                  <span className="text-quikle-charcoal">-R{quote.discount.toFixed(2)}</span>
+                  <span className="text-quikle-charcoal">-R{(quote.discount || 0).toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-quikle-charcoal">VAT:</span>
-                <span className="text-quikle-charcoal">R{quote.tax.toFixed(2)}</span>
+                <span className="text-quikle-charcoal">R{(quote.tax || 0).toFixed(2)}</span>
               </div>
               <div className="flex justify-between border-t border-quikle-silver pt-2 font-semibold">
                 <span className="text-quikle-charcoal">Total:</span>
-                <span className="text-quikle-primary">R{quote.total.toFixed(2)}</span>
+                <span className="text-quikle-primary">R{(quote.total || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>
