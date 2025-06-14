@@ -102,7 +102,7 @@ export const useOptimisticUpdates = <T>(entityType?: string) => {
 
   // Customer-specific methods for CRM context
   const updateCustomerOptimistically = useCallback(async (id: string, updates: Partial<T>, apiCall: () => Promise<void>) => {
-    const update = addOptimisticUpdate(id, updates, 'update');
+    const update = addOptimisticUpdate(id, updates as T, 'update');
     
     try {
       await apiCall();
@@ -141,7 +141,7 @@ export const useOptimisticUpdates = <T>(entityType?: string) => {
   }, [addOptimisticUpdate, resolveOptimisticUpdate, rejectOptimisticUpdate, clearOptimisticUpdate]);
 
   const updateTicketOptimistically = useCallback(async (id: string, updates: Partial<T>, apiCall: () => Promise<void>) => {
-    const update = addOptimisticUpdate(id, updates, 'update');
+    const update = addOptimisticUpdate(id, updates as T, 'update');
     
     try {
       await apiCall();
