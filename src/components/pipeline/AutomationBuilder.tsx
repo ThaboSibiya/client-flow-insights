@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Zap, Settings, Eye } from "lucide-react";
+import { Zap, Settings, Eye, GitBranch } from "lucide-react";
 import AutomationBasicInfo from './automation-builder/AutomationBasicInfo';
 import AutomationTriggerConfig from './automation-builder/AutomationTriggerConfig';
 import AutomationActionsConfig from './automation-builder/AutomationActionsConfig';
+import AutomationWorkflowConfig from './automation-builder/AutomationWorkflowConfig';
 import AutomationPreviewTab from './automation-builder/AutomationPreviewTab';
 
 interface AutomationBuilderProps {
@@ -19,18 +20,20 @@ const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
   const [simpleTrigger, setSimpleTrigger] = useState('');
   const [conditionGroups, setConditionGroups] = useState<any[]>([]);
   const [actions, setActions] = useState<any[]>([]);
+  const [workflowNodes, setWorkflowNodes] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('details');
 
   const handleSave = () => {
     const currentTrigger = triggerType === 'simple' ? simpleTrigger : { type: 'advanced', conditionGroups };
     
-    if (automationName && (simpleTrigger || conditionGroups.length > 0) && actions.length > 0) {
+    if (automationName && (simpleTrigger || conditionGroups.length > 0) && (actions.length > 0 || workflowNodes.length > 0)) {
       console.log('Saving enhanced automation:', {
         name: automationName,
         type: automationType,
         triggerType,
         trigger: currentTrigger,
         actions,
+        workflowNodes,
         conditionGroups: triggerType === 'advanced' ? conditionGroups : undefined
       });
       onClose();
@@ -40,12 +43,12 @@ const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
   const isValid = automationName && 
     ((triggerType === 'simple' && simpleTrigger) || 
      (triggerType === 'advanced' && conditionGroups.length > 0)) && 
-    actions.length > 0;
+    (actions.length > 0 || workflowNodes.length > 0);
 
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="details" className="flex items-center gap-1">
             <Zap className="h-4 w-4" />
             Details
@@ -55,6 +58,10 @@ const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
             Triggers
           </TabsTrigger>
           <TabsTrigger value="actions">Actions</TabsTrigger>
+          <TabsTrigger value="workflow" className="flex items-center gap-1">
+            <GitBranch className="h-4 w-4" />
+            Workflow
+          </TabsTrigger>
           <TabsTrigger value="preview" className="flex items-center gap-1">
             <Eye className="h-4 w-4" />
             Preview
@@ -87,6 +94,13 @@ const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
           <AutomationActionsConfig
             actions={actions}
             setActions={setActions}
+          />
+        </TabsContent>
+
+        <TabsContent value="workflow" className="space-y-4">
+          <AutomationWorkflowConfig
+            workflowNodes={workflowNodes}
+            setWorkflowNodes={setWorkflowNodes}
           />
         </TabsContent>
 
