@@ -1,0 +1,450 @@
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2, FileText, Calendar } from "lucide-react";
+import { useCRM } from '@/context/CRMContext';
+import { toast } from "@/hooks/use-toast";
+
+interface InvoiceItem {
+  id: string;
+  description: string;
+  quantity: number;
+  rate: number;
+  amount: number;
+}
+
+interface InvoiceFormProps {
+  onSave: (invoice: any) => void;
+}
+
+const InvoiceForm = ({ onSave }: InvoiceFormProps) => {
+  const { customers } = useCRM();
+  const [formData, setFormData] = useState({
+    invoiceNumber: `INV-${Date.now()}`,
+    customerId: '',
+    customerName: '',
+    customerEmail: '',
+    customerPhone: '',
+    issueDate: new Date().toISOString().split('T')[0],
+    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    subject: '',
+    notes: '',
+    terms: 'Payment due within 30 days. Late payments may incur additional charges.',
+    taxRate: 10,
+    discountType: 'percentage',
+    discountValue: 0,
+    paymentTerms: '30',
+    status: 'draft'
+  });
+
+  const [items, setItems] = useState<InvoiceItem[]>([
+    { id: '1', description: '', quantity: 1, rate: 0, amount: 0 }
+  ]);
+
+  const handleCustomerSelect = (customerId: string) => {
+    const customer = customers.find(c => c.id === customerId);
+    if (customer) {
+      setFormData(prev => ({
+        ...prev,
+        customerId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerPhone: customer.phone || ''
+      }));
+    }
+  };
+
+  const addItem = () => {
+    const newItem: InvoiceItem = {
+      id: Date.now().toString(),
+      description: '',
+      quantity: 1,
+      rate: 0,
+      amount: 0
+    };
+    setItems([...items, newItem]);
+  };
+
+  const updateItem = (id: string, field: keyof InvoiceItem, value: any) => {
+    setItems(items.map(item => {
+      if (item.id === id) {
+        const updated = { ...item, [field]: value };
+        if (field === 'quantity' || field === 'rate') {
+          updated.amount = updated.quantity * updated.rate;
+        }
+        return updated;
+      }
+      return item;
+    }));
+  };
+
+  const removeItem = (id: string) => {
+    if (items.length > 1) {
+      setItems(items.filter(item => item.id !== id));
+    }
+  };
+
+  const calculateSubtotal = () => {
+    return items.reduce((sum, item) => sum + item.amount, 0);
+  };
+
+  const calculateDiscount = () => {
+    const subtotal = calculateSubtotal();
+    if (formData.discountType === 'percentage') {
+      return (subtotal * formData.discountValue) / 100;
+    }
+    return formData.discountValue;
+  };
+
+  const calculateTax = () => {
+    const subtotal = calculateSubtotal();
+    const discount = calculateDiscount();
+    return ((subtotal - discount) * formData.taxRate) / 100;
+  };
+
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal();
+    const discount = calculateDiscount();
+    const tax = calculateTax();
+    return subtotal - discount + tax;
+  };
+
+  const handleSave = () => {
+    if (!formData.customerName || !formData.subject || items.some(item => !item.description)) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const invoice = {
+      ...formData,
+      items,
+      subtotal: calculateSubtotal(),
+      discount: calculateDiscount(),
+      tax: calculateTax(),
+      total: calculateTotal(),
+      type: 'invoice',
+      createdAt: new Date().toISOString()
+    };
+
+    onSave(invoice);
+    toast({
+      title: "Invoice Created",
+      description: "Your invoice has been created successfully"
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-quikle-charcoal">
+            <FileText className="h-5 w-5 text-quikle-primary" />
+            Invoice Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="customer" className="text-quikle-charcoal">Select Customer</Label>
+              <Select onValueChange={handleCustomerSelect}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose existing customer..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers.map(customer => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.name} - {customer.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="invoiceNumber" className="text-quikle-charcoal">Invoice Number</Label>
+              <Input
+                id="invoiceNumber"
+                value={formData.invoiceNumber}
+                onChange={(e) => setFormData(prev => ({ ...prev, invoiceNumber: e.target.value }))}
+                className="border-quikle-silver"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="customerName" className="text-quikle-charcoal">Customer Name *</Label>
+              <Input
+                id="customerName"
+                value={formData.customerName}
+                onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
+                placeholder="Enter customer name"
+                className="border-quikle-silver"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="customerEmail" className="text-quikle-charcoal">Email</Label>
+              <Input
+                id="customerEmail"
+                type="email"
+                value={formData.customerEmail}
+                onChange={(e) => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
+                placeholder="customer@email.com"
+                className="border-quikle-silver"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="customerPhone" className="text-quikle-charcoal">Phone</Label>
+              <Input
+                id="customerPhone"
+                value={formData.customerPhone}
+                onChange={(e) => setFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
+                placeholder="+1234567890"
+                className="border-quikle-silver"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="issueDate" className="text-quikle-charcoal">Issue Date</Label>
+              <Input
+                id="issueDate"
+                type="date"
+                value={formData.issueDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, issueDate: e.target.value }))}
+                className="border-quikle-silver"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dueDate" className="text-quikle-charcoal">Due Date</Label>
+              <Input
+                id="dueDate"
+                type="date"
+                value={formData.dueDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+                className="border-quikle-silver"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="paymentTerms" className="text-quikle-charcoal">Payment Terms</Label>
+              <Select value={formData.paymentTerms} onValueChange={(value) => setFormData(prev => ({ ...prev, paymentTerms: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">Due on Receipt</SelectItem>
+                  <SelectItem value="15">Net 15</SelectItem>
+                  <SelectItem value="30">Net 30</SelectItem>
+                  <SelectItem value="45">Net 45</SelectItem>
+                  <SelectItem value="60">Net 60</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="subject" className="text-quikle-charcoal">Subject *</Label>
+              <Input
+                id="subject"
+                value={formData.subject}
+                onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                placeholder="Invoice for services..."
+                className="border-quikle-silver"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status" className="text-quikle-charcoal">Status</Label>
+              <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Items section - same as QuoteForm */}
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-quikle-charcoal">Invoice Items</CardTitle>
+            <Button onClick={addItem} size="sm" className="bg-quikle-primary hover:bg-quikle-secondary text-white">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Item
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {items.map((item, index) => (
+              <div key={item.id} className="grid grid-cols-12 gap-4 items-end">
+                <div className="col-span-5">
+                  <Label className="text-quikle-charcoal">Description *</Label>
+                  <Input
+                    value={item.description}
+                    onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                    placeholder="Item description"
+                    className="border-quikle-silver"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-quikle-charcoal">Quantity</Label>
+                  <Input
+                    type="number"
+                    value={item.quantity}
+                    onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 0)}
+                    min="1"
+                    className="border-quikle-silver"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-quikle-charcoal">Rate ($)</Label>
+                  <Input
+                    type="number"
+                    value={item.rate}
+                    onChange={(e) => updateItem(item.id, 'rate', parseFloat(e.target.value) || 0)}
+                    min="0"
+                    step="0.01"
+                    className="border-quikle-silver"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-quikle-charcoal">Amount</Label>
+                  <Input
+                    value={`$${item.amount.toFixed(2)}`}
+                    readOnly
+                    className="bg-quikle-crystal border-quikle-silver"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeItem(item.id)}
+                    disabled={items.length === 1}
+                    className="border-red-300 text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 border-t border-quikle-silver/30 pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="notes" className="text-quikle-charcoal">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Additional notes..."
+                    rows={3}
+                    className="border-quikle-silver"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="terms" className="text-quikle-charcoal">Terms & Conditions</Label>
+                  <Textarea
+                    id="terms"
+                    value={formData.terms}
+                    onChange={(e) => setFormData(prev => ({ ...prev, terms: e.target.value }))}
+                    rows={3}
+                    className="border-quikle-silver"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-quikle-crystal p-4 rounded-lg">
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-quikle-charcoal">Subtotal:</span>
+                      <span className="font-semibold text-quikle-charcoal">${calculateSubtotal().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-quikle-charcoal">Discount:</span>
+                      <div className="flex items-center gap-2">
+                        <Select value={formData.discountType} onValueChange={(value) => setFormData(prev => ({ ...prev, discountType: value }))}>
+                          <SelectTrigger className="w-20">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="percentage">%</SelectItem>
+                            <SelectItem value="fixed">$</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          type="number"
+                          value={formData.discountValue}
+                          onChange={(e) => setFormData(prev => ({ ...prev, discountValue: parseFloat(e.target.value) || 0 }))}
+                          className="w-20"
+                          min="0"
+                          step="0.01"
+                        />
+                        <span className="font-semibold text-quikle-charcoal">-${calculateDiscount().toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-quikle-charcoal">Tax:</span>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={formData.taxRate}
+                          onChange={(e) => setFormData(prev => ({ ...prev, taxRate: parseFloat(e.target.value) || 0 }))}
+                          className="w-16"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                        />
+                        <span className="text-quikle-charcoal">%</span>
+                        <span className="font-semibold text-quikle-charcoal">${calculateTax().toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between border-t border-quikle-silver/30 pt-3">
+                      <span className="text-lg font-semibold text-quikle-charcoal">Total:</span>
+                      <span className="text-lg font-bold text-quikle-primary">${calculateTotal().toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end gap-4">
+        <Button variant="outline" className="border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal">
+          Save as Draft
+        </Button>
+        <Button onClick={handleSave} className="bg-quikle-primary hover:bg-quikle-secondary text-white">
+          Create Invoice
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default InvoiceForm;
