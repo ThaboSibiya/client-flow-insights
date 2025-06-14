@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,8 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { useMessages } from '@/hooks/useMessages';
 import { useAuth } from '@/context/AuthContext';
+import { useTypingIndicator } from '@/hooks/useTypingIndicator';
+import { useReadStatus } from '@/hooks/useReadStatus';
 
 interface MessageThreadProps {
   conversationId: string;
@@ -29,9 +31,27 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
   const [isInternal, setIsInternal] = useState(false);
   const { user } = useAuth();
   const { messages, conversation, loading, sendMessage } = useMessages(conversationId);
+  const { typingUsers, startTyping, stopTyping } = useTypingIndicator(conversationId);
+  const { markConversationAsRead } = useReadStatus();
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Mark conversation as read when opened
+  useEffect(() => {
+    if (conversationId) {
+      markConversationAsRead(conversationId);
+    }
+  }, [conversationId, markConversationAsRead]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
+    
+    stopTyping();
     
     await sendMessage({
       content: newMessage,
@@ -42,6 +62,23 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
     });
     
     setNewMessage('');
+  };
+
+  const handleTyping = (value: string) => {
+    setNewMessage(value);
+    
+    // Start typing indicator
+    startTyping();
+    
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Stop typing after 2 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      stopTyping();
+    }, 2000);
   };
 
   const getSenderAvatar = (message: any) => {
@@ -158,6 +195,31 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
               {message.sender_type === 'employee' && getSenderAvatar(message)}
             </div>
           ))}
+          
+          {/* Typing Indicators */}
+          {typingUsers.length > 0 && (
+            <div className="flex gap-3 justify-start">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-blue-100 text-blue-600">
+                  <User className="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+              <Card className="bg-gray-100">
+                <CardContent className="p-3">
+                  <div className="text-sm text-gray-600">
+                    {typingUsers.map(u => u.user_name).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+                  </div>
+                  <div className="flex space-x-1 mt-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
@@ -179,7 +241,7 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
             <Textarea
               placeholder={isInternal ? "Add an internal note..." : "Type your message..."}
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => handleTyping(e.target.value)}
               className="flex-1 min-h-[80px]"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {

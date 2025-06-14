@@ -15,13 +15,16 @@ import {
   Filter,
   Plus,
   Archive,
-  MoreVertical
+  MoreVertical,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import ConversationsList from '@/components/conversations/ConversationsList';
 import MessageThread from '@/components/conversations/MessageThread';
 import ConversationFilters from '@/components/conversations/ConversationFilters';
 import NewConversationDialog from '@/components/conversations/NewConversationDialog';
 import { useConversations } from '@/hooks/useConversations';
+import { useRealtimeConversations } from '@/hooks/useRealtimeConversations';
 
 const Conversations = () => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -30,6 +33,7 @@ const Conversations = () => {
   const [showNewDialog, setShowNewDialog] = useState(false);
   
   const { conversations, loading, unreadCount } = useConversations();
+  const { isConnected } = useRealtimeConversations();
 
   const conversationTypes = [
     { id: 'all', label: 'All', icon: MessageCircle, count: conversations?.length || 0 },
@@ -46,7 +50,14 @@ const Conversations = () => {
         <div className="bg-white/95 border-b border-quikle-silver/30 p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-quikle-primary">Conversations</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-quikle-primary">Conversations</h1>
+                {isConnected ? (
+                  <Wifi className="h-4 w-4 text-green-500" title="Real-time connected" />
+                ) : (
+                  <WifiOff className="h-4 w-4 text-red-500" title="Real-time disconnected" />
+                )}
+              </div>
               <p className="text-quikle-neutral mt-1">Unified communication center</p>
             </div>
             <div className="flex items-center gap-3">
