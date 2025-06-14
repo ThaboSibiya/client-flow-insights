@@ -97,8 +97,8 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
             <div className="text-right">
               <h2 className="text-xl font-semibold text-quikle-charcoal">Your Company</h2>
               <p className="text-quikle-slate">123 Business Street</p>
-              <p className="text-quikle-slate">City, State 12345</p>
-              <p className="text-quikle-slate">contact@company.com</p>
+              <p className="text-quikle-slate">Johannesburg, GP 2000</p>
+              <p className="text-quikle-slate">contact@company.co.za</p>
             </div>
           </div>
 
@@ -164,8 +164,8 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
                   <tr key={index} className="border-b border-quikle-silver/30">
                     <td className="py-3 text-quikle-charcoal">{item.description}</td>
                     <td className="py-3 text-right text-quikle-charcoal">{item.quantity}</td>
-                    <td className="py-3 text-right text-quikle-charcoal">${item.rate.toFixed(2)}</td>
-                    <td className="py-3 text-right text-quikle-charcoal">${item.amount.toFixed(2)}</td>
+                    <td className="py-3 text-right text-quikle-charcoal">R{item.rate.toFixed(2)}</td>
+                    <td className="py-3 text-right text-quikle-charcoal">R{item.amount.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -177,21 +177,21 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
             <div className="w-64 space-y-2">
               <div className="flex justify-between">
                 <span className="text-quikle-charcoal">Subtotal:</span>
-                <span className="text-quikle-charcoal">${quote.subtotal.toFixed(2)}</span>
+                <span className="text-quikle-charcoal">R{quote.subtotal.toFixed(2)}</span>
               </div>
               {quote.discount > 0 && (
                 <div className="flex justify-between">
                   <span className="text-quikle-charcoal">Discount:</span>
-                  <span className="text-quikle-charcoal">-${quote.discount.toFixed(2)}</span>
+                  <span className="text-quikle-charcoal">-R{quote.discount.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-quikle-charcoal">Tax:</span>
-                <span className="text-quikle-charcoal">${quote.tax.toFixed(2)}</span>
+                <span className="text-quikle-charcoal">VAT:</span>
+                <span className="text-quikle-charcoal">R{quote.tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between border-t border-quikle-silver pt-2 font-semibold">
                 <span className="text-quikle-charcoal">Total:</span>
-                <span className="text-quikle-primary">${quote.total.toFixed(2)}</span>
+                <span className="text-quikle-primary">R{quote.total.toFixed(2)}</span>
               </div>
             </div>
           </div>

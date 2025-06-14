@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,7 @@ const QuoteForm = ({ onSave }: QuoteFormProps) => {
     subject: '',
     notes: '',
     terms: 'Payment due within 30 days',
-    taxRate: 10,
+    taxRate: 15,
     discountType: 'percentage',
     discountValue: 0
   });
@@ -210,7 +209,7 @@ const QuoteForm = ({ onSave }: QuoteFormProps) => {
                 id="customerPhone"
                 value={formData.customerPhone}
                 onChange={(e) => setFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
-                placeholder="+1234567890"
+                placeholder="+27123456789"
                 className="border-quikle-silver"
               />
             </div>
@@ -284,7 +283,7 @@ const QuoteForm = ({ onSave }: QuoteFormProps) => {
                   />
                 </div>
                 <div className="col-span-2">
-                  <Label className="text-quikle-charcoal">Rate ($)</Label>
+                  <Label className="text-quikle-charcoal">Rate (R)</Label>
                   <Input
                     type="number"
                     value={item.rate}
@@ -297,7 +296,7 @@ const QuoteForm = ({ onSave }: QuoteFormProps) => {
                 <div className="col-span-2">
                   <Label className="text-quikle-charcoal">Amount</Label>
                   <Input
-                    value={`$${item.amount.toFixed(2)}`}
+                    value={`R${item.amount.toFixed(2)}`}
                     readOnly
                     className="bg-quikle-crystal border-quikle-silver"
                   />
@@ -348,7 +347,7 @@ const QuoteForm = ({ onSave }: QuoteFormProps) => {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-quikle-charcoal">Subtotal:</span>
-                      <span className="font-semibold text-quikle-charcoal">${calculateSubtotal().toFixed(2)}</span>
+                      <span className="font-semibold text-quikle-charcoal">R{calculateSubtotal().toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center gap-2">
                       <span className="text-quikle-charcoal">Discount:</span>
@@ -359,7 +358,7 @@ const QuoteForm = ({ onSave }: QuoteFormProps) => {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="percentage">%</SelectItem>
-                            <SelectItem value="fixed">$</SelectItem>
+                            <SelectItem value="fixed">R</SelectItem>
                           </SelectContent>
                         </Select>
                         <Input
@@ -370,11 +369,11 @@ const QuoteForm = ({ onSave }: QuoteFormProps) => {
                           min="0"
                           step="0.01"
                         />
-                        <span className="font-semibold text-quikle-charcoal">-${calculateDiscount().toFixed(2)}</span>
+                        <span className="font-semibold text-quikle-charcoal">-R{calculateDiscount().toFixed(2)}</span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-quikle-charcoal">Tax:</span>
+                      <span className="text-quikle-charcoal">VAT:</span>
                       <div className="flex items-center gap-2">
                         <Input
                           type="number"
@@ -386,12 +385,12 @@ const QuoteForm = ({ onSave }: QuoteFormProps) => {
                           step="0.1"
                         />
                         <span className="text-quikle-charcoal">%</span>
-                        <span className="font-semibold text-quikle-charcoal">${calculateTax().toFixed(2)}</span>
+                        <span className="font-semibold text-quikle-charcoal">R{calculateTax().toFixed(2)}</span>
                       </div>
                     </div>
                     <div className="flex justify-between border-t border-quikle-silver/30 pt-3">
                       <span className="text-lg font-semibold text-quikle-charcoal">Total:</span>
-                      <span className="text-lg font-bold text-quikle-primary">${calculateTotal().toFixed(2)}</span>
+                      <span className="text-lg font-bold text-quikle-primary">R{calculateTotal().toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
