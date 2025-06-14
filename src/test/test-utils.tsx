@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import { render as rtlRender, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
@@ -34,7 +34,7 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
 const customRender = (
   ui: React.ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
-) => render(ui, { wrapper: AllTheProviders, ...options });
+) => rtlRender(ui, { wrapper: AllTheProviders, ...options });
 
 // Export everything from @testing-library/react
 export * from '@testing-library/react';

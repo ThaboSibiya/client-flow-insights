@@ -10,3 +10,12 @@ declare module 'vitest' {
     toHaveNoViolations(): any;
   }
 }
+
+// Extend global expect
+declare global {
+  namespace Vi {
+    interface JestAssertion<T = any> extends TestingLibraryMatchers<string, T> {
+      toHaveNoViolations(): T;
+    }
+  }
+}

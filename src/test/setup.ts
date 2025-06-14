@@ -4,7 +4,7 @@ import { vi, expect } from 'vitest';
 import { toHaveNoViolations } from 'jest-axe';
 
 // Extend expect with jest-axe matchers
-expect.extend(toHaveNoViolations);
+expect.extend({ toHaveNoViolations });
 
 // Mock Supabase client
 vi.mock('@/integrations/supabase/client', () => ({
