@@ -71,7 +71,13 @@ export const useConversationFilters = () => {
       if (filters.dateRange.to && new Date(conv.created_at) > filters.dateRange.to) return false;
       
       // Assigned to filter
-      if (filters.assignedTo !== 'all' && conv.employee_id !== filters.assignedTo) return false;
+      if (filters.assignedTo !== 'all') {
+        if (filters.assignedTo === 'unassigned') {
+          if (conv.employee_id) return false;
+        } else {
+          if (conv.employee_id !== filters.assignedTo) return false;
+        }
+      }
       
       // Search query filter
       if (filters.searchQuery) {
