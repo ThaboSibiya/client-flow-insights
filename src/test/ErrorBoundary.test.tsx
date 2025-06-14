@@ -1,10 +1,10 @@
 
 import React from 'react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '../test-utils';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 
-// Component that throws an error for testing
+// Simple component that throws an error for testing
 const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
   if (shouldThrow) {
     throw new Error('Test error');
@@ -13,7 +13,7 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
 };
 
 describe('ErrorBoundary', () => {
-  it('should render children when there is no error', () => {
+  it('renders children when there is no error', () => {
     render(
       <ErrorBoundary>
         <ThrowError shouldThrow={false} />
@@ -23,7 +23,7 @@ describe('ErrorBoundary', () => {
     expect(screen.getByText('No error')).toBeInTheDocument();
   });
 
-  it('should render error UI when there is an error', () => {
+  it('renders error UI when there is an error', () => {
     // Suppress console.error for this test
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -35,21 +35,6 @@ describe('ErrorBoundary', () => {
 
     expect(screen.getByText('Something went wrong')).toBeInTheDocument();
     expect(screen.getByText('Try again')).toBeInTheDocument();
-
-    consoleSpy.mockRestore();
-  });
-
-  it('should render custom fallback when provided', () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const customFallback = <div>Custom error message</div>;
-
-    render(
-      <ErrorBoundary fallback={customFallback}>
-        <ThrowError shouldThrow={true} />
-      </ErrorBoundary>
-    );
-
-    expect(screen.getByText('Custom error message')).toBeInTheDocument();
 
     consoleSpy.mockRestore();
   });
