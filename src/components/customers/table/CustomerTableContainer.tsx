@@ -26,14 +26,20 @@ const CustomerTableContainer = () => {
     setSortBy,
     sortOrder,
     setSortOrder,
-    pagination,
-    setPagination,
-    paginatedCustomers,
     savedPresets,
     applyPreset,
-    savePreset,
+    saveCurrentAsPreset,
     getQuickDateRange
   } = useCustomerFilters(customers);
+
+  // Add pagination state since it's not in the hook
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  
+  // Calculate paginated customers
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCustomers = filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
 
   const {
     selectedItems: selectedCustomers,
@@ -70,7 +76,7 @@ const CustomerTableContainer = () => {
         onTicketCountFilterChange={setTicketCountFilter}
         savedPresets={savedPresets}
         onApplyPreset={applyPreset}
-        onSavePreset={savePreset}
+        onSavePreset={saveCurrentAsPreset}
         onQuickDateRange={getQuickDateRange}
       />
       
@@ -84,9 +90,9 @@ const CustomerTableContainer = () => {
         sortBy={sortBy}
         sortOrder={sortOrder}
         onSort={handleSort}
-        currentPage={pagination.page}
-        totalPages={Math.ceil(filteredCustomers.length / pagination.pageSize)}
-        onPageChange={(page) => setPagination({ ...pagination, page })}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
         isLoading={false}
       />
     </div>
