@@ -2,8 +2,11 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render } from '../test-utils';
-import { axe } from 'jest-axe';
+import { axe, toHaveNoViolations } from 'jest-axe';
 import CustomerTable from '@/components/customers/CustomerTable';
+
+// Extend expect with jest-axe matchers
+expect.extend({ toHaveNoViolations });
 
 // Mock the CRM context for accessibility testing
 const mockUseCRM = {
