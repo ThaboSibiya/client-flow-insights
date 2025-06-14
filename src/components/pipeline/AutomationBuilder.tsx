@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, Zap } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, X, Zap, Settings, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import AdvancedTriggerBuilder from './AdvancedTriggerBuilder';
 
 interface AutomationBuilderProps {
   onClose: () => void;
@@ -15,10 +17,28 @@ interface AutomationBuilderProps {
 const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
   const [automationName, setAutomationName] = useState('');
   const [automationType, setAutomationType] = useState<'customer' | 'ticket'>('customer');
+  const [triggerType, setTriggerType] = useState<'simple' | 'advanced'>('simple');
   const [trigger, setTrigger] = useState('');
   const [actions, setActions] = useState<string[]>([]);
+  const [advancedTrigger, setAdvancedTrigger] = useState<any>(null);
+  const [showAdvancedBuilder, setShowAdvancedBuilder] = useState(false);
 
   const triggerOptions = {
+    customer: [
+      'Customer moves to stage',
+      'Customer added to pipeline',
+      'Customer inactive for X days',
+      'Customer status changes'
+    ],
+    ticket: [
+      'Ticket moves to stage',
+      'Ticket priority changes',
+      'Ticket assigned',
+      'Ticket overdue'
+    ]
+  };
+
+  const simpleTriggerOptions = {
     customer: [
       'Customer moves to stage',
       'Customer added to pipeline',
@@ -41,7 +61,10 @@ const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
     'Move to different stage',
     'Update priority',
     'Add tag',
-    'Send webhook'
+    'Send webhook',
+    'Create follow-up reminder',
+    'Update custom field',
+    'Generate report'
   ];
 
   const addAction = (action: string) => {
@@ -55,16 +78,21 @@ const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
   };
 
   const handleSave = () => {
-    if (automationName && trigger && actions.length > 0) {
-      // Here you would save the automation
+    if (automationName && (trigger || advancedTrigger) && actions.length > 0) {
       console.log('Saving automation:', {
         name: automationName,
         type: automationType,
-        trigger,
+        triggerType,
+        trigger: triggerType === 'simple' ? trigger : advancedTrigger,
         actions
       });
       onClose();
     }
+  };
+
+  const handleAdvancedTriggerSave = (triggerData: any) => {
+    setAdvancedTrigger(triggerData);
+    setShowAdvancedBuilder(false);
   };
 
   return (
@@ -103,19 +131,69 @@ const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-quikle-charcoal">Trigger</Label>
-              <Select value={trigger} onValueChange={setTrigger}>
-                <SelectTrigger className="border-quikle-silver/50 text-quikle-charcoal">
-                  <SelectValue placeholder="Select trigger..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white border-quikle-silver/30 z-50">
-                  {triggerOptions[automationType].map((option) => (
-                    <SelectItem key={option} value={option} className="text-quikle-charcoal hover:bg-quikle-crystal">
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="text-quikle-charcoal">Trigger Configuration</Label>
+              <Tabs value={triggerType} onValueChange={(value: 'simple' | 'advanced') => setTriggerType(value)}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="simple">Simple</TabsTrigger>
+                  <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="simple" className="space-y-2">
+                  <Select value={trigger} onValueChange={setTrigger}>
+                    <SelectTrigger className="border-quikle-silver/50 text-quikle-charcoal">
+                      <SelectValue placeholder="Select trigger..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-quikle-silver/30 z-50">
+                      {simpleTriggerOptions[automationType].map((option) => (
+                        <SelectItem key={option} value={option} className="text-quikle-charcoal hover:bg-quikle-crystal">
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TabsContent>
+                
+                <TabsContent value="advanced" className="space-y-2">
+                  <div className="flex items-center justify-between p-3 border border-quikle-silver/30 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Settings className="h-4 w-4 text-quikle-primary" />
+                      <span className="text-sm text-quikle-charcoal">
+                        {advancedTrigger ? advancedTrigger.name : 'No advanced trigger configured'}
+                      </span>
+                    </div>
+                    <Dialog open={showAdvancedBuilder} onOpenChange={setShowAdvancedBuilder}>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="outline">
+                          {advancedTrigger ? 'Edit' : 'Configure'}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Advanced Trigger Builder</DialogTitle>
+                        </DialogHeader>
+                        <AdvancedTriggerBuilder
+                          onSave={handleAdvancedTriggerSave}
+                          onCancel={() => setShowAdvancedBuilder(false)}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  {advancedTrigger && (
+                    <div className="p-3 bg-quikle-crystal rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="outline">{advancedTrigger.type}</Badge>
+                        {advancedTrigger.type === 'time' && <Clock className="h-4 w-4 text-blue-500" />}
+                      </div>
+                      <p className="text-sm text-quikle-slate">
+                        {advancedTrigger.conditions?.length > 0 
+                          ? `${advancedTrigger.conditions.length} conditions configured`
+                          : 'Advanced trigger configured'
+                        }
+                      </p>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </div>
           </CardContent>
         </Card>
@@ -180,7 +258,12 @@ const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
             <div className="text-sm space-y-2">
               <div>
                 <span className="font-medium text-quikle-charcoal">When:</span> 
-                <span className="text-quikle-slate ml-1">{trigger || 'No trigger selected'}</span>
+                <span className="text-quikle-slate ml-1">
+                  {triggerType === 'simple' 
+                    ? (trigger || 'No trigger selected')
+                    : (advancedTrigger ? `Advanced: ${advancedTrigger.name}` : 'No advanced trigger configured')
+                  }
+                </span>
               </div>
               <div>
                 <span className="font-medium text-quikle-charcoal">Then:</span>
@@ -205,7 +288,7 @@ const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
         </Button>
         <Button 
           onClick={handleSave}
-          disabled={!automationName || !trigger || actions.length === 0}
+          disabled={!automationName || (!trigger && !advancedTrigger) || actions.length === 0}
           className="bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white"
         >
           Save Automation
