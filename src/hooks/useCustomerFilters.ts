@@ -2,6 +2,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Customer } from '@/types/customer';
 import { useDebounce } from './useDebounce';
+import { getDateRange } from '@/utils/dateUtils';
 
 export interface FilterPreset {
   id: string;
@@ -41,10 +42,7 @@ const DEFAULT_PRESETS: FilterPreset[] = [
     filters: {
       status: 'all',
       ticketFilter: 'all',
-      dateRange: { 
-        start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), 
-        end: new Date() 
-      },
+      dateRange: getDateRange('week'),
       searchQuery: '',
     },
   },
@@ -62,42 +60,41 @@ export const useCustomerFilters = (customers: Customer[]) => {
   // Debounce search query to reduce unnecessary filtering
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  const filteredCustomers = useMemo(() => {
-    let result = customers.filter(customer => {
-      // Status filter
-      if (statusFilter !== 'all' && customer.status !== statusFilter) return false;
-      
-      // Search filter (debounced)
-      if (debouncedSearchQuery && 
-          !customer.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) &&
-          !customer.email.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) &&
-          !customer.phone.toLowerCase().includes(debouncedSearchQuery.toLowerCase())) return false;
-      
-      // Date range filter
+  // Memoize filter functions for better performance
+  const filterFunctions = useMemo(() => ({
+    status: (customer: Customer) => statusFilter === 'all' || customer.status === statusFilter,
+    search: (customer: Customer) => {
+      if (!debouncedSearchQuery) return true;
+      const query = debouncedSearchQuery.toLowerCase();
+      return customer.name.toLowerCase().includes(query) ||
+             customer.email.toLowerCase().includes(query) ||
+             customer.phone.toLowerCase().includes(query);
+    },
+    dateRange: (customer: Customer) => {
+      if (!dateRange.start && !dateRange.end) return true;
       if (dateRange.start && customer.createdAt < dateRange.start) return false;
       if (dateRange.end && customer.createdAt > dateRange.end) return false;
-      
-      // Ticket filter
+      return true;
+    },
+    ticket: (customer: Customer) => {
       switch (ticketFilter) {
         case 'with-tickets':
-          if (customer.ticketCount === 0) return false;
-          break;
+          return customer.ticketCount > 0;
         case 'no-tickets':
-          if (customer.ticketCount > 0) return false;
-          break;
+          return customer.ticketCount === 0;
         case 'urgent-tickets':
-          if (!customer.activeTickets?.some(t => t.priority === 'urgent' && t.status !== 'closed')) return false;
-          break;
+          return customer.activeTickets?.some(t => t.priority === 'urgent' && t.status !== 'closed') || false;
         case 'open-tickets':
-          if (!customer.activeTickets?.some(t => t.status === 'open' || t.status === 'in-progress')) return false;
-          break;
+          return customer.activeTickets?.some(t => t.status === 'open' || t.status === 'in-progress') || false;
+        default:
+          return true;
       }
-      
-      return true;
-    });
+    }
+  }), [statusFilter, debouncedSearchQuery, dateRange, ticketFilter]);
 
-    // Sort the results
-    result.sort((a, b) => {
+  // Memoize sort function
+  const sortFunction = useMemo(() => {
+    return (a: Customer, b: Customer) => {
       let aValue: any;
       let bValue: any;
 
@@ -122,10 +119,20 @@ export const useCustomerFilters = (customers: Customer[]) => {
       if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
       return 0;
-    });
+    };
+  }, [sortBy, sortOrder]);
 
-    return result;
-  }, [customers, statusFilter, debouncedSearchQuery, dateRange, ticketFilter, sortBy, sortOrder]);
+  // Memoized filtered and sorted customers
+  const filteredCustomers = useMemo(() => {
+    const filtered = customers.filter(customer => 
+      filterFunctions.status(customer) &&
+      filterFunctions.search(customer) &&
+      filterFunctions.dateRange(customer) &&
+      filterFunctions.ticket(customer)
+    );
+
+    return filtered.sort(sortFunction);
+  }, [customers, filterFunctions, sortFunction]);
 
   const applyPreset = useCallback((presetId: string) => {
     const preset = savedPresets.find(p => p.id === presetId);
@@ -151,21 +158,9 @@ export const useCustomerFilters = (customers: Customer[]) => {
     setSavedPresets(prev => [...prev, newPreset]);
   }, [statusFilter, ticketFilter, dateRange, searchQuery]);
 
-  const getQuickDateRange = useCallback((range: string) => {
-    const now = new Date();
-    switch (range) {
-      case 'today':
-        return { start: new Date(now.getFullYear(), now.getMonth(), now.getDate()), end: now };
-      case 'week':
-        return { start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), end: now };
-      case 'month':
-        return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: now };
-      case 'quarter':
-        const quarter = Math.floor(now.getMonth() / 3);
-        return { start: new Date(now.getFullYear(), quarter * 3, 1), end: now };
-      default:
-        return { start: null, end: null };
-    }
+  const handleQuickDateRange = useCallback((range: string) => {
+    const newRange = getDateRange(range);
+    setDateRange(newRange);
   }, []);
 
   const resetFilters = useCallback(() => {
@@ -177,6 +172,7 @@ export const useCustomerFilters = (customers: Customer[]) => {
     setSortOrder('asc');
   }, []);
 
+  // Memoize active filters calculation
   const activeFilters = useMemo(() => {
     const filters = [];
     if (statusFilter !== 'all') filters.push(`Status: ${statusFilter}`);
@@ -192,7 +188,7 @@ export const useCustomerFilters = (customers: Customer[]) => {
     searchQuery,
     setSearchQuery,
     ticketFilter,
-    setTicketFilter: setTicketFilter,
+    setTicketFilter,
     ticketCountFilter: ticketFilter,
     setTicketCountFilter: setTicketFilter,
     dateRange,
@@ -212,6 +208,6 @@ export const useCustomerFilters = (customers: Customer[]) => {
     deleteFilterPreset: (presetId: string) => {
       setSavedPresets(prev => prev.filter(p => p.id !== presetId));
     },
-    getQuickDateRange,
+    getQuickDateRange: handleQuickDateRange,
   };
 };

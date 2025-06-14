@@ -13,7 +13,9 @@ import CustomerPagination from './table/CustomerPagination';
 import BulkActions from './actions/BulkActions';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// Lazy load components for better code splitting
 const EnhancedFilters = lazy(() => import('./filters/EnhancedFilters'));
+const TicketManagementDialog = lazy(() => import('./TicketManagementDialog'));
 
 const CustomerTable = () => {
   const { customers } = useCRM();
@@ -65,22 +67,31 @@ const CustomerTable = () => {
     CustomerDialogs,
   } = useCustomerActions();
 
-  // Pagination
+  // Memoized pagination calculations for performance
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedCustomers = filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
+  
+  const paginationData = React.useMemo(() => {
+    const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedCustomers = filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
+    
+    return {
+      totalPages,
+      startIndex,
+      paginatedCustomers
+    };
+  }, [filteredCustomers, currentPage, itemsPerPage]);
 
-  const handleFilterPresetLoad = (preset: any) => {
+  const handleFilterPresetLoad = React.useCallback((preset: any) => {
     loadFilterPreset(preset.id);
-  };
+  }, [loadFilterPreset]);
 
-  const handleBulkExport = () => {
+  const handleBulkExport = React.useCallback(() => {
     handleExportCSV(); // Default to CSV for bulk export
-  };
+  }, [handleExportCSV]);
 
-  const FiltersSkeleton = () => (
+  const FiltersSkeleton = React.memo(() => (
     <div className="p-6 bg-white border rounded-lg shadow-md">
       <div className="space-y-4">
         <div className="flex justify-between">
@@ -92,7 +103,16 @@ const CustomerTable = () => {
         </div>
       </div>
     </div>
-  );
+  ));
+
+  const TicketDialogSkeleton = React.memo(() => (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+      <div className="bg-white rounded-lg p-6 w-[800px] max-h-[80vh]">
+        <Skeleton className="h-8 w-64 mb-4" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    </div>
+  ));
 
   return (
     <div className="space-y-6">
@@ -163,7 +183,7 @@ const CustomerTable = () => {
               }}
             />
             <tbody className="divide-y divide-gray-200">
-              {paginatedCustomers.map((customer) => (
+              {paginationData.paginatedCustomers.map((customer) => (
                 <CustomerTableRow
                   key={customer.id}
                   customer={customer}
@@ -189,11 +209,13 @@ const CustomerTable = () => {
 
       <CustomerPagination
         currentPage={currentPage}
-        totalPages={totalPages}
+        totalPages={paginationData.totalPages}
         onPageChange={setCurrentPage}
       />
 
-      <CustomerDialogs />
+      <Suspense fallback={<TicketDialogSkeleton />}>
+        <CustomerDialogs />
+      </Suspense>
     </div>
   );
 };

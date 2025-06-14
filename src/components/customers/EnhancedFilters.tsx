@@ -19,8 +19,9 @@ import {
 } from '@/components/ui/dialog';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+// Optimized icon imports
 import { Search, Calendar as CalendarIcon, Filter, Save, Star } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/utils/dateUtils';
 import { FilterPreset } from '@/hooks/useCustomerFilters';
 
 interface EnhancedFiltersProps {
@@ -38,7 +39,7 @@ interface EnhancedFiltersProps {
   onQuickDateRange: (range: string) => void;
 }
 
-const EnhancedFilters = ({ 
+const EnhancedFilters = React.memo(({ 
   statusFilter, 
   onStatusFilterChange, 
   searchQuery, 
@@ -55,31 +56,40 @@ const EnhancedFilters = ({
   const [presetName, setPresetName] = useState('');
   const [showPresetDialog, setShowPresetDialog] = useState(false);
 
-  const quickDateRanges = [
+  // Memoize quick date ranges to avoid recreation
+  const quickDateRanges = React.useMemo(() => [
     { label: 'Today', value: 'today' },
     { label: 'Last 7 days', value: 'week' },
     { label: 'This month', value: 'month' },
     { label: 'This quarter', value: 'quarter' },
-  ];
+  ], []);
 
-  const handleDateRangeSelect = (field: 'start' | 'end', date: Date | undefined) => {
+  const handleDateRangeSelect = React.useCallback((field: 'start' | 'end', date: Date | undefined) => {
     onDateRangeChange({
       ...dateRange,
       [field]: date || null
     });
-  };
+  }, [dateRange, onDateRangeChange]);
 
-  const clearDateRange = () => {
+  const clearDateRange = React.useCallback(() => {
     onDateRangeChange({ start: null, end: null });
-  };
+  }, [onDateRangeChange]);
 
-  const savePreset = () => {
+  const savePreset = React.useCallback(() => {
     if (presetName.trim()) {
       onSavePreset(presetName.trim());
       setPresetName('');
       setShowPresetDialog(false);
     }
-  };
+  }, [presetName, onSavePreset]);
+
+  const handleQuickDateClick = React.useCallback((range: string) => {
+    onQuickDateRange(range);
+  }, [onQuickDateRange]);
+
+  const handlePresetClick = React.useCallback((presetId: string) => {
+    onApplyPreset(presetId);
+  }, [onApplyPreset]);
 
   return (
     <div className="p-6 bg-gradient-to-r from-white via-gray-50 to-white border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 space-y-4">
@@ -91,7 +101,7 @@ const EnhancedFilters = ({
             key={range.value}
             variant="outline"
             size="sm"
-            onClick={() => onQuickDateRange(range.value)}
+            onClick={() => handleQuickDateClick(range.value)}
             className="text-xs"
           >
             {range.label}
@@ -151,7 +161,7 @@ const EnhancedFilters = ({
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-[140px] justify-start text-left font-normal">
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange.start ? format(dateRange.start, 'MMM dd') : 'Start date'}
+                {dateRange.start ? formatDate(dateRange.start) : 'Start date'}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -168,7 +178,7 @@ const EnhancedFilters = ({
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-[140px] justify-start text-left font-normal">
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange.end ? format(dateRange.end, 'MMM dd') : 'End date'}
+                {dateRange.end ? formatDate(dateRange.end) : 'End date'}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -191,7 +201,7 @@ const EnhancedFilters = ({
             key={preset.id}
             variant="outline"
             className="cursor-pointer hover:bg-blue-50 transition-colors"
-            onClick={() => onApplyPreset(preset.id)}
+            onClick={() => handlePresetClick(preset.id)}
           >
             <Star className="w-3 h-3 mr-1" />
             {preset.name}
@@ -230,6 +240,8 @@ const EnhancedFilters = ({
       </div>
     </div>
   );
-};
+});
+
+EnhancedFilters.displayName = 'EnhancedFilters';
 
 export default EnhancedFilters;
