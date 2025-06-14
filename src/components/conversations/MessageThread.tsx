@@ -34,9 +34,10 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
   const [isInternal, setIsInternal] = React.useState(false);
   
   const { typingUsers } = useTypingIndicator(conversationId);
-  useReadStatus(conversationId);
+  const { markAllAsRead } = useReadStatus();
 
   const displayMessages = searchQuery.trim() ? searchResults : messages;
+  const unreadCount = messages?.filter(m => !m.is_read && m.sender_type !== 'employee').length || 0;
 
   useEffect(() => {
     if (scrollAreaRef.current && !searchQuery.trim()) {
@@ -65,6 +66,12 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
     setNewMessage('');
   };
 
+  const handleMarkAllAsRead = () => {
+    if (conversationId) {
+      markAllAsRead(conversationId);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -88,7 +95,11 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
 
   return (
     <div className="flex-1 flex flex-col h-full">
-      <MessageThreadHeader conversation={conversation} />
+      <MessageThreadHeader 
+        conversation={conversation} 
+        unreadCount={unreadCount}
+        onMarkAllAsRead={handleMarkAllAsRead}
+      />
       
       <MessageSearch
         searchQuery={searchQuery}
@@ -120,7 +131,7 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
           ))}
           
           {typingUsers.length > 0 && !searchQuery.trim() && (
-            <TypingIndicator users={typingUsers} />
+            <TypingIndicator typingUsers={typingUsers} />
           )}
           
           {displayMessages?.length === 0 && !searchQuery.trim() && (

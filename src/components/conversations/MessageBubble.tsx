@@ -8,6 +8,7 @@ import { User, Eye, MessageSquare, MoreVertical, Reply } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import AttachmentPreview from './AttachmentPreview';
 import MessageActions from './MessageActions';
+import { useAuth } from '@/context/AuthContext';
 
 interface MessageBubbleProps {
   message: any;
@@ -17,6 +18,7 @@ interface MessageBubbleProps {
 
 const MessageBubble = ({ message, isSearchResult = false, searchQuery = '' }: MessageBubbleProps) => {
   const [showActions, setShowActions] = useState(false);
+  const { user } = useAuth();
   
   const isInternal = message.message_type === 'internal_note';
   const isEmployee = message.sender_type === 'employee';
@@ -104,7 +106,15 @@ const MessageBubble = ({ message, isSearchResult = false, searchQuery = '' }: Me
       </div>
       
       {showActions && (
-        <MessageActions message={message} />
+        <MessageActions 
+          messageId={message.id}
+          conversationId={message.conversation_id}
+          content={message.content}
+          senderEmail={message.sender_email}
+          createdAt={message.created_at}
+          currentUserEmail={user?.email || null}
+          isEdited={message.metadata?.edited || false}
+        />
       )}
       
       {isEmployee && (
