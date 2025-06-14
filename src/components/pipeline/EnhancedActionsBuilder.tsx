@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, Mail, Webhook, Database, Settings, MessageCircle, Users } from "lucide-react";
+import { Plus, X, Mail, Webhook, Database, Settings, MessageCircle, Users, FileText, Calendar, Zap, Tag } from "lucide-react";
 
 interface Action {
   id: string;
@@ -46,6 +46,12 @@ const EnhancedActionsBuilder = ({ onActionsChange, initialActions = [] }: Enhanc
       description: 'Update customer or ticket field'
     },
     { 
+      value: 'update_custom_field', 
+      label: 'Update Custom Field', 
+      icon: <Settings className="h-4 w-4" />,
+      description: 'Update any custom field value'
+    },
+    { 
       value: 'assign_user', 
       label: 'Assign to User', 
       icon: <Users className="h-4 w-4" />,
@@ -58,10 +64,34 @@ const EnhancedActionsBuilder = ({ onActionsChange, initialActions = [] }: Enhanc
       description: 'Update status or stage'
     },
     { 
+      value: 'attach_file', 
+      label: 'Attach File', 
+      icon: <FileText className="h-4 w-4" />,
+      description: 'Automatically attach documents'
+    },
+    { 
+      value: 'create_calendar_event', 
+      label: 'Create Calendar Event', 
+      icon: <Calendar className="h-4 w-4" />,
+      description: 'Schedule meetings and reminders'
+    },
+    { 
       value: 'call_webhook', 
       label: 'Call Webhook', 
       icon: <Webhook className="h-4 w-4" />,
       description: 'Send data to external URL'
+    },
+    { 
+      value: 'crm_integration', 
+      label: 'CRM Integration', 
+      icon: <Zap className="h-4 w-4" />,
+      description: 'Sync with external CRM system'
+    },
+    { 
+      value: 'email_platform_integration', 
+      label: 'Email Platform Integration', 
+      icon: <Mail className="h-4 w-4" />,
+      description: 'Connect to external email platforms'
     },
     { 
       value: 'create_task', 
@@ -72,7 +102,7 @@ const EnhancedActionsBuilder = ({ onActionsChange, initialActions = [] }: Enhanc
     { 
       value: 'add_tag', 
       label: 'Add Tag', 
-      icon: <Badge className="h-4 w-4" />,
+      icon: <Tag className="h-4 w-4" />,
       description: 'Add tag to record'
     }
   ];
@@ -127,12 +157,22 @@ const EnhancedActionsBuilder = ({ onActionsChange, initialActions = [] }: Enhanc
         return { recipient: '', message: '' };
       case 'update_field':
         return { field: '', value: '' };
+      case 'update_custom_field':
+        return { field_name: '', field_type: 'text', value: '', entity: 'customer' };
       case 'assign_user':
         return { user_id: '' };
       case 'change_status':
         return { status: '' };
+      case 'attach_file':
+        return { file_template: '', file_name: '', file_type: 'pdf', attach_to: 'customer' };
+      case 'create_calendar_event':
+        return { title: '', description: '', duration: 30, attendees: '', calendar_provider: 'google' };
       case 'call_webhook':
         return { url: '', method: 'POST', headers: {}, body: '' };
+      case 'crm_integration':
+        return { crm_platform: 'salesforce', action: 'create_contact', mapping: {} };
+      case 'email_platform_integration':
+        return { platform: 'mailchimp', action: 'add_to_list', list_id: '', data: {} };
       case 'create_task':
         return { title: '', description: '', due_date: '' };
       case 'add_tag':
@@ -190,6 +230,315 @@ const EnhancedActionsBuilder = ({ onActionsChange, initialActions = [] }: Enhanc
                 value={config.body}
                 onChange={(e) => updateActionConfig(action.id, 'body', e.target.value)}
                 placeholder="Email body content..."
+                rows={3}
+              />
+            </div>
+          </div>
+        );
+
+      case 'update_custom_field':
+        return (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Entity Type</Label>
+                <Select 
+                  value={config.entity} 
+                  onValueChange={(value) => updateActionConfig(action.id, 'entity', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="customer">Customer</SelectItem>
+                    <SelectItem value="ticket">Ticket</SelectItem>
+                    <SelectItem value="contact">Contact</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Field Type</Label>
+                <Select 
+                  value={config.field_type} 
+                  onValueChange={(value) => updateActionConfig(action.id, 'field_type', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text">Text</SelectItem>
+                    <SelectItem value="number">Number</SelectItem>
+                    <SelectItem value="date">Date</SelectItem>
+                    <SelectItem value="boolean">Boolean</SelectItem>
+                    <SelectItem value="dropdown">Dropdown</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>Field Name</Label>
+              <Input
+                value={config.field_name}
+                onChange={(e) => updateActionConfig(action.id, 'field_name', e.target.value)}
+                placeholder="Custom field name..."
+              />
+            </div>
+            <div>
+              <Label>Value</Label>
+              <Input
+                value={config.value}
+                onChange={(e) => updateActionConfig(action.id, 'value', e.target.value)}
+                placeholder="New field value..."
+              />
+            </div>
+          </div>
+        );
+
+      case 'attach_file':
+        return (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Attach To</Label>
+                <Select 
+                  value={config.attach_to} 
+                  onValueChange={(value) => updateActionConfig(action.id, 'attach_to', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="customer">Customer Record</SelectItem>
+                    <SelectItem value="ticket">Ticket</SelectItem>
+                    <SelectItem value="conversation">Conversation</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>File Type</Label>
+                <Select 
+                  value={config.file_type} 
+                  onValueChange={(value) => updateActionConfig(action.id, 'file_type', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pdf">PDF Document</SelectItem>
+                    <SelectItem value="doc">Word Document</SelectItem>
+                    <SelectItem value="xlsx">Excel Spreadsheet</SelectItem>
+                    <SelectItem value="image">Image</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>File Template</Label>
+              <Select 
+                value={config.file_template} 
+                onValueChange={(value) => updateActionConfig(action.id, 'file_template', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose template..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="contract">Contract Template</SelectItem>
+                  <SelectItem value="invoice">Invoice Template</SelectItem>
+                  <SelectItem value="proposal">Proposal Template</SelectItem>
+                  <SelectItem value="report">Report Template</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>File Name</Label>
+              <Input
+                value={config.file_name}
+                onChange={(e) => updateActionConfig(action.id, 'file_name', e.target.value)}
+                placeholder="Generated file name..."
+              />
+            </div>
+          </div>
+        );
+
+      case 'create_calendar_event':
+        return (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Calendar Provider</Label>
+                <Select 
+                  value={config.calendar_provider} 
+                  onValueChange={(value) => updateActionConfig(action.id, 'calendar_provider', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="google">Google Calendar</SelectItem>
+                    <SelectItem value="outlook">Outlook Calendar</SelectItem>
+                    <SelectItem value="apple">Apple Calendar</SelectItem>
+                    <SelectItem value="calendly">Calendly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Duration (minutes)</Label>
+                <Input
+                  type="number"
+                  value={config.duration}
+                  onChange={(e) => updateActionConfig(action.id, 'duration', parseInt(e.target.value))}
+                  placeholder="30"
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Event Title</Label>
+              <Input
+                value={config.title}
+                onChange={(e) => updateActionConfig(action.id, 'title', e.target.value)}
+                placeholder="Meeting title..."
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={config.description}
+                onChange={(e) => updateActionConfig(action.id, 'description', e.target.value)}
+                placeholder="Meeting description..."
+                rows={2}
+              />
+            </div>
+            <div>
+              <Label>Attendees</Label>
+              <Input
+                value={config.attendees}
+                onChange={(e) => updateActionConfig(action.id, 'attendees', e.target.value)}
+                placeholder="email1@example.com, email2@example.com"
+              />
+            </div>
+          </div>
+        );
+
+      case 'crm_integration':
+        return (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>CRM Platform</Label>
+                <Select 
+                  value={config.crm_platform} 
+                  onValueChange={(value) => updateActionConfig(action.id, 'crm_platform', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="salesforce">Salesforce</SelectItem>
+                    <SelectItem value="hubspot">HubSpot</SelectItem>
+                    <SelectItem value="pipedrive">Pipedrive</SelectItem>
+                    <SelectItem value="zoho">Zoho CRM</SelectItem>
+                    <SelectItem value="custom">Custom CRM</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Action</Label>
+                <Select 
+                  value={config.action} 
+                  onValueChange={(value) => updateActionConfig(action.id, 'action', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="create_contact">Create Contact</SelectItem>
+                    <SelectItem value="update_contact">Update Contact</SelectItem>
+                    <SelectItem value="create_deal">Create Deal</SelectItem>
+                    <SelectItem value="update_deal">Update Deal</SelectItem>
+                    <SelectItem value="add_note">Add Note</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>Field Mapping (JSON)</Label>
+              <Textarea
+                value={JSON.stringify(config.mapping, null, 2)}
+                onChange={(e) => {
+                  try {
+                    const mapping = JSON.parse(e.target.value);
+                    updateActionConfig(action.id, 'mapping', mapping);
+                  } catch (error) {
+                    // Invalid JSON, ignore
+                  }
+                }}
+                placeholder='{"name": "customer_name", "email": "customer_email"}'
+                rows={3}
+              />
+            </div>
+          </div>
+        );
+
+      case 'email_platform_integration':
+        return (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Email Platform</Label>
+                <Select 
+                  value={config.platform} 
+                  onValueChange={(value) => updateActionConfig(action.id, 'platform', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mailchimp">Mailchimp</SelectItem>
+                    <SelectItem value="constant_contact">Constant Contact</SelectItem>
+                    <SelectItem value="sendgrid">SendGrid</SelectItem>
+                    <SelectItem value="campaign_monitor">Campaign Monitor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Action</Label>
+                <Select 
+                  value={config.action} 
+                  onValueChange={(value) => updateActionConfig(action.id, 'action', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="add_to_list">Add to List</SelectItem>
+                    <SelectItem value="remove_from_list">Remove from List</SelectItem>
+                    <SelectItem value="update_contact">Update Contact</SelectItem>
+                    <SelectItem value="send_campaign">Send Campaign</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>List ID</Label>
+              <Input
+                value={config.list_id}
+                onChange={(e) => updateActionConfig(action.id, 'list_id', e.target.value)}
+                placeholder="Email list identifier..."
+              />
+            </div>
+            <div>
+              <Label>Additional Data (JSON)</Label>
+              <Textarea
+                value={JSON.stringify(config.data, null, 2)}
+                onChange={(e) => {
+                  try {
+                    const data = JSON.parse(e.target.value);
+                    updateActionConfig(action.id, 'data', data);
+                  } catch (error) {
+                    // Invalid JSON, ignore
+                  }
+                }}
+                placeholder='{"tags": ["customer", "active"], "merge_fields": {}}'
                 rows={3}
               />
             </div>
