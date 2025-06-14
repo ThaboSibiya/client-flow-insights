@@ -12,28 +12,28 @@ const Onboarding = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-broker-primary/20 via-broker-secondary/15 to-broker-accent/20 p-8 rounded-xl mb-6 shadow-lg border border-white/20 backdrop-blur-sm">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-broker-primary via-broker-secondary to-broker-accent bg-clip-text text-transparent drop-shadow-sm">Customer Onboarding</h1>
-        <p className="text-muted-foreground mt-1">Add new customers to your CRM system individually or in bulk</p>
+      <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-secondary/15 to-quikle-accent/20 p-8 rounded-xl mb-6 shadow-luxury border border-quikle-silver/30 backdrop-blur-sm">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-sm">Customer Onboarding</h1>
+        <p className="text-quikle-slate mt-1">Add new customers to your CRM system individually or in bulk</p>
       </div>
       
       {user ? (
         <>
-          <Alert className="bg-blue-50 border-blue-200 text-blue-800 mb-4">
-            <Info className="h-4 w-4" />
-            <AlertTitle>Data is being saved</AlertTitle>
-            <AlertDescription>
+          <Alert className="bg-gradient-to-r from-quikle-crystal to-quikle-platinum border-quikle-primary/30 text-quikle-charcoal mb-4 shadow-platinum">
+            <Info className="h-4 w-4 text-quikle-primary" />
+            <AlertTitle className="text-quikle-primary font-semibold">Data is being saved</AlertTitle>
+            <AlertDescription className="text-quikle-slate">
               All customer information you add will be securely stored in your Supabase database.
             </AlertDescription>
           </Alert>
 
           <Tabs defaultValue="individual" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="individual" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
+              <TabsTrigger value="individual" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
                 <User className="h-4 w-4" />
                 Individual Customer
               </TabsTrigger>
-              <TabsTrigger value="bulk" className="flex items-center gap-2">
+              <TabsTrigger value="bulk" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
                 <FileSpreadsheet className="h-4 w-4" />
                 Bulk Import
               </TabsTrigger>
@@ -49,10 +49,10 @@ const Onboarding = () => {
           </Tabs>
         </>
       ) : (
-        <Alert className="bg-amber-50 border-amber-200 text-amber-800">
-          <Info className="h-4 w-4" />
-          <AlertTitle>Authentication required</AlertTitle>
-          <AlertDescription>
+        <Alert className="bg-gradient-to-r from-quikle-crystal to-quikle-platinum border-quikle-neutral/30 text-quikle-charcoal shadow-platinum">
+          <Info className="h-4 w-4 text-quikle-neutral" />
+          <AlertTitle className="text-quikle-neutral font-semibold">Authentication required</AlertTitle>
+          <AlertDescription className="text-quikle-slate">
             You need to be logged in to add customers to the system.
           </AlertDescription>
         </Alert>

@@ -99,11 +99,11 @@ const OnboardingForm = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Customer Onboarding</CardTitle>
+    <Card className="bg-gradient-to-br from-white via-quikle-crystal to-quikle-platinum border-quikle-silver/30 shadow-luxury">
+      <CardHeader className="border-b border-quikle-silver/20">
+        <CardTitle className="bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">Customer Onboarding</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -192,7 +192,7 @@ const OnboardingForm = () => {
               )}
             />
             
-            <Button type="submit" className="bg-broker-primary hover:bg-broker-dark">
+            <Button type="submit" className="bg-gradient-to-r from-quikle-primary to-quikle-secondary hover:shadow-luxury">
               Add Customer
             </Button>
           </form>
