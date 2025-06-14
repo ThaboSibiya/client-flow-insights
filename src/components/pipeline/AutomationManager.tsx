@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Zap, Clock, Mail, ArrowRight, Webhook, Settings, Activity } from "lucide-react";
+import { Plus, Zap, Clock, Mail, ArrowRight, Webhook, Settings, Activity, Brain } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import AutomationBuilder from './AutomationBuilder';
 import WebhookManager from './WebhookManager';
 import PerformanceMonitor from './PerformanceMonitor';
+import AIAssistant from './AIAssistant';
 
 interface Automation {
   id: string;
@@ -98,25 +99,31 @@ const AutomationManager = () => {
             Create automated workflows and manage external integrations
           </p>
         </div>
-        <Dialog open={isBuilderOpen} onOpenChange={setIsBuilderOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Create Automation
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Automation Builder</DialogTitle>
-            </DialogHeader>
-            <AutomationBuilder onClose={() => setIsBuilderOpen(false)} />
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+          <Dialog open={isBuilderOpen} onOpenChange={setIsBuilderOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Create Automation
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Automation Builder</DialogTitle>
+              </DialogHeader>
+              <AutomationBuilder onClose={() => setIsBuilderOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="automations">Automations</TabsTrigger>
+          <TabsTrigger value="ai-assistant" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            AI Assistant
+          </TabsTrigger>
           <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
           <TabsTrigger value="performance" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
@@ -212,6 +219,10 @@ const AutomationManager = () => {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="ai-assistant">
+          <AIAssistant />
         </TabsContent>
 
         <TabsContent value="webhooks">
