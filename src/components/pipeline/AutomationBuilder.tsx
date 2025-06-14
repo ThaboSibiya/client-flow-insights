@@ -1,14 +1,15 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, X, Zap, Settings, Clock } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import AdvancedTriggerBuilder from './AdvancedTriggerBuilder';
+import { Zap, Settings, Eye } from "lucide-react";
+import VisualConditionBuilder from './VisualConditionBuilder';
+import EnhancedActionsBuilder from './EnhancedActionsBuilder';
+import AutomationPreview from './AutomationPreview';
 
 interface AutomationBuilderProps {
   onClose: () => void;
@@ -18,277 +19,201 @@ const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
   const [automationName, setAutomationName] = useState('');
   const [automationType, setAutomationType] = useState<'customer' | 'ticket'>('customer');
   const [triggerType, setTriggerType] = useState<'simple' | 'advanced'>('simple');
-  const [trigger, setTrigger] = useState('');
-  const [actions, setActions] = useState<string[]>([]);
-  const [advancedTrigger, setAdvancedTrigger] = useState<any>(null);
-  const [showAdvancedBuilder, setShowAdvancedBuilder] = useState(false);
-
-  const triggerOptions = {
-    customer: [
-      'Customer moves to stage',
-      'Customer added to pipeline',
-      'Customer inactive for X days',
-      'Customer status changes'
-    ],
-    ticket: [
-      'Ticket moves to stage',
-      'Ticket priority changes',
-      'Ticket assigned',
-      'Ticket overdue'
-    ]
-  };
+  const [simpleTrigger, setSimpleTrigger] = useState('');
+  const [conditionGroups, setConditionGroups] = useState<any[]>([]);
+  const [actions, setActions] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState('details');
 
   const simpleTriggerOptions = {
     customer: [
       'Customer moves to stage',
       'Customer added to pipeline',
       'Customer inactive for X days',
-      'Customer status changes'
+      'Customer status changes',
+      'Customer priority updated',
+      'Customer assigned to team member'
     ],
     ticket: [
       'Ticket moves to stage',
       'Ticket priority changes',
       'Ticket assigned',
-      'Ticket overdue'
+      'Ticket overdue',
+      'Ticket status updated',
+      'New comment added'
     ]
   };
 
-  const actionOptions = [
-    'Send email notification',
-    'Send SMS notification',
-    'Create task',
-    'Assign to team member',
-    'Move to different stage',
-    'Update priority',
-    'Add tag',
-    'Send webhook',
-    'Create follow-up reminder',
-    'Update custom field',
-    'Generate report'
-  ];
-
-  const addAction = (action: string) => {
-    if (!actions.includes(action)) {
-      setActions([...actions, action]);
-    }
-  };
-
-  const removeAction = (actionToRemove: string) => {
-    setActions(actions.filter(action => action !== actionToRemove));
-  };
-
   const handleSave = () => {
-    if (automationName && (trigger || advancedTrigger) && actions.length > 0) {
-      console.log('Saving automation:', {
+    const currentTrigger = triggerType === 'simple' ? simpleTrigger : { type: 'advanced', conditionGroups };
+    
+    if (automationName && (simpleTrigger || conditionGroups.length > 0) && actions.length > 0) {
+      console.log('Saving enhanced automation:', {
         name: automationName,
         type: automationType,
         triggerType,
-        trigger: triggerType === 'simple' ? trigger : advancedTrigger,
-        actions
+        trigger: currentTrigger,
+        actions,
+        conditionGroups: triggerType === 'advanced' ? conditionGroups : undefined
       });
       onClose();
     }
   };
 
-  const handleAdvancedTriggerSave = (triggerData: any) => {
-    setAdvancedTrigger(triggerData);
-    setShowAdvancedBuilder(false);
-  };
+  const isValid = automationName && 
+    ((triggerType === 'simple' && simpleTrigger) || 
+     (triggerType === 'advanced' && conditionGroups.length > 0)) && 
+    actions.length > 0;
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-quikle-silver/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-quikle-charcoal">
-              <Zap className="h-5 w-5 text-quikle-accent" />
-              Automation Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="automationName" className="text-quikle-charcoal">Automation Name</Label>
-              <Input
-                id="automationName"
-                value={automationName}
-                onChange={(e) => setAutomationName(e.target.value)}
-                placeholder="Enter automation name..."
-                className="border-quikle-silver/50 text-quikle-charcoal"
-              />
-            </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="details" className="flex items-center gap-1">
+            <Zap className="h-4 w-4" />
+            Details
+          </TabsTrigger>
+          <TabsTrigger value="triggers" className="flex items-center gap-1">
+            <Settings className="h-4 w-4" />
+            Triggers
+          </TabsTrigger>
+          <TabsTrigger value="actions">Actions</TabsTrigger>
+          <TabsTrigger value="preview" className="flex items-center gap-1">
+            <Eye className="h-4 w-4" />
+            Preview
+          </TabsTrigger>
+        </TabsList>
 
-            <div className="space-y-2">
-              <Label className="text-quikle-charcoal">Type</Label>
-              <Select value={automationType} onValueChange={(value: 'customer' | 'ticket') => setAutomationType(value)}>
-                <SelectTrigger className="border-quikle-silver/50 text-quikle-charcoal">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white border-quikle-silver/30 z-50">
-                  <SelectItem value="customer" className="text-quikle-charcoal hover:bg-quikle-crystal">Customer Pipeline</SelectItem>
-                  <SelectItem value="ticket" className="text-quikle-charcoal hover:bg-quikle-crystal">Ticket Pipeline</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <TabsContent value="details" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-quikle-accent" />
+                Basic Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="automationName">Automation Name</Label>
+                <Input
+                  id="automationName"
+                  value={automationName}
+                  onChange={(e) => setAutomationName(e.target.value)}
+                  placeholder="Enter a descriptive name..."
+                  className="mt-1"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label className="text-quikle-charcoal">Trigger Configuration</Label>
-              <Tabs value={triggerType} onValueChange={(value: 'simple' | 'advanced') => setTriggerType(value)}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="simple">Simple</TabsTrigger>
-                  <TabsTrigger value="advanced">Advanced</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="simple" className="space-y-2">
-                  <Select value={trigger} onValueChange={setTrigger}>
-                    <SelectTrigger className="border-quikle-silver/50 text-quikle-charcoal">
-                      <SelectValue placeholder="Select trigger..." />
+              <div>
+                <Label>Pipeline Type</Label>
+                <Select value={automationType} onValueChange={(value: 'customer' | 'ticket') => setAutomationType(value)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="customer">Customer Pipeline</SelectItem>
+                    <SelectItem value="ticket">Ticket Pipeline</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Trigger Complexity</Label>
+                <Select value={triggerType} onValueChange={(value: 'simple' | 'advanced') => setTriggerType(value)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="simple">
+                      <div>
+                        <div className="font-medium">Simple Trigger</div>
+                        <div className="text-xs text-muted-foreground">Single condition, easy setup</div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="advanced">
+                      <div>
+                        <div className="font-medium">Advanced Trigger</div>
+                        <div className="text-xs text-muted-foreground">Multiple conditions, complex logic</div>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="triggers" className="space-y-4">
+          {triggerType === 'simple' ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Simple Trigger Configuration</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div>
+                  <Label>When this happens...</Label>
+                  <Select value={simpleTrigger} onValueChange={setSimpleTrigger}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select trigger condition..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border-quikle-silver/30 z-50">
+                    <SelectContent>
                       {simpleTriggerOptions[automationType].map((option) => (
-                        <SelectItem key={option} value={option} className="text-quikle-charcoal hover:bg-quikle-crystal">
+                        <SelectItem key={option} value={option}>
                           {option}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                </TabsContent>
-                
-                <TabsContent value="advanced" className="space-y-2">
-                  <div className="flex items-center justify-between p-3 border border-quikle-silver/30 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Settings className="h-4 w-4 text-quikle-primary" />
-                      <span className="text-sm text-quikle-charcoal">
-                        {advancedTrigger ? advancedTrigger.name : 'No advanced trigger configured'}
-                      </span>
-                    </div>
-                    <Dialog open={showAdvancedBuilder} onOpenChange={setShowAdvancedBuilder}>
-                      <DialogTrigger asChild>
-                        <Button size="sm" variant="outline">
-                          {advancedTrigger ? 'Edit' : 'Configure'}
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle>Advanced Trigger Builder</DialogTitle>
-                        </DialogHeader>
-                        <AdvancedTriggerBuilder
-                          onSave={handleAdvancedTriggerSave}
-                          onCancel={() => setShowAdvancedBuilder(false)}
-                        />
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                  {advancedTrigger && (
-                    <div className="p-3 bg-quikle-crystal rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline">{advancedTrigger.type}</Badge>
-                        {advancedTrigger.type === 'time' && <Clock className="h-4 w-4 text-blue-500" />}
-                      </div>
-                      <p className="text-sm text-quikle-slate">
-                        {advancedTrigger.conditions?.length > 0 
-                          ? `${advancedTrigger.conditions.length} conditions configured`
-                          : 'Advanced trigger configured'
-                        }
-                      </p>
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </div>
-          </CardContent>
-        </Card>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Advanced Trigger Configuration</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <VisualConditionBuilder
+                  onConditionsChange={setConditionGroups}
+                  initialConditions={conditionGroups}
+                />
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
-        <Card className="border-quikle-silver/30">
-          <CardHeader>
-            <CardTitle className="text-quikle-charcoal">Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-quikle-charcoal">Add Action</Label>
-              <Select onValueChange={addAction}>
-                <SelectTrigger className="border-quikle-silver/50 text-quikle-charcoal">
-                  <SelectValue placeholder="Select action to add..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white border-quikle-silver/30 z-50">
-                  {actionOptions.map((option) => (
-                    <SelectItem key={option} value={option} className="text-quikle-charcoal hover:bg-quikle-crystal">
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <TabsContent value="actions" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Actions Configuration</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EnhancedActionsBuilder
+                onActionsChange={setActions}
+                initialActions={actions}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            <div className="space-y-2">
-              <Label className="text-quikle-charcoal">Selected Actions ({actions.length})</Label>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {actions.map((action, index) => (
-                  <div key={index} className="flex items-center justify-between bg-quikle-crystal p-2 rounded border border-quikle-silver/30">
-                    <span className="text-sm text-quikle-charcoal">{action}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeAction(action)}
-                      className="text-quikle-slate hover:text-red-600"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-              {actions.length === 0 && (
-                <p className="text-sm text-quikle-slate">No actions selected</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="preview" className="space-y-4">
+          <AutomationPreview
+            automationName={automationName}
+            automationType={automationType}
+            triggerType={triggerType}
+            trigger={triggerType === 'simple' ? simpleTrigger : { type: 'advanced', conditionGroups }}
+            actions={actions}
+            conditionGroups={conditionGroups}
+          />
+        </TabsContent>
+      </Tabs>
 
-      <Card className="border-quikle-silver/30">
-        <CardHeader>
-          <CardTitle className="text-quikle-charcoal">Automation Preview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-quikle-crystal p-4 rounded-lg border border-quikle-silver/30">
-            <div className="flex items-center gap-2 mb-3">
-              <Badge variant="outline" className="border-quikle-primary/30 text-quikle-primary">{automationType}</Badge>
-              <span className="font-medium text-quikle-charcoal">{automationName || 'Untitled Automation'}</span>
-            </div>
-            
-            <div className="text-sm space-y-2">
-              <div>
-                <span className="font-medium text-quikle-charcoal">When:</span> 
-                <span className="text-quikle-slate ml-1">
-                  {triggerType === 'simple' 
-                    ? (trigger || 'No trigger selected')
-                    : (advancedTrigger ? `Advanced: ${advancedTrigger.name}` : 'No advanced trigger configured')
-                  }
-                </span>
-              </div>
-              <div>
-                <span className="font-medium text-quikle-charcoal">Then:</span>
-                {actions.length > 0 ? (
-                  <ul className="list-disc list-inside ml-4 mt-1">
-                    {actions.map((action, index) => (
-                      <li key={index} className="text-quikle-slate">{action}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <span className="text-quikle-slate ml-1">No actions selected</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onClose} className="border-quikle-silver/50 text-quikle-charcoal hover:bg-quikle-crystal">
+      <div className="flex justify-end gap-2 pt-4 border-t">
+        <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>
         <Button 
           onClick={handleSave}
-          disabled={!automationName || (!trigger && !advancedTrigger) || actions.length === 0}
+          disabled={!isValid}
           className="bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white"
         >
           Save Automation
