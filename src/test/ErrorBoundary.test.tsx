@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 
@@ -14,27 +14,27 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
 
 describe('ErrorBoundary', () => {
   it('renders children when there is no error', () => {
-    render(
+    const { getByText } = render(
       <ErrorBoundary>
         <ThrowError shouldThrow={false} />
       </ErrorBoundary>
     );
 
-    expect(screen.getByText('No error')).toBeInTheDocument();
+    expect(getByText('No error')).toBeInTheDocument();
   });
 
   it('renders error UI when there is an error', () => {
     // Suppress console.error for this test
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    render(
+    const { getByText } = render(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
 
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-    expect(screen.getByText('Try again')).toBeInTheDocument();
+    expect(getByText('Something went wrong')).toBeInTheDocument();
+    expect(getByText('Try again')).toBeInTheDocument();
 
     consoleSpy.mockRestore();
   });
