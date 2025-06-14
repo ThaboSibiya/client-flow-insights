@@ -1,122 +1,119 @@
 
-import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState } from 'react';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Bot } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from 'date-fns';
-import MessageActions from './MessageActions';
+import { User, Eye, MessageSquare, MoreVertical, Reply } from 'lucide-react';
+import { cn } from "@/lib/utils";
 import AttachmentPreview from './AttachmentPreview';
+import MessageActions from './MessageActions';
 
 interface MessageBubbleProps {
   message: any;
-  conversationId: string;
-  currentUserEmail: string | null;
+  isSearchResult?: boolean;
+  searchQuery?: string;
 }
 
-const MessageBubble = ({ message, conversationId, currentUserEmail }: MessageBubbleProps) => {
-  const getSenderAvatar = (message: any) => {
-    const initial = message.sender_name?.charAt(0)?.toUpperCase() || 'U';
-    return (
-      <Avatar className="h-8 w-8">
-        <AvatarFallback className={
-          message.sender_type === 'customer' 
-            ? 'bg-blue-100 text-blue-600' 
-            : message.sender_type === 'system'
-            ? 'bg-gray-100 text-gray-600'
-            : 'bg-quikle-crystal text-quikle-primary'
-        }>
-          {message.sender_type === 'system' ? <Bot className="h-4 w-4" /> : initial}
-        </AvatarFallback>
-      </Avatar>
-    );
+const MessageBubble = ({ message, isSearchResult = false, searchQuery = '' }: MessageBubbleProps) => {
+  const [showActions, setShowActions] = useState(false);
+  
+  const isInternal = message.message_type === 'internal_note';
+  const isEmployee = message.sender_type === 'employee';
+  
+  const highlightText = (text: string, query: string) => {
+    if (!query.trim()) return text;
+    
+    const regex = new RegExp(`(${query})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => {
+      if (part.toLowerCase() === query.toLowerCase()) {
+        return <mark key={index} className="bg-yellow-200 rounded px-1">{part}</mark>;
+      }
+      return part;
+    });
   };
 
-  const isEdited = message.metadata && typeof message.metadata === 'object' && 
-    message.metadata !== null && 'edited' in message.metadata && message.metadata.edited;
-
-  // Parse attachments from the message
-  const attachments = message.attachments && Array.isArray(message.attachments) 
-    ? message.attachments 
-    : [];
-
   return (
-    <div
-      className={`flex gap-3 ${
-        message.sender_type === 'employee' ? 'justify-end' : 'justify-start'
-      }`}
+    <div 
+      className={cn(
+        "flex gap-3 p-3 rounded-lg transition-colors",
+        isEmployee ? "ml-12" : "mr-12",
+        isInternal && "bg-gray-50 border-l-4 border-gray-400",
+        isSearchResult && "ring-2 ring-quikle-primary/20 bg-quikle-crystal/30"
+      )}
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
     >
-      {message.sender_type !== 'employee' && getSenderAvatar(message)}
+      {!isEmployee && (
+        <Avatar className="h-8 w-8 shrink-0">
+          <AvatarFallback>
+            <User className="h-4 w-4" />
+          </AvatarFallback>
+        </Avatar>
+      )}
       
-      <Card className={`max-w-[70%] ${
-        message.sender_type === 'employee' 
-          ? 'bg-quikle-primary text-white' 
-          : message.message_type === 'internal_note'
-          ? 'bg-gray-50 border-gray-200'
-          : 'bg-white'
-      }`}>
-        <CardContent className="p-3">
-          {message.message_type === 'internal_note' && (
-            <Badge className="mb-2 text-xs" variant="outline">
-              Internal Note
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="font-medium text-sm text-quikle-charcoal">
+            {message.sender_name}
+          </span>
+          
+          {isInternal && (
+            <Badge variant="secondary" className="text-xs">
+              <Eye className="h-3 w-3 mr-1" />
+              Internal
             </Badge>
           )}
           
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">
-                {message.sender_name}
-              </span>
-              <span className={`text-xs ${
-                message.sender_type === 'employee' ? 'text-white/70' : 'text-quikle-neutral'
-              }`}>
-                {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-              </span>
-            </div>
+          <span className="text-xs text-quikle-neutral">
+            {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+          </span>
+          
+          {isSearchResult && (
+            <Badge variant="outline" className="text-xs">
+              Search Result
+            </Badge>
+          )}
+        </div>
+        
+        <div className="text-sm text-quikle-charcoal leading-relaxed mb-2">
+          {searchQuery ? highlightText(message.content, searchQuery) : message.content}
+        </div>
+        
+        {message.attachments && message.attachments.length > 0 && (
+          <div className="space-y-2 mt-3">
+            {message.attachments.map((attachment: any, index: number) => (
+              <AttachmentPreview
+                key={index}
+                attachment={attachment}
+                showDelete={false}
+                compact={false}
+              />
+            ))}
           </div>
-          
-          {message.content && (
-            <div className={`text-sm mb-2 ${
-              message.sender_type === 'employee' ? 'text-white' : 'text-quikle-charcoal'
-            }`}>
-              {message.content}
-            </div>
-          )}
-
-          {attachments.length > 0 && (
-            <div className="space-y-2 mb-2">
-              {attachments.map((attachment: any, index: number) => (
-                <AttachmentPreview
-                  key={index}
-                  attachment={attachment}
-                  compact
-                />
-              ))}
-            </div>
-          )}
-          
-          {message.metadata && message.message_type === 'form_data' && (
-            <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
-              <strong>Form Data:</strong>
-              <pre className="mt-1 text-xs">
-                {JSON.stringify(message.metadata, null, 2)}
-              </pre>
-            </div>
-          )}
-
-          <MessageActions
-            messageId={message.id}
-            conversationId={conversationId}
-            content={message.content}
-            senderEmail={message.sender_email}
-            createdAt={message.created_at}
-            currentUserEmail={currentUserEmail}
-            isEdited={isEdited}
-          />
-        </CardContent>
-      </Card>
+        )}
+        
+        {!message.is_read && !isEmployee && (
+          <div className="flex items-center gap-1 mt-2">
+            <div className="h-2 w-2 bg-quikle-primary rounded-full"></div>
+            <span className="text-xs text-quikle-primary">Unread</span>
+          </div>
+        )}
+      </div>
       
-      {message.sender_type === 'employee' && getSenderAvatar(message)}
+      {showActions && (
+        <MessageActions message={message} />
+      )}
+      
+      {isEmployee && (
+        <Avatar className="h-8 w-8 shrink-0">
+          <AvatarFallback className="bg-quikle-primary text-white">
+            <User className="h-4 w-4" />
+          </AvatarFallback>
+        </Avatar>
+      )}
     </div>
   );
 };

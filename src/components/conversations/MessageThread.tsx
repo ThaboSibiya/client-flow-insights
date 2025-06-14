@@ -1,78 +1,68 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useEffect, useRef } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import MessageBubble from './MessageBubble';
+import MessageInput from './MessageInput';
+import MessageThreadHeader from './MessageThreadHeader';
+import MessageSearch from './MessageSearch';
+import TypingIndicator from './TypingIndicator';
 import { useMessages } from '@/hooks/useMessages';
+import { useMessageSearch } from '@/hooks/useMessageSearch';
 import { useAuth } from '@/context/AuthContext';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import { useReadStatus } from '@/hooks/useReadStatus';
-import MessageThreadHeader from './MessageThreadHeader';
-import MessageBubble from './MessageBubble';
-import MessageInput from './MessageInput';
-import TypingIndicator from './TypingIndicator';
 
 interface MessageThreadProps {
   conversationId: string;
 }
 
 const MessageThread = ({ conversationId }: MessageThreadProps) => {
-  const [newMessage, setNewMessage] = useState('');
-  const [isInternal, setIsInternal] = useState(false);
   const { user } = useAuth();
-  const { messages, conversation, loading, sendMessage } = useMessages(conversationId);
-  const { typingUsers, startTyping, stopTyping } = useTypingIndicator(conversationId);
-  const { markConversationAsRead, markAllAsRead } = useReadStatus();
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { conversation, messages, loading, sendMessage, sendingMessage } = useMessages(conversationId);
+  const { 
+    searchQuery, 
+    setSearchQuery, 
+    isSearching, 
+    setIsSearching, 
+    searchResults, 
+    isLoading: searchLoading,
+    clearSearch 
+  } = useMessageSearch(conversationId);
+  
+  const [newMessage, setNewMessage] = React.useState('');
+  const [isInternal, setIsInternal] = React.useState(false);
+  
+  const { typingUsers } = useTypingIndicator(conversationId);
+  useReadStatus(conversationId);
 
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  const displayMessages = searchQuery.trim() ? searchResults : messages;
 
-  // Mark conversation as read when opened
   useEffect(() => {
-    if (conversationId) {
-      markConversationAsRead(conversationId);
+    if (scrollAreaRef.current && !searchQuery.trim()) {
+      const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollElement) {
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+      }
     }
-  }, [conversationId, markConversationAsRead]);
+  }, [messages, searchQuery]);
 
   const handleSendMessage = async (attachments?: any[]) => {
     if (!newMessage.trim() && (!attachments || attachments.length === 0)) return;
-    
-    stopTyping();
-    
+    if (!user || !conversation) return;
+
     const messageData = {
-      content: newMessage,
-      message_type: isInternal ? 'internal_note' : 'text',
+      content: newMessage.trim(),
+      message_type: isInternal ? 'internal_note' : 'reply',
       sender_type: 'employee',
-      sender_name: user?.email || 'Unknown',
-      sender_email: user?.email,
+      sender_name: `${user.email}`,
+      sender_email: user.email,
       attachments: attachments || [],
       attachment_count: attachments?.length || 0,
     };
 
     await sendMessage(messageData);
     setNewMessage('');
-  };
-
-  const handleTyping = (value: string) => {
-    setNewMessage(value);
-    
-    // Start typing indicator
-    startTyping();
-    
-    // Clear existing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    
-    // Stop typing after 2 seconds of inactivity
-    typingTimeoutRef.current = setTimeout(() => {
-      stopTyping();
-    }, 2000);
-  };
-
-  const handleMarkAllAsRead = () => {
-    markAllAsRead(conversationId);
   };
 
   if (loading) {
@@ -86,41 +76,77 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
     );
   }
 
-  const unreadCount = messages?.filter(msg => !msg.is_read).length || 0;
+  if (!conversation) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-quikle-neutral">Conversation not found</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex-1 flex flex-col">
-      <MessageThreadHeader 
-        conversation={conversation}
-        unreadCount={unreadCount}
-        onMarkAllAsRead={handleMarkAllAsRead}
+    <div className="flex-1 flex flex-col h-full">
+      <MessageThreadHeader conversation={conversation} />
+      
+      <MessageSearch
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        isSearching={isSearching}
+        onToggleSearch={() => setIsSearching(!isSearching)}
+        searchResults={searchResults}
+        isLoading={searchLoading}
+        onClearSearch={clearSearch}
       />
-
-      <ScrollArea className="flex-1 p-4">
+      
+      <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
         <div className="space-y-4">
-          {messages?.map((message) => (
-            <MessageBubble
-              key={message.id}
+          {searchQuery.trim() && (
+            <div className="text-center py-2">
+              <span className="text-sm text-quikle-neutral bg-quikle-crystal px-3 py-1 rounded-full">
+                {searchLoading ? 'Searching...' : `${searchResults.length} messages found`}
+              </span>
+            </div>
+          )}
+          
+          {displayMessages?.map((message) => (
+            <MessageBubble 
+              key={message.id} 
               message={message}
-              conversationId={conversationId}
-              currentUserEmail={user?.email || null}
+              isSearchResult={!!searchQuery.trim()}
+              searchQuery={searchQuery}
             />
           ))}
           
-          <TypingIndicator typingUsers={typingUsers} />
+          {typingUsers.length > 0 && !searchQuery.trim() && (
+            <TypingIndicator users={typingUsers} />
+          )}
           
-          <div ref={messagesEndRef} />
+          {displayMessages?.length === 0 && !searchQuery.trim() && (
+            <div className="text-center py-8">
+              <p className="text-quikle-neutral">No messages in this conversation yet.</p>
+            </div>
+          )}
+          
+          {searchQuery.trim() && searchResults.length === 0 && !searchLoading && (
+            <div className="text-center py-8">
+              <p className="text-quikle-neutral">No messages found matching "{searchQuery}"</p>
+            </div>
+          )}
         </div>
       </ScrollArea>
-
-      <MessageInput
-        newMessage={newMessage}
-        isInternal={isInternal}
-        conversationId={conversationId}
-        onMessageChange={handleTyping}
-        onInternalToggle={() => setIsInternal(!isInternal)}
-        onSendMessage={handleSendMessage}
-      />
+      
+      {!searchQuery.trim() && (
+        <MessageInput
+          newMessage={newMessage}
+          isInternal={isInternal}
+          conversationId={conversationId}
+          onMessageChange={setNewMessage}
+          onInternalToggle={() => setIsInternal(!isInternal)}
+          onSendMessage={handleSendMessage}
+        />
+      )}
     </div>
   );
 };

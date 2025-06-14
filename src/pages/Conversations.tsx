@@ -21,26 +21,38 @@ import {
 } from 'lucide-react';
 import ConversationsList from '@/components/conversations/ConversationsList';
 import MessageThread from '@/components/conversations/MessageThread';
-import ConversationFilters from '@/components/conversations/ConversationFilters';
+import ConversationFiltersAdvanced from '@/components/conversations/ConversationFiltersAdvanced';
 import NewConversationDialog from '@/components/conversations/NewConversationDialog';
 import { useConversations } from '@/hooks/useConversations';
+import { useConversationFilters } from '@/hooks/useConversationFilters';
 import { useRealtimeConversations } from '@/hooks/useRealtimeConversations';
 
 const Conversations = () => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showNewDialog, setShowNewDialog] = useState(false);
   
   const { conversations, loading, unreadCount } = useConversations();
   const { isConnected } = useRealtimeConversations();
+  
+  const {
+    filters,
+    sortOptions,
+    updateFilter,
+    updateSort,
+    resetFilters,
+    filterAndSortConversations,
+    activeFiltersCount,
+  } = useConversationFilters();
+
+  const filteredConversations = filterAndSortConversations(conversations);
 
   const conversationTypes = [
-    { id: 'all', label: 'All', icon: MessageCircle, count: conversations?.length || 0 },
-    { id: 'email', label: 'Email', icon: Mail, count: conversations?.filter(c => c.type === 'email').length || 0 },
-    { id: 'whatsapp', label: 'WhatsApp', icon: Phone, count: conversations?.filter(c => c.type === 'whatsapp').length || 0 },
-    { id: 'internal_chat', label: 'Internal', icon: MessageCircle, count: conversations?.filter(c => c.type === 'internal_chat').length || 0 },
-    { id: 'form_submission', label: 'Forms', icon: FileText, count: conversations?.filter(c => c.type === 'form_submission').length || 0 },
+    { id: 'all', label: 'All', icon: MessageCircle, count: filteredConversations?.length || 0 },
+    { id: 'email', label: 'Email', icon: Mail, count: filteredConversations?.filter(c => c.type === 'email').length || 0 },
+    { id: 'whatsapp', label: 'WhatsApp', icon: Phone, count: filteredConversations?.filter(c => c.type === 'whatsapp').length || 0 },
+    { id: 'internal_chat', label: 'Internal', icon: MessageCircle, count: filteredConversations?.filter(c => c.type === 'internal_chat').length || 0 },
+    { id: 'form_submission', label: 'Forms', icon: FileText, count: filteredConversations?.filter(c => c.type === 'form_submission').length || 0 },
   ];
 
   return (
@@ -66,6 +78,19 @@ const Conversations = () => {
                   {unreadCount} unread
                 </Badge>
               )}
+              <Button
+                variant="outline"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className={showAdvancedFilters ? "bg-quikle-crystal" : ""}
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+                {activeFiltersCount > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {activeFiltersCount}
+                  </Badge>
+                )}
+              </Button>
               <Button onClick={() => setShowNewDialog(true)} className="bg-quikle-primary hover:bg-quikle-primary/90">
                 <Plus className="h-4 w-4 mr-2" />
                 New Conversation
@@ -74,23 +99,25 @@ const Conversations = () => {
           </div>
         </div>
 
+        {/* Advanced Filters */}
+        {showAdvancedFilters && (
+          <ConversationFiltersAdvanced
+            filters={filters}
+            sortOptions={sortOptions}
+            onUpdateFilter={updateFilter}
+            onUpdateSort={updateSort}
+            onResetFilters={resetFilters}
+            activeFiltersCount={activeFiltersCount}
+          />
+        )}
+
         {/* Content */}
         <div className="flex-1 flex overflow-hidden">
           {/* Sidebar */}
           <div className="w-80 bg-white border-r border-quikle-silver/30 flex flex-col">
-            {/* Search and Filters */}
+            {/* Type Tabs */}
             <div className="p-4 border-b border-quikle-silver/20">
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-quikle-neutral" />
-                <Input
-                  placeholder="Search conversations..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              <Tabs value={activeFilter} onValueChange={setActiveFilter}>
+              <Tabs value={filters.type} onValueChange={(value) => updateFilter('type', value)}>
                 <TabsList className="grid w-full grid-cols-5">
                   {conversationTypes.map((type) => (
                     <TabsTrigger key={type.id} value={type.id} className="text-xs">
@@ -104,11 +131,11 @@ const Conversations = () => {
             {/* Conversations List */}
             <ScrollArea className="flex-1">
               <ConversationsList
-                conversations={conversations}
+                conversations={filteredConversations}
                 selectedId={selectedConversation}
                 onSelect={setSelectedConversation}
-                filter={activeFilter}
-                searchQuery={searchQuery}
+                filter={filters.type}
+                searchQuery={filters.searchQuery}
                 loading={loading}
               />
             </ScrollArea>
@@ -128,6 +155,11 @@ const Conversations = () => {
                   <p className="text-quikle-neutral max-w-sm">
                     Choose a conversation from the sidebar to view messages and respond to customers or team members.
                   </p>
+                  {filteredConversations?.length === 0 && !loading && (
+                    <p className="text-quikle-neutral text-sm mt-2">
+                      No conversations match your current filters.
+                    </p>
+                  )}
                 </div>
               </div>
             )}

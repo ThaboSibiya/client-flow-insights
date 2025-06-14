@@ -66,15 +66,19 @@ const ConversationsList = ({
     }
   };
 
-  const filteredConversations = conversations?.filter(conv => {
-    const matchesFilter = filter === 'all' || conv.type === filter;
-    const matchesSearch = !searchQuery || 
-      conv.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      conv.customer_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      conv.employee_id?.toLowerCase().includes(searchQuery.toLowerCase());
+  const highlightText = (text: string, query: string) => {
+    if (!query.trim()) return text;
     
-    return matchesFilter && matchesSearch;
-  });
+    const regex = new RegExp(`(${query})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => {
+      if (part.toLowerCase() === query.toLowerCase()) {
+        return <mark key={index} className="bg-yellow-200 rounded px-1">{part}</mark>;
+      }
+      return part;
+    });
+  };
 
   if (loading) {
     return (
@@ -94,18 +98,20 @@ const ConversationsList = ({
     );
   }
 
-  if (!filteredConversations?.length) {
+  if (!conversations?.length) {
     return (
       <div className="p-8 text-center">
         <MessageCircle className="h-12 w-12 text-quikle-neutral mx-auto mb-4" />
-        <p className="text-quikle-neutral">No conversations found</p>
+        <p className="text-quikle-neutral">
+          {searchQuery ? `No conversations found for "${searchQuery}"` : 'No conversations found'}
+        </p>
       </div>
     );
   }
 
   return (
     <div className="p-2">
-      {filteredConversations.map((conversation) => {
+      {conversations.map((conversation) => {
         const Icon = getTypeIcon(conversation.type);
         const isSelected = selectedId === conversation.id;
         
@@ -138,7 +144,10 @@ const ConversationsList = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <h4 className="font-medium text-sm text-quikle-charcoal truncate">
-                    {conversation.subject || conversation.customer_id || conversation.employee_id || 'Unnamed Conversation'}
+                    {searchQuery ? 
+                      highlightText(conversation.subject || conversation.customer_id || conversation.employee_id || 'Unnamed Conversation', searchQuery) :
+                      conversation.subject || conversation.customer_id || conversation.employee_id || 'Unnamed Conversation'
+                    }
                   </h4>
                   <div className="flex items-center gap-1">
                     {conversation.employee_id && (
@@ -153,7 +162,10 @@ const ConversationsList = ({
                 </div>
                 
                 <p className="text-xs text-quikle-neutral truncate mb-2">
-                  {conversation.last_message_preview || 'No messages yet'}
+                  {searchQuery && conversation.last_message_preview ?
+                    highlightText(conversation.last_message_preview, searchQuery) :
+                    conversation.last_message_preview || 'No messages yet'
+                  }
                 </p>
                 
                 <div className="flex items-center justify-between">
