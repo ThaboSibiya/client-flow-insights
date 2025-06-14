@@ -2,7 +2,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, UserPlus, BarChart3, Home, move } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, BarChart3, Home, Move } from 'lucide-react';
 import UserProfile from '../auth/UserProfile';
 
 interface SidebarItemProps {
@@ -76,6 +76,12 @@ const Sidebar = ({ isCollapsed = false }: SidebarProps) => {
             icon={<UserPlus size={isCollapsed ? 20 : 16} />} 
             label="Onboarding" 
             to="/onboarding" 
+            isCollapsed={isCollapsed}
+          />
+          <SidebarItem 
+            icon={<Move size={isCollapsed ? 20 : 16} />} 
+            label="Pipeline" 
+            to="/pipeline" 
             isCollapsed={isCollapsed}
           />
           <SidebarItem 
