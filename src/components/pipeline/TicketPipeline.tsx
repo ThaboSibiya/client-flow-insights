@@ -1,11 +1,11 @@
-
 import React, { useState } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import PipelineStage from './PipelineStage';
+import { Plus, Settings } from "lucide-react";
+import EnhancedPipelineStage from './EnhancedPipelineStage';
 import AddStageDialog from './AddStageDialog';
+import PipelineMetrics from './PipelineMetrics';
 import { useCRM } from '@/context/CRMContext';
 
 interface TicketStage {
@@ -14,6 +14,7 @@ interface TicketStage {
   color: string;
   tickets: any[];
   automationEnabled: boolean;
+  target?: number;
 }
 
 const TicketPipeline = () => {
@@ -26,28 +27,32 @@ const TicketPipeline = () => {
       name: 'New Tickets',
       color: '#ef4444',
       tickets: allTickets.filter(t => t.status === 'open'),
-      automationEnabled: false
+      automationEnabled: false,
+      target: 20
     },
     {
       id: 'in-progress',
       name: 'In Progress',
       color: '#f59e0b',
       tickets: allTickets.filter(t => t.status === 'in-progress'),
-      automationEnabled: false
+      automationEnabled: false,
+      target: 15
     },
     {
       id: 'review',
       name: 'Under Review',
       color: '#8b5cf6',
       tickets: [],
-      automationEnabled: false
+      automationEnabled: false,
+      target: 5
     },
     {
       id: 'resolved',
       name: 'Resolved',
       color: '#10b981',
       tickets: allTickets.filter(t => t.status === 'resolved'),
-      automationEnabled: false
+      automationEnabled: false,
+      target: 10
     },
     {
       id: 'closed',
@@ -110,27 +115,50 @@ const TicketPipeline = () => {
     setIsAddStageOpen(false);
   };
 
+  const handleStageEdit = (stageId: string) => {
+    console.log('Edit stage:', stageId);
+  };
+
+  const handleStageDelete = (stageId: string) => {
+    setStages(prev => prev.filter(stage => stage.id !== stageId));
+  };
+
+  const handleAddTicket = (stageId: string) => {
+    console.log('Add ticket to stage:', stageId);
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Ticket Pipeline</h2>
           <p className="text-muted-foreground">Manage ticket workflow and progression</p>
         </div>
-        <Button onClick={() => setIsAddStageOpen(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add Stage
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Pipeline Settings
+          </Button>
+          <Button onClick={() => setIsAddStageOpen(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Stage
+          </Button>
+        </div>
       </div>
+
+      <PipelineMetrics type="ticket" stages={stages} />
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={stages.map(s => s.id)}>
           <div className="flex gap-4 overflow-x-auto pb-4">
             {stages.map((stage) => (
-              <PipelineStage
+              <EnhancedPipelineStage
                 key={stage.id}
                 stage={stage}
                 onCustomerMove={handleTicketMove}
+                onStageEdit={handleStageEdit}
+                onStageDelete={handleStageDelete}
+                onAddItem={handleAddTicket}
                 type="ticket"
               />
             ))}

@@ -1,12 +1,11 @@
-
 import React, { useState } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import PipelineStage from './PipelineStage';
+import { Plus, Settings } from "lucide-react";
+import EnhancedPipelineStage from './EnhancedPipelineStage';
 import AddStageDialog from './AddStageDialog';
+import PipelineMetrics from './PipelineMetrics';
 import { useCRM } from '@/context/CRMContext';
 
 interface PipelineStage {
@@ -15,6 +14,7 @@ interface PipelineStage {
   color: string;
   customers: any[];
   automationEnabled: boolean;
+  target?: number;
 }
 
 const CustomerPipeline = () => {
@@ -25,28 +25,32 @@ const CustomerPipeline = () => {
       name: 'New Leads',
       color: '#3b82f6',
       customers: customers.filter(c => c.status === 'new'),
-      automationEnabled: false
+      automationEnabled: false,
+      target: 50
     },
     {
       id: 'contacted',
       name: 'Contacted',
       color: '#f59e0b',
       customers: [],
-      automationEnabled: false
+      automationEnabled: false,
+      target: 30
     },
     {
       id: 'qualified',
       name: 'Qualified',
       color: '#10b981',
       customers: customers.filter(c => c.status === 'existing'),
-      automationEnabled: false
+      automationEnabled: false,
+      target: 20
     },
     {
       id: 'closed',
       name: 'Closed Won',
       color: '#22c55e',
       customers: customers.filter(c => c.status === 'finalised'),
-      automationEnabled: false
+      automationEnabled: false,
+      target: 10
     }
   ]);
 
@@ -102,27 +106,50 @@ const CustomerPipeline = () => {
     setIsAddStageOpen(false);
   };
 
+  const handleStageEdit = (stageId: string) => {
+    console.log('Edit stage:', stageId);
+  };
+
+  const handleStageDelete = (stageId: string) => {
+    setStages(prev => prev.filter(stage => stage.id !== stageId));
+  };
+
+  const handleAddCustomer = (stageId: string) => {
+    console.log('Add customer to stage:', stageId);
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Customer Pipeline</h2>
           <p className="text-muted-foreground">Drag and drop customers between stages</p>
         </div>
-        <Button onClick={() => setIsAddStageOpen(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add Stage
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Pipeline Settings
+          </Button>
+          <Button onClick={() => setIsAddStageOpen(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Stage
+          </Button>
+        </div>
       </div>
+
+      <PipelineMetrics type="customer" stages={stages} />
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={stages.map(s => s.id)}>
           <div className="flex gap-4 overflow-x-auto pb-4">
             {stages.map((stage) => (
-              <PipelineStage
+              <EnhancedPipelineStage
                 key={stage.id}
                 stage={stage}
                 onCustomerMove={handleCustomerMove}
+                onStageEdit={handleStageEdit}
+                onStageDelete={handleStageDelete}
+                onAddItem={handleAddCustomer}
                 type="customer"
               />
             ))}
