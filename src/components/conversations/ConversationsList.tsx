@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from 'date-fns';
-import { Mail, Phone, MessageCircle, FileText, User } from 'lucide-react';
+import { Mail, Phone, MessageCircle, FileText, User, UserCheck } from 'lucide-react';
 
 interface Conversation {
   id: string;
@@ -54,6 +54,15 @@ const ConversationsList = ({
       case 'internal_chat': return 'bg-purple-500';
       case 'form_submission': return 'bg-orange-500';
       default: return 'bg-gray-500';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'default';
+      case 'closed': return 'secondary';
+      case 'archived': return 'outline';
+      default: return 'secondary';
     }
   };
 
@@ -131,11 +140,16 @@ const ConversationsList = ({
                   <h4 className="font-medium text-sm text-quikle-charcoal truncate">
                     {conversation.subject || conversation.customer_id || conversation.employee_id || 'Unnamed Conversation'}
                   </h4>
-                  {conversation.unread_count && conversation.unread_count > 0 && (
-                    <Badge variant="destructive" className="text-xs">
-                      {conversation.unread_count}
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {conversation.employee_id && (
+                      <UserCheck className="h-3 w-3 text-green-500" />
+                    )}
+                    {conversation.unread_count && conversation.unread_count > 0 && (
+                      <Badge variant="destructive" className="text-xs">
+                        {conversation.unread_count}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 
                 <p className="text-xs text-quikle-neutral truncate mb-2">
@@ -144,7 +158,7 @@ const ConversationsList = ({
                 
                 <div className="flex items-center justify-between">
                   <Badge 
-                    variant={conversation.status === 'active' ? 'default' : 'secondary'}
+                    variant={getStatusColor(conversation.status)}
                     className="text-xs"
                   >
                     {conversation.status}

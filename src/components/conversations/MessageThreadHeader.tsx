@@ -2,7 +2,8 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Archive, MoreVertical, CheckCheck } from 'lucide-react';
+import { CheckCheck } from 'lucide-react';
+import ConversationActions from './ConversationActions';
 
 interface MessageThreadHeaderProps {
   conversation: any;
@@ -23,9 +24,6 @@ const MessageThreadHeader = ({
             {conversation?.subject || 'Conversation'}
           </h2>
           <div className="flex items-center gap-2 mt-1">
-            <Badge variant={conversation?.status === 'active' ? 'default' : 'secondary'}>
-              {conversation?.status}
-            </Badge>
             <Badge variant="outline">
               {conversation?.type}
             </Badge>
@@ -47,12 +45,11 @@ const MessageThreadHeader = ({
               Mark all read
             </Button>
           )}
-          <Button variant="outline" size="sm">
-            <Archive className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm">
-            <MoreVertical className="h-4 w-4" />
-          </Button>
+          <ConversationActions
+            conversationId={conversation?.id}
+            currentStatus={conversation?.status}
+            assignedTo={conversation?.employee_id}
+          />
         </div>
       </div>
     </div>
