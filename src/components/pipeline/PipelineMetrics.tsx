@@ -43,10 +43,10 @@ const PipelineMetrics = ({ type, stages }: PipelineMetricsProps) => {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
-            {type === 'customer' ? <Users className="h-4 w-4 text-blue-500" /> : <Ticket className="h-4 w-4 text-green-500" />}
+            {type === 'customer' ? <Users className="h-4 w-4 text-quikle-primary" /> : <Ticket className="h-4 w-4 text-quikle-success" />}
             <div>
-              <p className="text-sm text-muted-foreground">Total {type}s</p>
-              <p className="text-2xl font-bold">{totalItems}</p>
+              <p className="text-sm text-quikle-slate">Total {type}s</p>
+              <p className="text-2xl font-bold text-quikle-charcoal">{totalItems}</p>
             </div>
           </div>
         </CardContent>
@@ -55,13 +55,13 @@ const PipelineMetrics = ({ type, stages }: PipelineMetricsProps) => {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-purple-500" />
+            <Target className="h-4 w-4 text-quikle-accent" />
             <div>
-              <p className="text-sm text-muted-foreground">Conversion Rate</p>
+              <p className="text-sm text-quikle-slate">Conversion Rate</p>
               <div className="flex items-center gap-1">
-                <p className="text-2xl font-bold">{conversionRate.toFixed(1)}%</p>
+                <p className="text-2xl font-bold text-quikle-charcoal">{conversionRate.toFixed(1)}%</p>
                 {conversionRate > 50 ? 
-                  <TrendingUp className="h-4 w-4 text-green-500" /> : 
+                  <TrendingUp className="h-4 w-4 text-quikle-success" /> : 
                   <TrendingDown className="h-4 w-4 text-red-500" />
                 }
               </div>
@@ -75,8 +75,8 @@ const PipelineMetrics = ({ type, stages }: PipelineMetricsProps) => {
           <div className="flex items-center gap-2">
             <Badge variant="secondary">{stages.length}</Badge>
             <div>
-              <p className="text-sm text-muted-foreground">Active Stages</p>
-              <p className="text-lg font-semibold">Pipeline</p>
+              <p className="text-sm text-quikle-slate">Active Stages</p>
+              <p className="text-lg font-semibold text-quikle-charcoal">Pipeline</p>
             </div>
           </div>
         </CardContent>
@@ -86,10 +86,10 @@ const PipelineMetrics = ({ type, stages }: PipelineMetricsProps) => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-orange-500" />
+              <Clock className="h-4 w-4 text-quikle-info" />
               <div>
-                <p className="text-sm text-muted-foreground">Avg Time</p>
-                <p className="text-2xl font-bold">{Math.round(avgTimeInPipeline / 60)}h</p>
+                <p className="text-sm text-quikle-slate">Avg Time</p>
+                <p className="text-2xl font-bold text-quikle-charcoal">{Math.round(avgTimeInPipeline / 60)}h</p>
               </div>
             </div>
           </CardContent>

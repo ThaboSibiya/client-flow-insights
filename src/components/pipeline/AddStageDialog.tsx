@@ -12,8 +12,8 @@ interface AddStageDialogProps {
 }
 
 const colorOptions = [
-  '#3b82f6', '#ef4444', '#10b981', '#f59e0b', 
-  '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'
+  '#1F2937', '#374151', '#6B7280', '#059669', 
+  '#0369A1', '#7C3AED', '#DC2626', '#64748B'
 ];
 
 const AddStageDialog = ({ open, onOpenChange, onAddStage }: AddStageDialogProps) => {
@@ -33,30 +33,31 @@ const AddStageDialog = ({ open, onOpenChange, onAddStage }: AddStageDialogProps)
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Stage</DialogTitle>
+          <DialogTitle className="text-quikle-charcoal">Add New Stage</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="stageName">Stage Name</Label>
+            <Label htmlFor="stageName" className="text-quikle-charcoal">Stage Name</Label>
             <Input
               id="stageName"
               value={stageName}
               onChange={(e) => setStageName(e.target.value)}
               placeholder="Enter stage name..."
+              className="border-quikle-silver/50 text-quikle-charcoal"
               required
             />
           </div>
           
           <div className="space-y-2">
-            <Label>Stage Color</Label>
+            <Label className="text-quikle-charcoal">Stage Color</Label>
             <div className="grid grid-cols-4 gap-2">
               {colorOptions.map((color) => (
                 <button
                   key={color}
                   type="button"
                   className={`w-8 h-8 rounded-full border-2 ${
-                    selectedColor === color ? 'border-gray-400' : 'border-gray-200'
+                    selectedColor === color ? 'border-quikle-slate' : 'border-quikle-silver'
                   }`}
                   style={{ backgroundColor: color }}
                   onClick={() => setSelectedColor(color)}
@@ -66,10 +67,10 @@ const AddStageDialog = ({ open, onOpenChange, onAddStage }: AddStageDialogProps)
           </div>
           
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="border-quikle-silver/50 text-quikle-charcoal hover:bg-quikle-crystal">
               Cancel
             </Button>
-            <Button type="submit">Add Stage</Button>
+            <Button type="submit" className="bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white">Add Stage</Button>
           </div>
         </form>
       </DialogContent>
