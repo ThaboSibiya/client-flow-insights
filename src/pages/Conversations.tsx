@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   MessageCircle, 
   Mail, 
@@ -17,12 +18,14 @@ import {
   Archive,
   MoreVertical,
   Wifi,
-  WifiOff
+  WifiOff,
+  Settings
 } from 'lucide-react';
 import ConversationsList from '@/components/conversations/ConversationsList';
 import MessageThread from '@/components/conversations/MessageThread';
 import ConversationFiltersAdvanced from '@/components/conversations/ConversationFiltersAdvanced';
 import NewConversationDialog from '@/components/conversations/NewConversationDialog';
+import NotificationSettings from '@/components/conversations/NotificationSettings';
 import { useConversations } from '@/hooks/useConversations';
 import { useConversationFilters } from '@/hooks/useConversationFilters';
 import { useRealtimeConversations } from '@/hooks/useRealtimeConversations';
@@ -31,6 +34,7 @@ const Conversations = () => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showNewDialog, setShowNewDialog] = useState(false);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   
   const { conversations, loading, unreadCount } = useConversations();
   const { isConnected } = useRealtimeConversations();
@@ -78,6 +82,20 @@ const Conversations = () => {
                   {unreadCount} unread
                 </Badge>
               )}
+              <Dialog open={showNotificationSettings} onOpenChange={setShowNotificationSettings}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Notifications
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Notification Settings</DialogTitle>
+                  </DialogHeader>
+                  <NotificationSettings />
+                </DialogContent>
+              </Dialog>
               <Button
                 variant="outline"
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}

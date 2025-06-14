@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import MessageBubble from './MessageBubble';
@@ -11,6 +10,7 @@ import { useMessageSearch } from '@/hooks/useMessageSearch';
 import { useAuth } from '@/context/AuthContext';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import { useReadStatus } from '@/hooks/useReadStatus';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface MessageThreadProps {
   conversationId: string;
@@ -32,12 +32,48 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
   
   const [newMessage, setNewMessage] = React.useState('');
   const [isInternal, setIsInternal] = React.useState(false);
+  const prevMessagesLengthRef = useRef(0);
   
   const { typingUsers } = useTypingIndicator(conversationId);
   const { markAllAsRead } = useReadStatus();
+  const { sendMessageNotification } = useNotifications();
 
   const displayMessages = searchQuery.trim() ? searchResults : messages;
   const unreadCount = messages?.filter(m => !m.is_read && m.sender_type !== 'employee').length || 0;
+
+  useEffect(() => {
+    if (scrollAreaRef.current && !searchQuery.trim()) {
+      const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollElement) {
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+      }
+    }
+  }, [messages, searchQuery]);
+
+  // Send notifications for new messages
+  useEffect(() => {
+    if (messages && messages.length > prevMessagesLengthRef.current && prevMessagesLengthRef.current > 0) {
+      const newMessages = messages.slice(prevMessagesLengthRef.current);
+      
+      newMessages.forEach(message => {
+        // Only send notifications for messages from other users
+        if (message.sender_email !== user?.email && message.sender_type !== 'employee') {
+          sendMessageNotification({
+            conversationId: conversationId,
+            messageId: message.id,
+            senderName: message.sender_name,
+            content: message.content,
+            type: 'new_message',
+            recipientId: user?.id || '',
+          });
+        }
+      });
+    }
+    
+    if (messages) {
+      prevMessagesLengthRef.current = messages.length;
+    }
+  }, [messages, user?.email, user?.id, conversationId, sendMessageNotification]);
 
   useEffect(() => {
     if (scrollAreaRef.current && !searchQuery.trim()) {
