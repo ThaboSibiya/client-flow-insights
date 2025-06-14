@@ -35,39 +35,73 @@ const CustomerPagination = React.memo(({ currentPage, totalPages, onPageChange }
   const handlePageClick = React.useCallback((page: number) => {
     onPageChange(page);
   }, [onPageChange]);
+
+  const handleKeyDown = (event: React.KeyboardEvent, action: () => void) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      action();
+    }
+  };
   
   return (
-    <Pagination className="mt-4">
-      <PaginationContent>
-        <PaginationItem>
-          <PaginationPrevious 
-            onClick={handlePrevious}
-            className={`${currentPage === 1 ? 'pointer-events-none opacity-50' : 'hover:scale-105 hover:shadow-md transition-all'}`}
-          />
-        </PaginationItem>
-        
-        {pageNumbers.map((pageNum) => (
-          <PaginationItem key={pageNum}>
-            <PaginationLink 
-              isActive={currentPage === pageNum} 
-              onClick={() => handlePageClick(pageNum)}
-              className={`${currentPage === pageNum ? 
-                'bg-gradient-to-r from-broker-primary to-broker-accent text-white shadow-md' : 
-                'hover:scale-105 hover:shadow-sm transition-all'}`}
-            >
-              {pageNum}
-            </PaginationLink>
+    <nav
+      role="navigation"
+      aria-label="Customer table pagination"
+      className="mt-4"
+    >
+      <Pagination className="animate-fade-in">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious 
+              onClick={handlePrevious}
+              onKeyDown={(e) => handleKeyDown(e, handlePrevious)}
+              className={`transition-all duration-200 ${
+                currentPage === 1 
+                  ? 'pointer-events-none opacity-50' 
+                  : 'hover:scale-105 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+              }`}
+              aria-disabled={currentPage === 1}
+              aria-label={`Go to previous page, currently on page ${currentPage}`}
+              tabIndex={currentPage === 1 ? -1 : 0}
+            />
           </PaginationItem>
-        ))}
-        
-        <PaginationItem>
-          <PaginationNext 
-            onClick={handleNext}
-            className={`${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'hover:scale-105 hover:shadow-md transition-all'}`}
-          />
-        </PaginationItem>
-      </PaginationContent>
-    </Pagination>
+          
+          {pageNumbers.map((pageNum) => (
+            <PaginationItem key={pageNum}>
+              <PaginationLink 
+                isActive={currentPage === pageNum} 
+                onClick={() => handlePageClick(pageNum)}
+                onKeyDown={(e) => handleKeyDown(e, () => handlePageClick(pageNum))}
+                className={`transition-all duration-200 ${
+                  currentPage === pageNum ? 
+                    'bg-gradient-to-r from-broker-primary to-broker-accent text-white shadow-md' : 
+                    'hover:scale-105 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                }`}
+                aria-label={`${currentPage === pageNum ? 'Current page, ' : ''}Go to page ${pageNum}`}
+                aria-current={currentPage === pageNum ? 'page' : undefined}
+              >
+                {pageNum}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          
+          <PaginationItem>
+            <PaginationNext 
+              onClick={handleNext}
+              onKeyDown={(e) => handleKeyDown(e, handleNext)}
+              className={`transition-all duration-200 ${
+                currentPage === totalPages 
+                  ? 'pointer-events-none opacity-50' 
+                  : 'hover:scale-105 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+              }`}
+              aria-disabled={currentPage === totalPages}
+              aria-label={`Go to next page, currently on page ${currentPage}`}
+              tabIndex={currentPage === totalPages ? -1 : 0}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    </nav>
   );
 });
 
