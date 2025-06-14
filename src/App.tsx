@@ -13,6 +13,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Customers from "./pages/Customers";
 import Onboarding from "./pages/Onboarding";
+import Pipeline from "./pages/Pipeline";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -61,6 +62,11 @@ const App = () => (
                       <Route path="onboarding" element={
                         <ErrorBoundary>
                           <Onboarding />
+                        </ErrorBoundary>
+                      } />
+                      <Route path="pipeline" element={
+                        <ErrorBoundary>
+                          <Pipeline />
                         </ErrorBoundary>
                       } />
                       <Route path="analytics" element={

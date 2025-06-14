@@ -2,7 +2,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, UserPlus, BarChart3, Home } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, BarChart3, Home, move } from 'lucide-react';
 import UserProfile from '../auth/UserProfile';
 
 interface SidebarItemProps {
