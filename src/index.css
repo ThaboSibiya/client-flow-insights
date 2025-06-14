@@ -202,7 +202,7 @@
   }
 
   .quikle-card {
-    @apply bg-white/98 backdrop-blur-sm border border-quikle-silver/30 shadow-platinum hover:shadow-elegant transition-all duration-300;
+    @apply bg-white backdrop-blur-sm border border-quikle-silver/30 shadow-platinum hover:shadow-elegant transition-all duration-300;
   }
 
   .quikle-button-primary {
@@ -211,7 +211,8 @@
 
   /* Premium surface styles */
   .premium-surface {
-    @apply bg-white/95 backdrop-blur-md border border-white/30 shadow-platinum;
+    background: rgba(255, 255, 255, 0.95);
+    @apply backdrop-blur-md border border-white/30 shadow-platinum;
   }
 
   .elegant-card {
@@ -224,7 +225,8 @@
 
   /* Luxury glass effect */
   .glass-effect {
-    @apply bg-white/90 backdrop-blur-xl border border-white/20 shadow-luxury;
+    background: rgba(255, 255, 255, 0.9);
+    @apply backdrop-blur-xl border border-white/20 shadow-luxury;
   }
 
   /* Premium text effects */
