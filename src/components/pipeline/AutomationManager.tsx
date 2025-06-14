@@ -1,14 +1,14 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Zap, Clock, Mail, ArrowRight, Webhook, Settings } from "lucide-react";
+import { Plus, Zap, Clock, Mail, ArrowRight, Webhook, Settings, Activity } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import AutomationBuilder from './AutomationBuilder';
 import WebhookManager from './WebhookManager';
+import PerformanceMonitor from './PerformanceMonitor';
 
 interface Automation {
   id: string;
@@ -118,6 +118,10 @@ const AutomationManager = () => {
         <TabsList>
           <TabsTrigger value="automations">Automations</TabsTrigger>
           <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+          <TabsTrigger value="performance" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Performance
+          </TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
@@ -212,6 +216,10 @@ const AutomationManager = () => {
 
         <TabsContent value="webhooks">
           <WebhookManager />
+        </TabsContent>
+
+        <TabsContent value="performance">
+          <PerformanceMonitor />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
