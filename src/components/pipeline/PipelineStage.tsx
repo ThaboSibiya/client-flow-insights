@@ -53,7 +53,7 @@ const PipelineStage = ({ stage, onCustomerMove, type }: PipelineStageProps) => {
       {...attributes}
       className="min-w-[300px] flex-shrink-0"
     >
-      <Card className="h-[600px] flex flex-col">
+      <Card className="h-[600px] flex flex-col border-quikle-silver/30">
         <CardHeader 
           {...listeners}
           className="cursor-grab active:cursor-grabbing pb-3"
@@ -61,26 +61,26 @@ const PipelineStage = ({ stage, onCustomerMove, type }: PipelineStageProps) => {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CardTitle className="text-lg">{stage.name}</CardTitle>
+              <CardTitle className="text-lg text-quikle-charcoal">{stage.name}</CardTitle>
               {stage.automationEnabled && (
-                <Zap className="h-4 w-4 text-yellow-500" />
+                <Zap className="h-4 w-4 text-quikle-accent" />
               )}
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-quikle-slate hover:text-quikle-primary">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>Edit Stage</DropdownMenuItem>
-                <DropdownMenuItem>Set Automation</DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600">Delete Stage</DropdownMenuItem>
+              <DropdownMenuContent className="bg-white border-quikle-silver/30 z-50">
+                <DropdownMenuItem className="text-quikle-charcoal hover:bg-quikle-crystal">Edit Stage</DropdownMenuItem>
+                <DropdownMenuItem className="text-quikle-charcoal hover:bg-quikle-crystal">Set Automation</DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600 hover:bg-red-50">Delete Stage</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="flex items-center gap-1">
+            <Badge variant="secondary" className="flex items-center gap-1 bg-quikle-crystal text-quikle-primary border-quikle-silver/30">
               {type === 'customer' ? <User className="h-3 w-3" /> : <Ticket className="h-3 w-3" />}
               {itemCount} {type === 'customer' ? 'customers' : 'tickets'}
             </Badge>
@@ -99,7 +99,7 @@ const PipelineStage = ({ stage, onCustomerMove, type }: PipelineStageProps) => {
           ))}
           
           {itemCount === 0 && (
-            <div className="text-center text-muted-foreground py-8">
+            <div className="text-center text-quikle-slate py-8">
               <div className="text-4xl mb-2">📋</div>
               <p>No {type === 'customer' ? 'customers' : 'tickets'} in this stage</p>
             </div>

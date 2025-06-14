@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragOverlay, useDroppable } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
@@ -34,7 +33,7 @@ const TicketPipeline = () => {
     {
       id: 'in-progress',
       name: 'In Progress',
-      color: '#f59e0b',
+      color: '#6B7280',
       tickets: allTickets.filter(t => t.status === 'in-progress'),
       automationEnabled: false,
       target: 15
@@ -169,15 +168,15 @@ const TicketPipeline = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Ticket Pipeline</h2>
-          <p className="text-muted-foreground">Drag tickets between stages to update their status</p>
+          <h2 className="text-2xl font-bold text-quikle-charcoal">Ticket Pipeline</h2>
+          <p className="text-quikle-slate">Drag tickets between stages to update their status</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2 border-quikle-silver/50 text-quikle-charcoal hover:bg-quikle-crystal">
             <Settings className="h-4 w-4" />
             Pipeline Settings
           </Button>
-          <Button onClick={() => setIsAddStageOpen(true)} className="flex items-center gap-2">
+          <Button onClick={() => setIsAddStageOpen(true)} className="flex items-center gap-2 bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white">
             <Plus className="h-4 w-4" />
             Add Stage
           </Button>
@@ -210,9 +209,9 @@ const TicketPipeline = () => {
         
         <DragOverlay>
           {activeItem ? (
-            <div className="bg-white p-3 rounded-lg shadow-lg border opacity-90">
-              <p className="font-medium">{activeItem.subject}</p>
-              <p className="text-sm text-muted-foreground">#{activeItem.ticketNumber}</p>
+            <div className="bg-white p-3 rounded-lg shadow-lg border border-quikle-silver/30 opacity-90">
+              <p className="font-medium text-quikle-charcoal">{activeItem.subject}</p>
+              <p className="text-sm text-quikle-slate">#{activeItem.ticketNumber}</p>
             </div>
           ) : null}
         </DragOverlay>
@@ -234,7 +233,7 @@ const DroppableStage = ({ stage, onCustomerMove, onStageEdit, onStageDelete, onA
   });
 
   return (
-    <div ref={setNodeRef} className={`transition-colors ${isOver ? 'bg-blue-50 rounded-lg' : ''}`}>
+    <div ref={setNodeRef} className={`transition-colors ${isOver ? 'bg-quikle-crystal rounded-lg' : ''}`}>
       <EnhancedPipelineStage
         stage={stage}
         onCustomerMove={onCustomerMove}
