@@ -25,7 +25,7 @@ const TicketPipeline = () => {
     {
       id: 'open',
       name: 'New Tickets',
-      color: '#ef4444',
+      color: '#DC2626',
       tickets: allTickets.filter(t => t.status === 'open'),
       automationEnabled: false,
       target: 20
@@ -41,7 +41,7 @@ const TicketPipeline = () => {
     {
       id: 'review',
       name: 'Under Review',
-      color: '#8b5cf6',
+      color: '#374151',
       tickets: [],
       automationEnabled: false,
       target: 5
@@ -49,7 +49,7 @@ const TicketPipeline = () => {
     {
       id: 'resolved',
       name: 'Resolved',
-      color: '#10b981',
+      color: '#059669',
       tickets: allTickets.filter(t => t.status === 'resolved'),
       automationEnabled: false,
       target: 10
@@ -57,7 +57,7 @@ const TicketPipeline = () => {
     {
       id: 'closed',
       name: 'Closed',
-      color: '#6b7280',
+      color: '#1F2937',
       tickets: allTickets.filter(t => t.status === 'closed'),
       automationEnabled: false
     }

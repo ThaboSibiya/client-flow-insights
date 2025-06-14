@@ -23,7 +23,7 @@ const CustomerPipeline = () => {
     {
       id: 'new',
       name: 'New Leads',
-      color: '#3b82f6',
+      color: '#6B7280',
       customers: customers.filter(c => c.status === 'new'),
       automationEnabled: false,
       target: 50
@@ -31,7 +31,7 @@ const CustomerPipeline = () => {
     {
       id: 'contacted',
       name: 'Contacted',
-      color: '#6B7280',
+      color: '#374151',
       customers: [],
       automationEnabled: false,
       target: 30
@@ -39,7 +39,7 @@ const CustomerPipeline = () => {
     {
       id: 'qualified',
       name: 'Qualified',
-      color: '#10b981',
+      color: '#059669',
       customers: customers.filter(c => c.status === 'existing'),
       automationEnabled: false,
       target: 20
@@ -47,7 +47,7 @@ const CustomerPipeline = () => {
     {
       id: 'closed',
       name: 'Closed Won',
-      color: '#22c55e',
+      color: '#1F2937',
       customers: customers.filter(c => c.status === 'finalised'),
       automationEnabled: false,
       target: 10

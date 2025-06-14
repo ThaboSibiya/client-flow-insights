@@ -53,7 +53,7 @@ const EnhancedPipelineCard = ({
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'bg-red-500';
-      case 'high': return 'bg-orange-500';
+      case 'high': return 'bg-red-400';
       case 'medium': return 'bg-quikle-accent';
       case 'low': return 'bg-green-500';
       default: return 'bg-quikle-neutral';
