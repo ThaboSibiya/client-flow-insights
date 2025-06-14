@@ -2,7 +2,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, UserPlus, BarChart3, Home, Move } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, BarChart3, Home, Move, FileText } from 'lucide-react';
 import UserProfile from '../auth/UserProfile';
 
 interface SidebarItemProps {
@@ -92,6 +92,12 @@ const Sidebar = ({ isCollapsed = false }: SidebarProps) => {
             icon={<Move size={isCollapsed ? 20 : 18} />} 
             label="Workflow" 
             to="/pipeline" 
+            isCollapsed={isCollapsed}
+          />
+          <SidebarItem 
+            icon={<FileText size={isCollapsed ? 20 : 18} />} 
+            label="Quotes & Invoices" 
+            to="/quotes" 
             isCollapsed={isCollapsed}
           />
           <SidebarItem 
