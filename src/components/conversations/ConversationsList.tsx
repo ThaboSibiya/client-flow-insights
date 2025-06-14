@@ -11,11 +11,11 @@ import { Mail, Phone, MessageCircle, FileText, User } from 'lucide-react';
 interface Conversation {
   id: string;
   type: 'email' | 'whatsapp' | 'internal_chat' | 'form_submission';
-  subject?: string;
+  subject?: string | null;
   status: 'active' | 'closed' | 'archived';
-  last_message_at: string;
-  customer_name?: string;
-  employee_name?: string;
+  last_message_at: string | null;
+  customer_id?: string | null;
+  employee_id?: string | null;
   unread_count?: number;
   last_message_preview?: string;
 }
@@ -61,8 +61,8 @@ const ConversationsList = ({
     const matchesFilter = filter === 'all' || conv.type === filter;
     const matchesSearch = !searchQuery || 
       conv.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      conv.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      conv.employee_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      conv.customer_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conv.employee_id?.toLowerCase().includes(searchQuery.toLowerCase());
     
     return matchesFilter && matchesSearch;
   });
@@ -129,7 +129,7 @@ const ConversationsList = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <h4 className="font-medium text-sm text-quikle-charcoal truncate">
-                    {conversation.subject || conversation.customer_name || conversation.employee_name || 'Unnamed Conversation'}
+                    {conversation.subject || conversation.customer_id || conversation.employee_id || 'Unnamed Conversation'}
                   </h4>
                   {conversation.unread_count && conversation.unread_count > 0 && (
                     <Badge variant="destructive" className="text-xs">
@@ -149,9 +149,11 @@ const ConversationsList = ({
                   >
                     {conversation.status}
                   </Badge>
-                  <span className="text-xs text-quikle-neutral">
-                    {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
-                  </span>
+                  {conversation.last_message_at && (
+                    <span className="text-xs text-quikle-neutral">
+                      {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
