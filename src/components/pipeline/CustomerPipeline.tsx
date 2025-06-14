@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragOverlay, useDraggable, useDroppable } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Button } from "@/components/ui/button";
 import { Plus, Settings } from "lucide-react";
@@ -55,6 +56,7 @@ const CustomerPipeline = () => {
   ]);
 
   const [isAddStageOpen, setIsAddStageOpen] = useState(false);
+  const [activeItem, setActiveItem] = useState(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -63,14 +65,50 @@ const CustomerPipeline = () => {
     })
   );
 
+  const handleDragStart = (event: any) => {
+    const { active } = event;
+    
+    // Check if dragging a customer card
+    if (active.id.toString().startsWith('customer-')) {
+      const customerId = active.id.toString().replace('customer-', '');
+      const customer = stages
+        .flatMap(stage => stage.customers || [])
+        .find(c => c.id === customerId);
+      setActiveItem(customer);
+    }
+    // Check if dragging a stage
+    else {
+      setActiveItem(null);
+    }
+  };
+
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
+    setActiveItem(null);
 
-    if (active.id !== over.id) {
+    if (!over) return;
+
+    // Handle customer card drops
+    if (active.id.toString().startsWith('customer-')) {
+      const customerId = active.id.toString().replace('customer-', '');
+      const targetStageId = over.id;
+
+      // Find source stage
+      const sourceStage = stages.find(stage => 
+        (stage.customers || []).some(c => c.id === customerId)
+      );
+
+      if (sourceStage && sourceStage.id !== targetStageId) {
+        handleCustomerMove(customerId, sourceStage.id, targetStageId);
+      }
+      return;
+    }
+
+    // Handle stage reordering
+    if (active.id !== over.id && !active.id.toString().startsWith('customer-')) {
       setStages((items) => {
         const oldIndex = items.findIndex(item => item.id === active.id);
         const newIndex = items.findIndex(item => item.id === over.id);
-
         return arrayMove(items, oldIndex, newIndex);
       });
     }
@@ -123,7 +161,7 @@ const CustomerPipeline = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Customer Pipeline</h2>
-          <p className="text-muted-foreground">Drag and drop customers between stages</p>
+          <p className="text-muted-foreground">Drag customers between stages to update their status</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="flex items-center gap-2">
@@ -139,11 +177,16 @@ const CustomerPipeline = () => {
 
       <PipelineMetrics type="customer" stages={stages} />
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <DndContext 
+        sensors={sensors} 
+        collisionDetection={closestCenter} 
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
         <SortableContext items={stages.map(s => s.id)}>
           <div className="flex gap-4 overflow-x-auto pb-4">
             {stages.map((stage) => (
-              <EnhancedPipelineStage
+              <DroppableStage
                 key={stage.id}
                 stage={stage}
                 onCustomerMove={handleCustomerMove}
@@ -155,12 +198,41 @@ const CustomerPipeline = () => {
             ))}
           </div>
         </SortableContext>
+        
+        <DragOverlay>
+          {activeItem ? (
+            <div className="bg-white p-3 rounded-lg shadow-lg border opacity-90">
+              <p className="font-medium">{activeItem.name}</p>
+              <p className="text-sm text-muted-foreground">{activeItem.email}</p>
+            </div>
+          ) : null}
+        </DragOverlay>
       </DndContext>
 
       <AddStageDialog
         open={isAddStageOpen}
         onOpenChange={setIsAddStageOpen}
         onAddStage={addStage}
+      />
+    </div>
+  );
+};
+
+// New droppable stage component
+const DroppableStage = ({ stage, onCustomerMove, onStageEdit, onStageDelete, onAddItem, type }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: stage.id,
+  });
+
+  return (
+    <div ref={setNodeRef} className={`transition-colors ${isOver ? 'bg-blue-50 rounded-lg' : ''}`}>
+      <EnhancedPipelineStage
+        stage={stage}
+        onCustomerMove={onCustomerMove}
+        onStageEdit={onStageEdit}
+        onStageDelete={onStageDelete}
+        onAddItem={onAddItem}
+        type={type}
       />
     </div>
   );

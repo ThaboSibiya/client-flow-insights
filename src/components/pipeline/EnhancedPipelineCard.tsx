@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Clock, Mail, Phone, AlertCircle, Edit, Trash2, Eye } from "lucide-react";
+import { Clock, Mail, Phone, AlertCircle, Edit, Trash2, Eye, GripVertical } from "lucide-react";
 import { format } from 'date-fns';
 
 interface EnhancedPipelineCardProps {
@@ -46,7 +46,8 @@ const EnhancedPipelineCard = ({
 
   const style = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.8 : 1,
+    zIndex: isDragging ? 1000 : 1,
   } : undefined;
 
   const getPriorityColor = (priority: string) => {
@@ -64,13 +65,20 @@ const EnhancedPipelineCard = ({
       <Card
         ref={setNodeRef}
         style={style}
-        {...listeners}
-        {...attributes}
-        className="cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 group"
+        className={`cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 group ${
+          isDragging ? 'shadow-xl scale-105 rotate-2' : ''
+        }`}
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
+        {...listeners}
+        {...attributes}
       >
         <CardContent className="p-3 relative">
+          {/* Drag handle */}
+          <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </div>
+
           {/* Quick actions overlay */}
           <div className={`absolute top-2 right-2 flex gap-1 transition-opacity duration-200 ${
             showActions ? 'opacity-100' : 'opacity-0'
@@ -99,7 +107,7 @@ const EnhancedPipelineCard = ({
             </Button>
           </div>
 
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-3 mb-2 ml-6">
             <Avatar className="h-8 w-8">
               <AvatarFallback>
                 {item.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
@@ -114,7 +122,7 @@ const EnhancedPipelineCard = ({
             </div>
           </div>
           
-          <div className="flex items-center justify-between text-xs mb-2">
+          <div className="flex items-center justify-between text-xs mb-2 ml-6">
             <div className="flex items-center gap-1 text-muted-foreground">
               <Phone className="h-3 w-3" />
               <span>{item.phone}</span>
@@ -124,7 +132,7 @@ const EnhancedPipelineCard = ({
             </Badge>
           </div>
           
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center justify-between text-xs text-muted-foreground ml-6">
             <span>Added {format(new Date(item.createdAt), 'MMM dd')}</span>
             {item.lastContact && (
               <span>Last contact: {format(new Date(item.lastContact), 'MMM dd')}</span>
@@ -139,13 +147,20 @@ const EnhancedPipelineCard = ({
     <Card
       ref={setNodeRef}
       style={style}
-      {...listeners}
-      {...attributes}
-      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 group"
+      className={`cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 group ${
+        isDragging ? 'shadow-xl scale-105 rotate-2' : ''
+      }`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
+      {...listeners}
+      {...attributes}
     >
       <CardContent className="p-3 relative">
+        {/* Drag handle */}
+        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </div>
+
         {/* Quick actions overlay */}
         <div className={`absolute top-2 right-2 flex gap-1 transition-opacity duration-200 ${
           showActions ? 'opacity-100' : 'opacity-0'
@@ -174,7 +189,7 @@ const EnhancedPipelineCard = ({
           </Button>
         </div>
 
-        <div className="flex items-start justify-between mb-2">
+        <div className="flex items-start justify-between mb-2 ml-6">
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm truncate">{item.subject}</p>
             <p className="text-xs text-muted-foreground truncate">
@@ -184,7 +199,7 @@ const EnhancedPipelineCard = ({
           <div className={`w-2 h-2 rounded-full ${getPriorityColor(item.priority)}`} />
         </div>
         
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-2 ml-6">
           <Badge variant="outline" className="text-xs">
             {item.priority}
           </Badge>
@@ -195,7 +210,7 @@ const EnhancedPipelineCard = ({
           )}
         </div>
         
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex items-center justify-between text-xs text-muted-foreground ml-6">
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             <span>{Math.round((item.totalTimeSpent || 0) / 60)}h</span>
