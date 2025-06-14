@@ -86,7 +86,7 @@ const EnhancedFilters = ({
   };
 
   return (
-    <div className="p-6 bg-gradient-to-r from-white via-gray-50 to-white border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+    <div className="p-6 bg-gradient-to-r from-white via-quikle-crystal to-quikle-platinum border border-quikle-silver/30 rounded-lg shadow-elegant hover:shadow-luxury transition-shadow duration-300">
       <div className="space-y-4">
         {/* Basic Filters Row */}
         <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
@@ -97,22 +97,22 @@ const EnhancedFilters = ({
                 placeholder="Search customers by name, email, or phone..."
                 value={searchQuery}
                 onChange={(e) => onSearchQueryChange(e.target.value)}
-                className="pl-9 bg-white shadow-sm hover:shadow focus:shadow-md transition-all"
+                className="pl-9 bg-white border-quikle-silver/50 shadow-sm hover:shadow focus:shadow-md transition-all focus:border-quikle-primary/50 text-quikle-charcoal"
               />
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-quikle-slate" />
             </div>
 
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-              <SelectTrigger className="w-[180px] bg-white shadow-sm hover:shadow">
+              <SelectTrigger className="w-[180px] bg-white border-quikle-silver/50 shadow-sm hover:shadow text-quikle-charcoal">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Customers</SelectItem>
-                <SelectItem value="new">New</SelectItem>
-                <SelectItem value="existing">Existing</SelectItem>
-                <SelectItem value="pending">Pending Policy</SelectItem>
-                <SelectItem value="finalised">Finalised Sale</SelectItem>
+              <SelectContent className="bg-white border-quikle-silver/30 z-50">
+                <SelectItem value="all" className="text-quikle-charcoal hover:bg-quikle-crystal">All Customers</SelectItem>
+                <SelectItem value="new" className="text-quikle-primary hover:bg-quikle-crystal">New</SelectItem>
+                <SelectItem value="existing" className="text-emerald-700 hover:bg-emerald-50">Existing</SelectItem>
+                <SelectItem value="pending" className="text-quikle-accent hover:bg-quikle-crystal">Pending Policy</SelectItem>
+                <SelectItem value="finalised" className="text-purple-700 hover:bg-purple-50">Finalised Sale</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -120,7 +120,7 @@ const EnhancedFilters = ({
           {/* Filter Controls */}
           <div className="flex items-center gap-2">
             {activeFiltersCount > 0 && (
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              <Badge variant="secondary" className="bg-quikle-primary/10 text-quikle-primary border-quikle-primary/20">
                 {activeFiltersCount} active filter{activeFiltersCount > 1 ? 's' : ''}
               </Badge>
             )}
@@ -128,7 +128,7 @@ const EnhancedFilters = ({
               variant="outline"
               size="sm"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 border-quikle-silver/50 text-quikle-charcoal hover:bg-quikle-crystal"
             >
               <Filter className="h-4 w-4" />
               Advanced
@@ -138,7 +138,7 @@ const EnhancedFilters = ({
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="text-red-600 hover:text-red-700"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 <X className="h-4 w-4 mr-1" />
                 Clear
@@ -149,17 +149,17 @@ const EnhancedFilters = ({
 
         {/* Advanced Filters */}
         {showAdvanced && (
-          <div className="pt-4 border-t space-y-4">
+          <div className="pt-4 border-t border-quikle-silver/30 space-y-4">
             {/* Quick Date Ranges */}
             <div className="flex flex-wrap gap-2">
-              <span className="text-sm font-medium text-gray-700 mr-2">Quick filters:</span>
+              <span className="text-sm font-medium text-quikle-charcoal mr-2">Quick filters:</span>
               {['today', 'week', 'month', 'quarter'].map((range) => (
                 <Button
                   key={range}
                   variant="outline"
                   size="sm"
                   onClick={() => onQuickDateRange(range)}
-                  className="capitalize"
+                  className="capitalize border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal hover:text-quikle-primary"
                 >
                   <Clock className="h-3 w-3 mr-1" />
                   {range === 'week' ? 'This Week' : 
@@ -172,15 +172,15 @@ const EnhancedFilters = ({
             <div className="flex flex-col sm:flex-row gap-4">
               {/* Date Range Filter */}
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700 min-w-fit">Created:</span>
+                <span className="text-sm font-medium text-quikle-charcoal min-w-fit">Created:</span>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-[140px] justify-start text-left font-normal">
+                    <Button variant="outline" className="w-[140px] justify-start text-left font-normal border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dateRange.start ? format(dateRange.start, 'MMM dd') : 'From'}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0 bg-white border-quikle-silver/30 z-50">
                     <Calendar
                       mode="single"
                       selected={dateRange.start || undefined}
@@ -190,16 +190,16 @@ const EnhancedFilters = ({
                   </PopoverContent>
                 </Popover>
                 
-                <span className="text-gray-500">to</span>
+                <span className="text-quikle-slate">to</span>
                 
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-[140px] justify-start text-left font-normal">
+                    <Button variant="outline" className="w-[140px] justify-start text-left font-normal border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dateRange.end ? format(dateRange.end, 'MMM dd') : 'To'}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0 bg-white border-quikle-silver/30 z-50">
                     <Calendar
                       mode="single"
                       selected={dateRange.end || undefined}
@@ -213,7 +213,8 @@ const EnhancedFilters = ({
                   <Button 
                     size="sm" 
                     variant="ghost" 
-                    onClick={() => onDateRangeChange({ start: null, end: null })}
+                    onClick={() => onDateRangeRange({ start: null, end: null })}
+                    className="text-quikle-slate hover:text-red-600 hover:bg-red-50"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -222,17 +223,17 @@ const EnhancedFilters = ({
 
               {/* Ticket Filter */}
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700 min-w-fit">Tickets:</span>
+                <span className="text-sm font-medium text-quikle-charcoal min-w-fit">Tickets:</span>
                 <Select value={ticketFilter} onValueChange={onTicketFilterChange}>
-                  <SelectTrigger className="w-[160px]">
+                  <SelectTrigger className="w-[160px] border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Customers</SelectItem>
-                    <SelectItem value="with-tickets">Has Tickets</SelectItem>
-                    <SelectItem value="no-tickets">No Tickets</SelectItem>
-                    <SelectItem value="urgent-tickets">Urgent Tickets</SelectItem>
-                    <SelectItem value="open-tickets">Open Tickets</SelectItem>
+                  <SelectContent className="bg-white border-quikle-silver/30 z-50">
+                    <SelectItem value="all" className="text-quikle-charcoal hover:bg-quikle-crystal">All Customers</SelectItem>
+                    <SelectItem value="with-tickets" className="text-quikle-slate hover:bg-quikle-crystal">Has Tickets</SelectItem>
+                    <SelectItem value="no-tickets" className="text-quikle-slate hover:bg-quikle-crystal">No Tickets</SelectItem>
+                    <SelectItem value="urgent-tickets" className="text-red-700 hover:bg-red-50">Urgent Tickets</SelectItem>
+                    <SelectItem value="open-tickets" className="text-quikle-accent hover:bg-quikle-crystal">Open Tickets</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -241,13 +242,14 @@ const EnhancedFilters = ({
             {/* Saved Presets */}
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">Presets:</span>
+                <span className="text-sm font-medium text-quikle-charcoal">Presets:</span>
                 {savedPresets.map((preset) => (
                   <Button
                     key={preset.id}
                     variant="outline"
                     size="sm"
                     onClick={() => onApplyPreset(preset)}
+                    className="border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal hover:text-quikle-primary"
                   >
                     {preset.name}
                   </Button>
@@ -261,10 +263,10 @@ const EnhancedFilters = ({
                       placeholder="Preset name"
                       value={presetName}
                       onChange={(e) => setPresetName(e.target.value)}
-                      className="w-32"
+                      className="w-32 border-quikle-silver/50 text-quikle-charcoal"
                       onKeyPress={(e) => e.key === 'Enter' && handleSavePreset()}
                     />
-                    <Button size="sm" onClick={handleSavePreset}>
+                    <Button size="sm" onClick={handleSavePreset} className="bg-quikle-primary hover:bg-quikle-secondary text-white">
                       <Save className="h-3 w-3" />
                     </Button>
                     <Button 
@@ -274,6 +276,7 @@ const EnhancedFilters = ({
                         setShowPresetInput(false);
                         setPresetName('');
                       }}
+                      className="text-quikle-slate hover:text-red-600 hover:bg-red-50"
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -284,6 +287,7 @@ const EnhancedFilters = ({
                     size="sm"
                     onClick={() => setShowPresetInput(true)}
                     disabled={activeFiltersCount === 0}
+                    className="border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal disabled:text-quikle-neutral"
                   >
                     <Save className="h-3 w-3 mr-1" />
                     Save Preset
