@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Customer } from '@/types/customer';
 import { useCustomerFilters } from '@/hooks/useCustomerFilters';
 import { useTableSelection } from '@/hooks/useTableSelection';
@@ -10,8 +10,10 @@ import { useCRM } from '@/context/CRMContext';
 import CustomerTableHeader from './table/CustomerTableHeader';
 import CustomerTableRow from './table/CustomerTableRow';
 import CustomerPagination from './table/CustomerPagination';
-import EnhancedFilters from './filters/EnhancedFilters';
 import BulkActions from './actions/BulkActions';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const EnhancedFilters = lazy(() => import('./filters/EnhancedFilters'));
 
 const CustomerTable = () => {
   const { customers } = useCRM();
@@ -78,45 +80,61 @@ const CustomerTable = () => {
     handleExportCSV(); // Default to CSV for bulk export
   };
 
+  const FiltersSkeleton = () => (
+    <div className="p-6 bg-white border rounded-lg shadow-md">
+      <div className="space-y-4">
+        <div className="flex justify-between">
+          <div className="flex gap-4">
+            <Skeleton className="h-10 w-[300px]" />
+            <Skeleton className="h-10 w-[180px]" />
+          </div>
+          <Skeleton className="h-9 w-28" />
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
-      <EnhancedFilters
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
-        ticketFilter={ticketCountFilter}
-        onTicketFilterChange={setTicketCountFilter}
-        savedPresets={savedPresets}
-        onApplyPreset={handleFilterPresetLoad}
-        onSavePreset={saveFilterPreset}
-        onQuickDateRange={(range) => {
-          const newRange = { start: null, end: null };
-          const now = new Date();
-          switch (range) {
-            case 'today':
-              newRange.start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-              newRange.end = now;
-              break;
-            case 'week':
-              newRange.start = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-              newRange.end = now;
-              break;
-            case 'month':
-              newRange.start = new Date(now.getFullYear(), now.getMonth(), 1);
-              newRange.end = now;
-              break;
-            case 'quarter':
-              const quarter = Math.floor(now.getMonth() / 3);
-              newRange.start = new Date(now.getFullYear(), quarter * 3, 1);
-              newRange.end = now;
-              break;
-          }
-          setDateRange(newRange);
-        }}
-      />
+      <Suspense fallback={<FiltersSkeleton />}>
+        <EnhancedFilters
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          ticketFilter={ticketCountFilter}
+          onTicketFilterChange={setTicketCountFilter}
+          savedPresets={savedPresets}
+          onApplyPreset={handleFilterPresetLoad}
+          onSavePreset={saveFilterPreset}
+          onQuickDateRange={(range) => {
+            const newRange = { start: null, end: null };
+            const now = new Date();
+            switch (range) {
+              case 'today':
+                newRange.start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                newRange.end = now;
+                break;
+              case 'week':
+                newRange.start = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                newRange.end = now;
+                break;
+              case 'month':
+                newRange.start = new Date(now.getFullYear(), now.getMonth(), 1);
+                newRange.end = now;
+                break;
+              case 'quarter':
+                const quarter = Math.floor(now.getMonth() / 3);
+                newRange.start = new Date(now.getFullYear(), quarter * 3, 1);
+                newRange.end = now;
+                break;
+            }
+            setDateRange(newRange);
+          }}
+        />
+      </Suspense>
 
       <BulkActions
         selectedCount={selectedCustomers.size}

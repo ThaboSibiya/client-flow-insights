@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
 import { useTicketManagement } from '@/hooks/useTicketManagement';
 import CustomerDetailsDialog from '../forms/CustomerDetailsDialog';
-import TicketManagementDialog from '../TicketManagementDialog';
 import { toast } from '@/hooks/use-toast';
+
+const TicketManagementDialog = lazy(() => import('../TicketManagementDialog'));
 
 export const useCustomerActions = () => {
   const { updateCustomerStatus, deleteCustomer } = useCRM();
@@ -47,17 +48,21 @@ export const useCustomerActions = () => {
         }} 
       />
 
-      <TicketManagementDialog 
-        customer={selectedCustomer}
-        isOpen={isTicketDialogOpen}
-        onClose={() => {
-          setIsTicketDialogOpen(false);
-          setSelectedCustomer(null);
-        }}
-        onCreateTicket={handleCreateTicket}
-        onUpdateTicketStatus={handleUpdateTicketStatus}
-        onAddTimeEntry={handleAddTimeEntry}
-      />
+      <Suspense fallback={null}>
+        {isTicketDialogOpen && (
+          <TicketManagementDialog 
+            customer={selectedCustomer}
+            isOpen={isTicketDialogOpen}
+            onClose={() => {
+              setIsTicketDialogOpen(false);
+              setSelectedCustomer(null);
+            }}
+            onCreateTicket={handleCreateTicket}
+            onUpdateTicketStatus={handleUpdateTicketStatus}
+            onAddTimeEntry={handleAddTimeEntry}
+          />
+        )}
+      </Suspense>
     </>
   );
 

@@ -3,19 +3,12 @@ import 'vitest';
 import type { TestingLibraryMatchers } from '@testing-library/jest-dom/matchers';
 
 declare module 'vitest' {
-  interface Assertion<T = any> extends TestingLibraryMatchers<string, T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  interface Assertion<T = any> extends TestingLibraryMatchers<T, void> {
     toHaveNoViolations(): T;
   }
-  interface AsymmetricMatchersContaining extends TestingLibraryMatchers<string, any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  interface AsymmetricMatchersContaining extends TestingLibraryMatchers<any, void> {
     toHaveNoViolations(): any;
-  }
-}
-
-// Extend global expect
-declare global {
-  namespace Vi {
-    interface JestAssertion<T = any> extends TestingLibraryMatchers<string, T> {
-      toHaveNoViolations(): T;
-    }
   }
 }
