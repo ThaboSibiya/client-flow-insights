@@ -23,7 +23,7 @@ const StatusSelector = ({ status, onChange, className }: StatusSelectorProps) =>
       case 'existing': return 'border-emerald-300 text-emerald-800 bg-gradient-to-r from-emerald-50 to-emerald-100 hover:border-emerald-400';
       case 'pending': return 'border-quikle-accent/30 text-quikle-accent bg-gradient-to-r from-quikle-crystal to-quikle-platinum hover:border-quikle-accent/50';
       case 'finalised': return 'border-purple-300 text-purple-800 bg-gradient-to-r from-purple-50 to-purple-100 hover:border-purple-400';
-      default: return '';
+      default: return 'border-quikle-silver/30 text-quikle-slate bg-gradient-to-r from-quikle-crystal to-quikle-platinum';
     }
   };
 
@@ -32,14 +32,14 @@ const StatusSelector = ({ status, onChange, className }: StatusSelectorProps) =>
       value={status}
       onValueChange={(value) => onChange(value as CustomerStatus)}
     >
-      <SelectTrigger className={`w-[140px] ${getStatusTriggerColor(status)} shadow-sm hover:shadow-md transition-all ${className}`}>
+      <SelectTrigger className={`w-[140px] ${getStatusTriggerColor(status)} shadow-sm hover:shadow-md transition-all duration-200 focus:ring-2 focus:ring-quikle-primary/20 focus:border-quikle-primary/50 ${className}`}>
         <SelectValue />
       </SelectTrigger>
-      <SelectContent className="bg-white border border-quikle-silver/30 shadow-lg z-50">
-        <SelectItem value="new" className="text-quikle-primary hover:bg-quikle-crystal">New</SelectItem>
-        <SelectItem value="existing" className="text-emerald-700 hover:bg-emerald-50">Existing</SelectItem>
-        <SelectItem value="pending" className="text-quikle-accent hover:bg-quikle-crystal">Pending</SelectItem>
-        <SelectItem value="finalised" className="text-purple-700 hover:bg-purple-50">Finalised</SelectItem>
+      <SelectContent className="bg-white border border-quikle-silver/30 shadow-luxury z-50 rounded-lg">
+        <SelectItem value="new" className="text-quikle-primary hover:bg-quikle-crystal focus:bg-quikle-crystal cursor-pointer">New</SelectItem>
+        <SelectItem value="existing" className="text-emerald-700 hover:bg-emerald-50 focus:bg-emerald-50 cursor-pointer">Existing</SelectItem>
+        <SelectItem value="pending" className="text-quikle-accent hover:bg-quikle-crystal focus:bg-quikle-crystal cursor-pointer">Pending</SelectItem>
+        <SelectItem value="finalised" className="text-purple-700 hover:bg-purple-50 focus:bg-purple-50 cursor-pointer">Finalised</SelectItem>
       </SelectContent>
     </Select>
   );
