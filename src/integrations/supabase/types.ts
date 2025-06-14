@@ -421,6 +421,42 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          desktop_notifications: boolean
+          email_notifications: boolean
+          id: string
+          notification_frequency: string
+          push_notifications: boolean
+          sound_notifications: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          desktop_notifications?: boolean
+          email_notifications?: boolean
+          id?: string
+          notification_frequency?: string
+          push_notifications?: boolean
+          sound_notifications?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          desktop_notifications?: boolean
+          email_notifications?: boolean
+          id?: string
+          notification_frequency?: string
+          push_notifications?: boolean
+          sound_notifications?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

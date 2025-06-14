@@ -24,11 +24,10 @@ export interface NotificationData {
  */
 export const sendNotification = async (notificationData: NotificationData) => {
   try {
-    const { data: preferences } = await supabase
-      .from('notification_preferences')
-      .select('*')
-      .eq('user_id', notificationData.recipientId)
-      .single();
+    // Get notification preferences
+    const { data: preferences } = await supabase.functions.invoke('notification-helpers', {
+      body: { action: 'get', userId: notificationData.recipientId }
+    });
 
     if (!preferences || preferences.notification_frequency === 'never') {
       return;
@@ -100,13 +99,11 @@ const sendEmailNotification = async (notificationData: NotificationData) => {
  */
 export const getNotificationPreferences = async (userId: string): Promise<NotificationPreferences | null> => {
   try {
-    const { data, error } = await supabase
-      .from('notification_preferences')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
+    const { data, error } = await supabase.functions.invoke('notification-helpers', {
+      body: { action: 'get', userId }
+    });
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       throw error;
     }
 
@@ -125,13 +122,16 @@ export const updateNotificationSettings = async (
   preferences: Partial<NotificationPreferences>
 ): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('notification_preferences')
-      .upsert({
-        user_id: userId,
-        ...preferences,
-        updated_at: new Date().toISOString(),
-      });
+    const { error } = await supabase.functions.invoke('notification-helpers', {
+      body: { 
+        action: 'upsert', 
+        userId, 
+        preferences: {
+          ...preferences,
+          updated_at: new Date().toISOString(),
+        }
+      }
+    });
 
     if (error) throw error;
 

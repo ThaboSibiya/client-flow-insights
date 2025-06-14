@@ -1,80 +1,130 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
-
-interface ConversationFromDB {
-  id: string;
-  company_owner_id: string;
-  customer_id: string | null;
-  employee_id: string | null;
-  type: string;
-  subject: string | null;
-  status: string;
-  last_message_at: string | null;
-  created_at: string;
-  updated_at: string;
-  messages: Array<{
-    id: string;
-    content: string;
-    created_at: string;
-    is_read: boolean | null;
-    sender_name: string;
-  }>;
-}
-
-interface ConversationWithMetadata extends Omit<ConversationFromDB, 'type' | 'status'> {
-  type: 'email' | 'whatsapp' | 'internal_chat' | 'form_submission';
-  status: 'active' | 'closed' | 'archived';
-  unread_count: number;
-  last_message_preview: string;
-}
+import { loadConversationsPaginated } from '@/services/conversationsPaginationService';
 
 export const useConversations = () => {
   const { user } = useAuth();
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [nextCursor, setNextCursor] = useState<string | undefined>();
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const { data: conversations, isLoading: loading, error } = useQuery({
-    queryKey: ['conversations', user?.id],
-    queryFn: async () => {
-      if (!user) throw new Error('No authenticated user');
+  const loadConversations = useCallback(async (reset = false) => {
+    if (!user) return;
 
-      const { data, error } = await supabase
-        .from('conversations')
-        .select(`
-          *,
-          messages (
-            id,
-            content,
-            created_at,
-            is_read,
-            sender_name
-          )
-        `)
-        .eq('company_owner_id', user.id)
-        .order('last_message_at', { ascending: false });
+    if (reset) {
+      setLoading(true);
+      setNextCursor(undefined);
+    } else {
+      setLoadingMore(true);
+    }
 
-      if (error) throw error;
+    try {
+      const result = await loadConversationsPaginated({
+        pageSize: 20,
+        cursor: reset ? undefined : nextCursor,
+        sortBy: 'last_message_at',
+        sortOrder: 'desc',
+      });
 
-      // Add unread count and last message preview with proper typing
-      const conversationsWithMetadata: ConversationWithMetadata[] = data?.map(conv => ({
-        ...conv,
-        type: conv.type as 'email' | 'whatsapp' | 'internal_chat' | 'form_submission',
-        status: conv.status as 'active' | 'closed' | 'archived',
-        unread_count: conv.messages?.filter((msg: any) => !msg.is_read).length || 0,
-        last_message_preview: conv.messages?.[conv.messages.length - 1]?.content?.substring(0, 50) + '...' || '',
-      })) || [];
+      if (reset) {
+        setConversations(result.conversations);
+      } else {
+        setConversations(prev => [...prev, ...result.conversations]);
+      }
 
-      return conversationsWithMetadata;
-    },
-    enabled: !!user,
-  });
+      setHasMore(result.hasMore);
+      setNextCursor(result.nextCursor);
 
-  const unreadCount = conversations?.reduce((total, conv) => total + (conv.unread_count || 0), 0) || 0;
+      // Calculate unread count
+      const unread = result.conversations.reduce((count, conv) => {
+        // This would need to be implemented based on your unread logic
+        return count + (conv.unread_count || 0);
+      }, 0);
+      
+      if (reset) {
+        setUnreadCount(unread);
+      } else {
+        setUnreadCount(prev => prev + unread);
+      }
+
+    } catch (error) {
+      console.error('Error loading conversations:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [user, nextCursor]);
+
+  const loadMoreConversations = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      loadConversations(false);
+    }
+  }, [loadConversations, loadingMore, hasMore]);
+
+  const refreshConversations = useCallback(() => {
+    loadConversations(true);
+  }, [loadConversations]);
+
+  // Set up real-time subscription for new conversations
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('conversations-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'conversations',
+        },
+        (payload) => {
+          const newConversation = payload.new;
+          setConversations(prev => [newConversation, ...prev]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations',
+        },
+        (payload) => {
+          const updatedConversation = payload.new;
+          setConversations(prev =>
+            prev.map(conv =>
+              conv.id === updatedConversation.id ? updatedConversation : conv
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  // Initial load
+  useEffect(() => {
+    if (user) {
+      loadConversations(true);
+    }
+  }, [user, loadConversations]);
 
   return {
     conversations,
     loading,
-    error,
+    loadingMore,
+    hasMore,
     unreadCount,
+    loadMoreConversations,
+    refreshConversations,
   };
 };
