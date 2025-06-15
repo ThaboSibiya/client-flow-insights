@@ -48,11 +48,11 @@ const AutomationSummary = ({
   };
 
   return (
-    <Card className="bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700/50">
+    <Card className="bg-quikle-blue/10 border-quikle-blue/20 dark:bg-quikle-blue/20 dark:border-quikle-blue/30">
       <CardContent className="p-3">
         <div className="flex items-start gap-3">
-          <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-blue-800 dark:text-blue-200">
+          <Info className="h-5 w-5 text-quikle-blue dark:text-quikle-platinum mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-quikle-blue dark:text-quikle-platinum">
             {generateSummary()}
           </p>
         </div>
