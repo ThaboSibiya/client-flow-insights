@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,16 +10,17 @@ import AutomationPreviewTab from './automation-builder/AutomationPreviewTab';
 
 interface AutomationBuilderProps {
   onClose: () => void;
+  initialData?: any;
 }
 
-const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
-  const [automationName, setAutomationName] = useState('');
-  const [automationType, setAutomationType] = useState<'customer' | 'ticket'>('customer');
-  const [triggerType, setTriggerType] = useState<'simple' | 'advanced'>('simple');
-  const [simpleTrigger, setSimpleTrigger] = useState('');
-  const [conditionGroups, setConditionGroups] = useState<any[]>([]);
-  const [actions, setActions] = useState<any[]>([]);
-  const [workflowNodes, setWorkflowNodes] = useState<any[]>([]);
+const AutomationBuilder = ({ onClose, initialData = {} }: AutomationBuilderProps) => {
+  const [automationName, setAutomationName] = useState(initialData.automationName || '');
+  const [automationType, setAutomationType] = useState<'customer' | 'ticket'>(initialData.automationType || 'customer');
+  const [triggerType, setTriggerType] = useState<'simple' | 'advanced'>(initialData.triggerType || 'simple');
+  const [simpleTrigger, setSimpleTrigger] = useState(initialData.simpleTrigger || '');
+  const [conditionGroups, setConditionGroups] = useState<any[]>(initialData.conditionGroups || []);
+  const [actions, setActions] = useState<any[]>(initialData.actions || []);
+  const [workflowNodes, setWorkflowNodes] = useState<any[]>(initialData.workflowNodes || []);
   const [activeTab, setActiveTab] = useState('details');
 
   const handleSave = () => {
@@ -46,8 +46,8 @@ const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
     (actions.length > 0 || workflowNodes.length > 0);
 
   return (
-    <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+    <div className="space-y-6 h-full flex flex-col">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow flex flex-col">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="details" className="flex items-center gap-1">
             <Zap className="h-4 w-4" />
@@ -68,55 +68,57 @@ const AutomationBuilder = ({ onClose }: AutomationBuilderProps) => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="details" className="space-y-4">
-          <AutomationBasicInfo
-            automationName={automationName}
-            setAutomationName={setAutomationName}
-            automationType={automationType}
-            setAutomationType={setAutomationType}
-            triggerType={triggerType}
-            setTriggerType={setTriggerType}
-          />
-        </TabsContent>
-
-        <TabsContent value="triggers" className="space-y-4">
-          <AutomationTriggerConfig
-            triggerType={triggerType}
-            automationType={automationType}
-            simpleTrigger={simpleTrigger}
-            setSimpleTrigger={setSimpleTrigger}
-            conditionGroups={conditionGroups}
-            setConditionGroups={setConditionGroups}
-          />
-        </TabsContent>
-
-        <TabsContent value="actions" className="space-y-4">
-          <AutomationActionsConfig
-            actions={actions}
-            setActions={setActions}
-          />
-        </TabsContent>
-
-        <TabsContent value="workflow" className="space-y-4">
-          <AutomationWorkflowConfig
-            workflowNodes={workflowNodes}
-            setWorkflowNodes={setWorkflowNodes}
-          />
-        </TabsContent>
-
-        <TabsContent value="preview" className="space-y-4">
-          <AutomationPreviewTab
-            automationName={automationName}
-            automationType={automationType}
-            triggerType={triggerType}
-            simpleTrigger={simpleTrigger}
-            conditionGroups={conditionGroups}
-            actions={actions}
-          />
-        </TabsContent>
+        <div className="flex-grow overflow-y-auto pt-4">
+            <TabsContent value="details" className="space-y-4 m-0">
+              <AutomationBasicInfo
+                automationName={automationName}
+                setAutomationName={setAutomationName}
+                automationType={automationType}
+                setAutomationType={setAutomationType}
+                triggerType={triggerType}
+                setTriggerType={setTriggerType}
+              />
+            </TabsContent>
+    
+            <TabsContent value="triggers" className="space-y-4 m-0">
+              <AutomationTriggerConfig
+                triggerType={triggerType}
+                automationType={automationType}
+                simpleTrigger={simpleTrigger}
+                setSimpleTrigger={setSimpleTrigger}
+                conditionGroups={conditionGroups}
+                setConditionGroups={setConditionGroups}
+              />
+            </TabsContent>
+    
+            <TabsContent value="actions" className="space-y-4 m-0">
+              <AutomationActionsConfig
+                actions={actions}
+                setActions={setActions}
+              />
+            </TabsContent>
+    
+            <TabsContent value="workflow" className="space-y-4 m-0">
+              <AutomationWorkflowConfig
+                workflowNodes={workflowNodes}
+                setWorkflowNodes={setWorkflowNodes}
+              />
+            </TabsContent>
+    
+            <TabsContent value="preview" className="space-y-4 m-0">
+              <AutomationPreviewTab
+                automationName={automationName}
+                automationType={automationType}
+                triggerType={triggerType}
+                simpleTrigger={simpleTrigger}
+                conditionGroups={conditionGroups}
+                actions={actions}
+              />
+            </TabsContent>
+        </div>
       </Tabs>
 
-      <div className="flex justify-end gap-2 pt-4 border-t">
+      <div className="flex justify-end gap-2 pt-4 border-t sticky bottom-0 bg-white dark:bg-zinc-900 py-4">
         <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>
