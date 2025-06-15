@@ -20,6 +20,8 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Conversations from "./pages/Conversations";
+import AuditLog from "./pages/AuditLog";
+import AdminProtectedRoute from "./components/auth/AdminProtectedRoute";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -89,6 +91,11 @@ const App = () => (
                       <Route path="employees" element={
                         <ErrorBoundary>
                           <Employees />
+                        </ErrorBoundary>
+                      } />
+                      <Route path="audit-log" element={
+                        <ErrorBoundary>
+                          <AdminProtectedRoute element={<AuditLog />} />
                         </ErrorBoundary>
                       } />
                     </Route>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -8,11 +9,14 @@ import {
   BarChart3, 
   FileText, 
   UserPlus,
-  UserCog
+  UserCog,
+  ShieldCheck
 } from 'lucide-react';
+import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 
 const Sidebar = () => {
   const location = useLocation();
+  const { data: employee } = useEmployeeProfile();
 
   const menuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -24,6 +28,10 @@ const Sidebar = () => {
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/onboarding', icon: UserPlus, label: 'Onboarding' },
   ];
+
+  if (employee?.role === 'admin') {
+    menuItems.splice(4, 0, { path: '/audit-log', icon: ShieldCheck, label: 'Audit Log' });
+  }
 
   return (
     <div className="w-64 bg-white border-r border-quikle-silver min-h-screen">

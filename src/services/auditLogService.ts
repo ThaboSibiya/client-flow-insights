@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 const getEmployeeIdFromUserId = async (userId: string): Promise<string | null> => {
@@ -70,4 +69,44 @@ export const logFileAccess = async (filePath: string, action: FileAction) => {
   } catch (error: any) {
     console.error(`Error logging file ${action} event:`, error.message);
   }
+};
+
+export const getLoginHistory = async () => {
+  const { data, error } = await supabase
+    .from('employee_login_history')
+    .select(`
+      id,
+      login_timestamp,
+      ip_address,
+      user_agent,
+      employees (
+        first_name,
+        last_name,
+        email
+      )
+    `)
+    .order('login_timestamp', { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
+
+export const getFileAccessHistory = async () => {
+  const { data, error } = await supabase
+    .from('file_access_history')
+    .select(`
+      id,
+      accessed_at,
+      file_path,
+      action,
+      employees (
+        first_name,
+        last_name,
+        email
+      )
+    `)
+    .order('accessed_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
 };
