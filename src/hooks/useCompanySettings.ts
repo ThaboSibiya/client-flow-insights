@@ -53,7 +53,9 @@ export const useCompanySetting = (key: string) => {
                 title: 'Setting Saved',
                 description: `The setting has been updated successfully.`,
             });
-            queryClient.setQueryData([SETTINGS_QUERY_KEY, key], { value: data.value.value });
+            // The type of data.value is Json, which is too broad for TypeScript to know it has a 'value' property.
+            // Casting to `any` and using optional chaining resolves the type error safely.
+            queryClient.setQueryData([SETTINGS_QUERY_KEY, key], { value: (data.value as any)?.value });
         },
         onError: (err: Error) => {
             toast({
