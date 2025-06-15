@@ -21,9 +21,6 @@ const Layout = () => {
                   <p className="text-sm text-quikle-neutral">Innovation Suite</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium luxury-text">Professional Dashboard</span>
-              </div>
             </div>
           </header>
           
