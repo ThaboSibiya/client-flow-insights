@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,13 +18,15 @@ import {
   MoreVertical,
   Wifi,
   WifiOff,
-  Settings
+  Settings,
+  Mic
 } from 'lucide-react';
 import ConversationsList from '@/components/conversations/ConversationsList';
 import MessageThread from '@/components/conversations/MessageThread';
 import ConversationFiltersAdvanced from '@/components/conversations/ConversationFiltersAdvanced';
 import NewConversationDialog from '@/components/conversations/NewConversationDialog';
 import NotificationSettings from '@/components/conversations/NotificationSettings';
+import VoiceInterface from '@/components/voice/VoiceInterface';
 import { useConversations } from '@/hooks/useConversations';
 import { useConversationFilters } from '@/hooks/useConversationFilters';
 import { useRealtimeConversations } from '@/hooks/useRealtimeConversations';
@@ -35,6 +36,7 @@ const Conversations = () => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   
   const { conversations, loading, unreadCount } = useConversations();
   const { isConnected } = useRealtimeConversations();
@@ -73,6 +75,7 @@ const Conversations = () => {
                 ) : (
                   <WifiOff className="h-4 w-4 text-red-500" />
                 )}
+                <Mic className={`h-4 w-4 text-gray-500 transition-colors ${isSpeaking ? 'text-red-500 animate-pulse' : ''}`} />
               </div>
               <p className="text-quikle-neutral mt-1">Unified communication center</p>
             </div>
@@ -189,6 +192,7 @@ const Conversations = () => {
         open={showNewDialog} 
         onOpenChange={setShowNewDialog} 
       />
+      <VoiceInterface onSpeakingChange={setIsSpeaking} />
     </div>
   );
 };
