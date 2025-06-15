@@ -98,14 +98,14 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-broker-primary/5 to-broker-accent/5">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-quikle-platinum">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-broker-primary via-broker-secondary to-broker-accent bg-clip-text text-transparent">Broker CRM</h1>
-          <p className="mt-2 text-muted-foreground">Manage your customers efficiently</p>
+          <h1 className="text-3xl font-bold luxury-text">Quikle CRM</h1>
+          <p className="mt-2 text-quikle-slate">Manage your customers efficiently</p>
         </div>
         
-        <Card className="border-white/20 shadow-xl bg-white/90 backdrop-blur-sm">
+        <Card className="glass-effect">
           <CardHeader>
             <CardTitle className="text-center">Welcome</CardTitle>
             <CardDescription className="text-center">Sign in to your account or create a new one</CardDescription>
@@ -156,7 +156,7 @@ const Auth = () => {
                 <CardFooter>
                   <Button 
                     type="submit" 
-                    className="w-full bg-gradient-to-r from-broker-primary to-broker-accent hover:shadow-lg"
+                    className="w-full quikle-button-primary"
                     disabled={loading}
                   >
                     <LogIn className="mr-2 h-4 w-4" />
@@ -206,7 +206,7 @@ const Auth = () => {
                 <CardFooter>
                   <Button 
                     type="submit" 
-                    className="w-full bg-gradient-to-r from-broker-secondary to-broker-accent hover:shadow-lg"
+                    className="w-full quikle-button-primary"
                     disabled={loading}
                   >
                     <UserPlus className="mr-2 h-4 w-4" />
