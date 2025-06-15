@@ -19,14 +19,12 @@ const AutomationPreviewTab = ({
   conditionGroups,
   actions
 }: AutomationPreviewTabProps) => {
-  const trigger = triggerType === 'simple' ? simpleTrigger : { type: 'advanced', conditionGroups };
 
   return (
     <AutomationPreview
       automationName={automationName}
       automationType={automationType}
       triggerType={triggerType}
-      trigger={trigger}
       actions={actions}
       conditionGroups={conditionGroups}
       simpleTrigger={simpleTrigger}
