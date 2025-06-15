@@ -8,7 +8,7 @@ import DashboardLayoutManager from '@/components/dashboard/DashboardLayoutManage
 import RealtimeActivityFeed from '@/components/dashboard/RealtimeActivityFeed';
 import QuickActions from '@/components/dashboard/QuickActions';
 import InteractiveMetrics from '@/components/dashboard/InteractiveMetrics';
-import { Users, ChartBar, CircleCheck, Database } from 'lucide-react';
+import { Users, Clock, CircleCheck, Database } from 'lucide-react';
 import { generateMonthlyActivityData } from '@/utils/chart-utils';
 
 const Dashboard = () => {
@@ -50,13 +50,13 @@ const Dashboard = () => {
             color="bg-gradient-to-br from-quikle-blue to-quikle-secondary"
           />
           <StatusCard 
-            title="Pending Policies" 
+            title="Pending Customers" 
             count={pendingCustomers} 
-            icon={<ChartBar size={24} className="text-white" />} 
-            color="bg-gradient-to-br from-quikle-accent to-quikle-neutral"
+            icon={<Clock size={24} className="text-white" />} 
+            color="bg-gradient-to-br from-quikle-purple to-quikle-accent"
           />
           <StatusCard 
-            title="Finalised Sales" 
+            title="Finalised Deals" 
             count={finalisedCustomers} 
             icon={<CircleCheck size={24} className="text-white" />} 
             color="bg-gradient-to-br from-quikle-success to-emerald-600"
