@@ -157,7 +157,7 @@ const IntegrationActionConfigForm = ({ action, updateActionConfig }: Integration
               <Input
                 value={config.url}
                 onChange={(e) => updateActionConfig(action.id, 'url', e.target.value)}
-                placeholder="https://api.example.com/webhook"
+                placeholder="e.g., Zapier, N8N, or Make.com webhook"
               />
             </div>
             <div>

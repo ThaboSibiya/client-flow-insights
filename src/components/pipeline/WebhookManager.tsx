@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,18 +22,7 @@ interface WebhookEndpoint {
 
 const WebhookManager = () => {
   const { toast } = useToast();
-  const [webhooks, setWebhooks] = useState<WebhookEndpoint[]>([
-    {
-      id: '1',
-      name: 'Zapier Integration',
-      url: 'https://hooks.zapier.com/hooks/catch/123456/abcdef/',
-      secret: 'whsec_1234567890abcdef',
-      isActive: true,
-      events: ['customer.created', 'ticket.updated', 'automation.triggered'],
-      lastTriggered: '2024-06-14T10:30:00Z',
-      triggerCount: 156
-    }
-  ]);
+  const [webhooks, setWebhooks] = useState<WebhookEndpoint[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [newWebhook, setNewWebhook] = useState({
     name: '',
