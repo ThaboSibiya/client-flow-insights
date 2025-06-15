@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,22 +28,22 @@ interface EmployeeListProps {
 const EmployeeList = ({ employees, loading, onEditEmployee }: EmployeeListProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'inactive': return 'bg-gray-100 text-gray-800';
-      case 'suspended': return 'bg-yellow-100 text-yellow-800';
-      case 'terminated': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active': return 'bg-green-50 text-quikle-success border border-quikle-success/20';
+      case 'inactive': return 'bg-quikle-platinum text-quikle-slate border border-quikle-silver';
+      case 'suspended': return 'bg-quikle-crystal text-quikle-accent border border-quikle-accent/30';
+      case 'terminated': return 'bg-red-50 text-quikle-danger border border-quikle-danger/20';
+      default: return 'bg-quikle-platinum text-quikle-slate border border-quikle-silver';
     }
   };
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-purple-100 text-purple-800';
-      case 'manager': return 'bg-blue-100 text-blue-800';
-      case 'supervisor': return 'bg-indigo-100 text-indigo-800';
-      case 'employee': return 'bg-green-100 text-green-800';
-      case 'intern': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'admin': return 'bg-purple-50 text-quikle-purple border border-quikle-purple/20';
+      case 'manager': return 'bg-blue-50 text-quikle-info border border-quikle-info/20';
+      case 'supervisor': return 'bg-quikle-platinum text-quikle-secondary border border-quikle-silver';
+      case 'employee': return 'bg-green-50 text-quikle-success border border-quikle-success/20';
+      case 'intern': return 'bg-quikle-crystal text-quikle-slate border border-quikle-silver/80';
+      default: return 'bg-quikle-platinum text-quikle-slate border border-quikle-silver';
     }
   };
 
@@ -68,7 +67,7 @@ const EmployeeList = ({ employees, loading, onEditEmployee }: EmployeeListProps)
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-3 mb-2 flex-wrap">
                   <h3 className="text-lg font-semibold text-quikle-charcoal">
                     {employee.first_name} {employee.last_name}
                   </h3>

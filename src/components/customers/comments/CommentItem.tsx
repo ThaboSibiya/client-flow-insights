@@ -35,23 +35,23 @@ const CommentItem = ({
     <div
       className={`relative p-4 rounded-lg border-l-4 ${
         comment.is_internal 
-          ? 'bg-gradient-to-r from-slate-50 to-slate-100 border-l-slate-500 border border-slate-200' 
-          : 'bg-gradient-to-r from-blue-50 to-blue-100 border-l-blue-500 border border-blue-200'
+          ? 'bg-gradient-to-r from-quikle-crystal to-quikle-platinum border-l-quikle-neutral border border-quikle-silver' 
+          : 'bg-gradient-to-r from-sky-50 to-sky-100 border-l-quikle-info border border-quikle-info/20'
       }`}
     >
       {/* Comment type indicator */}
       <div className="absolute top-2 right-2">
         {comment.is_internal ? (
-          <Lock className="h-4 w-4 text-slate-600" />
+          <Lock className="h-4 w-4 text-quikle-slate" />
         ) : (
-          <MessageSquare className="h-4 w-4 text-blue-600" />
+          <MessageSquare className="h-4 w-4 text-quikle-info" />
         )}
       </div>
 
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className={`font-semibold text-sm ${
-            comment.is_internal ? 'text-slate-800' : 'text-blue-800'
+            comment.is_internal ? 'text-quikle-charcoal' : 'text-quikle-info'
           }`}>
             {comment.user_name}
           </span>
@@ -59,8 +59,8 @@ const CommentItem = ({
             variant={comment.is_internal ? "secondary" : "default"}
             className={`text-xs ${
               comment.is_internal 
-                ? 'bg-slate-100 text-slate-700 border-slate-300' 
-                : 'bg-blue-100 text-blue-700 border-blue-300'
+                ? 'bg-quikle-platinum text-quikle-slate border-quikle-silver' 
+                : 'bg-sky-100 text-quikle-info border-quikle-info/30'
             }`}
           >
             {comment.is_internal ? (
@@ -128,8 +128,8 @@ const CommentItem = ({
       ) : (
         <div className={`p-3 rounded-md ${
           comment.is_internal 
-            ? 'bg-white/60 border border-slate-200' 
-            : 'bg-white/60 border border-blue-200'
+            ? 'bg-white/60 border border-quikle-silver' 
+            : 'bg-white/60 border border-quikle-info/20'
         }`}>
           <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
             {comment.comment}
