@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,6 +18,36 @@ serve(async (req) => {
     if (!OPENAI_API_KEY) {
       throw new Error('OPENAI_API_KEY is not set');
     }
+
+    // Create a Supabase client with the user's authorization header
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+    );
+    
+    // Get the current user
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    
+    let knowledgeBaseInstructions = "";
+    if (user) {
+        // Fetch knowledge base files for the user
+        const { data: files, error: filesError } = await supabaseClient
+            .from('knowledge_base_files')
+            .select('file_name');
+
+        if (filesError) {
+            console.error("Error fetching knowledge base files:", filesError);
+        } else if (files && files.length > 0) {
+            const fileNames = files.map(f => f.file_name).join(', ');
+            knowledgeBaseInstructions = ` The user has uploaded the following documents for your reference, you should base your answers on them: ${fileNames}.`;
+        }
+    }
+
+    const baseInstructions = "You are a helpful assistant integrated into a CRM application. Greet the user and ask how you can help. Be concise and helpful. You can help users navigate around the application by using the `navigateTo` tool, and you can make phone calls to customers using the `makeCall` tool.";
+
+    const instructions = baseInstructions + knowledgeBaseInstructions;
+
     // Request an ephemeral token from OpenAI
     const response = await fetch("https://api.openai.com/v1/realtime/sessions", {
       method: "POST",
@@ -27,7 +58,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "gpt-4o", // Using the supported gpt-4o model
         voice: "alloy",
-        instructions: "You are a helpful assistant integrated into a CRM application. Greet the user and ask how you can help. Be concise and helpful. You can help users navigate around the application by using the `navigateTo` tool, and you can make phone calls to customers using the `makeCall` tool.",
+        instructions: instructions,
         tools: [
           {
             type: "function",
