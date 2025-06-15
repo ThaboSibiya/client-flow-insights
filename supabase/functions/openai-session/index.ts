@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
@@ -27,7 +26,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "gpt-4o",
         voice: "alloy",
-        instructions: "You are a helpful assistant integrated into a CRM application. Greet the user and ask how you can help. Be concise and helpful. You can also help users navigate around the application by using the `navigateTo` tool.",
+        instructions: "You are a helpful assistant integrated into a CRM application. Greet the user and ask how you can help. Be concise and helpful. You can help users navigate around the application by using the `navigateTo` tool, and you can make phone calls to customers using the `makeCall` tool.",
         tools: [
           {
             type: "function",
@@ -43,6 +42,25 @@ serve(async (req) => {
                 },
               },
               required: ["page"],
+            },
+          },
+          {
+            type: "function",
+            name: "makeCall",
+            description: "Make an outbound phone call to a customer.",
+            parameters: {
+              type: "object",
+              properties: {
+                phoneNumber: {
+                  type: "string",
+                  description: "The phone number to call in E.164 format (e.g., +15551234567).",
+                },
+                customerId: {
+                  type: "string",
+                  description: "The ID of the customer to call. Use this to associate the call with a customer record.",
+                },
+              },
+              required: ["phoneNumber"],
             },
           },
         ],

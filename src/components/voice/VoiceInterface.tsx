@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { RealtimeChat } from '@/utils/RealtimeAudio';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface VoiceInterfaceProps {
   onSpeakingChange: (speaking: boolean) => void;
@@ -43,6 +44,25 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange }) => 
     }
   };
 
+  const handleMakeCall = async (phoneNumber: string, customerId?: string) => {
+    toast({
+        title: "Initiating Call...",
+        description: `Placing a call to ${phoneNumber}.`,
+    });
+    
+    console.log(`Requesting call to ${phoneNumber} for customer ${customerId}`);
+
+    const { error } = await supabase.functions.invoke('make-call', {
+        body: { phoneNumber, customerId }
+    });
+
+    if (error) {
+        toast({ title: "Call Failed", description: error.message, variant: "destructive" });
+    } else {
+        toast({ title: "Call Initiated", description: `Call to ${phoneNumber} is being placed.` });
+    }
+  };
+
   const handleMessage = (event: any) => {
     console.log('Received message:', event);
     
@@ -55,15 +75,27 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange }) => 
       pendingToolCallsRef.current = event.item.tool_calls;
     } else if (event.type === 'response.function_call_arguments.done') {
         const toolCall = pendingToolCallsRef.current.find(tc => tc.id === event.call_id);
-        if (toolCall && toolCall.function.name === 'navigateTo') {
-            try {
-                const args = JSON.parse(event.arguments);
-                handleNavigation(args.page);
-                // Clear pending tool call after execution
-                pendingToolCallsRef.current = pendingToolCallsRef.current.filter(tc => tc.id !== event.call_id);
-            } catch (e) {
-                console.error("Failed to parse tool call arguments:", e);
-                toast({ title: "Error", description: "Could not execute AI command.", variant: "destructive" });
+        if (toolCall) {
+            if (toolCall.function.name === 'navigateTo') {
+                try {
+                    const args = JSON.parse(event.arguments);
+                    handleNavigation(args.page);
+                    // Clear pending tool call after execution
+                    pendingToolCallsRef.current = pendingToolCallsRef.current.filter(tc => tc.id !== event.call_id);
+                } catch (e) {
+                    console.error("Failed to parse tool call arguments:", e);
+                    toast({ title: "Error", description: "Could not execute AI command.", variant: "destructive" });
+                }
+            } else if (toolCall.function.name === 'makeCall') {
+                 try {
+                    const args = JSON.parse(event.arguments);
+                    handleMakeCall(args.phoneNumber, args.customerId);
+                    // Clear pending tool call after execution
+                    pendingToolCallsRef.current = pendingToolCallsRef.current.filter(tc => tc.id !== event.call_id);
+                } catch (e) {
+                    console.error("Failed to parse tool call arguments:", e);
+                    toast({ title: "Error", description: "Could not execute AI command.", variant: "destructive" });
+                }
             }
         }
     }
