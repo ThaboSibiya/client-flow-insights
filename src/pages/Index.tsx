@@ -109,6 +109,7 @@ const Index = () => {
       
       <div className="container max-w-6xl mx-auto px-4 py-16 relative z-10">
         <div className="flex flex-col items-center text-center mb-16">
+          <img src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" alt="Quikle Logo" className="h-24 w-24 mb-4" />
           <h1 
             ref={titleRef}
             className="text-5xl md:text-6xl font-bold luxury-text leading-tight transition-transform duration-300 mb-4"
@@ -116,8 +117,7 @@ const Index = () => {
           >
             Welcome to QUIKLE
           </h1>
-          <div className="w-24 h-1 bg-gradient-to-r from-quikle-primary to-quikle-secondary rounded-full mb-6"></div>
-          <p className="text-xl mt-6 text-quikle-slate max-w-3xl leading-relaxed min-h-[96px]">
+          <p className="text-xl mt-2 text-quikle-slate max-w-3xl leading-relaxed min-h-[96px]">
             {subtitle}
           </p>
         </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -15,9 +14,7 @@ const Layout = () => {
             <SidebarTrigger className="md:hidden" />
             <div className="flex-1 flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-quikle-primary to-quikle-secondary flex items-center justify-center shadow-elegant">
-                  <span className="text-white font-bold text-lg">Q</span>
-                </div>
+                <img src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" alt="Quikle Logo" className="h-10 w-10" />
                 <div className="hidden sm:block">
                   <h1 className="text-xl font-bold luxury-text">QUIKLE</h1>
                   <p className="text-sm text-quikle-neutral">Universal Business Management</p>

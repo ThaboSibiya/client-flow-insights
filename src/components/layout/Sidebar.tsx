@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -35,8 +36,9 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 bg-white border-r border-quikle-silver min-h-screen">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-quikle-primary">Quikle CRM</h1>
+      <div className="p-6 flex items-center gap-3">
+        <img src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" alt="Quikle Logo" className="h-10 w-10" />
+        <h1 className="text-2xl font-bold text-quikle-primary">Quikle</h1>
       </div>
       
       <nav className="mt-6">
