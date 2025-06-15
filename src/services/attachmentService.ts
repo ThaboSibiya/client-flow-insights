@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { logFileAccess } from './auditLogService';
 
 export interface AttachmentFile {
   id: string;
@@ -30,6 +30,8 @@ export const uploadAttachment = async (
 
     if (error) throw error;
 
+    await logFileAccess(filePath, 'upload');
+
     const { data: { publicUrl } } = supabase.storage
       .from('conversation-attachments')
       .getPublicUrl(filePath);
@@ -55,6 +57,9 @@ export const deleteAttachment = async (filePath: string): Promise<boolean> => {
       .remove([filePath]);
 
     if (error) throw error;
+
+    await logFileAccess(filePath, 'delete');
+    
     return true;
   } catch (error) {
     console.error('Error deleting attachment:', error);

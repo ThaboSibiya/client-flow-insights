@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { logFileAccess } from './auditLogService';
 
 export interface TicketAttachment {
   id: string;
@@ -36,6 +37,8 @@ export const uploadTicketAttachment = async (
       console.error('Error uploading file:', storageError.message);
       throw storageError;
     }
+
+    await logFileAccess(storageData.path, 'upload');
 
     // Save attachment record in database
     const { data: attachmentData, error: dbError } = await supabase
@@ -121,6 +124,8 @@ export const deleteTicketAttachment = async (
       console.error('Error deleting attachment record:', dbError.message);
       throw dbError;
     }
+
+    await logFileAccess(filePath, 'delete');
 
     return true;
   } catch (error: any) {

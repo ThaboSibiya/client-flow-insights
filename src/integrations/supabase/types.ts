@@ -181,6 +181,38 @@ export type Database = {
           },
         ]
       }
+      employee_login_history: {
+        Row: {
+          employee_id: string
+          id: string
+          ip_address: string | null
+          login_timestamp: string
+          user_agent: string | null
+        }
+        Insert: {
+          employee_id: string
+          id?: string
+          ip_address?: string | null
+          login_timestamp?: string
+          user_agent?: string | null
+        }
+        Update: {
+          employee_id?: string
+          id?: string
+          ip_address?: string | null
+          login_timestamp?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_login_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_privileges: {
         Row: {
           can_create_quotes: boolean | null
@@ -311,6 +343,38 @@ export type Database = {
           {
             foreignKeyName: "employees_manager_id_fkey"
             columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      file_access_history: {
+        Row: {
+          accessed_at: string
+          action: string
+          employee_id: string
+          file_path: string
+          id: string
+        }
+        Insert: {
+          accessed_at?: string
+          action: string
+          employee_id: string
+          file_path: string
+          id?: string
+        }
+        Update: {
+          accessed_at?: string
+          action?: string
+          employee_id?: string
+          file_path?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_access_history_employee_id_fkey"
+            columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]

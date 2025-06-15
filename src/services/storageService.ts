@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { logFileAccess } from './auditLogService';
 
 /**
  * Upload a file to the customer-docs bucket
@@ -26,6 +26,8 @@ export const uploadCustomerFile = async (
       console.error('Error uploading file:', error.message);
       throw error;
     }
+
+    await logFileAccess(data.path, 'upload');
 
     // Return the path to the uploaded file
     return data.path;
@@ -92,7 +94,7 @@ export const listCustomerFiles = async (
 export const deleteCustomerFile = async (
   userId: string,
   customerId: string,
-  fileName: string
+  fileName:string
 ): Promise<boolean> => {
   try {
     const filePath = `${userId}/${customerId}/${fileName}`;
@@ -105,6 +107,8 @@ export const deleteCustomerFile = async (
       console.error('Error deleting file:', error.message);
       throw error;
     }
+
+    await logFileAccess(filePath, 'delete');
 
     return true;
   } catch (error: any) {

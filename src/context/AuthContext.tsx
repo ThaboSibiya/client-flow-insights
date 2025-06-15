@@ -1,7 +1,7 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { logLoginHistory } from '@/services/auditLogService';
 
 interface AuthContextType {
   session: Session | null;
@@ -24,6 +24,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setLoading(false);
+        if (event === 'SIGNED_IN' && newSession?.user) {
+          logLoginHistory(newSession.user.id);
+        }
       }
     );
 
