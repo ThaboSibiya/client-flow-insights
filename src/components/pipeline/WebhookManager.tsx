@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -208,7 +209,7 @@ const WebhookManager = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Webhook className="h-5 w-5 text-blue-500" />
+                  <Webhook className="h-5 w-5 text-quikle-info" />
                   <div>
                     <CardTitle className="text-base">{webhook.name}</CardTitle>
                     <p className="text-sm text-muted-foreground">
@@ -298,9 +299,8 @@ const WebhookManager = () => {
                 </Button>
                 <Button 
                   size="sm" 
-                  variant="outline"
+                  variant="destructive"
                   onClick={() => deleteWebhook(webhook.id)}
-                  className="text-red-600"
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
                   Delete

@@ -11,7 +11,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white shadow-md hover:shadow-luxury hover:from-quikle-primary/90 hover:to-quikle-secondary/90",
-        destructive: "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md hover:shadow-luxury hover:from-red-700 hover:to-red-800",
+        destructive: "bg-quikle-danger text-white shadow-md hover:shadow-luxury hover:bg-quikle-danger/90",
         outline: "border border-quikle-silver bg-white hover:bg-gradient-to-r hover:from-quikle-crystal hover:to-quikle-platinum hover:text-quikle-primary shadow-sm hover:shadow-md",
         secondary: "bg-gradient-to-r from-quikle-platinum to-quikle-crystal text-quikle-primary shadow-sm hover:shadow-md hover:from-quikle-silver/50 hover:to-quikle-platinum",
         ghost: "hover:bg-gradient-to-r hover:from-quikle-crystal hover:to-quikle-platinum hover:text-quikle-primary",
