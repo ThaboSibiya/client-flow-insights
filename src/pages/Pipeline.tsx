@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Zap } from "lucide-react";
-import PipelineSettings from '@/components/pipeline/PipelineSettings';
+import { Users, Ticket, Zap, Settings } from "lucide-react";
+import CustomerPipeline from '@/components/pipeline/CustomerPipeline';
+import TicketPipeline from '@/components/pipeline/TicketPipeline';
 import AutomationManager from '@/components/pipeline/AutomationManager';
+import PipelineSettings from '@/components/pipeline/PipelineSettings';
 
 const Pipeline = () => {
-  const [activeTab, setActiveTab] = useState('automations');
+  const [activeTab, setActiveTab] = useState('customers');
 
   return (
     <div className="space-y-6">
@@ -15,12 +17,20 @@ const Pipeline = () => {
           Pipeline
         </h1>
         <p className="text-muted-foreground mt-1">
-          Manage your automations and pipeline settings.
+          Manage your customer and ticket pipelines, automations, and settings.
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="customers" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Customers
+          </TabsTrigger>
+          <TabsTrigger value="tickets" className="flex items-center gap-2">
+            <Ticket className="h-4 w-4" />
+            Tickets
+          </TabsTrigger>
           <TabsTrigger value="automations" className="flex items-center gap-2">
             <Zap className="h-4 w-4" />
             Automations
@@ -30,6 +40,14 @@ const Pipeline = () => {
             Settings
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="customers" className="mt-6">
+          <CustomerPipeline />
+        </TabsContent>
+
+        <TabsContent value="tickets" className="mt-6">
+          <TicketPipeline />
+        </TabsContent>
 
         <TabsContent value="automations" className="mt-6">
           <AutomationManager />
