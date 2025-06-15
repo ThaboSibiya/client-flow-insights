@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export class AudioRecorder {
@@ -108,7 +109,7 @@ export class RealtimeChat {
 
       // Connect to OpenAI's Realtime API
       const baseUrl = "https://api.openai.com/v1/realtime";
-      const model = "gpt-4o-realtime-preview-2024-12-17";
+      const model = "gpt-4o";
       const sdpResponse = await fetch(`${baseUrl}?model=${model}`, {
         method: "POST",
         body: offer.sdp,

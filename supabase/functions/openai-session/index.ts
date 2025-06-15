@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
@@ -24,7 +25,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-realtime-preview-2024-12-17",
+        model: "gpt-4o",
         voice: "alloy",
         instructions: "You are a helpful assistant integrated into a CRM application. Greet the user and ask how you can help. Be concise and helpful. You can also help users navigate around the application by using the `navigateTo` tool.",
         tools: [
