@@ -15,7 +15,7 @@ const AiAgentCard = () => {
           <CardTitle className="flex items-center gap-2">
             <Phone className="text-quikle-primary" />
             <span>AI Voice Agent</span>
-          </Title>
+          </CardTitle>
           <CardDescription>Engage with customers via our AI-powered voice agent.</CardDescription>
         </CardHeader>
         <CardContent>
