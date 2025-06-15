@@ -1,10 +1,12 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Send, Eye, FileText, MessageSquare } from "lucide-react";
+import { Download, Send, Eye, FileText, MessageSquare, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { QuoteInvoice } from '@/types/quote';
 import { useCompanyProfile } from '@/hooks/useCompanyProfile';
+import { useQuoteEmail } from '@/hooks/useQuoteEmail';
 
 interface QuotePreviewProps {
   quote: QuoteInvoice | null;
@@ -12,13 +14,12 @@ interface QuotePreviewProps {
 
 const QuotePreview = ({ quote }: QuotePreviewProps) => {
   const { profile } = useCompanyProfile();
+  const { sendQuoteEmail, isSending } = useQuoteEmail();
   
-  // Safety check - if no quote is provided, return null
   if (!quote) {
     return null;
   }
 
-  // Ensure items array exists and is an array
   const items = Array.isArray(quote.quote_invoice_items) ? quote.quote_invoice_items : [];
 
   const handleDownloadPDF = () => {
@@ -38,11 +39,9 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
   };
 
   const handleSendEmail = () => {
-    // This would open email sending dialog
-    toast({
-      title: "Email Sent",
-      description: `${quote.type === 'quote' ? 'Quote' : 'Invoice'} has been sent to ${quote.customer_email || 'customer'}`
-    });
+    if (quote) {
+      sendQuoteEmail(quote);
+    }
   };
 
   const handleSendWhatsApp = () => {
@@ -79,9 +78,10 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
           <Button 
             onClick={handleSendEmail}
             className="flex items-center gap-2 bg-quikle-primary hover:bg-quikle-secondary text-white"
+            disabled={isSending || !quote || quote.status === 'sent' || quote.status === 'paid' || !quote.customer_email}
           >
-            <Send className="h-4 w-4" />
-            Email
+            {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {isSending ? 'Sending...' : 'Email'}
           </Button>
           <Button 
             onClick={handleSendWhatsApp}

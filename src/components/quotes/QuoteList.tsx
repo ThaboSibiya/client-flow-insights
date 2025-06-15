@@ -1,11 +1,13 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, Edit, Download, Send, Search, Filter } from "lucide-react";
+import { Eye, Edit, Download, Send, Search, Filter, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { QuoteInvoice } from '@/types/quote';
+import { useQuoteEmail } from '@/hooks/useQuoteEmail';
 
 interface QuoteListProps {
   quotes: QuoteInvoice[];
@@ -18,6 +20,7 @@ const QuoteList = ({ quotes, onSelectQuote, onPreview, onEdit }: QuoteListProps)
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const { sendQuoteEmail, isSending } = useQuoteEmail();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -44,6 +47,10 @@ const QuoteList = ({ quotes, onSelectQuote, onPreview, onEdit }: QuoteListProps)
   const handleViewQuote = (quote: QuoteInvoice) => {
     onSelectQuote(quote);
     onPreview();
+  };
+
+  const handleSend = async (quote: QuoteInvoice) => {
+    await sendQuoteEmail(quote);
   };
 
   return (
@@ -166,8 +173,10 @@ const QuoteList = ({ quotes, onSelectQuote, onPreview, onEdit }: QuoteListProps)
                     <Button
                       size="sm"
                       className="bg-quikle-primary hover:bg-quikle-secondary text-white"
+                      onClick={() => handleSend(quote)}
+                      disabled={isSending || quote.status === 'sent' || quote.status === 'paid' || !quote.customer_email}
                     >
-                      <Send className="h-4 w-4" />
+                      {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>

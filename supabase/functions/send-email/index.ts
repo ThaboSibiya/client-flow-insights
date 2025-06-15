@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
@@ -76,13 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: `${senderName} <onboarding@resend.dev>`,
       to: [to],
       subject: subject,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          ${message}
-          <hr style="border: 1px solid #eee; margin: 20px 0;" />
-          <p style="color: #666; font-size: 12px;">This email was sent from your broker management system.</p>
-        </div>
-      `,
+      html: `${message}<hr style="border: 1px solid #eee; margin: 20px 0;" /><p style="color: #666; font-size: 12px;">This email was sent from your broker management system.</p>`,
       attachments: attachments.length > 0 ? attachments : undefined,
     });
 
