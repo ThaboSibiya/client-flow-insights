@@ -8,6 +8,7 @@ interface Condition {
   operator: string;
   value: string;
   type: 'text' | 'number' | 'date' | 'boolean';
+  error?: string;
 }
 
 interface FieldOperatorSelectorProps {

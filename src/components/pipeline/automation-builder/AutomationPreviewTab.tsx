@@ -29,6 +29,7 @@ const AutomationPreviewTab = ({
       trigger={trigger}
       actions={actions}
       conditionGroups={conditionGroups}
+      simpleTrigger={simpleTrigger}
     />
   );
 };

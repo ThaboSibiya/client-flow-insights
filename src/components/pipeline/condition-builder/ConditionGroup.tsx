@@ -13,6 +13,7 @@ interface Condition {
   operator: string;
   value: string;
   type: 'text' | 'number' | 'date' | 'boolean';
+  error?: string;
 }
 
 interface ConditionGroup {
@@ -42,6 +43,24 @@ const ConditionGroupComponent = ({
   onRemoveCondition,
   canRemoveGroup
 }: ConditionGroupProps) => {
+  const validateCondition = (condition: Condition): string | undefined => {
+    if (condition.type === 'number' && condition.value && isNaN(Number(condition.value))) {
+      return 'Value must be a valid number.';
+    }
+    // Future validation for other types can be added here.
+    return undefined;
+  };
+
+  const handleUpdateCondition = (conditionId: string, updates: Partial<Condition>) => {
+    const condition = group.conditions.find(c => c.id === conditionId);
+    if (!condition) return;
+
+    const updatedCondition = { ...condition, ...updates };
+    const error = validateCondition(updatedCondition);
+    
+    onUpdateCondition(group.id, conditionId, { ...updates, error });
+  };
+  
   return (
     <Card className="border-dashed border-2">
       <CardHeader className="pb-3">
@@ -76,12 +95,16 @@ const ConditionGroupComponent = ({
       </CardHeader>
       <CardContent className="space-y-3">
         {group.conditions.map((condition) => (
-          <ConditionRow
-            key={condition.id}
-            condition={condition}
-            onUpdate={(updates) => onUpdateCondition(group.id, condition.id, updates)}
-            onRemove={() => onRemoveCondition(group.id, condition.id)}
-          />
+          <div key={condition.id}>
+            <ConditionRow
+              condition={condition}
+              onUpdate={(updates) => handleUpdateCondition(condition.id, updates)}
+              onRemove={() => onRemoveCondition(group.id, condition.id)}
+            />
+            {condition.error && (
+              <p className="text-xs text-red-500 mt-1 px-1">{condition.error}</p>
+            )}
+          </div>
         ))}
         
         <Button 
