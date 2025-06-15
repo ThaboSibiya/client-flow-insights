@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Download, Send, Eye, FileText, MessageSquare } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { QuoteInvoice } from '@/types/quote';
+import { useCompanyProfile } from '@/hooks/useCompanyProfile';
 
 interface QuotePreviewProps {
   quote: QuoteInvoice | null;
 }
 
 const QuotePreview = ({ quote }: QuotePreviewProps) => {
+  const { companyLogoUrl } = useCompanyProfile();
+  
   // Safety check - if no quote is provided, return null
   if (!quote) {
     return null;
@@ -103,11 +106,18 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
                 {quote.number}
               </p>
             </div>
-            <div className="text-right">
-              <h2 className="text-xl font-semibold text-quikle-charcoal">Your Company</h2>
-              <p className="text-quikle-slate">123 Business Street</p>
-              <p className="text-quikle-slate">Johannesburg, GP 2000</p>
-              <p className="text-quikle-slate">contact@company.co.za</p>
+            <div className="text-right flex items-start gap-4">
+              <div>
+                <h2 className="text-xl font-semibold text-quikle-charcoal">Your Company</h2>
+                <p className="text-quikle-slate">123 Business Street</p>
+                <p className="text-quikle-slate">Johannesburg, GP 2000</p>
+                <p className="text-quikle-slate">contact@company.co.za</p>
+              </div>
+              {companyLogoUrl && (
+                <div className="w-24 h-24 flex items-center justify-center">
+                  <img src={companyLogoUrl} alt="Company Logo" className="max-w-full max-h-full object-contain" />
+                </div>
+              )}
             </div>
           </div>
 

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import InvoiceForm from "@/components/quotes/InvoiceForm";
 import QuotePreview from "@/components/quotes/QuotePreview";
 import AutomationSettings from "@/components/quotes/AutomationSettings";
 import QuoteList from "@/components/quotes/QuoteList";
+import QuoteSettings from "@/components/quotes/QuoteSettings";
 import { useQuoteData, QuoteInvoiceInsert } from '@/hooks/useQuoteData';
 import { QuoteInvoice as QuoteInvoiceType } from '@/types/quote';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -80,7 +82,7 @@ const QuoteInvoice = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
+        <TabsList className="grid w-full grid-cols-6 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
           <TabsTrigger value="quotes" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
             All Quotes
           </TabsTrigger>
@@ -92,6 +94,9 @@ const QuoteInvoice = () => {
           </TabsTrigger>
           <TabsTrigger value="automation" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
             Automation
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
+            Settings
           </TabsTrigger>
           <TabsTrigger value="preview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
             Preview
@@ -125,6 +130,10 @@ const QuoteInvoice = () => {
 
         <TabsContent value="automation" className="mt-6">
           <AutomationSettings />
+        </TabsContent>
+        
+        <TabsContent value="settings" className="mt-6">
+          <QuoteSettings />
         </TabsContent>
 
         <TabsContent value="preview" className="mt-6">
