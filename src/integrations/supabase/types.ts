@@ -9,6 +9,69 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      automation_settings: {
+        Row: {
+          auto_create_invoice_from_quote: boolean
+          created_at: string
+          email_auto_send: boolean
+          email_message: string | null
+          email_subject: string | null
+          email_template: string
+          final_follow_up_days: number
+          first_follow_up_days: number
+          follow_up_enabled: boolean
+          id: string
+          mark_overdue_after_days: number
+          reminder_template: string | null
+          second_follow_up_days: number
+          send_on_create: boolean
+          updated_at: string
+          user_id: string
+          whatsapp_enabled: boolean
+          whatsapp_template: string | null
+        }
+        Insert: {
+          auto_create_invoice_from_quote?: boolean
+          created_at?: string
+          email_auto_send?: boolean
+          email_message?: string | null
+          email_subject?: string | null
+          email_template?: string
+          final_follow_up_days?: number
+          first_follow_up_days?: number
+          follow_up_enabled?: boolean
+          id?: string
+          mark_overdue_after_days?: number
+          reminder_template?: string | null
+          second_follow_up_days?: number
+          send_on_create?: boolean
+          updated_at?: string
+          user_id: string
+          whatsapp_enabled?: boolean
+          whatsapp_template?: string | null
+        }
+        Update: {
+          auto_create_invoice_from_quote?: boolean
+          created_at?: string
+          email_auto_send?: boolean
+          email_message?: string | null
+          email_subject?: string | null
+          email_template?: string
+          final_follow_up_days?: number
+          first_follow_up_days?: number
+          follow_up_enabled?: boolean
+          id?: string
+          mark_overdue_after_days?: number
+          reminder_template?: string | null
+          second_follow_up_days?: number
+          send_on_create?: boolean
+          updated_at?: string
+          user_id?: string
+          whatsapp_enabled?: boolean
+          whatsapp_template?: string | null
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           company_owner_id: string
