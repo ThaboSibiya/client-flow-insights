@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -17,7 +18,7 @@ const Layout = () => {
                 <img src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" alt="Quikle Logo" className="h-10 w-10" />
                 <div className="hidden sm:block">
                   <h1 className="text-xl font-bold luxury-text">QUIKLE</h1>
-                  <p className="text-sm text-quikle-neutral">Universal Business Management</p>
+                  <p className="text-sm text-quikle-neutral">Innovation Suite</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
