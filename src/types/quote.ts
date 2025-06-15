@@ -35,3 +35,28 @@ export interface QuoteInvoice {
   updated_at: string;
   quote_invoice_items: QuoteInvoiceItem[];
 }
+
+export interface QuoteInvoiceItemInsert {
+  description: string;
+  quantity: number;
+  rate: number;
+}
+export interface QuoteInvoiceInsert {
+  customer_id?: string | null;
+  customer_name?: string | null;
+  customer_email?: string | null;
+  type: QuoteInvoiceType;
+  number: string;
+  subject?: string | null;
+  status: QuoteInvoiceStatus;
+  issue_date: string;
+  due_date?: string | null;
+  valid_until?: string | null;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  total: number;
+  notes?: string | null;
+  terms?: string | null;
+  items: QuoteInvoiceItemInsert[];
+}

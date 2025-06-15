@@ -10,8 +10,10 @@ import QuotePreview from "@/components/quotes/QuotePreview";
 import AutomationSettings from "@/components/quotes/AutomationSettings";
 import QuoteList from "@/components/quotes/QuoteList";
 import QuoteSettings from "@/components/quotes/QuoteSettings";
-import { useQuoteData, QuoteInvoiceInsert } from '@/hooks/useQuoteData';
-import { QuoteInvoice as QuoteInvoiceType } from '@/types/quote';
+import { useFetchQuotes } from '@/hooks/useFetchQuotes';
+import { useCreateQuote } from '@/hooks/mutations/useCreateQuote';
+import { useUpdateQuote } from '@/hooks/mutations/useUpdateQuote';
+import { QuoteInvoiceInsert, QuoteInvoice as QuoteInvoiceType } from '@/types/quote';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const QuoteInvoice = () => {
@@ -19,7 +21,9 @@ const QuoteInvoice = () => {
   const [selectedQuote, setSelectedQuote] = useState<QuoteInvoiceType | null>(null);
   const [editingQuote, setEditingQuote] = useState<QuoteInvoiceType | null>(null);
 
-  const { quotes, isLoading, createQuoteInvoice, updateQuoteInvoice } = useQuoteData();
+  const { quotes, isLoading } = useFetchQuotes();
+  const { createQuoteInvoice } = useCreateQuote();
+  const { updateQuoteInvoice } = useUpdateQuote();
 
   const handleSave = async (data: QuoteInvoiceInsert) => {
     try {
@@ -153,5 +157,3 @@ const QuoteInvoice = () => {
     </div>
   );
 };
-
-export default QuoteInvoice;

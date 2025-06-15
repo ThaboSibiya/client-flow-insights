@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { useAutomationSettings } from '@/hooks/useAutomationSettings';
 import { useCompanyProfile } from '@/hooks/useCompanyProfile';
-import { useQuoteData } from '@/hooks/useQuoteData';
+import { useUpdateQuoteStatus } from '@/hooks/mutations/useUpdateQuoteStatus';
 import { QuoteInvoice } from '@/types/quote';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -12,7 +11,7 @@ export const useQuoteEmail = () => {
     const { user } = useAuth();
     const { settings } = useAutomationSettings();
     const { profile } = useCompanyProfile();
-    const { updateQuoteStatus } = useQuoteData();
+    const { updateQuoteStatus } = useUpdateQuoteStatus();
     const [isSending, setIsSending] = useState(false);
 
     const sendQuoteEmail = async (quote: QuoteInvoice) => {
