@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, FileText, Calendar } from "lucide-react";
 import { useCRM } from '@/context/CRMContext';
 import { toast } from "@/hooks/use-toast";
-import { QuoteInvoiceInsert } from '@/hooks/useQuoteData';
-import { QuoteInvoice, QuoteInvoiceStatus } from '@/types/quote';
+import { QuoteInvoice, QuoteInvoiceInsert, QuoteInvoiceStatus } from '@/types/quote';
 
 interface InvoiceItem {
   id: string;
