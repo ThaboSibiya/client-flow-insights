@@ -8,6 +8,7 @@ import DashboardLayoutManager from '@/components/dashboard/DashboardLayoutManage
 import RealtimeActivityFeed from '@/components/dashboard/RealtimeActivityFeed';
 import QuickActions from '@/components/dashboard/QuickActions';
 import InteractiveMetrics from '@/components/dashboard/InteractiveMetrics';
+import AiAgentCard from '@/components/dashboard/AiAgentCard';
 import { Users, Clock, CircleCheck, Database } from 'lucide-react';
 import { generateMonthlyActivityData } from '@/utils/chart-utils';
 
@@ -61,6 +62,11 @@ const Dashboard = () => {
             icon={<CircleCheck size={24} className="text-white" />} 
             color="bg-gradient-to-br from-quikle-success to-emerald-600"
           />
+        </div>
+
+        {/* AI Agent Card */}
+        <div className="mb-6">
+          <AiAgentCard />
         </div>
 
         {/* Interactive Widgets Row */}

@@ -976,6 +976,30 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_email_history: {
+        Args: { customer_id_param: string }
+        Returns: {
+          attachments: string[] | null
+          created_at: string
+          customer_id: string
+          id: string
+          message: string
+          sender: string
+          status: string
+          subject: string
+        }[]
+      }
+      insert_email_history: {
+        Args: {
+          p_customer_id: string
+          p_sender: string
+          p_subject: string
+          p_message: string
+          p_attachments?: string[]
+          p_status?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       employee_role: "admin" | "manager" | "supervisor" | "employee" | "intern"
