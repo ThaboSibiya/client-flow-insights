@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Customer, CustomerStatus } from '@/types/customer';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -13,10 +12,12 @@ import {
   MessageSquare,
   Phone,
   Mail,
-  Calendar
+  Calendar,
+  Loader2
 } from 'lucide-react';
 import StatusSelector from '../StatusSelector';
 import TicketIndicator from '../TicketIndicator';
+import { useVoiceCall } from '@/hooks/useVoiceCall';
 
 interface MobileCustomerCardProps {
   customer: Customer;
@@ -41,6 +42,8 @@ const MobileCustomerCard = ({
   isExpanded,
   onToggleExpanded,
 }: MobileCustomerCardProps) => {
+  const { makeCall, isCalling } = useVoiceCall();
+
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
@@ -67,6 +70,14 @@ const MobileCustomerCard = ({
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       action();
+    }
+  };
+
+  const handleCall = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (customer.phone) {
+      makeCall({ phoneNumber: customer.phone, customerId: customer.id });
     }
   };
 
@@ -130,14 +141,19 @@ const MobileCustomerCard = ({
                 </a>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Phone className="h-4 w-4" />
-                <a 
-                  href={`tel:${customer.phone}`}
-                  className="hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-                  aria-label={`Call ${customer.name} at ${customer.phone}`}
-                >
-                  {customer.phone}
-                </a>
+                {isCalling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Phone className="h-4 w-4" />}
+                {customer.phone ? (
+                  <button
+                    onClick={handleCall}
+                    disabled={isCalling}
+                    className="hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded disabled:opacity-50"
+                    aria-label={`Call ${customer.name} at ${customer.phone}`}
+                  >
+                    {customer.phone}
+                  </button>
+                ) : (
+                  <span className="text-gray-500">No phone</span>
+                )}
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <Calendar className="h-4 w-4" />

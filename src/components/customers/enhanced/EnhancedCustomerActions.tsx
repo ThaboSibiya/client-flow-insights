@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
 import { Button } from '@/components/ui/button';
@@ -29,10 +28,12 @@ import {
   Phone, 
   FileText,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
+import { useVoiceCall } from '@/hooks/useVoiceCall';
 
 interface EnhancedCustomerActionsProps {
   customer: Customer;
@@ -49,6 +50,7 @@ const EnhancedCustomerActions = ({
 }: EnhancedCustomerActionsProps) => {
   const { deleteCustomer } = useCRM();
   const [isDeleting, setIsDeleting] = useState(false);
+  const { makeCall, isCalling } = useVoiceCall();
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -73,7 +75,7 @@ const EnhancedCustomerActions = ({
     if (method === 'email' && customer.email) {
       window.location.href = `mailto:${customer.email}`;
     } else if (method === 'phone' && customer.phone) {
-      window.location.href = `tel:${customer.phone}`;
+      makeCall({ phoneNumber: customer.phone, customerId: customer.id });
     } else {
       toast({
         title: "Contact information missing",
@@ -122,8 +124,9 @@ const EnhancedCustomerActions = ({
               onClick={() => handleContact('phone')}
               className="h-8 w-8 p-0"
               title={`Call ${customer.name}`}
+              disabled={isCalling}
             >
-              <Phone className="h-4 w-4" />
+              {isCalling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Phone className="h-4 w-4" />}
             </Button>
           )}
 

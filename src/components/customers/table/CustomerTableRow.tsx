@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -8,10 +7,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Edit, Trash2, MessageSquare } from 'lucide-react';
+import { MoreHorizontal, Edit, Trash2, MessageSquare, Phone, Loader2 } from 'lucide-react';
 import { Customer, CustomerStatus } from '@/types/customer';
 import StatusSelector from '../StatusSelector';
 import TicketIndicator from '../TicketIndicator';
+import { useVoiceCall } from '@/hooks/useVoiceCall';
 
 interface CustomerTableRowProps {
   customer: Customer;
@@ -34,6 +34,8 @@ const CustomerTableRow = ({
   onManageTickets,
   rowIndex,
 }: CustomerTableRowProps) => {
+  const { makeCall, isCalling } = useVoiceCall();
+
   const handleStatusChange = (status: CustomerStatus) => {
     onStatusChange(customer.id, status);
   };
@@ -51,6 +53,13 @@ const CustomerTableRow = ({
       month: 'short', 
       day: 'numeric',
     }).format(date);
+  };
+
+  const handleCall = (event: React.MouseEvent) => {
+    event.preventDefault();
+    if (customer.phone) {
+      makeCall({ phoneNumber: customer.phone, customerId: customer.id });
+    }
   };
 
   return (
@@ -95,13 +104,19 @@ const CustomerTableRow = ({
           </a>
         </div>
         <div className="text-sm text-gray-500">
-          <a 
-            href={`tel:${customer.phone}`}
-            className="hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-            aria-label={`Call ${customer.name} at ${customer.phone}`}
-          >
-            {customer.phone}
-          </a>
+          {customer.phone ? (
+            <button
+              onClick={handleCall}
+              disabled={isCalling}
+              className="flex items-center gap-1 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label={`Call ${customer.name} at ${customer.phone}`}
+            >
+              {isCalling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Phone className="h-4 w-4 text-gray-400" />}
+              <span>{customer.phone}</span>
+            </button>
+          ) : (
+            <span className="text-gray-400">No phone</span>
+          )}
         </div>
       </td>
       <td 
