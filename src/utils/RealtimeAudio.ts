@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export class AudioRecorder {
@@ -89,10 +88,6 @@ export class RealtimeChat {
       // Set up remote audio
       this.pc.ontrack = e => this.audioEl.srcObject = e.streams[0];
 
-      // Add local audio track
-      const ms = await navigator.mediaDevices.getUserMedia({ audio: true });
-      this.pc.addTrack(ms.getTracks()[0]);
-
       // Set up data channel
       this.dc = this.pc.createDataChannel("oai-events");
       this.dc.addEventListener("message", (e) => {
@@ -100,6 +95,12 @@ export class RealtimeChat {
         console.log("Received event:", event);
         this.onMessage(event);
       });
+      this.dc.onopen = () => {
+        if (this.dc?.readyState === 'open') {
+          console.log("Data channel is open. Requesting initial AI response.");
+          this.dc.send(JSON.stringify({ type: 'response.create' }));
+        }
+      };
 
       // Create and set local description
       const offer = await this.pc.createOffer();
