@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 export interface KnowledgeBaseFile {
   id: string;
@@ -17,8 +16,7 @@ const BUCKET_NAME = 'knowledge_base';
 export const uploadKnowledgeBaseFile = async (
   file: File,
   userId: string
-): Promise<KnowledgeBaseFile | null> => {
-  const { toast } = useToast();
+): Promise<KnowledgeBaseFile> => {
   try {
     const filePath = `${userId}/${Date.now()}-${file.name}`;
 
@@ -46,20 +44,10 @@ export const uploadKnowledgeBaseFile = async (
       throw dbError;
     }
     
-    toast({
-        title: "Success",
-        description: `File "${file.name}" uploaded successfully.`,
-    });
-
     return data;
   } catch (error: any) {
     console.error('Error uploading knowledge base file:', error);
-    toast({
-      title: "Upload Failed",
-      description: error.message || "Could not upload the file.",
-      variant: "destructive",
-    });
-    return null;
+    throw error;
   }
 };
 
@@ -67,7 +55,6 @@ export const uploadKnowledgeBaseFile = async (
  * List all files in the knowledge base for the current user.
  */
 export const listKnowledgeBaseFiles = async (): Promise<KnowledgeBaseFile[]> => {
-  const { toast } = useToast();
   try {
     const { data, error } = await supabase
       .from('knowledge_base_files')
@@ -81,20 +68,14 @@ export const listKnowledgeBaseFiles = async (): Promise<KnowledgeBaseFile[]> => 
     return data || [];
   } catch (error: any) {
     console.error('Error listing knowledge base files:', error);
-    toast({
-      title: "Error",
-      description: "Could not fetch knowledge base files.",
-      variant: "destructive",
-    });
-    return [];
+    throw error;
   }
 };
 
 /**
  * Delete a file from the knowledge base.
  */
-export const deleteKnowledgeBaseFile = async (file: KnowledgeBaseFile): Promise<boolean> => {
-  const { toast } = useToast();
+export const deleteKnowledgeBaseFile = async (file: KnowledgeBaseFile): Promise<void> => {
   try {
     // First, delete from storage
     const { error: storageError } = await supabase.storage
@@ -104,6 +85,7 @@ export const deleteKnowledgeBaseFile = async (file: KnowledgeBaseFile): Promise<
     if (storageError) {
       // Log error but attempt to delete DB record anyway
       console.error('Error deleting file from storage:', storageError);
+      throw storageError;
     }
     
     // Then, delete from database
@@ -115,19 +97,8 @@ export const deleteKnowledgeBaseFile = async (file: KnowledgeBaseFile): Promise<
     if (dbError) {
       throw dbError;
     }
-
-    toast({
-      title: "Success",
-      description: `File "${file.file_name}" deleted successfully.`,
-    });
-    return true;
   } catch (error: any) {
     console.error('Error deleting knowledge base file:', error);
-    toast({
-      title: "Deletion Failed",
-      description: error.message || `Could not delete "${file.file_name}".`,
-      variant: "destructive",
-    });
-    return false;
+    throw error;
   }
 };
