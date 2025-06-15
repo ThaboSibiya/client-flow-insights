@@ -1,76 +1,57 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import {
+  ReactFlow,
+  addEdge,
+  MiniMap,
+  Controls,
+  Background,
+  useNodesState,
+  useEdgesState,
+  Node,
+  Edge,
+  Connection,
+  OnNodesChange,
+  OnEdgesChange,
+  NodeMouseHandler,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { GitBranch, RefreshCw, AlertTriangle, UserCheck, Play, Pause } from "lucide-react";
+import { GitBranch, RefreshCw, AlertTriangle, UserCheck, Play, Pause, Trash2 } from "lucide-react";
+
 import ConditionalBranching from './ConditionalBranching';
 import LoopConfiguration from './LoopConfiguration';
 import ErrorHandlingConfig from './ErrorHandlingConfig';
 import ApprovalWorkflow from './ApprovalWorkflow';
+import WorkflowNodeComponent from './WorkflowNodeComponent';
 
-export interface WorkflowNode {
-  id: string;
-  type: 'action' | 'condition' | 'loop' | 'approval' | 'error_handler';
+export type WorkflowNodeType = 'condition' | 'loop' | 'approval' | 'error_handler' | 'action';
+
+export interface WorkflowNodeData {
   name: string;
+  type: WorkflowNodeType;
   config: Record<string, any>;
-  connections: string[];
-  position: { x: number; y: number };
 }
 
-interface WorkflowEngineProps {
-  onWorkflowChange: (nodes: WorkflowNode[]) => void;
-  initialNodes?: WorkflowNode[];
-}
+export type CustomNode = Node<WorkflowNodeData>;
 
-const WorkflowEngine = ({ onWorkflowChange, initialNodes = [] }: WorkflowEngineProps) => {
-  const [nodes, setNodes] = useState<WorkflowNode[]>(initialNodes);
-  const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
-  const [isExecuting, setIsExecuting] = useState(false);
+const nodeTypes = {
+  workflowNode: WorkflowNodeComponent,
+};
 
-  const addNode = (type: WorkflowNode['type']) => {
-    const newNode: WorkflowNode = {
-      id: Date.now().toString(),
-      type,
-      name: getDefaultNodeName(type),
-      config: {},
-      connections: [],
-      position: { x: Math.random() * 400, y: Math.random() * 300 }
-    };
+const getDefaultNodeName = (type: WorkflowNodeType): string => {
+  switch (type) {
+    case 'condition': return 'If/Then Branch';
+    case 'loop': return 'For Each Loop';
+    case 'approval': return 'Approval Step';
+    case 'error_handler': return 'Error Handler';
+    default: return 'Action Step';
+  }
+};
 
-    const updatedNodes = [...nodes, newNode];
-    setNodes(updatedNodes);
-    onWorkflowChange(updatedNodes);
-  };
-
-  const updateNode = (nodeId: string, updates: Partial<WorkflowNode>) => {
-    const updatedNodes = nodes.map(node =>
-      node.id === nodeId ? { ...node, ...updates } : node
-    );
-    setNodes(updatedNodes);
-    onWorkflowChange(updatedNodes);
-  };
-
-  const removeNode = (nodeId: string) => {
-    const updatedNodes = nodes.filter(node => node.id !== nodeId);
-    setNodes(updatedNodes);
-    onWorkflowChange(updatedNodes);
-    if (selectedNode?.id === nodeId) {
-      setSelectedNode(null);
-    }
-  };
-
-  const getDefaultNodeName = (type: WorkflowNode['type']): string => {
-    switch (type) {
-      case 'condition': return 'If/Then Branch';
-      case 'loop': return 'For Each Loop';
-      case 'approval': return 'Approval Step';
-      case 'error_handler': return 'Error Handler';
-      default: return 'Action Step';
-    }
-  };
-
-  const getNodeIcon = (type: WorkflowNode['type']) => {
+const getNodeIcon = (type: WorkflowNodeType) => {
     switch (type) {
       case 'condition': return <GitBranch className="h-4 w-4" />;
       case 'loop': return <RefreshCw className="h-4 w-4" />;
@@ -78,6 +59,65 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [] }: WorkflowEngineP
       case 'error_handler': return <AlertTriangle className="h-4 w-4" />;
       default: return <Play className="h-4 w-4" />;
     }
+};
+
+interface WorkflowEngineProps {
+  onWorkflowChange: (nodes: CustomNode[], edges: Edge[]) => void;
+  initialNodes?: CustomNode[];
+  initialEdges?: Edge[];
+}
+
+const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = [] }: WorkflowEngineProps) => {
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [selectedNode, setSelectedNode] = useState<CustomNode | null>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
+
+  useEffect(() => {
+    onWorkflowChange(nodes, edges);
+  }, [nodes, edges, onWorkflowChange]);
+
+  const onConnect = useCallback(
+    (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: '#6b7280' } }, eds)),
+    [setEdges]
+  );
+  
+  const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
+    setSelectedNode(node);
+  }, []);
+
+  const addNode = (type: WorkflowNodeType) => {
+    const newNode: CustomNode = {
+      id: Date.now().toString(),
+      type: 'workflowNode',
+      position: { x: Math.random() * 400 + 100, y: Math.random() * 150 + 50 },
+      data: {
+        type,
+        name: getDefaultNodeName(type),
+        config: {},
+      }
+    };
+    setNodes((nds) => nds.concat(newNode));
+  };
+
+  const updateNode = (nodeId: string, updates: Partial<CustomNode>) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          const updatedNode = { ...node, ...updates };
+          setSelectedNode(updatedNode);
+          return updatedNode;
+        }
+        return node;
+      })
+    );
+  };
+  
+  const removeSelectedNode = () => {
+    if (!selectedNode) return;
+    setNodes((nds) => nds.filter((node) => node.id !== selectedNode.id));
+    setEdges((eds) => eds.filter((edge) => edge.source !== selectedNode.id && edge.target !== selectedNode.id));
+    setSelectedNode(null);
   };
 
   const simulateExecution = async () => {
@@ -92,7 +132,6 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [] }: WorkflowEngineP
 
   return (
     <div className="space-y-6">
-      {/* Workflow Toolbar */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -129,85 +168,66 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [] }: WorkflowEngineP
             </Button>
           </div>
 
-          {/* Workflow Canvas */}
-          <div className="border-2 border-dashed rounded-lg p-4 min-h-[400px] bg-muted/20 relative">
-            {nodes.length === 0 ? (
-              <div className="text-center py-16 text-muted-foreground">
+          <div className="border-2 border-dashed rounded-lg h-[500px] bg-muted/20 relative">
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onNodeClick={onNodeClick}
+              onPaneClick={() => setSelectedNode(null)}
+              nodeTypes={nodeTypes}
+              fitView
+            >
+              <Controls />
+              <Background />
+              <MiniMap />
+            </ReactFlow>
+            {nodes.length === 0 && (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-muted-foreground pointer-events-none">
                 <GitBranch className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>No workflow nodes yet</p>
                 <p className="text-sm">Add conditional branches, loops, or approval steps to get started</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {nodes.map((node, index) => (
-                  <div key={node.id} className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
-                      {index + 1}
-                    </Badge>
-                    <Card 
-                      className={`flex-1 cursor-pointer transition-colors ${selectedNode?.id === node.id ? 'border-blue-500 bg-blue-50' : ''}`}
-                      onClick={() => setSelectedNode(node)}
-                    >
-                      <CardContent className="p-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {getNodeIcon(node.type)}
-                            <span className="font-medium">{node.name}</span>
-                            <Badge variant="secondary" className="text-xs">
-                              {node.type.replace('_', ' ')}
-                            </Badge>
-                          </div>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeNode(node.id);
-                            }}
-                            className="text-red-500"
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                ))}
               </div>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Node Configuration Panel */}
       {selectedNode && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {getNodeIcon(selectedNode.type)}
-              Configure {selectedNode.name}
-            </CardTitle>
+            <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2">
+                  {getNodeIcon(selectedNode.data.type)}
+                  Configure: {selectedNode.data.name}
+                </CardTitle>
+                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={removeSelectedNode}>
+                    <Trash2 className="h-4 w-4" />
+                </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            {selectedNode.type === 'condition' && (
+            {selectedNode.data.type === 'condition' && (
               <ConditionalBranching 
                 node={selectedNode}
                 onUpdate={(updates) => updateNode(selectedNode.id, updates)}
               />
             )}
-            {selectedNode.type === 'loop' && (
+            {selectedNode.data.type === 'loop' && (
               <LoopConfiguration 
                 node={selectedNode}
                 onUpdate={(updates) => updateNode(selectedNode.id, updates)}
               />
             )}
-            {selectedNode.type === 'error_handler' && (
+            {selectedNode.data.type === 'error_handler' && (
               <ErrorHandlingConfig 
                 node={selectedNode}
                 onUpdate={(updates) => updateNode(selectedNode.id, updates)}
               />
             )}
-            {selectedNode.type === 'approval' && (
+            {selectedNode.data.type === 'approval' && (
               <ApprovalWorkflow 
                 node={selectedNode}
                 onUpdate={(updates) => updateNode(selectedNode.id, updates)}

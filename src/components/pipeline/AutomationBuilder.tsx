@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,20 +21,20 @@ const AutomationBuilder = ({ onClose, initialData = {} }: AutomationBuilderProps
   const [simpleTrigger, setSimpleTrigger] = useState(initialData.simpleTrigger || '');
   const [conditionGroups, setConditionGroups] = useState<any[]>(initialData.conditionGroups || []);
   const [actions, setActions] = useState<any[]>(initialData.actions || []);
-  const [workflowNodes, setWorkflowNodes] = useState<any[]>(initialData.workflowNodes || []);
+  const [workflow, setWorkflow] = useState(initialData.workflow || { nodes: [], edges: [] });
   const [activeTab, setActiveTab] = useState('details');
 
   const handleSave = () => {
     const currentTrigger = triggerType === 'simple' ? simpleTrigger : { type: 'advanced', conditionGroups };
     
-    if (automationName && (simpleTrigger || conditionGroups.length > 0) && (actions.length > 0 || workflowNodes.length > 0)) {
+    if (automationName && (simpleTrigger || conditionGroups.length > 0) && (actions.length > 0 || workflow.nodes.length > 0)) {
       console.log('Saving enhanced automation:', {
         name: automationName,
         type: automationType,
         triggerType,
         trigger: currentTrigger,
         actions,
-        workflowNodes,
+        workflow,
         conditionGroups: triggerType === 'advanced' ? conditionGroups : undefined
       });
       onClose();
@@ -43,7 +44,7 @@ const AutomationBuilder = ({ onClose, initialData = {} }: AutomationBuilderProps
   const isValid = automationName && 
     ((triggerType === 'simple' && simpleTrigger) || 
      (triggerType === 'advanced' && conditionGroups.length > 0)) && 
-    (actions.length > 0 || workflowNodes.length > 0);
+    (actions.length > 0 || workflow.nodes.length > 0);
 
   return (
     <div className="space-y-6 h-full flex flex-col">
@@ -100,8 +101,8 @@ const AutomationBuilder = ({ onClose, initialData = {} }: AutomationBuilderProps
     
             <TabsContent value="workflow" className="space-y-4 m-0">
               <AutomationWorkflowConfig
-                workflowNodes={workflowNodes}
-                setWorkflowNodes={setWorkflowNodes}
+                workflow={workflow}
+                setWorkflow={setWorkflow}
               />
             </TabsContent>
     

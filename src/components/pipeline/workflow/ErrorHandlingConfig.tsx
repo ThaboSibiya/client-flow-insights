@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -7,17 +6,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { AlertTriangle, RefreshCw, AlertCircle } from "lucide-react";
-import { WorkflowNode } from './WorkflowEngine';
+import { CustomNode } from './WorkflowEngine';
 
 interface ErrorHandlingConfigProps {
-  node: WorkflowNode;
-  onUpdate: (updates: Partial<WorkflowNode>) => void;
+  node: CustomNode;
+  onUpdate: (updates: Partial<CustomNode>) => void;
 }
 
 const ErrorHandlingConfig = ({ node, onUpdate }: ErrorHandlingConfigProps) => {
   const updateConfig = (key: string, value: any) => {
     onUpdate({
-      config: { ...node.config, [key]: value }
+      data: { ...node.data, config: { ...node.data.config, [key]: value } }
     });
   };
 
@@ -26,8 +25,8 @@ const ErrorHandlingConfig = ({ node, onUpdate }: ErrorHandlingConfigProps) => {
       <div>
         <Label>Error Handler Name</Label>
         <Input
-          value={node.name}
-          onChange={(e) => onUpdate({ name: e.target.value })}
+          value={node.data.name}
+          onChange={(e) => onUpdate({ data: { ...node.data, name: e.target.value } })}
           placeholder="Error Handler"
         />
       </div>
@@ -43,19 +42,19 @@ const ErrorHandlingConfig = ({ node, onUpdate }: ErrorHandlingConfigProps) => {
           <div className="flex items-center justify-between">
             <Label>Enable Retry Logic</Label>
             <Switch
-              checked={node.config.enable_retry || false}
+              checked={node.data.config.enable_retry || false}
               onCheckedChange={(checked) => updateConfig('enable_retry', checked)}
             />
           </div>
 
-          {node.config.enable_retry && (
+          {node.data.config.enable_retry && (
             <>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Max Retry Attempts</Label>
                   <Input
                     type="number"
-                    value={node.config.max_retries || 3}
+                    value={node.data.config.max_retries || 3}
                     onChange={(e) => updateConfig('max_retries', parseInt(e.target.value) || 3)}
                     min="1"
                     max="10"
@@ -65,7 +64,7 @@ const ErrorHandlingConfig = ({ node, onUpdate }: ErrorHandlingConfigProps) => {
                   <Label>Retry Delay (seconds)</Label>
                   <Input
                     type="number"
-                    value={node.config.retry_delay || 5}
+                    value={node.data.config.retry_delay || 5}
                     onChange={(e) => updateConfig('retry_delay', parseInt(e.target.value) || 5)}
                     min="1"
                     max="300"
@@ -76,7 +75,7 @@ const ErrorHandlingConfig = ({ node, onUpdate }: ErrorHandlingConfigProps) => {
               <div>
                 <Label>Retry Strategy</Label>
                 <Select 
-                  value={node.config.retry_strategy || 'exponential'} 
+                  value={node.data.config.retry_strategy || 'exponential'} 
                   onValueChange={(value) => updateConfig('retry_strategy', value)}
                 >
                   <SelectTrigger>
@@ -105,7 +104,7 @@ const ErrorHandlingConfig = ({ node, onUpdate }: ErrorHandlingConfigProps) => {
           <div>
             <Label>Handle These Error Types</Label>
             <Select 
-              value={node.config.error_types || 'all'} 
+              value={node.data.config.error_types || 'all'} 
               onValueChange={(value) => updateConfig('error_types', value)}
             >
               <SelectTrigger>
@@ -121,11 +120,11 @@ const ErrorHandlingConfig = ({ node, onUpdate }: ErrorHandlingConfigProps) => {
             </Select>
           </div>
 
-          {node.config.error_types === 'custom' && (
+          {node.data.config.error_types === 'custom' && (
             <div>
               <Label>Custom Error Patterns (comma-separated)</Label>
               <Input
-                value={node.config.custom_error_patterns || ''}
+                value={node.data.config.custom_error_patterns || ''}
                 onChange={(e) => updateConfig('custom_error_patterns', e.target.value)}
                 placeholder="404, timeout, validation_failed..."
               />
@@ -145,7 +144,7 @@ const ErrorHandlingConfig = ({ node, onUpdate }: ErrorHandlingConfigProps) => {
           <div>
             <Label>Fallback Strategy</Label>
             <Select 
-              value={node.config.fallback_strategy || 'notify'} 
+              value={node.data.config.fallback_strategy || 'notify'} 
               onValueChange={(value) => updateConfig('fallback_strategy', value)}
             >
               <SelectTrigger>
@@ -161,22 +160,22 @@ const ErrorHandlingConfig = ({ node, onUpdate }: ErrorHandlingConfigProps) => {
             </Select>
           </div>
 
-          {node.config.fallback_strategy === 'notify' && (
+          {node.data.config.fallback_strategy === 'notify' && (
             <div>
               <Label>Notification Recipients</Label>
               <Input
-                value={node.config.notification_recipients || ''}
+                value={node.data.config.notification_recipients || ''}
                 onChange={(e) => updateConfig('notification_recipients', e.target.value)}
                 placeholder="admin@company.com, manager@company.com..."
               />
             </div>
           )}
 
-          {node.config.fallback_strategy === 'alternative_action' && (
+          {node.data.config.fallback_strategy === 'alternative_action' && (
             <div>
               <Label>Alternative Action</Label>
               <Textarea
-                value={node.config.alternative_action || ''}
+                value={node.data.config.alternative_action || ''}
                 onChange={(e) => updateConfig('alternative_action', e.target.value)}
                 placeholder="Describe the alternative action to take when the primary action fails..."
                 rows={3}
@@ -187,7 +186,7 @@ const ErrorHandlingConfig = ({ node, onUpdate }: ErrorHandlingConfigProps) => {
           <div className="flex items-center justify-between">
             <Label>Log Errors for Analysis</Label>
             <Switch
-              checked={node.config.log_errors !== false}
+              checked={node.data.config.log_errors !== false}
               onCheckedChange={(checked) => updateConfig('log_errors', checked)}
             />
           </div>

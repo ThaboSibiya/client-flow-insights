@@ -2,16 +2,23 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import WorkflowEngine from '../workflow/WorkflowEngine';
+import { CustomNode } from '../workflow/WorkflowEngine';
+import { Edge } from '@xyflow/react';
 
 interface AutomationWorkflowConfigProps {
-  workflowNodes: any[];
-  setWorkflowNodes: (nodes: any[]) => void;
+  workflow: { nodes: CustomNode[], edges: Edge[] };
+  setWorkflow: (workflow: { nodes: CustomNode[], edges: Edge[] }) => void;
 }
 
 const AutomationWorkflowConfig = ({
-  workflowNodes,
-  setWorkflowNodes
+  workflow,
+  setWorkflow
 }: AutomationWorkflowConfigProps) => {
+  
+  const handleWorkflowChange = (nodes: CustomNode[], edges: Edge[]) => {
+    setWorkflow({ nodes, edges });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -19,8 +26,9 @@ const AutomationWorkflowConfig = ({
       </CardHeader>
       <CardContent>
         <WorkflowEngine
-          onWorkflowChange={setWorkflowNodes}
-          initialNodes={workflowNodes}
+          onWorkflowChange={handleWorkflowChange}
+          initialNodes={workflow.nodes}
+          initialEdges={workflow.edges}
         />
       </CardContent>
     </Card>

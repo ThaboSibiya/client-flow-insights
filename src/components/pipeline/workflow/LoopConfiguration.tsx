@@ -6,17 +6,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCw, ListIcon } from "lucide-react";
-import { WorkflowNode } from './WorkflowEngine';
+import { CustomNode } from './WorkflowEngine';
 
 interface LoopConfigurationProps {
-  node: WorkflowNode;
-  onUpdate: (updates: Partial<WorkflowNode>) => void;
+  node: CustomNode;
+  onUpdate: (updates: Partial<CustomNode>) => void;
 }
 
 const LoopConfiguration = ({ node, onUpdate }: LoopConfigurationProps) => {
   const updateConfig = (key: string, value: any) => {
     onUpdate({
-      config: { ...node.config, [key]: value }
+      data: { ...node.data, config: { ...node.data.config, [key]: value } }
     });
   };
 
@@ -25,8 +25,8 @@ const LoopConfiguration = ({ node, onUpdate }: LoopConfigurationProps) => {
       <div>
         <Label>Loop Name</Label>
         <Input
-          value={node.name}
-          onChange={(e) => onUpdate({ name: e.target.value })}
+          value={node.data.name}
+          onChange={(e) => onUpdate({ data: { ...node.data, name: e.target.value } })}
           placeholder="For Each Loop"
         />
       </div>
@@ -42,7 +42,7 @@ const LoopConfiguration = ({ node, onUpdate }: LoopConfigurationProps) => {
           <div>
             <Label>Loop Type</Label>
             <Select 
-              value={node.config.loop_type || 'for_each'} 
+              value={node.data.config.loop_type || 'for_each'} 
               onValueChange={(value) => updateConfig('loop_type', value)}
             >
               <SelectTrigger>
@@ -57,11 +57,11 @@ const LoopConfiguration = ({ node, onUpdate }: LoopConfigurationProps) => {
             </Select>
           </div>
 
-          {node.config.loop_type === 'for_each' && (
+          {node.data.config.loop_type === 'for_each' && (
             <div>
               <Label>Data Source</Label>
               <Select 
-                value={node.config.data_source || ''} 
+                value={node.data.config.data_source || ''} 
                 onValueChange={(value) => updateConfig('data_source', value)}
               >
                 <SelectTrigger>
@@ -78,12 +78,12 @@ const LoopConfiguration = ({ node, onUpdate }: LoopConfigurationProps) => {
             </div>
           )}
 
-          {node.config.loop_type === 'repeat' && (
+          {node.data.config.loop_type === 'repeat' && (
             <div>
               <Label>Number of Iterations</Label>
               <Input
                 type="number"
-                value={node.config.iterations || 1}
+                value={node.data.config.iterations || 1}
                 onChange={(e) => updateConfig('iterations', parseInt(e.target.value) || 1)}
                 placeholder="Enter number of times to repeat..."
                 min="1"
@@ -92,12 +92,12 @@ const LoopConfiguration = ({ node, onUpdate }: LoopConfigurationProps) => {
             </div>
           )}
 
-          {(node.config.loop_type === 'while' || node.config.loop_type === 'until') && (
+          {(node.data.config.loop_type === 'while' || node.data.config.loop_type === 'until') && (
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <Label>Field</Label>
                 <Input
-                  value={node.config.condition_field || ''}
+                  value={node.data.config.condition_field || ''}
                   onChange={(e) => updateConfig('condition_field', e.target.value)}
                   placeholder="Field to check..."
                 />
@@ -105,7 +105,7 @@ const LoopConfiguration = ({ node, onUpdate }: LoopConfigurationProps) => {
               <div>
                 <Label>Operator</Label>
                 <Select 
-                  value={node.config.condition_operator || ''} 
+                  value={node.data.config.condition_operator || ''} 
                   onValueChange={(value) => updateConfig('condition_operator', value)}
                 >
                   <SelectTrigger>
@@ -122,7 +122,7 @@ const LoopConfiguration = ({ node, onUpdate }: LoopConfigurationProps) => {
               <div>
                 <Label>Value</Label>
                 <Input
-                  value={node.config.condition_value || ''}
+                  value={node.data.config.condition_value || ''}
                   onChange={(e) => updateConfig('condition_value', e.target.value)}
                   placeholder="Condition value..."
                 />
@@ -143,7 +143,7 @@ const LoopConfiguration = ({ node, onUpdate }: LoopConfigurationProps) => {
           <div>
             <Label>Actions to perform for each iteration</Label>
             <Textarea
-              value={node.config.loop_actions || ''}
+              value={node.data.config.loop_actions || ''}
               onChange={(e) => updateConfig('loop_actions', e.target.value)}
               placeholder="Describe the actions to perform in each loop iteration..."
               rows={4}
@@ -153,7 +153,7 @@ const LoopConfiguration = ({ node, onUpdate }: LoopConfigurationProps) => {
             <Label>Batch Size (for performance)</Label>
             <Input
               type="number"
-              value={node.config.batch_size || 10}
+              value={node.data.config.batch_size || 10}
               onChange={(e) => updateConfig('batch_size', parseInt(e.target.value) || 10)}
               placeholder="Process items in batches of..."
               min="1"

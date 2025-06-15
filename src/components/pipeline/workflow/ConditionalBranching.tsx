@@ -6,17 +6,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GitBranch, ArrowRight } from "lucide-react";
-import { WorkflowNode } from './WorkflowEngine';
+import { CustomNode } from './WorkflowEngine';
 
 interface ConditionalBranchingProps {
-  node: WorkflowNode;
-  onUpdate: (updates: Partial<WorkflowNode>) => void;
+  node: CustomNode;
+  onUpdate: (updates: Partial<CustomNode>) => void;
 }
 
 const ConditionalBranching = ({ node, onUpdate }: ConditionalBranchingProps) => {
   const updateConfig = (key: string, value: any) => {
     onUpdate({
-      config: { ...node.config, [key]: value }
+      data: { ...node.data, config: { ...node.data.config, [key]: value } }
     });
   };
 
@@ -25,8 +25,8 @@ const ConditionalBranching = ({ node, onUpdate }: ConditionalBranchingProps) => 
       <div>
         <Label>Branch Name</Label>
         <Input
-          value={node.name}
-          onChange={(e) => onUpdate({ name: e.target.value })}
+          value={node.data.name}
+          onChange={(e) => onUpdate({ data: { ...node.data, name: e.target.value } })}
           placeholder="If/Then Branch"
         />
       </div>
@@ -43,7 +43,7 @@ const ConditionalBranching = ({ node, onUpdate }: ConditionalBranchingProps) => 
             <div>
               <Label>Field</Label>
               <Select 
-                value={node.config.field || ''} 
+                value={node.data.config.field || ''} 
                 onValueChange={(value) => updateConfig('field', value)}
               >
                 <SelectTrigger>
@@ -61,7 +61,7 @@ const ConditionalBranching = ({ node, onUpdate }: ConditionalBranchingProps) => 
             <div>
               <Label>Operator</Label>
               <Select 
-                value={node.config.operator || ''} 
+                value={node.data.config.operator || ''} 
                 onValueChange={(value) => updateConfig('operator', value)}
               >
                 <SelectTrigger>
@@ -80,7 +80,7 @@ const ConditionalBranching = ({ node, onUpdate }: ConditionalBranchingProps) => 
             <div>
               <Label>Value</Label>
               <Input
-                value={node.config.value || ''}
+                value={node.data.config.value || ''}
                 onChange={(e) => updateConfig('value', e.target.value)}
                 placeholder="Comparison value..."
               />
@@ -101,7 +101,7 @@ const ConditionalBranching = ({ node, onUpdate }: ConditionalBranchingProps) => 
             <div>
               <Label>Action when condition is TRUE</Label>
               <Textarea
-                value={node.config.true_path || ''}
+                value={node.data.config.true_path || ''}
                 onChange={(e) => updateConfig('true_path', e.target.value)}
                 placeholder="Describe what happens when condition is met..."
                 rows={3}
@@ -121,7 +121,7 @@ const ConditionalBranching = ({ node, onUpdate }: ConditionalBranchingProps) => 
             <div>
               <Label>Action when condition is FALSE</Label>
               <Textarea
-                value={node.config.false_path || ''}
+                value={node.data.config.false_path || ''}
                 onChange={(e) => updateConfig('false_path', e.target.value)}
                 placeholder="Describe what happens when condition is not met..."
                 rows={3}

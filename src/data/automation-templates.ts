@@ -13,7 +13,10 @@ export interface AutomationTemplate {
     simpleTrigger?: string;
     conditionGroups?: any[];
     actions?: any[];
-    workflowNodes?: any[];
+    workflow?: {
+      nodes: any[];
+      edges: any[];
+    };
   };
 }
 
@@ -40,7 +43,7 @@ export const automationTemplates: AutomationTemplate[] = [
         }
       ],
       conditionGroups: [],
-      workflowNodes: [],
+      workflow: { nodes: [], edges: [] },
     }
   },
   {
@@ -65,7 +68,7 @@ export const automationTemplates: AutomationTemplate[] = [
         }
       ],
       conditionGroups: [],
-      workflowNodes: [],
+      workflow: { nodes: [], edges: [] },
     }
   },
   {
@@ -97,7 +100,7 @@ export const automationTemplates: AutomationTemplate[] = [
           }
         }
       ],
-      workflowNodes: [],
+      workflow: { nodes: [], edges: [] },
     }
   }
 ];

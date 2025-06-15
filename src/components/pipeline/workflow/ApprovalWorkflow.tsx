@@ -7,17 +7,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { UserCheck, Clock, Users, Mail } from "lucide-react";
-import { WorkflowNode } from './WorkflowEngine';
+import { CustomNode } from './WorkflowEngine';
 
 interface ApprovalWorkflowProps {
-  node: WorkflowNode;
-  onUpdate: (updates: Partial<WorkflowNode>) => void;
+  node: CustomNode;
+  onUpdate: (updates: Partial<CustomNode>) => void;
 }
 
 const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
   const updateConfig = (key: string, value: any) => {
     onUpdate({
-      config: { ...node.config, [key]: value }
+      data: { ...node.data, config: { ...node.data.config, [key]: value } }
     });
   };
 
@@ -26,8 +26,8 @@ const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
       <div>
         <Label>Approval Step Name</Label>
         <Input
-          value={node.name}
-          onChange={(e) => onUpdate({ name: e.target.value })}
+          value={node.data.name}
+          onChange={(e) => onUpdate({ data: { ...node.data, name: e.target.value } })}
           placeholder="Approval Step"
         />
       </div>
@@ -43,7 +43,7 @@ const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
           <div>
             <Label>Approval Type</Label>
             <Select 
-              value={node.config.approval_type || 'single'} 
+              value={node.data.config.approval_type || 'single'} 
               onValueChange={(value) => updateConfig('approval_type', value)}
             >
               <SelectTrigger>
@@ -62,18 +62,18 @@ const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
           <div>
             <Label>Approvers (emails, comma-separated)</Label>
             <Textarea
-              value={node.config.approvers || ''}
+              value={node.data.config.approvers || ''}
               onChange={(e) => updateConfig('approvers', e.target.value)}
               placeholder="manager@company.com, supervisor@company.com..."
               rows={2}
             />
           </div>
 
-          {node.config.approval_type === 'conditional' && (
+          {node.data.config.approval_type === 'conditional' && (
             <div>
               <Label>Approval Conditions</Label>
               <Textarea
-                value={node.config.approval_conditions || ''}
+                value={node.data.config.approval_conditions || ''}
                 onChange={(e) => updateConfig('approval_conditions', e.target.value)}
                 placeholder="Define when different approvers are required based on conditions..."
                 rows={3}
@@ -96,7 +96,7 @@ const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
               <Label>Approval Timeout (hours)</Label>
               <Input
                 type="number"
-                value={node.config.timeout_hours || 24}
+                value={node.data.config.timeout_hours || 24}
                 onChange={(e) => updateConfig('timeout_hours', parseInt(e.target.value) || 24)}
                 min="1"
                 max="168"
@@ -106,7 +106,7 @@ const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
               <Label>Reminder Frequency (hours)</Label>
               <Input
                 type="number"
-                value={node.config.reminder_frequency || 4}
+                value={node.data.config.reminder_frequency || 4}
                 onChange={(e) => updateConfig('reminder_frequency', parseInt(e.target.value) || 4)}
                 min="1"
                 max="24"
@@ -117,16 +117,16 @@ const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
           <div className="flex items-center justify-between">
             <Label>Enable Escalation</Label>
             <Switch
-              checked={node.config.enable_escalation || false}
+              checked={node.data.config.enable_escalation || false}
               onCheckedChange={(checked) => updateConfig('enable_escalation', checked)}
             />
           </div>
 
-          {node.config.enable_escalation && (
+          {node.data.config.enable_escalation && (
             <div>
               <Label>Escalation Recipients</Label>
               <Input
-                value={node.config.escalation_recipients || ''}
+                value={node.data.config.escalation_recipients || ''}
                 onChange={(e) => updateConfig('escalation_recipients', e.target.value)}
                 placeholder="director@company.com, ceo@company.com..."
               />
@@ -146,7 +146,7 @@ const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
           <div>
             <Label>Approval Request Subject</Label>
             <Input
-              value={node.config.request_subject || ''}
+              value={node.data.config.request_subject || ''}
               onChange={(e) => updateConfig('request_subject', e.target.value)}
               placeholder="Approval Required: [Workflow Name]"
             />
@@ -155,7 +155,7 @@ const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
           <div>
             <Label>Approval Request Message</Label>
             <Textarea
-              value={node.config.request_message || ''}
+              value={node.data.config.request_message || ''}
               onChange={(e) => updateConfig('request_message', e.target.value)}
               placeholder="Customize the approval request message..."
               rows={3}
@@ -165,7 +165,7 @@ const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
           <div className="flex items-center justify-between">
             <Label>Include Workflow Context</Label>
             <Switch
-              checked={node.config.include_context !== false}
+              checked={node.data.config.include_context !== false}
               onCheckedChange={(checked) => updateConfig('include_context', checked)}
             />
           </div>
@@ -173,7 +173,7 @@ const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
           <div className="flex items-center justify-between">
             <Label>Send Approval Confirmation</Label>
             <Switch
-              checked={node.config.send_confirmation !== false}
+              checked={node.data.config.send_confirmation !== false}
               onCheckedChange={(checked) => updateConfig('send_confirmation', checked)}
             />
           </div>
@@ -191,7 +191,7 @@ const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
           <div>
             <Label>On Approval</Label>
             <Textarea
-              value={node.config.on_approval || ''}
+              value={node.data.config.on_approval || ''}
               onChange={(e) => updateConfig('on_approval', e.target.value)}
               placeholder="Define what happens when the request is approved..."
               rows={2}
@@ -201,7 +201,7 @@ const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
           <div>
             <Label>On Rejection</Label>
             <Textarea
-              value={node.config.on_rejection || ''}
+              value={node.data.config.on_rejection || ''}
               onChange={(e) => updateConfig('on_rejection', e.target.value)}
               placeholder="Define what happens when the request is rejected..."
               rows={2}
@@ -211,7 +211,7 @@ const ApprovalWorkflow = ({ node, onUpdate }: ApprovalWorkflowProps) => {
           <div>
             <Label>On Timeout</Label>
             <Select 
-              value={node.config.timeout_action || 'auto_reject'} 
+              value={node.data.config.timeout_action || 'auto_reject'} 
               onValueChange={(value) => updateConfig('timeout_action', value)}
             >
               <SelectTrigger>
