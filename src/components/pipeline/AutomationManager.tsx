@@ -64,6 +64,7 @@ const AutomationManager = () => {
 
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('automations');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const toggleAutomation = (id: string) => {
     setAutomations(prev => 
@@ -86,6 +87,8 @@ const AutomationManager = () => {
         automations={automations}
         onToggleAutomation={toggleAutomation}
         onCreateNew={() => setIsBuilderOpen(true)}
+        searchTerm={searchTerm}
+        onSearchTermChange={setSearchTerm}
       />
     </div>
   );
