@@ -1,16 +1,17 @@
 
-import { useState, useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, CustomerStatus, CustomerTicket, TimeEntry } from '@/types/customer';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/use-toast';
+import { useCustomerStore } from '@/stores/customerStore';
 
 export const useCustomerData = () => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
   const { user } = useAuth();
+  const { customers, setCustomers, setLoading, setError, isLoading } = useCustomerStore();
 
   // Generate sample ticket data with time tracking for demonstration
-  const generateSampleTickets = (customerId: string): CustomerTicket[] => {
+  const generateSampleTickets = useCallback((customerId: string): CustomerTicket[] => {
     const sampleTimeEntries: TimeEntry[] = [
       {
         id: 'time-1',
@@ -63,63 +64,75 @@ export const useCustomerData = () => {
     
     // Randomly assign tickets to some customers (not all)
     return Math.random() > 0.6 ? sampleTickets : [];
-  };
+  }, []);
 
-  // Fetch customers data from Supabase
-  useEffect(() => {
+  const fetchCustomers = useCallback(async () => {
     if (!user) {
       setCustomers([]);
       return;
     }
 
-    const fetchCustomers = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('customers')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
+    setLoading(true);
+    setError(null);
 
-        if (error) {
-          throw error;
-        }
+    try {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-        if (data) {
-          // Transform data from Supabase format to our Customer format
-          const formattedCustomers: Customer[] = data.map(item => {
-            const activeTickets = generateSampleTickets(item.id);
-            return {
-              id: item.id,
-              name: item.name,
-              email: item.email,
-              phone: item.phone || '',
-              status: item.status as CustomerStatus,
-              notes: item.notes || '',
-              createdAt: new Date(item.created_at),
-              updatedAt: new Date(item.updated_at),
-              activeTickets,
-              ticketCount: activeTickets.length,
-              lastTicketDate: activeTickets.length > 0 ? activeTickets[0].createdAt : undefined,
-            };
-          });
-          
-          setCustomers(formattedCustomers);
-        }
-      } catch (error: any) {
-        console.error('Error fetching customers:', error.message);
-        toast({
-          title: "Error",
-          description: "Failed to load customers",
-          variant: "destructive",
+      if (error) throw error;
+
+      if (data) {
+        const formattedCustomers: Customer[] = data.map(item => {
+          const activeTickets = generateSampleTickets(item.id);
+          return {
+            id: item.id,
+            name: item.name,
+            email: item.email,
+            phone: item.phone || '',
+            status: item.status as CustomerStatus,
+            notes: item.notes || '',
+            createdAt: new Date(item.created_at),
+            updatedAt: new Date(item.updated_at),
+            activeTickets,
+            ticketCount: activeTickets.length,
+            lastTicketDate: activeTickets.length > 0 ? activeTickets[0].createdAt : undefined,
+          };
         });
+        setCustomers(formattedCustomers);
       }
-    };
+    } catch (error: any) {
+      console.error('Error fetching customers:', error.message);
+      setError('Failed to load customers');
+      toast({
+        title: "Error",
+        description: "Failed to load customers",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [user, setCustomers, setLoading, setError, generateSampleTickets]);
 
-    fetchCustomers();
+  // Effect for initial data load
+  useEffect(() => {
+    if (user && customers.length === 0) {
+      fetchCustomers();
+    }
+    // Clear data on logout
+    if (!user) {
+      setCustomers([]);
+    }
+  }, [user, customers.length, fetchCustomers, setCustomers]);
 
-    // Set up realtime subscription
+  // Effect for real-time updates
+  useEffect(() => {
+    if (!user) return;
+
     const subscription = supabase
-      .channel('customers-channel')
+      .channel('customers-channel-realtime')
       .on(
         'postgres_changes',
         {
@@ -129,7 +142,7 @@ export const useCustomerData = () => {
           filter: `user_id=eq.${user.id}`,
         },
         () => {
-          // Refresh data when changes occur
+          toast({ description: "Customer data updated in real-time." });
           fetchCustomers();
         }
       )
@@ -138,7 +151,7 @@ export const useCustomerData = () => {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, [user]);
+  }, [user, fetchCustomers]);
 
-  return { customers, setCustomers };
+  return { customers, isLoading };
 };

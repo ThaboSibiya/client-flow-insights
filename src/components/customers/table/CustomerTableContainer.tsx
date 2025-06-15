@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useCustomerData } from '@/hooks/useCustomerData';
 import { useCustomerFilters } from '@/hooks/useCustomerFilters';
@@ -14,7 +13,7 @@ import { toast } from '@/hooks/use-toast';
 const CustomerTableContainer = () => {
   const {
     customers,
-    setCustomers
+    isLoading, // This now comes from the zustand store via our hook
   } = useCustomerData();
 
   const {
@@ -37,13 +36,11 @@ const CustomerTableContainer = () => {
     getQuickDateRange
   } = useCustomerFilters(customers);
 
-  // Add pagination state since it's not in the hook
   const [currentPage, setCurrentPage] = React.useState(1);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isRefreshing, setIsRefreshing] = React.useState(false); // For UI feedback on manual refresh
   const itemsPerPage = 10;
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
   
-  // Calculate paginated customers
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedCustomers = filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
 
@@ -56,7 +53,6 @@ const CustomerTableContainer = () => {
     clearSelection
   } = useTableSelection(paginatedCustomers);
 
-  // Export functionality
   const {
     handleExportCSV,
     handleExportJSON,
@@ -67,7 +63,6 @@ const CustomerTableContainer = () => {
     selectedCustomers,
   });
 
-  // Keyboard shortcuts
   const shortcuts = useKeyboardShortcuts([
     {
       key: 'f',
@@ -125,22 +120,23 @@ const CustomerTableContainer = () => {
   };
 
   const handleRefresh = async () => {
-    setIsLoading(true);
+    setIsRefreshing(true);
     try {
-      // Simulate refresh - in real app this would refetch from API
+      // Data is real-time, so this is mostly for user feedback.
+      // A full implementation might expose a 'refetch' from useCustomerData.
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
-        title: "Data refreshed",
-        description: "Customer data has been updated",
+        title: "Data is up-to-date",
+        description: "Customer data is being synchronized automatically.",
       });
     } catch (error) {
       toast({
         title: "Refresh failed",
-        description: "Failed to refresh customer data",
+        description: "An error occurred while trying to refresh.",
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -185,7 +181,7 @@ const CustomerTableContainer = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            isLoading={isLoading}
+            isLoading={isLoading || isRefreshing}
           />
         </ErrorBoundary>
       </div>
