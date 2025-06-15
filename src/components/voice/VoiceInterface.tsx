@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -104,11 +103,11 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange }) => 
   }, []);
 
   return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-4">
       {!isConnected ? (
         <Button 
           onClick={startConversation}
-          className="bg-quikle-primary hover:bg-quikle-primary/90 text-white rounded-full h-16 w-16 shadow-lg"
+          className="bg-quikle-primary hover:bg-quikle-primary/90 text-white rounded-full h-14 w-14 shadow-lg"
         >
           Talk
         </Button>
@@ -116,7 +115,7 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange }) => 
         <Button 
           onClick={endConversation}
           variant="destructive"
-          className="rounded-full h-16 w-16 shadow-lg"
+          className="rounded-full h-14 w-14 shadow-lg"
         >
           End
         </Button>
