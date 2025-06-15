@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAutomationSettings } from '@/hooks/useAutomationSettings';
 import { useCompanyProfile } from '@/hooks/useCompanyProfile';
@@ -33,7 +34,7 @@ export const useQuoteEmail = () => {
             let emailMessage = settings?.email_message || `Hi [Customer Name],\n\nPlease find your ${quote.type} attached.\n\nThank you!`;
 
             // Replace placeholders
-            const yourName = (profile?.first_name && profile?.last_name) ? `${profile.first_name} ${profile.last_name}` : (user?.user_metadata?.full_name || senderName);
+            const yourName = ((profile as any)?.first_name && (profile as any)?.last_name) ? `${(profile as any).first_name} ${(profile as any).last_name}` : (user?.user_metadata?.full_name || senderName);
 
             emailSubject = emailSubject.replace(/\[Customer Name\]/g, quote.customer_name || 'Valued Customer')
                                       .replace(/\[Company Name\]/g, senderName)
