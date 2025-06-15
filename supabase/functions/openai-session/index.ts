@@ -31,20 +31,18 @@ serve(async (req) => {
         tools: [
           {
             type: "function",
-            function: {
-              name: "navigateTo",
-              description: "Navigate to a specific page in the application. Available pages are: Dashboard, Conversations, Customers, Pipeline, Analytics, QuoteInvoice, and Employees.",
-              parameters: {
-                type: "object",
-                properties: {
-                  page: {
-                    type: "string",
-                    description: "The page to navigate to.",
-                    enum: ["Dashboard", "Conversations", "Customers", "Pipeline", "Analytics", "QuoteInvoice", "Employees"],
-                  },
+            name: "navigateTo",
+            description: "Navigate to a specific page in the application. Available pages are: Dashboard, Conversations, Customers, Pipeline, Analytics, QuoteInvoice, and Employees.",
+            parameters: {
+              type: "object",
+              properties: {
+                page: {
+                  type: "string",
+                  description: "The page to navigate to.",
+                  enum: ["Dashboard", "Conversations", "Customers", "Pipeline", "Analytics", "QuoteInvoice", "Employees"],
                 },
-                required: ["page"],
               },
+              required: ["page"],
             },
           },
         ],
@@ -63,3 +61,4 @@ serve(async (req) => {
     });
   }
 });
+
