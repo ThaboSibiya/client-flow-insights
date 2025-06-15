@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { useCustomerData } from '@/hooks/useCustomerData';
 import { useCustomerStore } from '@/stores/customerStore';
 import { useTicketStore } from '@/stores/ticketStore';
@@ -15,16 +15,11 @@ import { Customer, CustomerStatus, CustomerTicket, TicketStatus, CRMContextType,
 const CRMContext = createContext<CRMContextType | undefined>(undefined);
 
 export const CRMProvider = ({ children }: { children: ReactNode }) => {
-  const { customers: rawCustomers, setCustomers: setRawCustomers } = useCustomerData();
+  useCustomerData(); // This hook now manages data fetching and updates the customer store.
   const customerStore = useCustomerStore();
   const ticketStore = useTicketStore();
   const { updateCustomerOptimistically, deleteCustomerOptimistically, addCustomerOptimistically, updateTicketOptimistically } = useOptimisticUpdates();
   const { user } = useAuth();
-
-  // Sync raw customer data with store - removed customerStore from dependency array to prevent infinite loop
-  useEffect(() => {
-    customerStore.setCustomers(rawCustomers);
-  }, [rawCustomers]);
 
   const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'activeTickets' | 'ticketCount'>) => {
     if (!user) return;
@@ -47,7 +42,9 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
       }, user.id);
       
       if (actualCustomer) {
-        setRawCustomers(prev => [actualCustomer, ...prev.filter(c => c.id !== tempId)]);
+        // After successful creation, update the store with the actual customer data from the server
+        const currentCustomers = customerStore.customers;
+        customerStore.setCustomers([actualCustomer, ...currentCustomers.filter(c => c.id !== tempId)]);
       }
     });
   };
