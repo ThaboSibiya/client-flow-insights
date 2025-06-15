@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
@@ -24,7 +25,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "gpt-4o", // Using the supported gpt-4o model
         voice: "alloy",
         instructions: "You are a helpful assistant integrated into a CRM application. Greet the user and ask how you can help. Be concise and helpful. You can help users navigate around the application by using the `navigateTo` tool, and you can make phone calls to customers using the `makeCall` tool.",
         tools: [
@@ -66,6 +67,11 @@ serve(async (req) => {
         ],
       }),
     });
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("OpenAI API error:", errorText);
+        throw new Error(`Failed to create session: ${errorText}`);
+    }
     const data = await response.json();
     console.log("Session created:", data);
     return new Response(JSON.stringify(data), {
