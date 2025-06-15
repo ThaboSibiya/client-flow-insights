@@ -1,12 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import CustomerTable from '@/components/customers/CustomerTable';
 import { Button } from '@/components/ui/button';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import AiVoiceSessionDialog from '@/components/voice/AiVoiceSessionDialog';
 
 const Customers = () => {
   const navigate = useNavigate();
+  const [isSessionOpen, setIsSessionOpen] = useState(false);
   
   const handleOnboardNewCustomer = () => {
     navigate('/onboarding');
@@ -22,6 +24,14 @@ const Customers = () => {
           </div>
           <div className="flex gap-2">
             <Button 
+              onClick={() => setIsSessionOpen(true)}
+              variant="outline"
+              className="flex items-center gap-2 quikle-button-secondary shadow-md"
+            >
+              <Phone className="h-4 w-4" />
+              AI Agent
+            </Button>
+            <Button 
               onClick={handleOnboardNewCustomer} 
               className="flex items-center gap-2 quikle-button-primary shadow-md"
             >
@@ -32,6 +42,7 @@ const Customers = () => {
         </div>
       </div>
       <CustomerTable />
+      <AiVoiceSessionDialog isOpen={isSessionOpen} onOpenChange={setIsSessionOpen} />
     </div>
   );
 };
