@@ -6,29 +6,10 @@ import { useAuth } from '@/context/AuthContext';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Info, User, FileSpreadsheet } from "lucide-react";
-import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
-import EmployeeSetup from '@/components/onboarding/EmployeeSetup';
-import LoadingSpinner from '@/components/auth/LoadingSpinner';
 
 const Onboarding = () => {
   const { user } = useAuth();
-  const { data: employee, isLoading } = useEmployeeProfile();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  // If user is logged in but has no employee profile, show the setup form.
-  if (user && !employee) {
-    return <EmployeeSetup />;
-  }
-
-  // This is the original content for customer onboarding.
-  // It will be shown to users who already have a profile.
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-secondary/15 to-quikle-accent/20 p-8 rounded-xl mb-6 shadow-luxury border border-quikle-silver/30 backdrop-blur-sm">
