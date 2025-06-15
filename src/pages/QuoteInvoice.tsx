@@ -157,3 +157,5 @@ const QuoteInvoice = () => {
     </div>
   );
 };
+
+export default QuoteInvoice;
