@@ -1,0 +1,35 @@
+
+@layer components {
+  .card-gradient {
+    @apply bg-gradient-to-br from-white to-quikle-crystal;
+  }
+
+  .status-badge {
+    @apply px-2.5 py-0.5 rounded-full text-xs font-medium border;
+  }
+  
+  .text-gradient {
+    @apply bg-gradient-to-r from-quikle-charcoal to-quikle-slate bg-clip-text text-transparent;
+  }
+
+  .text-gradient-quikle {
+    @apply bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent;
+  }
+
+  /* Hover effects */
+  .hover-lift {
+    @apply transition-transform duration-300 hover:translate-y-[-3px];
+  }
+
+  .hover-glow {
+    @apply transition-shadow duration-300 hover:shadow-luxury;
+  }
+
+  /* Mobile touch targets */
+  @media (max-width: 768px) {
+    .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+}

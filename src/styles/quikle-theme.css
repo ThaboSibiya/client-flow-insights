@@ -1,0 +1,51 @@
+
+@layer components {
+  /* Quikle specific styles - Ultra Premium Edition */
+  .quikle-gradient-bg {
+    @apply bg-quikle-platinum;
+  }
+
+  .quikle-card {
+    @apply bg-white backdrop-blur-sm border border-quikle-silver/30 shadow-platinum hover:shadow-elegant transition-all duration-300;
+  }
+
+  .quikle-button-primary {
+    @apply bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white hover:shadow-luxury transition-all duration-300 transform hover:scale-[1.02];
+  }
+
+  /* Premium surface styles */
+  .premium-surface {
+    background: rgba(255, 255, 255, 0.95);
+    @apply backdrop-blur-md border border-white/30 shadow-platinum;
+  }
+
+  .elegant-card {
+    @apply bg-white border border-quikle-silver/20 shadow-platinum hover:shadow-luxury transition-all duration-300;
+  }
+
+  .sophisticated-gradient {
+    @apply bg-gradient-to-br from-white via-quikle-crystal to-quikle-platinum/50;
+  }
+
+  /* Luxury glass effect */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.9);
+    @apply backdrop-blur-xl border border-white/20 shadow-luxury;
+  }
+
+  /* Premium text effects */
+  .luxury-text {
+    @apply bg-gradient-to-r from-quikle-charcoal via-quikle-primary to-quikle-slate bg-clip-text text-transparent;
+  }
+
+  /* Shimmer effect for premium elements */
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent;
+    animation: shimmer 2s infinite;
+  }
+}
