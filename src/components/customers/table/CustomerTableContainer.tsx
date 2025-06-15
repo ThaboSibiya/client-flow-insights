@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useCustomerData } from '@/hooks/useCustomerData';
 import { useCustomerFilters } from '@/hooks/useCustomerFilters';
@@ -9,11 +10,12 @@ import CustomerTableFilters from './CustomerTableFilters';
 import QuickActionsBar from '../QuickActionsBar';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 import { toast } from '@/hooks/use-toast';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const CustomerTableContainer = () => {
   const {
     customers,
-    isLoading, // This now comes from the zustand store via our hook
+    isLoading,
   } = useCustomerData();
 
   const {
@@ -35,6 +37,23 @@ const CustomerTableContainer = () => {
     saveCurrentAsPreset,
     getQuickDateRange
   } = useCustomerFilters(customers);
+
+  // State for the search input, which updates instantly
+  const [searchInput, setSearchInput] = React.useState(searchQuery);
+  // Debounced version of the search input, which is used for filtering
+  const debouncedSearchQuery = useDebounce(searchInput, 300);
+
+  // Effect to apply the debounced search query to the filters
+  React.useEffect(() => {
+    setSearchQuery(debouncedSearchQuery);
+  }, [debouncedSearchQuery, setSearchQuery]);
+
+  // Effect to sync the search input if the query changes from elsewhere (e.g., presets)
+  React.useEffect(() => {
+    if (searchQuery !== searchInput) {
+      setSearchInput(searchQuery);
+    }
+  }, [searchQuery, searchInput]);
 
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isRefreshing, setIsRefreshing] = React.useState(false); // For UI feedback on manual refresh
@@ -152,8 +171,8 @@ const CustomerTableContainer = () => {
         
         <ErrorBoundary>
           <CustomerTableFilters
-            searchQuery={searchQuery}
-            onSearchQueryChange={setSearchQuery}
+            searchQuery={searchInput}
+            onSearchQueryChange={setSearchInput}
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
             dateRange={dateRange}
