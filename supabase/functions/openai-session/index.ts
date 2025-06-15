@@ -27,7 +27,27 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "gpt-4o-realtime-preview-2024-12-17",
         voice: "alloy",
-        instructions: "You are a helpful assistant integrated into a CRM application. Be concise and helpful."
+        instructions: "You are a helpful assistant integrated into a CRM application. Be concise and helpful. You can also help users navigate around the application by using the `navigateTo` tool.",
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "navigateTo",
+              description: "Navigate to a specific page in the application. Available pages are: Dashboard, Conversations, Customers, Pipeline, Analytics, QuoteInvoice, and Employees.",
+              parameters: {
+                type: "object",
+                properties: {
+                  page: {
+                    type: "string",
+                    description: "The page to navigate to.",
+                    enum: ["Dashboard", "Conversations", "Customers", "Pipeline", "Analytics", "QuoteInvoice", "Employees"],
+                  },
+                },
+                required: ["page"],
+              },
+            },
+          },
+        ],
       }),
     });
     const data = await response.json();
