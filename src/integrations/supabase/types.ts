@@ -525,7 +525,10 @@ export type Database = {
         Row: {
           avatar_url: string | null
           company: string | null
+          company_address: string | null
+          company_email: string | null
           company_logo_url: string | null
+          company_phone: string | null
           created_at: string
           email: string | null
           first_name: string | null
@@ -538,7 +541,10 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           company?: string | null
+          company_address?: string | null
+          company_email?: string | null
           company_logo_url?: string | null
+          company_phone?: string | null
           created_at?: string
           email?: string | null
           first_name?: string | null
@@ -551,7 +557,10 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           company?: string | null
+          company_address?: string | null
+          company_email?: string | null
           company_logo_url?: string | null
+          company_phone?: string | null
           created_at?: string
           email?: string | null
           first_name?: string | null

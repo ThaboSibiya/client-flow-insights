@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCompanyProfile } from '@/hooks/useCompanyProfile';
@@ -12,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 
 export const CompanyLogoUploader = () => {
     const { user } = useAuth();
-    const { companyLogoUrl, updateCompanyLogo, isLoading: isProfileLoading } = useCompanyProfile();
+    const { profile, updateCompanyLogo, isLoading: isProfileLoading } = useCompanyProfile();
     const [uploading, setUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
@@ -84,14 +83,14 @@ export const CompanyLogoUploader = () => {
                     <Input id="logo-upload" type="file" onChange={handleFileChange} accept="image/*" disabled={uploading} />
                 </div>
                 
-                {(preview || companyLogoUrl) && (
+                {(preview || profile?.company_logo_url) && (
                     <div>
                         <Label>Logo Preview</Label>
                         <div className="mt-2 w-48 h-24 border rounded-md p-2 flex items-center justify-center bg-gray-50">
                             {isProfileLoading ? (
                                 <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
                             ) : (
-                                <img src={preview || companyLogoUrl} alt="Logo preview" className="max-w-full max-h-full object-contain" />
+                                <img src={preview || profile?.company_logo_url} alt="Logo preview" className="max-w-full max-h-full object-contain" />
                             )}
                         </div>
                     </div>

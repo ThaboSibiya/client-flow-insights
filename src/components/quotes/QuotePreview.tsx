@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ interface QuotePreviewProps {
 }
 
 const QuotePreview = ({ quote }: QuotePreviewProps) => {
-  const { companyLogoUrl } = useCompanyProfile();
+  const { profile } = useCompanyProfile();
   
   // Safety check - if no quote is provided, return null
   if (!quote) {
@@ -108,14 +107,14 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
             </div>
             <div className="text-right flex items-start gap-4">
               <div>
-                <h2 className="text-xl font-semibold text-quikle-charcoal">Your Company</h2>
-                <p className="text-quikle-slate">123 Business Street</p>
-                <p className="text-quikle-slate">Johannesburg, GP 2000</p>
-                <p className="text-quikle-slate">contact@company.co.za</p>
+                <h2 className="text-xl font-semibold text-quikle-charcoal">{profile?.company || 'Your Company'}</h2>
+                {profile?.company_address && <p className="text-quikle-slate whitespace-pre-wrap">{profile.company_address}</p>}
+                {profile?.company_email && <p className="text-quikle-slate">{profile.company_email}</p>}
+                {profile?.company_phone && <p className="text-quikle-slate">{profile.company_phone}</p>}
               </div>
-              {companyLogoUrl && (
+              {profile?.company_logo_url && (
                 <div className="w-24 h-24 flex items-center justify-center">
-                  <img src={companyLogoUrl} alt="Company Logo" className="max-w-full max-h-full object-contain" />
+                  <img src={profile.company_logo_url} alt="Company Logo" className="max-w-full max-h-full object-contain" />
                 </div>
               )}
             </div>
