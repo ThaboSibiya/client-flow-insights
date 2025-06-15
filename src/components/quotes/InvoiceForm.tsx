@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, FileText, Calendar } from "lucide-react";
 import { useCRM } from '@/context/CRMContext';
 import { toast } from "@/hooks/use-toast";
+import { QuoteInvoiceInsert } from '@/hooks/useQuoteData';
 
 interface InvoiceItem {
   id: string;
@@ -18,7 +19,7 @@ interface InvoiceItem {
 }
 
 interface InvoiceFormProps {
-  onSave: (invoice: any) => void;
+  onSave: (invoice: QuoteInvoiceInsert) => void;
 }
 
 const InvoiceForm = ({ onSave }: InvoiceFormProps) => {
@@ -123,22 +124,35 @@ const InvoiceForm = ({ onSave }: InvoiceFormProps) => {
       return;
     }
 
-    const invoice = {
-      ...formData,
-      items,
-      subtotal: calculateSubtotal(),
-      discount: calculateDiscount(),
-      tax: calculateTax(),
-      total: calculateTotal(),
-      type: 'invoice',
-      createdAt: new Date().toISOString()
-    };
+    const subtotal = calculateSubtotal();
+    const discount = calculateDiscount();
+    const tax = calculateTax();
+    const total = subtotal - discount + tax;
 
-    onSave(invoice);
-    toast({
-      title: "Invoice Created",
-      description: "Your invoice has been created successfully"
-    });
+    const invoiceToSave: QuoteInvoiceInsert = {
+      number: formData.invoiceNumber,
+      customer_id: formData.customerId || null,
+      customer_name: formData.customerName,
+      customer_email: formData.customerEmail,
+      issue_date: new Date(formData.issueDate).toISOString(),
+      due_date: new Date(formData.dueDate).toISOString(),
+      subject: formData.subject,
+      notes: formData.notes,
+      terms: formData.terms,
+      subtotal,
+      discount,
+      tax,
+      total,
+      type: 'invoice',
+      status: formData.status as any,
+      items: items.map(item => ({
+        description: item.description,
+        quantity: item.quantity,
+        rate: item.rate
+      }))
+    };
+    
+    onSave(invoiceToSave);
   };
 
   return (

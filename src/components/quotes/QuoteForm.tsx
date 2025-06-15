@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, User, Calendar } from "lucide-react";
 import { useCRM } from '@/context/CRMContext';
 import { toast } from "@/hooks/use-toast";
+import { QuoteInvoiceInsert } from '@/hooks/useQuoteData';
 
 interface QuoteItem {
   id: string;
@@ -18,7 +20,7 @@ interface QuoteItem {
 }
 
 interface QuoteFormProps {
-  onSave: (quote: any) => void;
+  onSave: (quote: QuoteInvoiceInsert) => void;
 }
 
 const QuoteForm = ({ onSave }: QuoteFormProps) => {
@@ -121,23 +123,35 @@ const QuoteForm = ({ onSave }: QuoteFormProps) => {
       return;
     }
 
-    const quote = {
-      ...formData,
-      items,
-      subtotal: calculateSubtotal(),
-      discount: calculateDiscount(),
-      tax: calculateTax(),
-      total: calculateTotal(),
+    const subtotal = calculateSubtotal();
+    const discount = calculateDiscount();
+    const tax = calculateTax();
+    const total = subtotal - discount + tax;
+
+    const quoteToSave: QuoteInvoiceInsert = {
+      number: formData.quoteNumber,
+      customer_id: formData.customerId || null,
+      customer_name: formData.customerName,
+      customer_email: formData.customerEmail,
+      issue_date: new Date(formData.issueDate).toISOString(),
+      valid_until: new Date(formData.validUntil).toISOString(),
+      subject: formData.subject,
+      notes: formData.notes,
+      terms: formData.terms,
+      subtotal,
+      discount,
+      tax,
+      total,
       type: 'quote',
       status: 'draft',
-      createdAt: new Date().toISOString()
+      items: items.map(item => ({
+        description: item.description,
+        quantity: item.quantity,
+        rate: item.rate
+      }))
     };
 
-    onSave(quote);
-    toast({
-      title: "Quote Created",
-      description: "Your quote has been created successfully"
-    });
+    onSave(quoteToSave);
   };
 
   return (

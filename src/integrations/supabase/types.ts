@@ -560,6 +560,121 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_invoice_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          quantity: number
+          quote_invoice_id: string
+          rate: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          quantity?: number
+          quote_invoice_id: string
+          rate?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          quantity?: number
+          quote_invoice_id?: string
+          rate?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_invoice_items_quote_invoice_id_fkey"
+            columns: ["quote_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "quotes_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes_invoices: {
+        Row: {
+          created_at: string
+          customer_email: string | null
+          customer_id: string | null
+          customer_name: string | null
+          discount: number
+          due_date: string | null
+          id: string
+          issue_date: string
+          notes: string | null
+          number: string
+          status: Database["public"]["Enums"]["quote_invoice_status"]
+          subject: string | null
+          subtotal: number
+          tax: number
+          terms: string | null
+          total: number
+          type: Database["public"]["Enums"]["quote_invoice_type"]
+          updated_at: string
+          user_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          discount?: number
+          due_date?: string | null
+          id?: string
+          issue_date?: string
+          notes?: string | null
+          number: string
+          status?: Database["public"]["Enums"]["quote_invoice_status"]
+          subject?: string | null
+          subtotal?: number
+          tax?: number
+          terms?: string | null
+          total?: number
+          type: Database["public"]["Enums"]["quote_invoice_type"]
+          updated_at?: string
+          user_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          discount?: number
+          due_date?: string | null
+          id?: string
+          issue_date?: string
+          notes?: string | null
+          number?: string
+          status?: Database["public"]["Enums"]["quote_invoice_status"]
+          subject?: string | null
+          subtotal?: number
+          tax?: number
+          terms?: string | null
+          total?: number
+          type?: Database["public"]["Enums"]["quote_invoice_type"]
+          updated_at?: string
+          user_id?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_activities: {
         Row: {
           activity_type: string
@@ -790,6 +905,14 @@ export type Database = {
     Enums: {
       employee_role: "admin" | "manager" | "supervisor" | "employee" | "intern"
       employee_status: "active" | "inactive" | "suspended" | "terminated"
+      quote_invoice_status:
+        | "draft"
+        | "sent"
+        | "paid"
+        | "overdue"
+        | "accepted"
+        | "rejected"
+      quote_invoice_type: "quote" | "invoice"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -907,6 +1030,15 @@ export const Constants = {
     Enums: {
       employee_role: ["admin", "manager", "supervisor", "employee", "intern"],
       employee_status: ["active", "inactive", "suspended", "terminated"],
+      quote_invoice_status: [
+        "draft",
+        "sent",
+        "paid",
+        "overdue",
+        "accepted",
+        "rejected",
+      ],
+      quote_invoice_type: ["quote", "invoice"],
     },
   },
 } as const

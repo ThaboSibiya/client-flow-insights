@@ -6,68 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, Edit, Download, Send, Search, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { QuoteInvoice } from '@/types/quote';
 
 interface QuoteListProps {
-  onSelectQuote: (quote: any) => void;
+  quotes: QuoteInvoice[];
+  onSelectQuote: (quote: QuoteInvoice) => void;
   onPreview: () => void;
 }
 
-const QuoteList = ({ onSelectQuote, onPreview }: QuoteListProps) => {
+const QuoteList = ({ quotes, onSelectQuote, onPreview }: QuoteListProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
-
-  // Mock data - in real app this would come from API/database
-  const quotes = [
-    {
-      id: '1',
-      type: 'quote',
-      number: 'QUO-001',
-      customerName: 'John Smith',
-      customerEmail: 'john@example.com',
-      subject: 'Website Development Services',
-      total: 2500.00,
-      status: 'sent',
-      createdAt: '2024-01-15',
-      validUntil: '2024-02-15'
-    },
-    {
-      id: '2',
-      type: 'invoice',
-      number: 'INV-001',
-      customerName: 'Jane Doe',
-      customerEmail: 'jane@example.com',
-      subject: 'Consulting Services',
-      total: 1800.00,
-      status: 'paid',
-      createdAt: '2024-01-10',
-      dueDate: '2024-02-10'
-    },
-    {
-      id: '3',
-      type: 'quote',
-      number: 'QUO-002',
-      customerName: 'Acme Corp',
-      customerEmail: 'contact@acme.com',
-      subject: 'Digital Marketing Campaign',
-      total: 5000.00,
-      status: 'draft',
-      createdAt: '2024-01-20',
-      validUntil: '2024-02-20'
-    },
-    {
-      id: '4',
-      type: 'invoice',
-      number: 'INV-002',
-      customerName: 'Tech Solutions',
-      customerEmail: 'billing@techsolutions.com',
-      subject: 'Software License',
-      total: 1200.00,
-      status: 'overdue',
-      createdAt: '2023-12-15',
-      dueDate: '2024-01-15'
-    }
-  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -82,16 +32,16 @@ const QuoteList = ({ onSelectQuote, onPreview }: QuoteListProps) => {
   };
 
   const filteredQuotes = quotes.filter(quote => {
-    const matchesSearch = quote.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = (quote.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          quote.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         quote.subject.toLowerCase().includes(searchTerm.toLowerCase());
+                         (quote.subject || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
     const matchesType = typeFilter === 'all' || quote.type === typeFilter;
     
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  const handleViewQuote = (quote: any) => {
+  const handleViewQuote = (quote: QuoteInvoice) => {
     onSelectQuote(quote);
     onPreview();
   };
@@ -172,13 +122,16 @@ const QuoteList = ({ onSelectQuote, onPreview }: QuoteListProps) => {
                       {quote.type}
                     </Badge>
                   </div>
-                  <p className="text-lg font-medium text-quikle-charcoal mb-1">{quote.customerName}</p>
+                  <p className="text-lg font-medium text-quikle-charcoal mb-1">{quote.customer_name}</p>
                   <p className="text-quikle-slate mb-2">{quote.subject}</p>
                   <div className="flex items-center gap-4 text-sm text-quikle-slate">
-                    <span>Created: {new Date(quote.createdAt).toLocaleDateString()}</span>
+                    <span>Created: {new Date(quote.created_at).toLocaleDateString()}</span>
                     <span>
                       {quote.type === 'quote' ? 'Valid Until' : 'Due Date'}: 
-                      {new Date(quote.type === 'quote' ? quote.validUntil : quote.dueDate).toLocaleDateString()}
+                      {quote.type === 'quote' 
+                        ? (quote.valid_until ? new Date(quote.valid_until).toLocaleDateString() : 'N/A')
+                        : (quote.due_date ? new Date(quote.due_date).toLocaleDateString() : 'N/A')
+                      }
                     </span>
                   </div>
                 </div>

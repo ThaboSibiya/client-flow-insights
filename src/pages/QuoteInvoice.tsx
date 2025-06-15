@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,11 +9,27 @@ import InvoiceForm from "@/components/quotes/InvoiceForm";
 import QuotePreview from "@/components/quotes/QuotePreview";
 import AutomationSettings from "@/components/quotes/AutomationSettings";
 import QuoteList from "@/components/quotes/QuoteList";
+import { useQuoteData, QuoteInvoiceInsert } from '@/hooks/useQuoteData';
+import { QuoteInvoice as QuoteInvoiceType } from '@/types/quote';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const QuoteInvoice = () => {
   const [activeTab, setActiveTab] = useState('quotes');
-  const [selectedQuote, setSelectedQuote] = useState(null);
-  const [showPreview, setShowPreview] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState<QuoteInvoiceType | null>(null);
+
+  const { quotes, isLoading, createQuoteInvoice } = useQuoteData();
+
+  const handleSave = async (data: QuoteInvoiceInsert) => {
+    try {
+      const newQuote = await createQuoteInvoice(data);
+      if (newQuote) {
+        setSelectedQuote(newQuote);
+        setActiveTab('preview');
+      }
+    } catch (error) {
+      console.error("Failed to save:", error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -65,21 +82,27 @@ const QuoteInvoice = () => {
         </TabsList>
 
         <TabsContent value="quotes" className="mt-6">
-          <QuoteList onSelectQuote={setSelectedQuote} onPreview={() => setActiveTab('preview')} />
+          {isLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-32 w-full rounded-lg" />
+              <Skeleton className="h-32 w-full rounded-lg" />
+              <Skeleton className="h-32 w-full rounded-lg" />
+            </div>
+          ) : (
+            <QuoteList 
+              quotes={quotes}
+              onSelectQuote={setSelectedQuote} 
+              onPreview={() => setActiveTab('preview')} 
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="create-quote" className="mt-6">
-          <QuoteForm onSave={(quote) => {
-            setSelectedQuote(quote);
-            setActiveTab('preview');
-          }} />
+          <QuoteForm onSave={handleSave} />
         </TabsContent>
 
         <TabsContent value="create-invoice" className="mt-6">
-          <InvoiceForm onSave={(invoice) => {
-            setSelectedQuote(invoice);
-            setActiveTab('preview');
-          }} />
+          <InvoiceForm onSave={handleSave} />
         </TabsContent>
 
         <TabsContent value="automation" className="mt-6">

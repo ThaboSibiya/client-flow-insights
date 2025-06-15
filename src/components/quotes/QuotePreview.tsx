@@ -4,9 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Send, Eye, FileText, MessageSquare } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { QuoteInvoice } from '@/types/quote';
 
 interface QuotePreviewProps {
-  quote: any;
+  quote: QuoteInvoice | null;
 }
 
 const QuotePreview = ({ quote }: QuotePreviewProps) => {
@@ -16,7 +17,7 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
   }
 
   // Ensure items array exists and is an array
-  const items = Array.isArray(quote.items) ? quote.items : [];
+  const items = Array.isArray(quote.quote_invoice_items) ? quote.quote_invoice_items : [];
 
   const handleDownloadPDF = () => {
     // This would generate and download a PDF
@@ -38,7 +39,7 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
     // This would open email sending dialog
     toast({
       title: "Email Sent",
-      description: `${quote.type === 'quote' ? 'Quote' : 'Invoice'} has been sent to ${quote.customerEmail || 'customer'}`
+      description: `${quote.type === 'quote' ? 'Quote' : 'Invoice'} has been sent to ${quote.customer_email || 'customer'}`
     });
   };
 
@@ -99,7 +100,7 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
                 {quote.type === 'quote' ? 'QUOTE' : 'INVOICE'}
               </h1>
               <p className="text-quikle-slate">
-                {quote.type === 'quote' ? quote.quoteNumber : quote.invoiceNumber}
+                {quote.number}
               </p>
             </div>
             <div className="text-right">
@@ -114,9 +115,9 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div>
               <h3 className="font-semibold text-quikle-charcoal mb-2">Bill To:</h3>
-              <p className="font-semibold text-quikle-charcoal">{quote.customerName || 'N/A'}</p>
-              <p className="text-quikle-slate">{quote.customerEmail || ''}</p>
-              {quote.customerPhone && <p className="text-quikle-slate">{quote.customerPhone}</p>}
+              <p className="font-semibold text-quikle-charcoal">{quote.customer_name || 'N/A'}</p>
+              <p className="text-quikle-slate">{quote.customer_email || ''}</p>
+              {/* <p className="text-quikle-slate">{quote.customerPhone}</p> */}
             </div>
             <div>
               <div className="space-y-2">
@@ -125,7 +126,7 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
                     {quote.type === 'quote' ? 'Quote Date:' : 'Invoice Date:'}
                   </span>
                   <span className="text-quikle-charcoal">
-                    {quote.issueDate ? new Date(quote.issueDate).toLocaleDateString() : 'N/A'}
+                    {quote.issue_date ? new Date(quote.issue_date).toLocaleDateString() : 'N/A'}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -134,8 +135,8 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
                   </span>
                   <span className="text-quikle-charcoal">
                     {quote.type === 'quote' 
-                      ? (quote.validUntil ? new Date(quote.validUntil).toLocaleDateString() : 'N/A')
-                      : (quote.dueDate ? new Date(quote.dueDate).toLocaleDateString() : 'N/A')
+                      ? (quote.valid_until ? new Date(quote.valid_until).toLocaleDateString() : 'N/A')
+                      : (quote.due_date ? new Date(quote.due_date).toLocaleDateString() : 'N/A')
                     }
                   </span>
                 </div>
@@ -180,7 +181,7 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
                     <td className="py-3 text-quikle-charcoal">{item.description || 'N/A'}</td>
                     <td className="py-3 text-right text-quikle-charcoal">{item.quantity || 0}</td>
                     <td className="py-3 text-right text-quikle-charcoal">R{(item.rate || 0).toFixed(2)}</td>
-                    <td className="py-3 text-right text-quikle-charcoal">R{(item.amount || 0).toFixed(2)}</td>
+                    <td className="py-3 text-right text-quikle-charcoal">R{((item.quantity || 0) * (item.rate || 0)).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
