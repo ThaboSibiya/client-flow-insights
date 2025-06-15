@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TwilioSettings from './settings/TwilioSettings';
 import EmailSettings from './settings/EmailSettings';
 import { MessageSquare, Mail } from 'lucide-react';
+import TelnyxSettings from './settings/TelnyxSettings';
 
 const PipelineSettings = () => {
   return (
@@ -17,7 +18,7 @@ const PipelineSettings = () => {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="sms" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
-            SMS & WhatsApp
+            SMS Providers
           </TabsTrigger>
           <TabsTrigger value="email" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
@@ -25,7 +26,18 @@ const PipelineSettings = () => {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="sms" className="mt-6">
-          <TwilioSettings />
+          <Tabs defaultValue="twilio" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="twilio">Twilio</TabsTrigger>
+              <TabsTrigger value="telnyx">Telnyx</TabsTrigger>
+            </TabsList>
+            <TabsContent value="twilio" className="mt-6">
+              <TwilioSettings />
+            </TabsContent>
+            <TabsContent value="telnyx" className="mt-6">
+              <TelnyxSettings />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
         <TabsContent value="email" className="mt-6">
           <EmailSettings />
