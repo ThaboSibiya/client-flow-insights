@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -6,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GitBranch, ArrowRight } from "lucide-react";
-import { CustomNode } from './WorkflowEngine';
+import { CustomNode } from './types';
 
 interface ConditionalBranchingProps {
   node: CustomNode;

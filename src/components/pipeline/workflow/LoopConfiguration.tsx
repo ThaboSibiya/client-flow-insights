@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCw, ListIcon } from "lucide-react";
-import { CustomNode } from './WorkflowEngine';
+import { CustomNode } from './types';
 
 interface LoopConfigurationProps {
   node: CustomNode;

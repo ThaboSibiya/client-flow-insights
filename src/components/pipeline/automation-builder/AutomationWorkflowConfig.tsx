@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import WorkflowEngine from '../workflow/WorkflowEngine';
-import { CustomNode } from '../workflow/WorkflowEngine';
+import { CustomNode } from '../workflow/types';
 import { Edge } from '@xyflow/react';
 
 interface AutomationWorkflowConfigProps {

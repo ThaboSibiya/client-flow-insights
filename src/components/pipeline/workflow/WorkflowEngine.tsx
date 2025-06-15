@@ -16,47 +16,16 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { GitBranch, RefreshCw, AlertTriangle, UserCheck, Play, Pause, Trash2 } from "lucide-react";
+import { GitBranch } from "lucide-react";
 
-import ConditionalBranching from './ConditionalBranching';
-import LoopConfiguration from './LoopConfiguration';
-import ErrorHandlingConfig from './ErrorHandlingConfig';
-import ApprovalWorkflow from './ApprovalWorkflow';
+import { CustomNode, WorkflowNodeType } from './types';
+import { getDefaultNodeName } from './workflowUtils';
 import WorkflowNodeComponent from './WorkflowNodeComponent';
-
-export type WorkflowNodeType = 'condition' | 'loop' | 'approval' | 'error_handler' | 'action';
-
-export interface WorkflowNodeData {
-  name: string;
-  type: WorkflowNodeType;
-  config: Record<string, any>;
-}
-
-export type CustomNode = Node<WorkflowNodeData>;
+import WorkflowToolbar from './WorkflowToolbar';
+import WorkflowNodeConfigPanel from './WorkflowNodeConfigPanel';
 
 const nodeTypes = {
   workflowNode: WorkflowNodeComponent,
-};
-
-const getDefaultNodeName = (type: WorkflowNodeType): string => {
-  switch (type) {
-    case 'condition': return 'If/Then Branch';
-    case 'loop': return 'For Each Loop';
-    case 'approval': return 'Approval Step';
-    case 'error_handler': return 'Error Handler';
-    default: return 'Action Step';
-  }
-};
-
-const getNodeIcon = (type: WorkflowNodeType) => {
-    switch (type) {
-      case 'condition': return <GitBranch className="h-4 w-4" />;
-      case 'loop': return <RefreshCw className="h-4 w-4" />;
-      case 'approval': return <UserCheck className="h-4 w-4" />;
-      case 'error_handler': return <AlertTriangle className="h-4 w-4" />;
-      default: return <Play className="h-4 w-4" />;
-    }
 };
 
 interface WorkflowEngineProps {
@@ -146,33 +115,12 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = []
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-2 mb-4">
-            <Button size="sm" onClick={() => addNode('condition')}>
-              <GitBranch className="h-4 w-4 mr-1" />
-              Add Branch
-            </Button>
-            <Button size="sm" onClick={() => addNode('loop')}>
-              <RefreshCw className="h-4 w-4 mr-1" />
-              Add Loop
-            </Button>
-            <Button size="sm" onClick={() => addNode('approval')}>
-              <UserCheck className="h-4 w-4 mr-1" />
-              Add Approval
-            </Button>
-            <Button size="sm" onClick={() => addNode('error_handler')}>
-              <AlertTriangle className="h-4 w-4 mr-1" />
-              Add Error Handler
-            </Button>
-            <Button 
-              size="sm" 
-              onClick={simulateExecution}
-              disabled={isExecuting || nodes.length === 0}
-              className="ml-auto"
-            >
-              {isExecuting ? <Pause className="h-4 w-4 mr-1" /> : <Play className="h-4 w-4 mr-1" />}
-              {isExecuting ? 'Executing...' : 'Test Workflow'}
-            </Button>
-          </div>
+          <WorkflowToolbar 
+            addNode={addNode}
+            simulateExecution={simulateExecution}
+            isExecuting={isExecuting}
+            hasNodes={nodes.length > 0}
+          />
 
           <div className="border-2 border-dashed rounded-lg h-[500px] bg-muted/20 relative">
             <ReactFlow
@@ -202,45 +150,11 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = []
       </Card>
 
       {selectedNode && (
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center gap-2">
-                  {getNodeIcon(selectedNode.data.type)}
-                  Configure: {selectedNode.data.name}
-                </CardTitle>
-                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={removeSelectedNode}>
-                    <Trash2 className="h-4 w-4" />
-                </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {selectedNode.data.type === 'condition' && (
-              <ConditionalBranching 
-                node={selectedNode}
-                onUpdate={(updates) => updateNode(selectedNode.id, updates)}
-              />
-            )}
-            {selectedNode.data.type === 'loop' && (
-              <LoopConfiguration 
-                node={selectedNode}
-                onUpdate={(updates) => updateNode(selectedNode.id, updates)}
-              />
-            )}
-            {selectedNode.data.type === 'error_handler' && (
-              <ErrorHandlingConfig 
-                node={selectedNode}
-                onUpdate={(updates) => updateNode(selectedNode.id, updates)}
-              />
-            )}
-            {selectedNode.data.type === 'approval' && (
-              <ApprovalWorkflow 
-                node={selectedNode}
-                onUpdate={(updates) => updateNode(selectedNode.id, updates)}
-              />
-            )}
-          </CardContent>
-        </Card>
+        <WorkflowNodeConfigPanel
+          selectedNode={selectedNode}
+          updateNode={updateNode}
+          removeSelectedNode={removeSelectedNode}
+        />
       )}
     </div>
   );
