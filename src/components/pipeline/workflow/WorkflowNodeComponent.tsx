@@ -3,10 +3,10 @@ import React from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { WorkflowNodeData } from './types';
+import { CustomNode } from './types';
 import { getNodeIcon } from './workflowUtils';
 
-const WorkflowNodeComponent = ({ data, selected }: NodeProps<WorkflowNodeData>) => {
+const WorkflowNodeComponent = ({ data, selected }: NodeProps<CustomNode>) => {
   const icon = getNodeIcon(data.type, 'h-5 w-5');
 
   return (
