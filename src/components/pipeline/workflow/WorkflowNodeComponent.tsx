@@ -36,4 +36,4 @@ const WorkflowNodeComponent = ({ data, selected }: NodeProps<WorkflowNodeData>) 
   );
 };
 
-export default WorkflowNodeComponent;
+export default React.memo(WorkflowNodeComponent);

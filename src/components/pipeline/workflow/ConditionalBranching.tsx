@@ -14,6 +14,12 @@ interface ConditionalBranchingProps {
 }
 
 const ConditionalBranching = ({ node, onUpdate }: ConditionalBranchingProps) => {
+  const updateData = (key: string, value: any) => {
+    onUpdate({
+      data: { ...node.data, [key]: value }
+    });
+  };
+
   const updateConfig = (key: string, value: any) => {
     onUpdate({
       data: { ...node.data, config: { ...node.data.config, [key]: value } }
@@ -26,7 +32,7 @@ const ConditionalBranching = ({ node, onUpdate }: ConditionalBranchingProps) => 
         <Label>Branch Name</Label>
         <Input
           value={node.data.name}
-          onChange={(e) => onUpdate({ data: { ...node.data, name: e.target.value } })}
+          onChange={(e) => updateData('name', e.target.value)}
           placeholder="If/Then Branch"
         />
       </div>

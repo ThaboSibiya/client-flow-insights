@@ -11,8 +11,6 @@ import {
   Node,
   Edge,
   Connection,
-  OnNodesChange,
-  OnEdgesChange,
   NodeMouseHandler,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -68,7 +66,7 @@ interface WorkflowEngineProps {
 }
 
 const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = [] }: WorkflowEngineProps) => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState<CustomNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<CustomNode | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -82,8 +80,8 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = []
     [setEdges]
   );
   
-  const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
-    setSelectedNode(node);
+  const onNodeClick: NodeMouseHandler = useCallback((_event, node: Node) => {
+    setSelectedNode(node as CustomNode);
   }, []);
 
   const addNode = (type: WorkflowNodeType) => {
@@ -104,7 +102,15 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = []
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
-          const updatedNode = { ...node, ...updates };
+          // This ensures deep data properties are merged correctly.
+          const updatedNode = { 
+            ...node, 
+            ...updates,
+            data: {
+              ...node.data,
+              ...updates.data,
+            }
+          };
           setSelectedNode(updatedNode);
           return updatedNode;
         }
@@ -125,7 +131,7 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = []
     // Simulate workflow execution with delays
     for (let i = 0; i < nodes.length; i++) {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log(`Executing node: ${nodes[i].name}`);
+      console.log(`Executing node: ${nodes[i].data.name}`);
     }
     setIsExecuting(false);
   };
