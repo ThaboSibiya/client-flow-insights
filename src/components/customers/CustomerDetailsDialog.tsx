@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
 import {
@@ -54,8 +53,8 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()} modal={true}>
       <DialogContent className="sm:max-w-[700px] bg-white border-0 shadow-xl">
-        <DialogHeader className="bg-gradient-to-r from-broker-primary/10 to-broker-accent/10 p-4 -m-6 mb-2 rounded-t-lg">
-          <DialogTitle className="text-xl font-semibold text-broker-primary">
+        <DialogHeader className="bg-gradient-to-r from-quikle-primary/10 to-quikle-accent/10 p-4 -m-6 mb-2 rounded-t-lg">
+          <DialogTitle className="text-xl font-semibold text-quikle-primary">
             {customer?.name || 'Customer Details'}
           </DialogTitle>
         </DialogHeader>
@@ -75,9 +74,9 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-broker-dark font-medium">Name</FormLabel>
+                        <FormLabel className="text-quikle-charcoal font-medium">Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Customer name" {...field} className="border-gray-300 focus:border-broker-accent" />
+                          <Input placeholder="Customer name" {...field} className="border-quikle-silver focus:border-quikle-accent" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -89,9 +88,9 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-broker-dark font-medium">Email</FormLabel>
+                        <FormLabel className="text-quikle-charcoal font-medium">Email</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="Email address" {...field} className="border-gray-300 focus:border-broker-accent" />
+                          <Input type="email" placeholder="Email address" {...field} className="border-quikle-silver focus:border-quikle-accent" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -103,9 +102,9 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-broker-dark font-medium">Phone</FormLabel>
+                        <FormLabel className="text-quikle-charcoal font-medium">Phone</FormLabel>
                         <FormControl>
-                          <Input placeholder="Phone number" {...field} className="border-gray-300 focus:border-broker-accent" />
+                          <Input placeholder="Phone number" {...field} className="border-quikle-silver focus:border-quikle-accent" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -117,21 +116,21 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
                     name="status"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-broker-dark font-medium">Status</FormLabel>
+                        <FormLabel className="text-quikle-charcoal font-medium">Status</FormLabel>
                         <Select 
                           onValueChange={field.onChange} 
                           defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger className="border-gray-300 focus:border-broker-accent">
+                            <SelectTrigger className="border-quikle-silver focus:border-quikle-accent">
                               <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="new" className="text-blue-600">New</SelectItem>
-                            <SelectItem value="existing" className="text-green-600">Existing</SelectItem>
-                            <SelectItem value="pending" className="text-amber-600">Pending Policy</SelectItem>
-                            <SelectItem value="finalised" className="text-purple-600">Finalised Sale</SelectItem>
+                            <SelectItem value="new" className="text-quikle-info">New</SelectItem>
+                            <SelectItem value="existing" className="text-quikle-success">Existing</SelectItem>
+                            <SelectItem value="pending" className="text-quikle-accent">Pending Policy</SelectItem>
+                            <SelectItem value="finalised" className="text-quikle-purple">Finalised Sale</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -141,11 +140,11 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
                 </div>
                 
                 <div className="flex justify-end gap-2 mt-4">
-                  <Button type="button" variant="outline" onClick={onClose} className="border-gray-300">
+                  <Button type="button" variant="outline" onClick={onClose} className="border-quikle-silver">
                     <X className="mr-2 h-4 w-4" />
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-gradient-to-r from-broker-primary to-broker-accent hover:shadow-md transition-all">
+                  <Button type="submit">
                     <Save className="mr-2 h-4 w-4" />
                     Save Changes
                   </Button>
@@ -160,7 +159,7 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
             )}
             
             <div className="mt-6 flex justify-end">
-              <Button variant="outline" onClick={onClose} className="border-gray-300">
+              <Button variant="outline" onClick={onClose} className="border-quikle-silver">
                 <X className="mr-2 h-4 w-4" />
                 Close
               </Button>

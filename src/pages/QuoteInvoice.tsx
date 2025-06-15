@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +29,6 @@ const QuoteInvoice = () => {
           <div className="flex gap-2">
             <Button 
               onClick={() => setActiveTab('create-quote')} 
-              className="flex items-center gap-2 bg-quikle-primary hover:bg-quikle-secondary text-white"
             >
               <Plus className="h-4 w-4" />
               New Quote

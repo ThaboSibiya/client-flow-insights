@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -53,8 +52,8 @@ const TicketManagementDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()} modal={true}>
       <DialogContent className="sm:max-w-[800px] bg-white border-0 shadow-xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader className="bg-gradient-to-r from-broker-primary/10 to-broker-accent/10 p-4 -m-6 mb-4 rounded-t-lg">
-          <DialogTitle className="text-xl font-semibold text-broker-primary flex items-center gap-2">
+        <DialogHeader className="bg-gradient-to-r from-quikle-primary/10 to-quikle-accent/10 p-4 -m-6 mb-4 rounded-t-lg">
+          <DialogTitle className="text-xl font-semibold text-quikle-primary flex items-center gap-2">
             Ticket Management - {customer?.name}
             <Badge variant="outline">{customer?.ticketCount || 0} Total Tickets</Badge>
             {getTotalTimeSpent() > 0 && (
@@ -68,7 +67,6 @@ const TicketManagementDialog = ({
             <h3 className="text-lg font-medium">Active Tickets</h3>
             <Button 
               onClick={() => setShowNewTicketForm(!showNewTicketForm)}
-              className="bg-gradient-to-r from-broker-primary to-broker-accent"
             >
               <Plus className="h-4 w-4 mr-2" />
               New Ticket
