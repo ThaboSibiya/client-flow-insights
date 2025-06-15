@@ -3,8 +3,12 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AppSidebar from './Sidebar';
+import { useAuth } from '@/context/AuthContext';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const Layout = () => {
+  const { user } = useAuth();
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full quikle-gradient-bg">
@@ -22,7 +26,19 @@ const Layout = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium luxury-text">Professional Dashboard</span>
+                {user ? (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium luxury-text hidden sm:inline">{user.email}</span>
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email || 'user'} />
+                      <AvatarFallback className="bg-gradient-to-r from-quikle-primary to-quikle-accent text-white font-medium">
+                        {user.email?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                ) : (
+                  <span className="text-sm font-medium luxury-text">Professional Dashboard</span>
+                )}
               </div>
             </div>
           </header>
