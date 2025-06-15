@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -24,7 +23,7 @@ const Sidebar = () => {
     { path: '/customers', icon: Users, label: 'Customers' },
     { path: '/conversations', icon: MessageCircle, label: 'Conversations' },
     { path: '/employees', icon: UserCog, label: 'Employees' },
-    { path: '/pipeline', icon: Bot, label: 'AI Agents' },
+    { path: '/pipeline', icon: Bot, label: 'Pipeline' },
     { path: '/quotes', icon: FileText, label: 'Quotes & Invoices' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/onboarding', icon: UserPlus, label: 'Onboarding' },
