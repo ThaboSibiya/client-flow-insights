@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Plus, Trash2, FileText, Calendar } from "lucide-react";
 import { useCRM } from '@/context/CRMContext';
 import { toast } from "@/hooks/use-toast";
 import { QuoteInvoiceInsert } from '@/hooks/useQuoteData';
+import { QuoteInvoice, QuoteInvoiceStatus } from '@/types/quote';
 
 interface InvoiceItem {
   id: string;
@@ -20,9 +21,10 @@ interface InvoiceItem {
 
 interface InvoiceFormProps {
   onSave: (invoice: QuoteInvoiceInsert) => void;
+  initialData?: QuoteInvoice | null;
 }
 
-const InvoiceForm = ({ onSave }: InvoiceFormProps) => {
+const InvoiceForm = ({ onSave, initialData }: InvoiceFormProps) => {
   const { customers } = useCRM();
   const [formData, setFormData] = useState({
     invoiceNumber: `INV-${Date.now()}`,
@@ -45,6 +47,59 @@ const InvoiceForm = ({ onSave }: InvoiceFormProps) => {
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: '1', description: '', quantity: 1, rate: 0, amount: 0 }
   ]);
+
+  useEffect(() => {
+    if (initialData) {
+      const taxBase = initialData.subtotal - initialData.discount;
+      const taxRate = taxBase > 0 ? (initialData.tax * 100) / taxBase : 15;
+      
+      setFormData({
+        invoiceNumber: initialData.number,
+        customerId: initialData.customer_id || '',
+        customerName: initialData.customer_name || '',
+        customerEmail: initialData.customer_email || '',
+        customerPhone: '', // Not in DB model
+        issueDate: new Date(initialData.issue_date).toISOString().split('T')[0],
+        dueDate: initialData.due_date ? new Date(initialData.due_date).toISOString().split('T')[0] : '',
+        subject: initialData.subject || '',
+        notes: initialData.notes || '',
+        terms: initialData.terms || 'Payment due within 30 days. Late payments may incur additional charges.',
+        taxRate,
+        discountType: 'fixed', // Simplification for editing
+        discountValue: initialData.discount || 0,
+        paymentTerms: '30', // Not in DB model
+        status: initialData.status,
+      });
+
+      setItems(initialData.quote_invoice_items.map(item => ({
+        id: item.id,
+        description: item.description,
+        quantity: item.quantity,
+        rate: item.rate,
+        amount: item.quantity * item.rate,
+      })));
+    } else {
+      // Reset form
+      setFormData({
+        invoiceNumber: `INV-${Date.now()}`,
+        customerId: '',
+        customerName: '',
+        customerEmail: '',
+        customerPhone: '',
+        issueDate: new Date().toISOString().split('T')[0],
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        subject: '',
+        notes: '',
+        terms: 'Payment due within 30 days. Late payments may incur additional charges.',
+        taxRate: 15,
+        discountType: 'percentage',
+        discountValue: 0,
+        paymentTerms: '30',
+        status: 'draft',
+      });
+      setItems([{ id: '1', description: '', quantity: 1, rate: 0, amount: 0 }]);
+    }
+  }, [initialData]);
 
   const handleCustomerSelect = (customerId: string) => {
     const customer = customers.find(c => c.id === customerId);
@@ -144,7 +199,7 @@ const InvoiceForm = ({ onSave }: InvoiceFormProps) => {
       tax,
       total,
       type: 'invoice',
-      status: formData.status as any,
+      status: formData.status as QuoteInvoiceStatus,
       items: items.map(item => ({
         description: item.description,
         quantity: item.quantity,
@@ -168,7 +223,7 @@ const InvoiceForm = ({ onSave }: InvoiceFormProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="customer" className="text-quikle-charcoal">Select Customer</Label>
-              <Select onValueChange={handleCustomerSelect}>
+              <Select onValueChange={handleCustomerSelect} value={formData.customerId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Choose existing customer..." />
                 </SelectTrigger>
@@ -288,7 +343,8 @@ const InvoiceForm = ({ onSave }: InvoiceFormProps) => {
                   <SelectItem value="sent">Sent</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
                   <SelectItem value="overdue">Overdue</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="accepted">Accepted</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -453,7 +509,7 @@ const InvoiceForm = ({ onSave }: InvoiceFormProps) => {
           Save as Draft
         </Button>
         <Button onClick={handleSave} className="bg-quikle-primary hover:bg-quikle-secondary text-white">
-          Create Invoice
+          {initialData ? 'Update Invoice' : 'Create Invoice'}
         </Button>
       </div>
     </div>

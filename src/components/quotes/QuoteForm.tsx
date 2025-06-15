@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,7 @@ import { Plus, Trash2, User, Calendar } from "lucide-react";
 import { useCRM } from '@/context/CRMContext';
 import { toast } from "@/hooks/use-toast";
 import { QuoteInvoiceInsert } from '@/hooks/useQuoteData';
+import { QuoteInvoice } from '@/types/quote';
 
 interface QuoteItem {
   id: string;
@@ -21,9 +21,10 @@ interface QuoteItem {
 
 interface QuoteFormProps {
   onSave: (quote: QuoteInvoiceInsert) => void;
+  initialData?: QuoteInvoice | null;
 }
 
-const QuoteForm = ({ onSave }: QuoteFormProps) => {
+const QuoteForm = ({ onSave, initialData }: QuoteFormProps) => {
   const { customers } = useCRM();
   const [formData, setFormData] = useState({
     quoteNumber: `QUO-${Date.now()}`,
@@ -44,6 +45,55 @@ const QuoteForm = ({ onSave }: QuoteFormProps) => {
   const [items, setItems] = useState<QuoteItem[]>([
     { id: '1', description: '', quantity: 1, rate: 0, amount: 0 }
   ]);
+
+  useEffect(() => {
+    if (initialData) {
+      const taxBase = initialData.subtotal - initialData.discount;
+      const taxRate = taxBase > 0 ? (initialData.tax * 100) / taxBase : 15;
+
+      setFormData({
+        quoteNumber: initialData.number,
+        customerId: initialData.customer_id || '',
+        customerName: initialData.customer_name || '',
+        customerEmail: initialData.customer_email || '',
+        customerPhone: '', // Not in DB model
+        issueDate: new Date(initialData.issue_date).toISOString().split('T')[0],
+        validUntil: initialData.valid_until ? new Date(initialData.valid_until).toISOString().split('T')[0] : '',
+        subject: initialData.subject || '',
+        notes: initialData.notes || '',
+        terms: initialData.terms || 'Payment due within 30 days',
+        taxRate: taxRate,
+        discountType: 'fixed', // Simplification for editing
+        discountValue: initialData.discount || 0,
+      });
+
+      setItems(initialData.quote_invoice_items.map(item => ({
+        id: item.id,
+        description: item.description,
+        quantity: item.quantity,
+        rate: item.rate,
+        amount: item.quantity * item.rate,
+      })));
+    } else {
+      // Reset form if initialData is not provided (i.e., for new quotes)
+      setFormData({
+        quoteNumber: `QUO-${Date.now()}`,
+        customerId: '',
+        customerName: '',
+        customerEmail: '',
+        customerPhone: '',
+        issueDate: new Date().toISOString().split('T')[0],
+        validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        subject: '',
+        notes: '',
+        terms: 'Payment due within 30 days',
+        taxRate: 15,
+        discountType: 'percentage',
+        discountValue: 0,
+      });
+      setItems([{ id: '1', description: '', quantity: 1, rate: 0, amount: 0 }]);
+    }
+  }, [initialData]);
 
   const handleCustomerSelect = (customerId: string) => {
     const customer = customers.find(c => c.id === customerId);
@@ -167,7 +217,7 @@ const QuoteForm = ({ onSave }: QuoteFormProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="customer" className="text-quikle-charcoal">Select Customer</Label>
-              <Select onValueChange={handleCustomerSelect}>
+              <Select onValueChange={handleCustomerSelect} value={formData.customerId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Choose existing customer..." />
                 </SelectTrigger>
@@ -419,7 +469,7 @@ const QuoteForm = ({ onSave }: QuoteFormProps) => {
           Save as Draft
         </Button>
         <Button onClick={handleSave} className="bg-quikle-primary hover:bg-quikle-secondary text-white">
-          Create Quote
+          {initialData ? 'Update Quote' : 'Create Quote'}
         </Button>
       </div>
     </div>

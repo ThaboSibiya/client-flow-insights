@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,9 +11,10 @@ interface QuoteListProps {
   quotes: QuoteInvoice[];
   onSelectQuote: (quote: QuoteInvoice) => void;
   onPreview: () => void;
+  onEdit: (quote: QuoteInvoice) => void;
 }
 
-const QuoteList = ({ quotes, onSelectQuote, onPreview }: QuoteListProps) => {
+const QuoteList = ({ quotes, onSelectQuote, onPreview, onEdit }: QuoteListProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -151,6 +151,7 @@ const QuoteList = ({ quotes, onSelectQuote, onPreview }: QuoteListProps) => {
                     <Button
                       size="sm"
                       variant="outline"
+                      onClick={() => onEdit(quote)}
                       className="border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal"
                     >
                       <Edit className="h-4 w-4" />

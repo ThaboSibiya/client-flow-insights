@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,19 +15,39 @@ import { Skeleton } from '@/components/ui/skeleton';
 const QuoteInvoice = () => {
   const [activeTab, setActiveTab] = useState('quotes');
   const [selectedQuote, setSelectedQuote] = useState<QuoteInvoiceType | null>(null);
+  const [editingQuote, setEditingQuote] = useState<QuoteInvoiceType | null>(null);
 
-  const { quotes, isLoading, createQuoteInvoice } = useQuoteData();
+  const { quotes, isLoading, createQuoteInvoice, updateQuoteInvoice } = useQuoteData();
 
   const handleSave = async (data: QuoteInvoiceInsert) => {
     try {
-      const newQuote = await createQuoteInvoice(data);
-      if (newQuote) {
-        setSelectedQuote(newQuote);
+      let savedQuote;
+      if (editingQuote) {
+        savedQuote = await updateQuoteInvoice({ id: editingQuote.id, quoteData: data });
+      } else {
+        savedQuote = await createQuoteInvoice(data);
+      }
+      
+      if (savedQuote) {
+        setSelectedQuote(savedQuote);
+        setEditingQuote(null);
         setActiveTab('preview');
       }
     } catch (error) {
       console.error("Failed to save:", error);
     }
+  };
+
+  const handleEdit = (quote: QuoteInvoiceType) => {
+    setEditingQuote(quote);
+    setSelectedQuote(quote);
+    setActiveTab(quote.type === 'quote' ? 'create-quote' : 'create-invoice');
+  };
+
+  const handleCreateNew = (type: 'quote' | 'invoice') => {
+    setEditingQuote(null);
+    setSelectedQuote(null);
+    setActiveTab(type === 'quote' ? 'create-quote' : 'create-invoice');
   };
 
   return (
@@ -44,14 +63,12 @@ const QuoteInvoice = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button 
-              onClick={() => setActiveTab('create-quote')} 
-            >
+            <Button onClick={() => handleCreateNew('quote')}>
               <Plus className="h-4 w-4" />
               New Quote
             </Button>
             <Button 
-              onClick={() => setActiveTab('create-invoice')} 
+              onClick={() => handleCreateNew('invoice')} 
               variant="outline"
               className="flex items-center gap-2 border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal"
             >
@@ -92,17 +109,18 @@ const QuoteInvoice = () => {
             <QuoteList 
               quotes={quotes}
               onSelectQuote={setSelectedQuote} 
-              onPreview={() => setActiveTab('preview')} 
+              onPreview={() => setActiveTab('preview')}
+              onEdit={handleEdit}
             />
           )}
         </TabsContent>
 
         <TabsContent value="create-quote" className="mt-6">
-          <QuoteForm onSave={handleSave} />
+          <QuoteForm onSave={handleSave} initialData={editingQuote?.type === 'quote' ? editingQuote : null} />
         </TabsContent>
 
         <TabsContent value="create-invoice" className="mt-6">
-          <InvoiceForm onSave={handleSave} />
+          <InvoiceForm onSave={handleSave} initialData={editingQuote?.type === 'invoice' ? editingQuote : null} />
         </TabsContent>
 
         <TabsContent value="automation" className="mt-6">
