@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import Twilio from 'https://esm.sh/twilio';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,6 +21,16 @@ serve(async (req) => {
       throw new Error("Phone number is required.");
     }
 
+    // Get Twilio credentials from Supabase secrets
+    const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
+    const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+
+    if (!accountSid || !authToken) {
+      throw new Error("Twilio credentials are not set in Supabase secrets.");
+    }
+
+    const twilioClient = new Twilio(accountSid, authToken);
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -34,23 +45,31 @@ serve(async (req) => {
 
     if (settingError && settingError.code !== 'PGRST116') {
         console.error('Error fetching agent phone number:', settingError);
+        throw new Error('Could not fetch AI agent phone number.');
     }
     
-    // The value from DB is nested { value: "the_number" }
     const fromPhoneNumber = settingData?.value?.value;
 
     if (!fromPhoneNumber) {
-        console.warn("AI Agent phone number is not configured in settings. The call will be simulated without a 'from' number.");
+        throw new Error("AI Agent phone number is not configured in settings. Please set it up in Quote/Invoice -> Settings -> AI Agent Settings.");
     }
     
-    console.log(`Received request to call ${phoneNumber} from ${fromPhoneNumber || 'not-configured'}`);
+    console.log(`Initiating call to ${phoneNumber} from ${fromPhoneNumber} via Twilio.`);
     if (customerId) {
         console.log(`Associated with customer ID: ${customerId}`);
     }
 
-    // This is where the integration with a service like Twilio or Telnyx would go.
-    // You would use `fromPhoneNumber` as the `From` parameter.
-    const message = `Simulated call to ${phoneNumber} from ${fromPhoneNumber || 'your configured number'} initiated successfully.`;
+    // Make the call using Twilio.
+    // When answered, it will play a message. Connecting to the live agent is a future step.
+    const call = await twilioClient.calls.create({
+      twiml: `<Response><Say>Hello. You have a call from your AI assistant. This functionality is being connected. Goodbye.</Say></Response>`,
+      to: phoneNumber,
+      from: fromPhoneNumber,
+    });
+    
+    console.log('Twilio call initiated:', call.sid);
+
+    const message = `Call to ${phoneNumber} from ${fromPhoneNumber} initiated successfully via Twilio. SID: ${call.sid}`;
 
     return new Response(JSON.stringify({ message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
