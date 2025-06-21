@@ -11,7 +11,8 @@ import { useNotifications } from '@/hooks/useNotifications';
 const NotificationSettings = () => {
   const { preferences, loading, updatePreferences } = useNotifications();
 
-  if (loading || !preferences) {
+  // Don't show loading skeleton - show the form immediately with default values
+  if (!preferences) {
     return (
       <Card>
         <CardHeader>
@@ -21,10 +22,8 @@ const NotificationSettings = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+          <div className="text-sm text-quikle-neutral">
+            Loading notification preferences...
           </div>
         </CardContent>
       </Card>
@@ -53,6 +52,7 @@ const NotificationSettings = () => {
         <CardTitle className="flex items-center gap-2">
           <Bell className="h-5 w-5" />
           Notification Settings
+          {loading && <div className="ml-2 text-xs text-quikle-neutral">(updating...)</div>}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
