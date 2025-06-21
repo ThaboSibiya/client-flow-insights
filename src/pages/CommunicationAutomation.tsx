@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Mail, MessageSquare, Send, Phone, Settings } from 'lucide-react';
+import { Mail, MessageSquare, Send, Phone, Settings, Clock } from 'lucide-react';
 import CommunicationSettings from '@/components/customers/enhanced/CommunicationSettings';
 import TicketRoutingSettings from '@/components/tickets/TicketRoutingSettings';
+import SLAMetricsDashboard from '@/components/tickets/SLAMetricsDashboard';
 
 const CommunicationAutomation = () => {
   return (
@@ -14,13 +15,13 @@ const CommunicationAutomation = () => {
           Communication & Support Automation
         </h1>
         <p className="text-muted-foreground mt-1">
-          Automate customer communications and intelligent ticket routing across all channels
+          Automate customer communications, intelligent ticket routing, and SLA management
         </p>
       </div>
 
       {/* Main Content */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="email" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
@@ -41,6 +42,10 @@ const CommunicationAutomation = () => {
           <TabsTrigger value="routing" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Ticket Routing
+          </TabsTrigger>
+          <TabsTrigger value="sla" className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            SLA Management
           </TabsTrigger>
         </TabsList>
 
@@ -90,6 +95,10 @@ const CommunicationAutomation = () => {
 
         <TabsContent value="routing" className="space-y-6">
           <TicketRoutingSettings />
+        </TabsContent>
+
+        <TabsContent value="sla" className="space-y-6">
+          <SLAMetricsDashboard />
         </TabsContent>
       </Tabs>
     </div>

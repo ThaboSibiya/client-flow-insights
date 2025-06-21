@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,12 +11,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CustomerTicket, TicketStatus } from '@/types/customer';
-import { User, Clock, AlertCircle, Timer, ChevronDown, ChevronUp, History, Star, ArrowUp } from 'lucide-react';
+import { User, Clock, AlertTriangle, Timer, ChevronDown, ChevronUp, History, Star, ArrowUp } from 'lucide-react';
 import TimeTracker from './TimeTracker';
 import TicketAttachments from './TicketAttachments';
 import TicketComments from './TicketComments';
 import TicketHistory, { TicketHistoryItem } from './TicketHistory';
 import SatisfactionRating from './SatisfactionRating';
+import SLAStatus from '../../../tickets/SLAStatus';
 import { sendTicketNotification } from '@/services/ticketNotificationService';
 import { useTicketRouting } from '@/hooks/useTicketRouting';
 
@@ -148,6 +150,8 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
                   {formatTime(ticket.totalTimeSpent)}
                 </Badge>
               )}
+              {/* SLA Status Badge */}
+              <SLAStatus ticket={ticket} compact={true} />
             </div>
             <h3 className="font-semibold text-gray-900 mb-1">{ticket.subject}</h3>
             {ticket.description && (
@@ -199,8 +203,9 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
         {isExpanded && (
           <div className="border-t pt-4">
             <Tabs defaultValue="comments" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="comments">Comments</TabsTrigger>
+                <TabsTrigger value="sla">SLA Status</TabsTrigger>
                 <TabsTrigger value="history">
                   <History className="h-4 w-4 mr-1" />
                   History
@@ -215,6 +220,10 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
                   customerEmail={customerEmail}
                   customerName={customerName}
                 />
+              </TabsContent>
+
+              <TabsContent value="sla" className="mt-4">
+                <SLAStatus ticket={ticket} />
               </TabsContent>
               
               <TabsContent value="history" className="mt-4">
