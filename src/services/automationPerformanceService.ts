@@ -1,4 +1,3 @@
-
 interface AutomationJob {
   id: string;
   automationId: string;
@@ -168,6 +167,9 @@ class AutomationPerformanceService {
         case 'sms':
           await this.processBatchSMS(operations);
           break;
+        case 'whatsapp':
+          await this.processBatchWhatsApp(operations);
+          break;
         case 'database':
           await this.processBatchDatabaseOperations(operations);
           break;
@@ -202,8 +204,35 @@ class AutomationPerformanceService {
 
   private async processBatchSMS(operations: any[]) {
     console.log(`Sending ${operations.length} SMS messages`);
-    // Simulate batch SMS sending
-    await new Promise(resolve => setTimeout(resolve, 150));
+    // Group by priority for better handling
+    const grouped = operations.reduce((acc, op) => {
+      if (!acc[op.priority]) acc[op.priority] = [];
+      acc[op.priority].push(op);
+      return acc;
+    }, {});
+
+    // Process urgent messages first
+    for (const priority of ['urgent', 'high', 'medium', 'low']) {
+      if (grouped[priority]) {
+        console.log(`Processing ${grouped[priority].length} ${priority} priority SMS messages`);
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    }
+  }
+
+  private async processBatchWhatsApp(operations: any[]) {
+    console.log(`Sending ${operations.length} WhatsApp messages`);
+    // Group by template for efficiency
+    const grouped = operations.reduce((acc, op) => {
+      if (!acc[op.template]) acc[op.template] = [];
+      acc[op.template].push(op);
+      return acc;
+    }, {});
+
+    for (const [template, messages] of Object.entries(grouped)) {
+      console.log(`Sending ${(messages as any[]).length} messages using template: ${template}`);
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
   }
 
   private async processBatchDatabaseOperations(operations: any[]) {
@@ -318,13 +347,30 @@ class AutomationPerformanceService {
         this.addToBatch('email', {
           to: action.recipient,
           template: action.template,
+          subject: action.subject,
+          body: action.body,
           data: job.data
         });
         break;
       case 'send_sms':
         this.addToBatch('sms', {
-          to: action.recipient,
-          message: action.message
+          recipient: action.recipient,
+          message: action.message,
+          priority: action.priority || 'medium'
+        });
+        break;
+      case 'send_whatsapp':
+        this.addToBatch('whatsapp', {
+          recipient: action.recipient,
+          template: action.template,
+          parameters: action.parameters || {}
+        });
+        break;
+      case 'schedule_call':
+        this.addToBatch('database', {
+          type: 'INSERT',
+          table: 'scheduled_calls',
+          data: action.data
         });
         break;
       case 'update_field':
