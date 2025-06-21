@@ -32,33 +32,33 @@ const AutoConversionSettings = () => {
         <AutoConversionCard
           autoCreateInvoice={settings.auto_create_invoice_from_quote}
           dueDays={settings.mark_overdue_after_days}
-          onToggleAutoCreate={(checked) => updateSettings({ auto_create_invoice_from_quote: checked })}
-          onChangeDueDays={(days) => updateSettings({ mark_overdue_after_days: days })}
+          onToggleAutoCreate={(checked: boolean) => updateSettings({ auto_create_invoice_from_quote: checked })}
+          onChangeDueDays={(days: number) => updateSettings({ mark_overdue_after_days: days })}
         />
 
         <PaymentRemindersCard
           enabled={settings.payment_reminder_enabled}
           reminderDays={settings.payment_reminder_days}
           template={settings.reminder_template}
-          onToggleEnabled={(checked) => updateSettings({ payment_reminder_enabled: checked })}
-          onChangeReminderDays={(days) => updateSettings({ payment_reminder_days: days })}
-          onChangeTemplate={(template) => updateSettings({ reminder_template: template })}
+          onToggleEnabled={(checked: boolean) => updateSettings({ payment_reminder_enabled: checked })}
+          onChangeReminderDays={(days: number[]) => updateSettings({ payment_reminder_days: days })}
+          onChangeTemplate={(template: string) => updateSettings({ reminder_template: template })}
         />
 
         <OverdueNotificationsCard
           enabled={settings.overdue_notification_enabled}
           financeEmail={settings.finance_team_email}
-          onToggleEnabled={(checked) => updateSettings({ overdue_notification_enabled: checked })}
-          onChangeFinanceEmail={(email) => updateSettings({ finance_team_email: email })}
+          onToggleEnabled={(checked: boolean) => updateSettings({ overdue_notification_enabled: checked })}
+          onChangeFinanceEmail={(email: string) => updateSettings({ finance_team_email: email })}
         />
 
         <UpsellTriggersCard
           enabled={settings.upsell_triggers_enabled}
           highValueThreshold={settings.high_value_threshold}
           repeatCustomerThreshold={settings.repeat_customer_threshold}
-          onToggleEnabled={(checked) => updateSettings({ upsell_triggers_enabled: checked })}
-          onChangeHighValueThreshold={(threshold) => updateSettings({ high_value_threshold: threshold })}
-          onChangeRepeatCustomerThreshold={(threshold) => updateSettings({ repeat_customer_threshold: threshold })}
+          onToggleEnabled={(checked: boolean) => updateSettings({ upsell_triggers_enabled: checked })}
+          onChangeHighValueThreshold={(threshold: number) => updateSettings({ high_value_threshold: threshold })}
+          onChangeRepeatCustomerThreshold={(threshold: number) => updateSettings({ repeat_customer_threshold: threshold })}
         />
       </div>
     </div>

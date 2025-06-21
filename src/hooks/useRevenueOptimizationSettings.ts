@@ -60,7 +60,7 @@ export const useRevenueOptimizationSettings = () => {
         return;
       }
 
-      if (data?.value) {
+      if (data?.value && typeof data.value === 'object') {
         setSettings({ ...defaultSettings, ...(data.value as Partial<RevenueOptimizationSettings>) });
       } else {
         setSettings(defaultSettings);
