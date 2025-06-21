@@ -12,6 +12,7 @@ import QuoteList from "@/components/quotes/QuoteList";
 import QuoteSettings from "@/components/quotes/QuoteSettings";
 import RevenueOptimizationDashboard from "@/components/quotes/revenue/RevenueOptimizationDashboard";
 import AutoConversionSettings from "@/components/quotes/revenue/AutoConversionSettings";
+import DocumentWorkflowManager from "@/components/quotes/workflow/DocumentWorkflowManager";
 import { useFetchQuotes } from '@/hooks/useFetchQuotes';
 import { useCreateQuote } from '@/hooks/mutations/useCreateQuote';
 import { useUpdateQuote } from '@/hooks/mutations/useUpdateQuote';
@@ -88,7 +89,7 @@ const QuoteInvoice = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-8 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
+        <TabsList className="grid w-full grid-cols-9 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
           <TabsTrigger value="quotes" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
             All Quotes
           </TabsTrigger>
@@ -97,6 +98,10 @@ const QuoteInvoice = () => {
           </TabsTrigger>
           <TabsTrigger value="create-invoice" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
             Create Invoice
+          </TabsTrigger>
+          <TabsTrigger value="workflow" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
+            <FileText className="h-4 w-4 mr-1" />
+            Workflow
           </TabsTrigger>
           <TabsTrigger value="revenue" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
             <TrendingUp className="h-4 w-4 mr-1" />
@@ -140,6 +145,20 @@ const QuoteInvoice = () => {
 
         <TabsContent value="create-invoice" className="mt-6">
           <InvoiceForm onSave={handleSave} initialData={editingQuote?.type === 'invoice' ? editingQuote : null} />
+        </TabsContent>
+
+        <TabsContent value="workflow" className="mt-6">
+          {selectedQuote ? (
+            <DocumentWorkflowManager quote={selectedQuote} />
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <FileText className="h-12 w-12 text-quikle-slate mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-quikle-charcoal mb-2">No Quote Selected</h3>
+                <p className="text-quikle-slate">Select a quote to manage its document workflow</p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="revenue" className="mt-6">
