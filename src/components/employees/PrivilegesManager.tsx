@@ -23,6 +23,7 @@ interface Privileges {
   can_view_analytics: boolean;
   can_manage_employees: boolean;
   can_manage_company_settings: boolean;
+  can_update_customer_status_onsite: boolean;
 }
 
 const PrivilegesManager = ({ employeeId }: PrivilegesManagerProps) => {
@@ -36,7 +37,8 @@ const PrivilegesManager = ({ employeeId }: PrivilegesManagerProps) => {
     can_delete_quotes: false,
     can_view_analytics: false,
     can_manage_employees: false,
-    can_manage_company_settings: false
+    can_manage_company_settings: false,
+    can_update_customer_status_onsite: false
   });
 
   const [loading, setLoading] = useState(false);
@@ -74,7 +76,8 @@ const PrivilegesManager = ({ employeeId }: PrivilegesManagerProps) => {
           can_delete_quotes: data.can_delete_quotes || false,
           can_view_analytics: data.can_view_analytics || false,
           can_manage_employees: data.can_manage_employees || false,
-          can_manage_company_settings: data.can_manage_company_settings || false
+          can_manage_company_settings: data.can_manage_company_settings || false,
+          can_update_customer_status_onsite: data.can_update_customer_status_onsite || false
         });
       }
     } catch (error: any) {
@@ -146,6 +149,12 @@ const PrivilegesManager = ({ employeeId }: PrivilegesManagerProps) => {
         { key: 'can_view_customers', label: 'View Customers', description: 'Access customer information' },
         { key: 'can_edit_customers', label: 'Edit Customers', description: 'Modify customer details' },
         { key: 'can_delete_customers', label: 'Delete Customers', description: 'Remove customers from system' }
+      ]
+    },
+    {
+      title: "On-Site Operations",
+      privileges: [
+        { key: 'can_update_customer_status_onsite', label: 'Update Customer Status (Mobile)', description: 'Update customer status after completing on-site jobs using mobile device' }
       ]
     },
     {

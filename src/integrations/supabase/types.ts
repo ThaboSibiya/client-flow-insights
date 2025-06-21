@@ -309,6 +309,7 @@ export type Database = {
           can_edit_quotes: boolean | null
           can_manage_company_settings: boolean | null
           can_manage_employees: boolean | null
+          can_update_customer_status_onsite: boolean | null
           can_view_analytics: boolean | null
           can_view_customers: boolean | null
           can_view_quotes: boolean | null
@@ -327,6 +328,7 @@ export type Database = {
           can_edit_quotes?: boolean | null
           can_manage_company_settings?: boolean | null
           can_manage_employees?: boolean | null
+          can_update_customer_status_onsite?: boolean | null
           can_view_analytics?: boolean | null
           can_view_customers?: boolean | null
           can_view_quotes?: boolean | null
@@ -345,6 +347,7 @@ export type Database = {
           can_edit_quotes?: boolean | null
           can_manage_company_settings?: boolean | null
           can_manage_employees?: boolean | null
+          can_update_customer_status_onsite?: boolean | null
           can_view_analytics?: boolean | null
           can_view_customers?: boolean | null
           can_view_quotes?: boolean | null
@@ -512,6 +515,60 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: []
+      }
+      job_completions: {
+        Row: {
+          after_status: string | null
+          before_status: string | null
+          completed_at: string | null
+          created_at: string | null
+          customer_id: string
+          employee_id: string | null
+          id: string
+          location_lat: number | null
+          location_lng: number | null
+          notes: string | null
+        }
+        Insert: {
+          after_status?: string | null
+          before_status?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          customer_id: string
+          employee_id?: string | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          notes?: string | null
+        }
+        Update: {
+          after_status?: string | null
+          before_status?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          customer_id?: string
+          employee_id?: string | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_completions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_completions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       knowledge_base_files: {
         Row: {
@@ -1053,7 +1110,13 @@ export type Database = {
       }
     }
     Enums: {
-      employee_role: "admin" | "manager" | "supervisor" | "employee" | "intern"
+      employee_role:
+        | "admin"
+        | "manager"
+        | "supervisor"
+        | "employee"
+        | "intern"
+        | "onsite_worker"
       employee_status: "active" | "inactive" | "suspended" | "terminated"
       quote_invoice_status:
         | "draft"
@@ -1178,7 +1241,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      employee_role: ["admin", "manager", "supervisor", "employee", "intern"],
+      employee_role: [
+        "admin",
+        "manager",
+        "supervisor",
+        "employee",
+        "intern",
+        "onsite_worker",
+      ],
       employee_status: ["active", "inactive", "suspended", "terminated"],
       quote_invoice_status: [
         "draft",

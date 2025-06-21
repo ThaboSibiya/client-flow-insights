@@ -2,15 +2,17 @@
 import React, { useState } from 'react';
 import CustomerTable from '@/components/customers/CustomerTable';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Phone } from 'lucide-react';
+import { UserPlus, Phone, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AiVoiceSessionDialog from '@/components/voice/AiVoiceSessionDialog';
 import KnowledgeBaseManager from '@/components/settings/KnowledgeBaseManager';
 import { AiAgentSettings } from '@/components/settings/AiAgentSettings';
+import OnSiteStatusUpdate from '@/components/customers/OnSiteStatusUpdate';
 
 const Customers = () => {
   const navigate = useNavigate();
   const [isSessionOpen, setIsSessionOpen] = useState(false);
+  const [isOnSiteUpdateOpen, setIsOnSiteUpdateOpen] = useState(false);
   
   const handleOnboardNewCustomer = () => {
     navigate('/onboarding');
@@ -26,6 +28,14 @@ const Customers = () => {
             <p className="text-quikle-slate mt-1">View, manage, and communicate with your clients. Use advanced filters, bulk actions, and real-time metrics.</p>
           </div>
           <div className="flex gap-2">
+            <Button 
+              onClick={() => setIsOnSiteUpdateOpen(true)}
+              variant="outline"
+              className="flex items-center gap-2 quikle-button-secondary shadow-md"
+            >
+              <MapPin className="h-4 w-4" />
+              Job Complete
+            </Button>
             <Button 
               onClick={() => setIsSessionOpen(true)}
               variant="outline"
@@ -65,6 +75,9 @@ const Customers = () => {
 
       {/* Voice Session Dialog */}
       <AiVoiceSessionDialog isOpen={isSessionOpen} onOpenChange={setIsSessionOpen} />
+      
+      {/* On-Site Status Update Dialog */}
+      <OnSiteStatusUpdate isOpen={isOnSiteUpdateOpen} onClose={() => setIsOnSiteUpdateOpen(false)} />
     </div>
   );
 };
