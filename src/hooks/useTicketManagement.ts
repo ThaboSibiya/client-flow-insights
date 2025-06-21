@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { CustomerTicket, TicketStatus, useCRM } from '@/context/CRMContext';
 import { TimeEntry } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
+import { useTicketRouting } from './useTicketRouting';
 
 export const useTicketManagement = () => {
   const { createTicket, updateTicketStatus, addTimeEntry } = useCRM();
+  const { autoAssignTicket } = useTicketRouting();
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -15,10 +17,21 @@ export const useTicketManagement = () => {
   ) => {
     setIsCreating(true);
     try {
-      await createTicket(customerId, ticketData);
+      const newTicket = await createTicket(customerId, ticketData);
+      
+      // Auto-assign the ticket based on priority and category
+      if (newTicket) {
+        try {
+          await autoAssignTicket(newTicket.id, ticketData.priority, ticketData.category);
+        } catch (error) {
+          console.error('Failed to auto-assign ticket:', error);
+          // Continue even if auto-assignment fails
+        }
+      }
+      
       toast({
         title: "Success",
-        description: "Ticket created successfully",
+        description: "Ticket created and automatically assigned",
       });
       return true;
     } catch (error) {

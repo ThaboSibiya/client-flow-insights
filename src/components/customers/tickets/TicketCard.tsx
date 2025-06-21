@@ -10,13 +10,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CustomerTicket, TicketStatus } from '@/types/customer';
-import { User, Clock, AlertCircle, Timer, ChevronDown, ChevronUp, History, Star } from 'lucide-react';
+import { User, Clock, AlertCircle, Timer, ChevronDown, ChevronUp, History, Star, ArrowUp } from 'lucide-react';
 import TimeTracker from './TimeTracker';
 import TicketAttachments from './TicketAttachments';
 import TicketComments from './TicketComments';
 import TicketHistory, { TicketHistoryItem } from './TicketHistory';
 import SatisfactionRating from './SatisfactionRating';
 import { sendTicketNotification } from '@/services/ticketNotificationService';
+import { useTicketRouting } from '@/hooks/useTicketRouting';
 
 interface TicketCardProps {
   ticket: CustomerTicket;
@@ -30,6 +31,7 @@ interface TicketCardProps {
 const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, customerName, customerId }: TicketCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showSatisfactionRating, setShowSatisfactionRating] = useState(false);
+  const { escalateTicket, isProcessing } = useTicketRouting();
 
   // Generate sample history data - in real app, this would come from the database
   const generateTicketHistory = (): TicketHistoryItem[] => {
@@ -115,6 +117,14 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
     }
   };
 
+  const handleEscalateTicket = async () => {
+    try {
+      await escalateTicket(ticket.id, 'Manual escalation requested');
+    } catch (error) {
+      console.error('Failed to escalate ticket:', error);
+    }
+  };
+
   const handleAddTimeEntry = (timeEntry: any) => {
     if (onAddTimeEntry) {
       onAddTimeEntry(ticket.id, timeEntry);
@@ -157,6 +167,19 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
                 <SelectItem value="closed" className="text-slate-700 hover:bg-slate-50">Closed</SelectItem>
               </SelectContent>
             </Select>
+            
+            {/* Escalate Button */}
+            {ticket.status !== 'closed' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleEscalateTicket}
+                disabled={isProcessing}
+                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+              >
+                <ArrowUp className="h-4 w-4" />
+              </Button>
+            )}
             
             <Button
               variant="ghost"
