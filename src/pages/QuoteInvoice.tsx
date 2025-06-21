@@ -3,13 +3,15 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Download, Send, Clock, Plus } from "lucide-react";
+import { FileText, Download, Send, Clock, Plus, TrendingUp, Settings as SettingsIcon } from "lucide-react";
 import QuoteForm from "@/components/quotes/QuoteForm";
 import InvoiceForm from "@/components/quotes/InvoiceForm";
 import QuotePreview from "@/components/quotes/QuotePreview";
 import AutomationSettings from "@/components/quotes/AutomationSettings";
 import QuoteList from "@/components/quotes/QuoteList";
 import QuoteSettings from "@/components/quotes/QuoteSettings";
+import RevenueOptimizationDashboard from "@/components/quotes/revenue/RevenueOptimizationDashboard";
+import AutoConversionSettings from "@/components/quotes/revenue/AutoConversionSettings";
 import { useFetchQuotes } from '@/hooks/useFetchQuotes';
 import { useCreateQuote } from '@/hooks/mutations/useCreateQuote';
 import { useUpdateQuote } from '@/hooks/mutations/useUpdateQuote';
@@ -65,7 +67,7 @@ const QuoteInvoice = () => {
               Quotes & Invoices
             </h1>
             <p className="text-quikle-slate mt-1">
-              Create professional quotes and invoices with automated follow-up and multi-format exports
+              Create professional quotes and invoices with automated follow-up and revenue optimization
             </p>
           </div>
           <div className="flex gap-2">
@@ -86,7 +88,7 @@ const QuoteInvoice = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
+        <TabsList className="grid w-full grid-cols-8 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
           <TabsTrigger value="quotes" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
             All Quotes
           </TabsTrigger>
@@ -96,8 +98,16 @@ const QuoteInvoice = () => {
           <TabsTrigger value="create-invoice" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
             Create Invoice
           </TabsTrigger>
+          <TabsTrigger value="revenue" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
+            <TrendingUp className="h-4 w-4 mr-1" />
+            Revenue
+          </TabsTrigger>
           <TabsTrigger value="automation" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
             Automation
+          </TabsTrigger>
+          <TabsTrigger value="revenue-settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
+            <SettingsIcon className="h-4 w-4 mr-1" />
+            Rev Settings
           </TabsTrigger>
           <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
             Settings
@@ -132,8 +142,16 @@ const QuoteInvoice = () => {
           <InvoiceForm onSave={handleSave} initialData={editingQuote?.type === 'invoice' ? editingQuote : null} />
         </TabsContent>
 
+        <TabsContent value="revenue" className="mt-6">
+          <RevenueOptimizationDashboard />
+        </TabsContent>
+
         <TabsContent value="automation" className="mt-6">
           <AutomationSettings />
+        </TabsContent>
+
+        <TabsContent value="revenue-settings" className="mt-6">
+          <AutoConversionSettings />
         </TabsContent>
         
         <TabsContent value="settings" className="mt-6">
