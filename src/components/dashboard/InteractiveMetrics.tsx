@@ -39,7 +39,7 @@ const InteractiveMetrics = () => {
       title: 'Total Customers',
       value: totalCustomers,
       previousValue: Math.max(0, totalCustomers - 3),
-      icon: <Users className="h-5 w-5" />,
+      icon: <Users className="h-4 w-4" />,
       color: 'text-quikle-primary',
       bgColor: 'bg-blue-50',
     },
@@ -48,7 +48,7 @@ const InteractiveMetrics = () => {
       title: 'New Customers',
       value: newCustomers,
       previousValue: Math.max(0, newCustomers - 1),
-      icon: <TrendingUp className="h-5 w-5" />,
+      icon: <TrendingUp className="h-4 w-4" />,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50',
     },
@@ -57,7 +57,7 @@ const InteractiveMetrics = () => {
       title: 'Active Tickets',
       value: activeTickets,
       previousValue: Math.max(0, activeTickets + 2),
-      icon: <Ticket className="h-5 w-5" />,
+      icon: <Ticket className="h-4 w-4" />,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
     },
@@ -66,7 +66,7 @@ const InteractiveMetrics = () => {
       title: 'Resolved Tickets',
       value: resolvedTickets,
       previousValue: Math.max(0, resolvedTickets - 1),
-      icon: <CheckCircle className="h-5 w-5" />,
+      icon: <CheckCircle className="h-4 w-4" />,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50',
     }
@@ -74,22 +74,22 @@ const InteractiveMetrics = () => {
 
   const timeFrames = [
     { id: 'today', label: 'Today' },
-    { id: 'week', label: 'This Week' },
-    { id: 'month', label: 'This Month' }
+    { id: 'week', label: 'Week' },
+    { id: 'month', label: 'Month' }
   ];
 
   return (
-    <Card className="shadow-md quikle-card">
-      <CardHeader className="pb-3 border-b border-gray-100">
+    <Card className="shadow-md quikle-card h-fit">
+      <CardHeader className="pb-2 border-b border-gray-100">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-gradient-quikle">
-            <TrendingUp className="h-5 w-5 text-quikle-accent" />
+          <CardTitle className="flex items-center gap-2 text-gradient-quikle text-base">
+            <TrendingUp className="h-4 w-4 text-quikle-accent" />
             Performance Metrics
           </CardTitle>
           <Tabs value={selectedPeriod} onValueChange={(value: any) => setSelectedPeriod(value)}>
-            <TabsList className="h-8">
+            <TabsList className="h-7">
               {timeFrames.map((timeFrame) => (
-                <TabsTrigger key={timeFrame.id} value={timeFrame.id} className="text-xs px-3">
+                <TabsTrigger key={timeFrame.id} value={timeFrame.id} className="text-xs px-2 py-1">
                   {timeFrame.label}
                 </TabsTrigger>
               ))}
@@ -97,8 +97,8 @@ const InteractiveMetrics = () => {
           </Tabs>
         </div>
       </CardHeader>
-      <CardContent className="pt-4">
-        <div className="grid grid-cols-2 gap-4">
+      <CardContent className="pt-3 px-4">
+        <div className="grid grid-cols-2 gap-3">
           {metrics.map((metric) => {
             const growth = getGrowthPercentage(metric.value, metric.previousValue);
             const isPositive = growth > 0;
@@ -107,10 +107,10 @@ const InteractiveMetrics = () => {
             return (
               <div
                 key={metric.id}
-                className="p-4 rounded-lg border border-gray-200 bg-white hover:shadow-md transition-shadow cursor-pointer"
+                className="p-3 rounded-lg border border-gray-200 bg-white hover:shadow-sm transition-shadow cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className={`p-2 rounded-lg ${metric.bgColor}`}>
+                  <div className={`p-1.5 rounded-md ${metric.bgColor}`}>
                     <div className={metric.color}>
                       {metric.icon}
                     </div>
@@ -118,26 +118,26 @@ const InteractiveMetrics = () => {
                   {growth !== 0 && (
                     <Badge 
                       variant={isPositive ? "default" : "destructive"}
-                      className={`text-xs ${
+                      className={`text-xs px-1.5 py-0.5 ${
                         isPositive 
                           ? "bg-emerald-100 text-emerald-700 border-emerald-300 hover:bg-emerald-100" 
                           : "bg-red-100 text-red-700 border-red-300 hover:bg-red-100"
                       }`}
                     >
-                      {isPositive ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                      {isPositive ? <TrendingUp className="h-2.5 w-2.5 mr-1" /> : <TrendingDown className="h-2.5 w-2.5 mr-1" />}
                       {Math.abs(growth)}%
                     </Badge>
                   )}
                 </div>
                 
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-xl font-bold text-gray-900 mb-1">
                     {metric.value}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-xs text-gray-600 mb-1">
                     {metric.title}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-gray-500">
                     vs. previous {selectedPeriod}
                   </div>
                 </div>
@@ -146,12 +146,12 @@ const InteractiveMetrics = () => {
           })}
         </div>
 
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="flex items-center justify-between text-sm">
+        <div className="mt-3 pt-3 border-t border-gray-200">
+          <div className="flex items-center justify-between text-xs">
             <span className="text-gray-600">Last updated:</span>
             <span className="text-gray-500 flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              {new Date().toLocaleTimeString()}
+              {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
         </div>
