@@ -11,13 +11,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CustomerTicket, TicketStatus } from '@/types/customer';
-import { User, Clock, AlertTriangle, Timer, ChevronDown, ChevronUp, History, Star, ArrowUp } from 'lucide-react';
+import { User, Clock, AlertTriangle, AlertCircle, Timer, ChevronDown, ChevronUp, History, Star, ArrowUp } from 'lucide-react';
 import TimeTracker from './TimeTracker';
 import TicketAttachments from './TicketAttachments';
 import TicketComments from './TicketComments';
 import TicketHistory, { TicketHistoryItem } from './TicketHistory';
 import SatisfactionRating from './SatisfactionRating';
-import SLAStatus from '../../../tickets/SLAStatus';
+import SLAStatus from '../../tickets/SLAStatus';
 import { sendTicketNotification } from '@/services/ticketNotificationService';
 import { useTicketRouting } from '@/hooks/useTicketRouting';
 
