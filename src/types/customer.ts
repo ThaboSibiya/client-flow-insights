@@ -59,6 +59,9 @@ export interface Customer {
   activeTickets: CustomerTicket[];
   ticketCount: number;
   lastTicketDate?: Date;
+  assigned_to?: string; // Employee ID who is assigned to this customer
+  assigned_to_email?: string; // Email of assigned employee
+  territory?: string; // Customer's territory/region
 }
 
 export interface CRMContextType {
