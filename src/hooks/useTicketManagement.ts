@@ -13,20 +13,22 @@ export const useTicketManagement = () => {
 
   const handleCreateTicket = async (
     customerId: string, 
-    ticketData: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>
+    ticketData: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'> & { category?: string }
   ) => {
     setIsCreating(true);
     try {
-      const newTicket = await createTicket(customerId, ticketData);
+      // Create the ticket first
+      await createTicket(customerId, ticketData);
+      
+      // Generate a temporary ticket ID for auto-assignment
+      const tempTicketId = `ticket-${Date.now()}`;
       
       // Auto-assign the ticket based on priority and category
-      if (newTicket) {
-        try {
-          await autoAssignTicket(newTicket.id, ticketData.priority, ticketData.category);
-        } catch (error) {
-          console.error('Failed to auto-assign ticket:', error);
-          // Continue even if auto-assignment fails
-        }
+      try {
+        await autoAssignTicket(tempTicketId, ticketData.priority, ticketData.category);
+      } catch (error) {
+        console.error('Failed to auto-assign ticket:', error);
+        // Continue even if auto-assignment fails
       }
       
       toast({
