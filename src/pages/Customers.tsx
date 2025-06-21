@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { UserPlus, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AiVoiceSessionDialog from '@/components/voice/AiVoiceSessionDialog';
+import KnowledgeBaseManager from '@/components/settings/KnowledgeBaseManager';
 
 const Customers = () => {
   const navigate = useNavigate();
@@ -42,6 +43,7 @@ const Customers = () => {
         </div>
       </div>
       <CustomerTable />
+      <KnowledgeBaseManager />
       <AiVoiceSessionDialog isOpen={isSessionOpen} onOpenChange={setIsSessionOpen} />
     </div>
   );

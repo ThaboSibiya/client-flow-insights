@@ -3,7 +3,6 @@ import React from 'react';
 import { CompanyLogoUploader } from './CompanyLogoUploader';
 import { CompanyProfileForm } from './CompanyProfileForm';
 import { AiAgentSettings } from '../settings/AiAgentSettings';
-import KnowledgeBaseManager from '../settings/KnowledgeBaseManager';
 
 const QuoteSettings = () => {
     return (
@@ -11,7 +10,6 @@ const QuoteSettings = () => {
             <CompanyProfileForm />
             <CompanyLogoUploader />
             <AiAgentSettings />
-            <KnowledgeBaseManager />
         </div>
     );
 };
