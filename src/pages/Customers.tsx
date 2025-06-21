@@ -17,8 +17,9 @@ const Customers = () => {
   };
   
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-8 rounded-xl mb-6 shadow-luxury transform hover:scale-[1.01] transition-all duration-300 border border-white/20 backdrop-blur-sm quikle-card">
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-8 rounded-xl shadow-luxury transform hover:scale-[1.01] transition-all duration-300 border border-white/20 backdrop-blur-sm quikle-card">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gradient-quikle drop-shadow-sm">Client Management</h1>
@@ -43,9 +44,26 @@ const Customers = () => {
           </div>
         </div>
       </div>
-      <CustomerTable />
-      <AiAgentSettings />
-      <KnowledgeBaseManager />
+
+      {/* Customer Table Section */}
+      <div className="quikle-card p-6 rounded-xl">
+        <CustomerTable />
+      </div>
+
+      {/* AI Configuration Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="quikle-card p-6 rounded-xl">
+          <h2 className="text-xl font-semibold text-quikle-charcoal mb-4">AI Agent Configuration</h2>
+          <AiAgentSettings />
+        </div>
+        
+        <div className="quikle-card p-6 rounded-xl">
+          <h2 className="text-xl font-semibold text-quikle-charcoal mb-4">Knowledge Base</h2>
+          <KnowledgeBaseManager />
+        </div>
+      </div>
+
+      {/* Voice Session Dialog */}
       <AiVoiceSessionDialog isOpen={isSessionOpen} onOpenChange={setIsSessionOpen} />
     </div>
   );
