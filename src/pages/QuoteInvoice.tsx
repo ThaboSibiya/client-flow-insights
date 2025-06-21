@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,28 +59,29 @@ const QuoteInvoice = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-8 rounded-xl mb-6 shadow-luxury transform hover:scale-[1.01] transition-all duration-300 border border-white/20 backdrop-blur-sm">
+    <div className="space-y-8">
+      <div className="bg-gradient-to-r from-quikle-primary/10 via-quikle-accent/8 to-quikle-secondary/10 p-6 rounded-xl border border-quikle-silver/20 backdrop-blur-sm">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent drop-shadow-sm">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">
               Quotes & Invoices
             </h1>
-            <p className="text-quikle-slate mt-1">
-              Create professional quotes and invoices with automated follow-up and revenue optimization
+            <p className="text-quikle-slate text-sm mt-1">
+              Create professional quotes and invoices with automated workflow management
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => handleCreateNew('quote')}>
-              <Plus className="h-4 w-4" />
+          <div className="flex gap-3">
+            <Button onClick={() => handleCreateNew('quote')} size="sm">
+              <Plus className="h-4 w-4 mr-2" />
               New Quote
             </Button>
             <Button 
               onClick={() => handleCreateNew('invoice')} 
               variant="outline"
-              className="flex items-center gap-2 border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal"
+              size="sm"
+              className="border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal"
             >
-              <FileText className="h-4 w-4" />
+              <FileText className="h-4 w-4 mr-2" />
               New Invoice
             </Button>
           </div>
@@ -89,35 +89,62 @@ const QuoteInvoice = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-9 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
-          <TabsTrigger value="quotes" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
+        <TabsList className="grid w-full grid-cols-9 bg-white border border-quikle-silver/20 shadow-sm p-1 h-auto">
+          <TabsTrigger 
+            value="quotes" 
+            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium"
+          >
             All Quotes
           </TabsTrigger>
-          <TabsTrigger value="create-quote" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
+          <TabsTrigger 
+            value="create-quote" 
+            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium"
+          >
             Create Quote
           </TabsTrigger>
-          <TabsTrigger value="create-invoice" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
+          <TabsTrigger 
+            value="create-invoice" 
+            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium"
+          >
             Create Invoice
           </TabsTrigger>
-          <TabsTrigger value="workflow" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
-            <FileText className="h-4 w-4 mr-1" />
+          <TabsTrigger 
+            value="workflow" 
+            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium flex items-center gap-1"
+          >
+            <FileText className="h-3 w-3" />
             Workflow
           </TabsTrigger>
-          <TabsTrigger value="revenue" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
-            <TrendingUp className="h-4 w-4 mr-1" />
+          <TabsTrigger 
+            value="revenue" 
+            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium flex items-center gap-1"
+          >
+            <TrendingUp className="h-3 w-3" />
             Revenue
           </TabsTrigger>
-          <TabsTrigger value="automation" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
+          <TabsTrigger 
+            value="automation" 
+            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium"
+          >
             Automation
           </TabsTrigger>
-          <TabsTrigger value="revenue-settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
-            <SettingsIcon className="h-4 w-4 mr-1" />
+          <TabsTrigger 
+            value="revenue-settings" 
+            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium flex items-center gap-1"
+          >
+            <SettingsIcon className="h-3 w-3" />
             Rev Settings
           </TabsTrigger>
-          <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
+          <TabsTrigger 
+            value="settings" 
+            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium"
+          >
             Settings
           </TabsTrigger>
-          <TabsTrigger value="preview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
+          <TabsTrigger 
+            value="preview" 
+            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium"
+          >
             Preview
           </TabsTrigger>
         </TabsList>
