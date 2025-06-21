@@ -1,5 +1,5 @@
 
-import React,{ useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -8,19 +8,40 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings, Zap, Clock, Mail } from "lucide-react";
-import { useAutomationSettings } from '@/hooks/useAutomationSettings';
+import { useRevenueOptimizationSettings } from '@/hooks/useRevenueOptimizationSettings';
 
 const AutoConversionSettings = () => {
-  const { settings, updateSettings, isUpdating } = useAutomationSettings();
+  const { settings, updateSettings, isUpdating } = useRevenueOptimizationSettings();
   const [localSettings, setLocalSettings] = useState({
     auto_create_invoice_from_quote: settings?.auto_create_invoice_from_quote || false,
-    payment_reminder_enabled: true,
-    payment_reminder_days: [3, 7, 14, 30],
-    overdue_notification_enabled: true,
-    finance_team_email: 'finance@company.com',
-    upsell_triggers_enabled: true,
-    ...settings
+    mark_overdue_after_days: settings?.mark_overdue_after_days || 30,
+    payment_reminder_enabled: settings?.payment_reminder_enabled || true,
+    payment_reminder_days: settings?.payment_reminder_days || [3, 7, 14, 30],
+    overdue_notification_enabled: settings?.overdue_notification_enabled || true,
+    finance_team_email: settings?.finance_team_email || 'finance@company.com',
+    upsell_triggers_enabled: settings?.upsell_triggers_enabled || true,
+    high_value_threshold: settings?.high_value_threshold || 10000,
+    repeat_customer_threshold: settings?.repeat_customer_threshold || 3,
+    reminder_template: settings?.reminder_template || '',
   });
+
+  // Update local settings when settings change
+  React.useEffect(() => {
+    if (settings) {
+      setLocalSettings({
+        auto_create_invoice_from_quote: settings.auto_create_invoice_from_quote,
+        mark_overdue_after_days: settings.mark_overdue_after_days,
+        payment_reminder_enabled: settings.payment_reminder_enabled,
+        payment_reminder_days: settings.payment_reminder_days,
+        overdue_notification_enabled: settings.overdue_notification_enabled,
+        finance_team_email: settings.finance_team_email,
+        upsell_triggers_enabled: settings.upsell_triggers_enabled,
+        high_value_threshold: settings.high_value_threshold,
+        repeat_customer_threshold: settings.repeat_customer_threshold,
+        reminder_template: settings.reminder_template,
+      });
+    }
+  }, [settings]);
 
   const handleSave = async () => {
     await updateSettings(localSettings);
