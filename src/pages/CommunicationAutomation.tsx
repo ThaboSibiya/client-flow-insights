@@ -43,7 +43,7 @@ const CommunicationAutomation = () => {
           <CommunicationSettings />
         </TabsContent>
 
-        <TabsContent Value="email" className="space-y-6">
+        <TabsContent value="email" className="space-y-6">
           <div className="text-center py-12">
             <Mail className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">Email Automation</h3>

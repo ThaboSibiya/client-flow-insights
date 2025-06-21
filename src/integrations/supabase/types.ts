@@ -858,6 +858,50 @@ export type Database = {
           },
         ]
       }
+      scheduled_calls: {
+        Row: {
+          call_type: string
+          created_at: string
+          customer_id: string
+          id: string
+          notes: string | null
+          priority: string
+          scheduled_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          call_type: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          notes?: string | null
+          priority?: string
+          scheduled_at: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          call_type?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          notes?: string | null
+          priority?: string
+          scheduled_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_calls_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_activities: {
         Row: {
           activity_type: string
