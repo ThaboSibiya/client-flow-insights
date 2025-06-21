@@ -48,7 +48,6 @@ export const useRevenueOptimizationSettings = () => {
     try {
       setIsLoading(true);
       
-      // Try to get existing settings from company_settings table
       const { data, error } = await supabase
         .from('company_settings')
         .select('value')
@@ -62,7 +61,7 @@ export const useRevenueOptimizationSettings = () => {
       }
 
       if (data?.value) {
-        setSettings({ ...defaultSettings, ...data.value });
+        setSettings({ ...defaultSettings, ...(data.value as Partial<RevenueOptimizationSettings>) });
       } else {
         setSettings(defaultSettings);
       }
@@ -75,7 +74,7 @@ export const useRevenueOptimizationSettings = () => {
   };
 
   const updateSettings = async (newSettings: Partial<RevenueOptimizationSettings>) => {
-    if (!user) return;
+    if (!user || !settings) return;
 
     try {
       setIsUpdating(true);
@@ -98,7 +97,7 @@ export const useRevenueOptimizationSettings = () => {
         return;
       }
 
-      setSettings(updatedSettings as RevenueOptimizationSettings);
+      setSettings(updatedSettings);
       toast({
         title: "Settings Updated",
         description: "Revenue optimization settings have been saved successfully.",
