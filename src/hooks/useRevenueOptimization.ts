@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from 'react';
 import { revenueOptimizationService, UpsellTrigger } from '@/services/revenueOptimizationService';
 import { useAuth } from '@/context/AuthContext';
@@ -16,7 +15,7 @@ export const useRevenueOptimization = () => {
     queryFn: () => user ? revenueOptimizationService.calculateRevenueMetrics(user.id) : null,
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
   // Cache upsell opportunities
@@ -25,7 +24,7 @@ export const useRevenueOptimization = () => {
     queryFn: () => user ? revenueOptimizationService.identifyUpsellOpportunities(user.id) : [],
     enabled: !!user,
     staleTime: 10 * 60 * 1000, // 10 minutes
-    cacheTime: 15 * 60 * 1000, // 15 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes
   });
 
   const loadRevenueMetrics = useCallback(async () => {
