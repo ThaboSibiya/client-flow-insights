@@ -4,9 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, Activity, Webhook, Search } from "lucide-react";
 import AutomationsList from './AutomationsList';
 import AutomationAnalytics from './AutomationAnalytics';
-import AIAssistant from '../AIAssistant';
-import WebhookManager from '../WebhookManager';
-import PerformanceMonitor from '../PerformanceMonitor';
 import { Input } from '@/components/ui/input';
 
 interface Automation {
@@ -84,15 +81,27 @@ const AutomationTabs = ({
       </TabsContent>
 
       <TabsContent value="ai-assistant">
-        <AIAssistant />
+        <div className="text-center p-8">
+          <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-semibold mb-2">AI Assistant</h3>
+          <p className="text-muted-foreground">AI-powered automation suggestions coming soon</p>
+        </div>
       </TabsContent>
 
       <TabsContent value="webhooks">
-        <WebhookManager />
+        <div className="text-center p-8">
+          <Webhook className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-semibold mb-2">Webhook Manager</h3>
+          <p className="text-muted-foreground">Webhook management functionality coming soon</p>
+        </div>
       </TabsContent>
 
       <TabsContent value="performance">
-        <PerformanceMonitor />
+        <div className="text-center p-8">
+          <Activity className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-semibold mb-2">Performance Monitor</h3>
+          <p className="text-muted-foreground">Performance monitoring coming soon</p>
+        </div>
       </TabsContent>
 
       <TabsContent value="analytics" className="space-y-4">

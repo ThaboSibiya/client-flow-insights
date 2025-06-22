@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AutomationHeader from './automation/AutomationHeader';
 import AutomationTabs from './automation/AutomationTabs';
-import PerformanceMonitor from './PerformanceMonitor';
 import AutomationPermissions from './automation/permissions/AutomationPermissions';
 import AutomationAuditLog from './automation/audit/AutomationAuditLog';
 import AutomationErrorBoundary from './automation/error-handling/AutomationErrorBoundary';
@@ -92,21 +91,24 @@ const AutomationManager = () => {
     );
 
     // Log the automation status change
-    await automationAuditService.logAutomationAction(
-      id,
-      'updated',
-      {
-        field: 'status',
-        oldValue: automation.isActive,
-        newValue: newStatus,
-        automationName: automation.name
-      }
-    );
+    try {
+      await automationAuditService.logAutomationAction(
+        id,
+        'updated',
+        {
+          field: 'status',
+          oldValue: automation.isActive,
+          newValue: newStatus,
+          automationName: automation.name
+        }
+      );
+    } catch (error) {
+      console.error('Failed to log automation action:', error);
+    }
   };
 
   const handleAutomationError = (error: Error, errorInfo: any) => {
     console.error('Automation Manager Error:', { error, errorInfo });
-    // Additional error handling logic could go here
   };
 
   // Show mobile-optimized view on mobile devices
@@ -159,7 +161,10 @@ const AutomationManager = () => {
           </TabsContent>
 
           <TabsContent value="performance">
-            <PerformanceMonitor />
+            <div className="text-center p-8">
+              <h3 className="text-lg font-semibold mb-2">Performance Monitor</h3>
+              <p className="text-muted-foreground">Performance monitoring functionality coming soon</p>
+            </div>
           </TabsContent>
 
           <TabsContent value="bulk">
