@@ -6,15 +6,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check } from "lucide-react";
 import { CustomerStatus } from '@/types/customer';
 import { OnSiteStatusUpdateProps, Customer, OnSiteTicket } from './onsite/types';
-import { useCustomerData } from './onsite/hooks/useCustomerData';
+import { useSecureCustomerData } from '@/hooks/useSecureCustomerData';
 import { useCustomerSearch } from './onsite/hooks/useCustomerSearch';
 import { useLocation } from './onsite/hooks/useLocation';
-import { useJobCompletion } from './onsite/hooks/useJobCompletion';
-import { CustomerSearchInput } from './onsite/components/CustomerSearchInput';
+import { useSecureJobCompletion } from '@/hooks/useSecureJobCompletion';
+import { SecureCustomerSearchInput } from './onsite/components/SecureCustomerSearchInput';
 import { CustomerDropdown } from './onsite/components/CustomerDropdown';
 import { SelectedCustomerCard } from './onsite/components/SelectedCustomerCard';
 import { StatusSelector } from './onsite/components/StatusSelector';
-import { NotesInput } from './onsite/components/NotesInput';
+import { SecureNotesInput } from './onsite/components/SecureNotesInput';
 import { LocationIndicator } from './onsite/components/LocationIndicator';
 import { LoadingState } from './onsite/components/LoadingState';
 import { ErrorDisplay } from './onsite/components/ErrorDisplay';
@@ -27,9 +27,9 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
   const [customerTickets, setCustomerTickets] = useState<OnSiteTicket[]>([]);
   const [ticketsLoading, setTicketsLoading] = useState(false);
 
-  const { customers, loading, error, loadCustomerTickets } = useCustomerData(isOpen);
+  const { customers, loading, error, loadCustomerTickets } = useSecureCustomerData(isOpen);
   const { location } = useLocation();
-  const { submitting, handleSubmit } = useJobCompletion();
+  const { submitting, handleSubmit } = useSecureJobCompletion();
   
   const {
     searchTerm,
@@ -47,7 +47,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
     setIsDropdownOpen(false);
     console.log('Selected customer:', customer.name);
 
-    // Load tickets for the selected customer
+    // Load tickets for the selected customer with security validation
     setTicketsLoading(true);
     const tickets = await loadCustomerTickets(customer.id);
     setCustomerTickets(tickets);
@@ -94,7 +94,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
                 <label className="text-sm font-semibold text-gray-700">Select Customer</label>
                 {!selectedCustomer ? (
                   <div className="relative">
-                    <CustomerSearchInput
+                    <SecureCustomerSearchInput
                       searchTerm={searchTerm}
                       onSearchChange={(value) => {
                         setSearchTerm(value);
@@ -130,7 +130,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
                           onChange={setNewStatus}
                         />
 
-                        <NotesInput
+                        <SecureNotesInput
                           value={notes}
                           onChange={setNotes}
                         />
