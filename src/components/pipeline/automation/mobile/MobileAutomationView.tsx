@@ -53,7 +53,6 @@ const MobileAutomationView = ({ automations, onToggleAutomation }: MobileAutomat
               <Switch
                 checked={automation.isActive}
                 onCheckedChange={() => onToggleAutomation(automation.id)}
-                size="sm"
               />
             </div>
           </CardHeader>
