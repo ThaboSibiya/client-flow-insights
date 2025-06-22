@@ -56,7 +56,16 @@ const DashboardEmailAutomation = () => {
 
     const recipients = newEmail.recipients.split(',').map(email => email.trim());
     const nextScheduled = new Date();
-    nextScheduled.setDate(nextScheduled.getDate() + (newEmail.frequency === 'daily' ? 1 : 7));
+    
+    // Fix the comparison issue by using proper logic
+    if (newEmail.frequency === 'daily') {
+      nextScheduled.setDate(nextScheduled.getDate() + 1);
+    } else if (newEmail.frequency === 'weekly') {
+      nextScheduled.setDate(nextScheduled.getDate() + 7);
+    } else {
+      // monthly
+      nextScheduled.setMonth(nextScheduled.getMonth() + 1);
+    }
 
     const emailSetting: DashboardEmailSettings = {
       id: Date.now().toString(),
