@@ -10,6 +10,15 @@ export interface Customer {
   notes: string;
 }
 
+export interface OnSiteTicket {
+  id: string;
+  ticket_number: string;
+  subject: string;
+  status: string;
+  priority: string;
+  created_at: string;
+}
+
 export interface OnSiteStatusUpdateProps {
   isOpen: boolean;
   onClose: () => void;

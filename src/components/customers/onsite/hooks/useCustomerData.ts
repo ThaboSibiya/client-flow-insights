@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Customer } from '../types';
+import { Customer, OnSiteTicket } from '../types';
 import { CustomerStatus } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
 
@@ -93,9 +93,49 @@ export const useCustomerData = (isOpen: boolean) => {
     }
   };
 
+  const loadCustomerTickets = async (customerId: string): Promise<OnSiteTicket[]> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      // Get employee info to find company owner
+      const { data: employee } = await supabase
+        .from('employees')
+        .select('company_owner_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const companyOwnerId = employee?.company_owner_id || user.id;
+
+      // Get tickets for this customer that are open or in-progress
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('id, ticket_number, subject, status, priority, created_at')
+        .eq('user_id', companyOwnerId)
+        .eq('customer_id', customerId)
+        .in('status', ['open', 'in-progress'])
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return (data || []).map(ticket => ({
+        id: ticket.id,
+        ticket_number: ticket.ticket_number,
+        subject: ticket.subject,
+        status: ticket.status,
+        priority: ticket.priority,
+        created_at: ticket.created_at
+      }));
+    } catch (error) {
+      console.error('Error loading customer tickets:', error);
+      return [];
+    }
+  };
+
   return {
     customers,
     loading,
-    error
+    error,
+    loadCustomerTickets
   };
 };

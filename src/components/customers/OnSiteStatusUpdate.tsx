@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check } from "lucide-react";
 import { CustomerStatus } from '@/types/customer';
-import { OnSiteStatusUpdateProps, Customer } from './onsite/types';
+import { OnSiteStatusUpdateProps, Customer, OnSiteTicket } from './onsite/types';
 import { useCustomerData } from './onsite/hooks/useCustomerData';
 import { useCustomerSearch } from './onsite/hooks/useCustomerSearch';
 import { useLocation } from './onsite/hooks/useLocation';
@@ -17,13 +18,16 @@ import { NotesInput } from './onsite/components/NotesInput';
 import { LocationIndicator } from './onsite/components/LocationIndicator';
 import { LoadingState } from './onsite/components/LoadingState';
 import { ErrorDisplay } from './onsite/components/ErrorDisplay';
+import { TicketsTab } from './onsite/components/TicketsTab';
 
 const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [newStatus, setNewStatus] = useState<CustomerStatus>('existing');
   const [notes, setNotes] = useState('');
+  const [customerTickets, setCustomerTickets] = useState<OnSiteTicket[]>([]);
+  const [ticketsLoading, setTicketsLoading] = useState(false);
 
-  const { customers, loading, error } = useCustomerData(isOpen);
+  const { customers, loading, error, loadCustomerTickets } = useCustomerData(isOpen);
   const { location } = useLocation();
   const { submitting, handleSubmit } = useJobCompletion();
   
@@ -35,13 +39,19 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
     setIsDropdownOpen
   } = useCustomerSearch(customers);
 
-  const handleCustomerSelect = (customer: Customer) => {
+  const handleCustomerSelect = async (customer: Customer) => {
     setSelectedCustomer(customer);
     setNewStatus(customer.status);
     setNotes('');
     setSearchTerm('');
     setIsDropdownOpen(false);
     console.log('Selected customer:', customer.name);
+
+    // Load tickets for the selected customer
+    setTicketsLoading(true);
+    const tickets = await loadCustomerTickets(customer.id);
+    setCustomerTickets(tickets);
+    setTicketsLoading(false);
   };
 
   const clearSelection = () => {
@@ -49,6 +59,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
     setSearchTerm('');
     setNewStatus('existing');
     setNotes('');
+    setCustomerTickets([]);
   };
 
   const onSubmit = async () => {
@@ -65,7 +76,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md max-h-[90vh] overflow-auto bg-white shadow-xl">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-auto bg-white shadow-xl">
         <CardHeader className="text-center bg-gradient-to-r from-green-50 to-blue-50">
           <CardTitle className="flex items-center gap-2 justify-center text-green-700">
             <Check className="h-5 w-5" />
@@ -101,28 +112,42 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
                     />
                   </div>
                 ) : (
-                  <SelectedCustomerCard
-                    customer={selectedCustomer}
-                    onClear={clearSelection}
-                  />
+                  <div className="space-y-4">
+                    <SelectedCustomerCard
+                      customer={selectedCustomer}
+                      onClear={clearSelection}
+                    />
+                    
+                    <Tabs defaultValue="status" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="status">Update Status</TabsTrigger>
+                        <TabsTrigger value="tickets">Active Tickets ({customerTickets.length})</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="status" className="space-y-4">
+                        <StatusSelector
+                          value={newStatus}
+                          onChange={setNewStatus}
+                        />
+
+                        <NotesInput
+                          value={notes}
+                          onChange={setNotes}
+                        />
+
+                        <LocationIndicator hasLocation={!!location} />
+                      </TabsContent>
+                      
+                      <TabsContent value="tickets">
+                        <TicketsTab 
+                          tickets={customerTickets} 
+                          loading={ticketsLoading}
+                        />
+                      </TabsContent>
+                    </Tabs>
+                  </div>
                 )}
               </div>
-
-              {selectedCustomer && (
-                <>
-                  <StatusSelector
-                    value={newStatus}
-                    onChange={setNewStatus}
-                  />
-
-                  <NotesInput
-                    value={notes}
-                    onChange={setNotes}
-                  />
-
-                  <LocationIndicator hasLocation={!!location} />
-                </>
-              )}
 
               <div className="flex gap-3 pt-4">
                 <Button
