@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Database, Settings, Sync, CheckCircle, AlertCircle } from 'lucide-react';
+import { Database, Settings, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CRMSyncSettingsProps {
@@ -150,7 +149,7 @@ const CRMSyncSettings = ({ settings, onUpdateSettings }: CRMSyncSettingsProps) =
                   Test Connection
                 </Button>
                 <Button onClick={triggerSync}>
-                  <Sync className="h-4 w-4 mr-2" />
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   Manual Sync
                 </Button>
               </div>

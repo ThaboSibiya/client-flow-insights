@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Building, Settings, Sync, DollarSign } from 'lucide-react';
+import { Building, Settings, RefreshCw, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AccountingSyncSettingsProps {
@@ -140,7 +139,7 @@ const AccountingSyncSettings = ({ settings, onUpdateSettings }: AccountingSyncSe
                   Test Connection
                 </Button>
                 <Button onClick={syncAccounts}>
-                  <Sync className="h-4 w-4 mr-2" />
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   Sync Chart of Accounts
                 </Button>
               </div>

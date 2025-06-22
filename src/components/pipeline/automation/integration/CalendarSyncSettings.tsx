@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Settings, Sync, CheckCircle, AlertCircle, Plus, Trash2 } from 'lucide-react';
+import { Calendar, Settings, RefreshCw, CheckCircle, AlertCircle, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CalendarSyncSettingsProps {
@@ -124,7 +123,7 @@ const CalendarSyncSettings = ({ settings, onUpdateSettings }: CalendarSyncSettin
                   Test Connection
                 </Button>
                 <Button onClick={triggerSync}>
-                  <Sync className="h-4 w-4 mr-2" />
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   Manual Sync
                 </Button>
               </div>
