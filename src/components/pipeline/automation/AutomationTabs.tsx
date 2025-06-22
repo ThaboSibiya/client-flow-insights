@@ -9,8 +9,8 @@ import AdvancedConditionalBuilder from './conditional/AdvancedConditionalBuilder
 import TimeBasedTriggerManager from './scheduling/TimeBasedTriggerManager';
 import AutomationPermissions from './permissions/AutomationPermissions';
 import AutomationAuditLog from './audit/AutomationAuditLog';
-import WebhookManager from '../../WebhookManager';
-import PerformanceMonitor from '../../PerformanceMonitor';
+import WebhookManager from '../WebhookManager';
+import PerformanceMonitor from '../PerformanceMonitor';
 import { Input } from '@/components/ui/input';
 
 interface Automation {
