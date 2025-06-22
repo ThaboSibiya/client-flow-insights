@@ -1,17 +1,98 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { revenueOptimizationService, UpsellTrigger } from '@/services/revenueOptimizationService';
 import { useAuth } from '@/context/AuthContext';
-import { revenueOptimizationService, PaymentReminderConfig, UpsellTrigger } from '@/services/revenueOptimizationService';
-import { QuoteInvoice } from '@/types/quote';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 
 export const useRevenueOptimization = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [upsellOpportunities, setUpsellOpportunities] = useState<UpsellTrigger[]>([]);
-  const [revenueMetrics, setRevenueMetrics] = useState<any>(null);
 
-  // Auto-convert quote to invoice
+  // Cache revenue metrics with React Query
+  const { data: revenueMetrics, isLoading: metricsLoading, refetch: refetchMetrics } = useQuery({
+    queryKey: ['revenue-metrics', user?.id],
+    queryFn: () => user ? revenueOptimizationService.calculateRevenueMetrics(user.id) : null,
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Cache upsell opportunities
+  const { data: upsellOpportunities = [], isLoading: upsellLoading, refetch: refetchUpsell } = useQuery({
+    queryKey: ['upsell-opportunities', user?.id],
+    queryFn: () => user ? revenueOptimizationService.identifyUpsellOpportunities(user.id) : [],
+    enabled: !!user,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    cacheTime: 15 * 60 * 1000, // 15 minutes
+  });
+
+  const loadRevenueMetrics = useCallback(async () => {
+    await refetchMetrics();
+  }, [refetchMetrics]);
+
+  const loadUpsellOpportunities = useCallback(async () => {
+    await refetchUpsell();
+  }, [refetchUpsell]);
+
+  const processOverdueInvoices = useCallback(async () => {
+    if (!user) return;
+    
+    setIsProcessing(true);
+    try {
+      const overdueInvoices = await revenueOptimizationService.checkOverdueInvoices();
+      
+      if (overdueInvoices.length > 0) {
+        await revenueOptimizationService.notifyFinanceTeam(overdueInvoices);
+        toast({
+          title: "Overdue Invoices Processed",
+          description: `${overdueInvoices.length} overdue invoices found and finance team notified.`,
+        });
+      } else {
+        toast({
+          title: "No Overdue Invoices",
+          description: "All invoices are up to date.",
+        });
+      }
+      
+      // Invalidate and refetch metrics
+      queryClient.invalidateQueries({ queryKey: ['revenue-metrics', user.id] });
+    } catch (error) {
+      console.error('Error processing overdue invoices:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process overdue invoices.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [user, queryClient]);
+
+  const generatePaymentReminders = useCallback(async (reminderConfig: any) => {
+    if (!user) return;
+    
+    setIsProcessing(true);
+    try {
+      const reminders = await revenueOptimizationService.generatePaymentReminders(reminderConfig);
+      
+      toast({
+        title: "Payment Reminders Generated",
+        description: `${reminders.length} payment reminders have been queued.`,
+      });
+    } catch (error) {
+      console.error('Error generating payment reminders:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate payment reminders.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [user]);
+
   const convertQuoteToInvoice = useCallback(async (quoteId: string) => {
     if (!user) return null;
     
@@ -24,145 +105,40 @@ export const useRevenueOptimization = () => {
           title: "Quote Converted",
           description: `Quote has been successfully converted to Invoice ${invoice.number}`,
         });
-        return invoice;
-      } else {
-        toast({
-          title: "Conversion Failed",
-          description: "Unable to convert quote to invoice. Please check the quote status.",
-          variant: "destructive",
-        });
+        
+        // Invalidate related queries
+        queryClient.invalidateQueries({ queryKey: ['quotes_invoices'] });
+        queryClient.invalidateQueries({ queryKey: ['revenue-metrics', user.id] });
       }
+      
+      return invoice;
     } catch (error) {
       console.error('Error converting quote to invoice:', error);
       toast({
         title: "Error",
-        description: "An error occurred while converting the quote to invoice.",
-        variant: "destructive",
+        description: "Failed to convert quote to invoice.",
+        variant: "destructive"
       });
+      return null;
     } finally {
       setIsProcessing(false);
     }
-    
-    return null;
-  }, [user]);
+  }, [user, queryClient]);
 
-  // Check and process overdue invoices
-  const processOverdueInvoices = useCallback(async () => {
-    if (!user) return [];
-    
-    setIsProcessing(true);
-    try {
-      const overdueInvoices = await revenueOptimizationService.checkOverdueInvoices();
-      
-      if (overdueInvoices.length > 0) {
-        // Notify finance team
-        await revenueOptimizationService.notifyFinanceTeam(overdueInvoices);
-        
-        toast({
-          title: "Overdue Invoices Found",
-          description: `${overdueInvoices.length} overdue invoices identified. Finance team has been notified.`,
-          variant: "destructive",
-        });
-      }
-      
-      return overdueInvoices;
-    } catch (error) {
-      console.error('Error processing overdue invoices:', error);
-      toast({
-        title: "Error",
-        description: "An error occurred while processing overdue invoices.",
-        variant: "destructive",
-      });
-      return [];
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [user]);
-
-  // Generate payment reminders
-  const generatePaymentReminders = useCallback(async (config: PaymentReminderConfig) => {
-    if (!user) return [];
-    
-    setIsProcessing(true);
-    try {
-      const reminders = await revenueOptimizationService.generatePaymentReminders(config);
-      
-      if (reminders.length > 0) {
-        toast({
-          title: "Payment Reminders Generated",
-          description: `${reminders.length} payment reminders have been scheduled.`,
-        });
-      }
-      
-      return reminders;
-    } catch (error) {
-      console.error('Error generating payment reminders:', error);
-      toast({
-        title: "Error",
-        description: "An error occurred while generating payment reminders.",
-        variant: "destructive",
-      });
-      return [];
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [user]);
-
-  // Load upsell opportunities
-  const loadUpsellOpportunities = useCallback(async () => {
-    if (!user) return;
-    
-    setIsProcessing(true);
-    try {
-      const opportunities = await revenueOptimizationService.identifyUpsellOpportunities(user.id);
-      setUpsellOpportunities(opportunities);
-      
-      if (opportunities.length > 0) {
-        toast({
-          title: "Upsell Opportunities Found",
-          description: `${opportunities.length} potential upselling opportunities identified.`,
-        });
-      }
-    } catch (error) {
-      console.error('Error loading upsell opportunities:', error);
-      toast({
-        title: "Error",
-        description: "An error occurred while loading upsell opportunities.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [user]);
-
-  // Load revenue metrics
-  const loadRevenueMetrics = useCallback(async (dateRange?: { start: Date; end: Date }) => {
-    if (!user) return;
-    
-    setIsProcessing(true);
-    try {
-      const metrics = await revenueOptimizationService.calculateRevenueMetrics(user.id, dateRange);
-      setRevenueMetrics(metrics);
-    } catch (error) {
-      console.error('Error loading revenue metrics:', error);
-      toast({
-        title: "Error",
-        description: "An error occurred while loading revenue metrics.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [user]);
+  // Memoize the loading state
+  const isLoading = useMemo(() => {
+    return metricsLoading || upsellLoading;
+  }, [metricsLoading, upsellLoading]);
 
   return {
-    isProcessing,
-    upsellOpportunities,
     revenueMetrics,
-    convertQuoteToInvoice,
+    upsellOpportunities,
+    isLoading,
+    isProcessing,
+    loadRevenueMetrics,
+    loadUpsellOpportunities,
     processOverdueInvoices,
     generatePaymentReminders,
-    loadUpsellOpportunities,
-    loadRevenueMetrics,
+    convertQuoteToInvoice,
   };
 };

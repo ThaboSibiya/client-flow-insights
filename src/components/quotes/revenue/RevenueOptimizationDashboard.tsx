@@ -1,9 +1,10 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   TrendingUp, 
   DollarSign, 
@@ -12,7 +13,8 @@ import {
   Target,
   ArrowUpRight,
   Mail,
-  Calendar
+  Calendar,
+  Loader2
 } from "lucide-react";
 import { useRevenueOptimization } from '@/hooks/useRevenueOptimization';
 import { PaymentReminderConfig } from '@/services/revenueOptimizationService';
@@ -20,29 +22,23 @@ import { PaymentReminderConfig } from '@/services/revenueOptimizationService';
 const RevenueOptimizationDashboard = () => {
   const {
     isProcessing,
+    isLoading,
     upsellOpportunities,
     revenueMetrics,
     processOverdueInvoices,
     generatePaymentReminders,
     loadUpsellOpportunities,
-    loadRevenueMetrics,
   } = useRevenueOptimization();
 
-  const [reminderConfig, setReminderConfig] = useState<PaymentReminderConfig>({
+  const reminderConfig: PaymentReminderConfig = useMemo(() => ({
     enabled: true,
     reminderDays: [3, 7, 14],
     template: 'Friendly payment reminder',
     escalateToFinance: true,
-  });
-
-  useEffect(() => {
-    loadRevenueMetrics();
-    loadUpsellOpportunities();
-  }, [loadRevenueMetrics, loadUpsellOpportunities]);
+  }), []);
 
   const handleProcessOverdue = async () => {
     await processOverdueInvoices();
-    loadRevenueMetrics(); // Refresh metrics
   };
 
   const handleGenerateReminders = async () => {
@@ -57,6 +53,32 @@ const RevenueOptimizationDashboard = () => {
       default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
+
+  // Loading skeleton for metrics
+  const MetricsSkeleton = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {[...Array(4)].map((_, i) => (
+        <Card key={i}>
+          <CardContent className="p-4">
+            <Skeleton className="h-4 w-24 mb-2" />
+            <Skeleton className="h-8 w-20" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <MetricsSkeleton />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-48" />
+          <Skeleton className="h-48" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -152,8 +174,17 @@ const RevenueOptimizationDashboard = () => {
                   disabled={isProcessing}
                   className="w-full"
                 >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Generate Reminders
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Generate Reminders
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -179,8 +210,17 @@ const RevenueOptimizationDashboard = () => {
                   variant="destructive"
                   className="w-full"
                 >
-                  <AlertTriangle className="h-4 w-4 mr-2" />
-                  Process Overdue Invoices
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      Process Overdue Invoices
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -204,7 +244,11 @@ const RevenueOptimizationDashboard = () => {
                     onClick={loadUpsellOpportunities}
                     variant="outline"
                     className="mt-4"
+                    disabled={isProcessing}
                   >
+                    {isProcessing ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : null}
                     Refresh Opportunities
                   </Button>
                 </div>
@@ -264,7 +308,11 @@ const RevenueOptimizationDashboard = () => {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">Loading metrics...</p>
+                  <div className="space-y-4">
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-full" />
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -292,7 +340,11 @@ const RevenueOptimizationDashboard = () => {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">Loading metrics...</p>
+                  <div className="space-y-4">
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-full" />
+                  </div>
                 )}
               </CardContent>
             </Card>
