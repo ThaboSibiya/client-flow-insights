@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { MapPin, Check, Clock, User, Phone, Search, X } from "lucide-react";
+import { MapPin, Check, Clock, User, Phone, Search, X, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { CustomerStatus } from '@/types/customer';
@@ -36,6 +36,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -60,31 +61,49 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
 
   const loadCustomers = async () => {
     setLoading(true);
+    setError(null);
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // First get the employee record
-      const { data: employee } = await supabase
-        .from('employees')
-        .select('company_owner_id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!employee) {
-        toast({
-          title: "Error",
-          description: "Employee record not found",
-          variant: "destructive"
-        });
+      if (!user) {
+        setError("Please log in to continue");
         return;
       }
 
-      // Then get customers for the company
+      console.log('Current user:', user.id);
+
+      // Try to get the employee record, but handle if it doesn't exist
+      const { data: employee, error: employeeError } = await supabase
+        .from('employees')
+        .select('company_owner_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      let companyOwnerId = user.id; // Default to current user
+
+      if (employeeError) {
+        console.warn('Employee lookup error:', employeeError);
+        // If no employee record exists, assume the user is the company owner
+        toast({
+          title: "Notice",
+          description: "Using your account as company owner. If you're an employee, please contact your administrator.",
+        });
+      } else if (employee) {
+        companyOwnerId = employee.company_owner_id;
+        console.log('Found employee record, company owner:', companyOwnerId);
+      } else {
+        console.log('No employee record found, using current user as company owner');
+        toast({
+          title: "Notice", 
+          description: "No employee record found. Using your account as company owner.",
+        });
+      }
+
+      // Get customers for the company
       const { data, error } = await supabase
         .from('customers')
         .select('*')
-        .eq('user_id', employee.company_owner_id)
+        .eq('user_id', companyOwnerId)
         .order('name');
 
       if (error) throw error;
@@ -98,13 +117,20 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
         notes: item.notes || ''
       }));
 
+      console.log('Loaded customers:', formattedCustomers.length);
       setCustomers(formattedCustomers);
       setFilteredCustomers(formattedCustomers);
+
+      if (formattedCustomers.length === 0) {
+        setError("No customers found. Please add customers first.");
+      }
+
     } catch (error: any) {
       console.error('Error loading customers:', error);
+      setError(`Failed to load customers: ${error.message}`);
       toast({
         title: "Error",
-        description: "Failed to load customers",
+        description: "Failed to load customers. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -120,9 +146,15 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
             lat: position.coords.latitude,
             lng: position.coords.longitude
           });
+          console.log('Location captured:', position.coords.latitude, position.coords.longitude);
         },
         (error) => {
           console.warn('Location access denied:', error);
+          toast({
+            title: "Location Access",
+            description: "Location access denied. Job completion will be recorded without location data.",
+            variant: "destructive"
+          });
         }
       );
     }
@@ -134,24 +166,42 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
     setNotes('');
     setSearchTerm('');
     setIsDropdownOpen(false);
+    console.log('Selected customer:', customer.name);
   };
 
   const handleSubmit = async () => {
-    if (!selectedCustomer) return;
+    if (!selectedCustomer) {
+      toast({
+        title: "Error",
+        description: "Please select a customer first",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
 
-      // Get employee ID
+      console.log('Submitting job completion for customer:', selectedCustomer.id);
+
+      // Try to get employee ID, but don't fail if it doesn't exist
+      let employeeId = null;
       const { data: employee } = await supabase
         .from('employees')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (!employee) throw new Error('Employee not found');
+      if (employee) {
+        employeeId = employee.id;
+        console.log('Found employee ID:', employeeId);
+      } else {
+        console.log('No employee record found, proceeding without employee ID');
+      }
 
       // Update customer status
       const { error: updateError } = await supabase
@@ -163,37 +213,43 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
         .eq('id', selectedCustomer.id);
 
       if (updateError) throw updateError;
+      console.log('Customer status updated successfully');
 
       // Record job completion
+      const jobCompletionData = {
+        customer_id: selectedCustomer.id,
+        employee_id: employeeId,
+        notes: notes.trim() || null,
+        before_status: selectedCustomer.status,
+        after_status: newStatus,
+        location_lat: location?.lat || null,
+        location_lng: location?.lng || null
+      };
+
+      console.log('Inserting job completion:', jobCompletionData);
+
       const { error: jobError } = await supabase
         .from('job_completions')
-        .insert({
-          customer_id: selectedCustomer.id,
-          employee_id: employee.id,
-          notes: notes,
-          before_status: selectedCustomer.status,
-          after_status: newStatus,
-          location_lat: location?.lat,
-          location_lng: location?.lng
-        });
+        .insert(jobCompletionData);
 
       if (jobError) throw jobError;
 
       toast({
         title: "Success",
-        description: `Customer status updated to ${newStatus}`,
+        description: `Job completed! Customer status updated to ${newStatus}`,
       });
 
       // Reset form
       setSelectedCustomer(null);
       setNotes('');
       setSearchTerm('');
+      setNewStatus('existing');
       onClose();
     } catch (error: any) {
       console.error('Error updating status:', error);
       toast({
         title: "Error",
-        description: "Failed to update customer status",
+        description: `Failed to complete job: ${error.message}`,
         variant: "destructive"
       });
     } finally {
@@ -220,6 +276,13 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 p-6">
+          {error && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">{error}</span>
+            </div>
+          )}
+
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
@@ -243,6 +306,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
                         }}
                         onFocus={() => setIsDropdownOpen(true)}
                         className="pl-10 border-2 border-gray-200 focus:border-green-500 rounded-lg"
+                        disabled={customers.length === 0}
                       />
                     </div>
                     
@@ -369,7 +433,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
                       Updating...
                     </>
                   ) : (
-                    'Update Status'
+                    'Complete Job'
                   )}
                 </Button>
               </div>
