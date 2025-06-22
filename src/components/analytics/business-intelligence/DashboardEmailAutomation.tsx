@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,9 +40,9 @@ const DashboardEmailAutomation = () => {
 
   const [newEmail, setNewEmail] = useState({
     name: '',
-    frequency: 'weekly' as const,
+    frequency: 'weekly' as 'daily' | 'weekly' | 'monthly',
     recipients: '',
-    dashboardType: 'overview' as const,
+    dashboardType: 'overview' as 'overview' | 'sales' | 'customers' | 'tickets' | 'performance',
     includeCharts: true,
     includeMetrics: true,
   });
@@ -57,14 +56,17 @@ const DashboardEmailAutomation = () => {
     const recipients = newEmail.recipients.split(',').map(email => email.trim());
     const nextScheduled = new Date();
     
-    // Fix the comparison issue by using proper logic
-    if (newEmail.frequency === 'daily') {
-      nextScheduled.setDate(nextScheduled.getDate() + 1);
-    } else if (newEmail.frequency === 'weekly') {
-      nextScheduled.setDate(nextScheduled.getDate() + 7);
-    } else {
-      // monthly
-      nextScheduled.setMonth(nextScheduled.getMonth() + 1);
+    // Calculate next scheduled date based on frequency
+    switch (newEmail.frequency) {
+      case 'daily':
+        nextScheduled.setDate(nextScheduled.getDate() + 1);
+        break;
+      case 'weekly':
+        nextScheduled.setDate(nextScheduled.getDate() + 7);
+        break;
+      case 'monthly':
+        nextScheduled.setMonth(nextScheduled.getMonth() + 1);
+        break;
     }
 
     const emailSetting: DashboardEmailSettings = {
