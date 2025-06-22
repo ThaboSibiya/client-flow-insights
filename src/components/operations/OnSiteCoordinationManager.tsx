@@ -2,14 +2,15 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Truck, Calendar, Package, Bell } from "lucide-react";
+import { Truck, Calendar, Package, Bell, Ticket } from "lucide-react";
 import JobCompletionNotifications from './coordination/JobCompletionNotifications';
 import AutoStatusUpdates from './coordination/AutoStatusUpdates';
 import NextAppointmentScheduler from './coordination/NextAppointmentScheduler';
 import InventoryAlerts from './coordination/InventoryAlerts';
+import OnSiteTicketManager from './coordination/OnSiteTicketManager';
 
 const OnSiteCoordinationManager = () => {
-  const [activeTab, setActiveTab] = useState('notifications');
+  const [activeTab, setActiveTab] = useState('tickets');
 
   return (
     <div className="space-y-6">
@@ -21,12 +22,19 @@ const OnSiteCoordinationManager = () => {
           </h1>
         </div>
         <p className="text-quikle-slate text-sm">
-          Automate communication between mobile teams and office operations
+          Manage tickets, automate communication, and coordinate field operations
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-white border border-quikle-silver/20 shadow-sm">
+        <TabsList className="grid w-full grid-cols-5 bg-white border border-quikle-silver/20 shadow-sm">
+          <TabsTrigger 
+            value="tickets" 
+            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white flex items-center gap-2"
+          >
+            <Ticket className="h-4 w-4" />
+            Ticket Updates
+          </TabsTrigger>
           <TabsTrigger 
             value="notifications" 
             className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white flex items-center gap-2"
@@ -56,6 +64,10 @@ const OnSiteCoordinationManager = () => {
             Inventory
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="tickets" className="mt-6">
+          <OnSiteTicketManager />
+        </TabsContent>
 
         <TabsContent value="notifications" className="mt-6">
           <JobCompletionNotifications />
