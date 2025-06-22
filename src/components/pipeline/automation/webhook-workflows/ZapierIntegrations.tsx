@@ -50,7 +50,7 @@ const ZapierIntegrations = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [newConnection, setNewConnection] = useState({
     name: '',
-    platform: 'zapier' as const,
+    platform: 'zapier' as 'zapier' | 'make' | 'n8n',
     webhookUrl: '',
     apps: [] as string[]
   });
@@ -83,26 +83,15 @@ const ZapierIntegrations = () => {
         })
       });
 
-      toast({
-        title: "Test Sent",
-        description: "Test webhook sent successfully. Check your automation platform."
-      });
+      toast.success("Test webhook sent successfully. Check your automation platform.");
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send test webhook",
-        variant: "destructive"
-      });
+      toast.error("Failed to send test webhook");
     }
   };
 
   const createConnection = () => {
     if (!newConnection.name || !newConnection.webhookUrl) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -117,10 +106,7 @@ const ZapierIntegrations = () => {
     setNewConnection({ name: '', platform: 'zapier', webhookUrl: '', apps: [] });
     setIsCreating(false);
     
-    toast({
-      title: "Integration Created",
-      description: "New webhook integration has been created successfully"
-    });
+    toast.success("New webhook integration has been created successfully");
   };
 
   const toggleConnection = (id: string) => {
@@ -131,10 +117,7 @@ const ZapierIntegrations = () => {
 
   const deleteConnection = (id: string) => {
     setConnections(connections.filter(conn => conn.id !== id));
-    toast({
-      title: "Integration Deleted",
-      description: "Webhook integration has been removed"
-    });
+    toast.success("Webhook integration has been removed");
   };
 
   return (
@@ -171,8 +154,8 @@ const ZapierIntegrations = () => {
                   <Label>Platform</Label>
                   <Select 
                     value={newConnection.platform} 
-                    onValueChange={(value: 'zapier' | 'make' | 'n8n') => 
-                      setNewConnection({ ...newConnection, platform: value })
+                    onValueChange={(value) => 
+                      setNewConnection({ ...newConnection, platform: value as 'zapier' | 'make' | 'n8n' })
                     }
                   >
                     <SelectTrigger>

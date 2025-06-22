@@ -73,7 +73,7 @@ const RealtimeDataSync = () => {
     sourceSystem: '',
     targetSystem: '',
     dataType: '',
-    syncDirection: 'bidirectional' as const,
+    syncDirection: 'bidirectional' as 'bidirectional' | 'push' | 'pull',
     frequency: 'real-time'
   });
 
@@ -85,7 +85,7 @@ const RealtimeDataSync = () => {
 
   const dataTypes = [
     'customers', 'tickets', 'products', 'orders', 'contacts',
-    'leads', 'tasks', 'events', 'files', 'messages'
+    'leads', 'tasks', '﻿events', 'files', 'messages'
   ];
 
   const getStatusColor = (status: string) => {
@@ -108,11 +108,7 @@ const RealtimeDataSync = () => {
 
   const createSyncRule = () => {
     if (!newRule.name || !newRule.sourceSystem || !newRule.targetSystem) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -135,10 +131,7 @@ const RealtimeDataSync = () => {
     });
     setIsCreating(false);
     
-    toast({
-      title: "Sync Rule Created",
-      description: "New real-time data sync rule has been created"
-    });
+    toast.success("New real-time data sync rule has been created");
   };
 
   const toggleSyncRule = (id: string) => {
@@ -149,10 +142,7 @@ const RealtimeDataSync = () => {
 
   const deleteSyncRule = (id: string) => {
     setSyncRules(syncRules.filter(rule => rule.id !== id));
-    toast({
-      title: "Sync Rule Deleted",
-      description: "Data sync rule has been removed"
-    });
+    toast.success("Data sync rule has been removed");
   };
 
   const triggerManualSync = (rule: DataSyncRule) => {
@@ -171,10 +161,7 @@ const RealtimeDataSync = () => {
       ));
     }, 2000);
 
-    toast({
-      title: "Manual Sync Started",
-      description: `Syncing ${rule.dataType} between ${rule.sourceSystem} and ${rule.targetSystem}`
-    });
+    toast.success(`Syncing ${rule.dataType} between ${rule.sourceSystem} and ${rule.targetSystem}`);
   };
 
   return (
@@ -265,8 +252,8 @@ const RealtimeDataSync = () => {
                   <Label>Sync Direction</Label>
                   <Select 
                     value={newRule.syncDirection} 
-                    onValueChange={(value: 'bidirectional' | 'push' | 'pull') => 
-                      setNewRule({ ...newRule, syncDirection: value })
+                    onValueChange={(value) => 
+                      setNewRule({ ...newRule, syncDirection: value as 'bidirectional' | 'push' | 'pull' })
                     }
                   >
                     <SelectTrigger>

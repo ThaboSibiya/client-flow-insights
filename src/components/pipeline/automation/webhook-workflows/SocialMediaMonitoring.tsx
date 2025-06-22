@@ -91,7 +91,7 @@ const SocialMediaMonitoring = () => {
     name: '',
     platform: 'twitter',
     keywords: [] as string[],
-    sentiment: 'all' as const,
+    sentiment: 'all' as 'positive' | 'negative' | 'neutral' | 'all',
     webhookUrl: '',
     alertThreshold: 5
   });
@@ -125,11 +125,7 @@ const SocialMediaMonitoring = () => {
 
   const createMonitor = () => {
     if (!newMonitor.name || newMonitor.keywords.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please provide monitor name and keywords",
-        variant: "destructive"
-      });
+      toast.error("Please provide monitor name and keywords");
       return;
     }
 
@@ -151,10 +147,7 @@ const SocialMediaMonitoring = () => {
     });
     setIsCreating(false);
     
-    toast({
-      title: "Monitor Created",
-      description: "Social media monitor has been created successfully"
-    });
+    toast.success("Social media monitor has been created successfully");
   };
 
   const toggleMonitor = (id: string) => {
@@ -165,10 +158,7 @@ const SocialMediaMonitoring = () => {
 
   const deleteMonitor = (id: string) => {
     setMonitors(monitors.filter(monitor => monitor.id !== id));
-    toast({
-      title: "Monitor Deleted",
-      description: "Social media monitor has been removed"
-    });
+    toast.success("Social media monitor has been removed");
   };
 
   const addKeyword = (keyword: string) => {
@@ -271,8 +261,8 @@ const SocialMediaMonitoring = () => {
                   <Label>Sentiment Filter</Label>
                   <Select 
                     value={newMonitor.sentiment} 
-                    onValueChange={(value: 'positive' | 'negative' | 'neutral' | 'all') => 
-                      setNewMonitor({ ...newMonitor, sentiment: value })
+                    onValueChange={(value) => 
+                      setNewMonitor({ ...newMonitor, sentiment: value as 'positive' | 'negative' | 'neutral' | 'all' })
                     }
                   >
                     <SelectTrigger>

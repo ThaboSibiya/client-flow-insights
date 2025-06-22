@@ -70,8 +70,8 @@ const CustomApiTriggers = () => {
   const [newTrigger, setNewTrigger] = useState({
     name: '',
     endpoint: '',
-    method: 'POST' as const,
-    authType: 'bearer' as const,
+    method: 'POST' as 'GET' | 'POST' | 'PUT' | 'DELETE',
+    authType: 'bearer' as 'none' | 'bearer' | 'apikey' | 'basic',
     description: '',
     samplePayload: ''
   });
@@ -83,11 +83,7 @@ const CustomApiTriggers = () => {
 
   const createTrigger = () => {
     if (!newTrigger.name || !newTrigger.endpoint) {
-      toast({
-        title: "Error",
-        description: "Please fill in required fields",
-        variant: "destructive"
-      });
+      toast.error("Please fill in required fields");
       return;
     }
 
@@ -110,10 +106,7 @@ const CustomApiTriggers = () => {
     });
     setIsCreating(false);
     
-    toast({
-      title: "API Trigger Created",
-      description: "New custom API trigger has been created"
-    });
+    toast.success("New custom API trigger has been created");
   };
 
   const toggleTrigger = (id: string) => {
@@ -124,19 +117,13 @@ const CustomApiTriggers = () => {
 
   const deleteTrigger = (id: string) => {
     setTriggers(triggers.filter(trigger => trigger.id !== id));
-    toast({
-      title: "API Trigger Deleted",
-      description: "Custom API trigger has been removed"
-    });
+    toast.success("Custom API trigger has been removed");
   };
 
   const copyEndpoint = (endpoint: string) => {
     const fullUrl = `${window.location.origin}${endpoint}`;
     navigator.clipboard.writeText(fullUrl);
-    toast({
-      title: "Copied",
-      description: "API endpoint copied to clipboard"
-    });
+    toast.success("API endpoint copied to clipboard");
   };
 
   const testTrigger = async (trigger: CustomApiTrigger) => {
@@ -158,19 +145,12 @@ const CustomApiTriggers = () => {
           } : t
         ));
         
-        toast({
-          title: "Test Successful",
-          description: "API trigger test completed successfully"
-        });
+        toast.success("API trigger test completed successfully");
       } else {
         throw new Error(`HTTP ${response.status}`);
       }
     } catch (error) {
-      toast({
-        title: "Test Failed",
-        description: "Failed to test API trigger",
-        variant: "destructive"
-      });
+      toast.error("Failed to test API trigger");
     }
   };
 
@@ -208,8 +188,8 @@ const CustomApiTriggers = () => {
                   <Label>HTTP Method</Label>
                   <Select 
                     value={newTrigger.method} 
-                    onValueChange={(value: 'GET' | 'POST' | 'PUT' | 'DELETE') => 
-                      setNewTrigger({ ...newTrigger, method: value })
+                    onValueChange={(value) => 
+                      setNewTrigger({ ...newTrigger, method: value as 'GET' | 'POST' | 'PUT' | 'DELETE' })
                     }
                   >
                     <SelectTrigger>
@@ -247,8 +227,8 @@ const CustomApiTriggers = () => {
                 <Label>Authentication Type</Label>
                 <Select 
                   value={newTrigger.authType} 
-                  onValueChange={(value: 'none' | 'bearer' | 'apikey' | 'basic') => 
-                    setNewTrigger({ ...newTrigger, authType: value })
+                  onValueChange={(value) => 
+                    setNewTrigger({ ...newTrigger, authType: value as 'none' | 'bearer' | 'apikey' | 'basic' })
                   }
                 >
                   <SelectTrigger>
