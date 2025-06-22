@@ -9,6 +9,8 @@ import AdvancedConditionalBuilder from './conditional/AdvancedConditionalBuilder
 import TimeBasedTriggerManager from './scheduling/TimeBasedTriggerManager';
 import AutomationPermissions from './permissions/AutomationPermissions';
 import AutomationAuditLog from './audit/AutomationAuditLog';
+import WebhookManager from '../../WebhookManager';
+import PerformanceMonitor from '../../PerformanceMonitor';
 import { Input } from '@/components/ui/input';
 
 interface Automation {
@@ -92,7 +94,7 @@ const AutomationTabs = ({
         />
       </TabsContent>
 
-      <TabsContent value="ai-assistant">
+      <TabsContent value="ai-assistant" className="space-y-4">
         <div className="text-center p-8">
           <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-semibold mb-2">AI Assistant</h3>
@@ -100,20 +102,12 @@ const AutomationTabs = ({
         </div>
       </TabsContent>
 
-      <TabsContent value="webhooks">
-        <div className="text-center p-8">
-          <Webhook className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">Webhook Manager</h3>
-          <p className="text-muted-foreground">Webhook management functionality coming soon</p>
-        </div>
+      <TabsContent value="webhooks" className="space-y-4">
+        <WebhookManager />
       </TabsContent>
 
-      <TabsContent value="performance">
-        <div className="text-center p-8">
-          <Activity className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">Performance Monitor</h3>
-          <p className="text-muted-foreground">Performance monitoring coming soon</p>
-        </div>
+      <TabsContent value="performance" className="space-y-4">
+        <PerformanceMonitor />
       </TabsContent>
 
       <TabsContent value="bulk">
