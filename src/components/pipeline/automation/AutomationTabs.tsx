@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, Activity, Webhook, Search, Settings, FileText } from "lucide-react";
 import AutomationsList from './AutomationsList';
 import AutomationAnalytics from './AutomationAnalytics';
+import AIAssistantTab from './AIAssistantTab';
 import BulkOperationsManager from './bulk/BulkOperationsManager';
 import AdvancedConditionalBuilder from './conditional/AdvancedConditionalBuilder';
 import TimeBasedTriggerManager from './scheduling/TimeBasedTriggerManager';
@@ -95,11 +95,7 @@ const AutomationTabs = ({
       </TabsContent>
 
       <TabsContent value="ai-assistant" className="space-y-4">
-        <div className="text-center p-8">
-          <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">AI Assistant</h3>
-          <p className="text-muted-foreground">AI-powered automation suggestions coming soon</p>
-        </div>
+        <AIAssistantTab automations={automations} />
       </TabsContent>
 
       <TabsContent value="webhooks" className="space-y-4">
