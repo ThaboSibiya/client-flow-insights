@@ -1,9 +1,14 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Activity, Webhook, Search } from "lucide-react";
+import { Brain, Activity, Webhook, Search, Settings, FileText } from "lucide-react";
 import AutomationsList from './AutomationsList';
 import AutomationAnalytics from './AutomationAnalytics';
+import BulkOperationsManager from './bulk/BulkOperationsManager';
+import AdvancedConditionalBuilder from './conditional/AdvancedConditionalBuilder';
+import TimeBasedTriggerManager from './scheduling/TimeBasedTriggerManager';
+import AutomationPermissions from './permissions/AutomationPermissions';
+import AutomationAuditLog from './audit/AutomationAuditLog';
 import { Input } from '@/components/ui/input';
 
 interface Automation {
@@ -37,6 +42,8 @@ const AutomationTabs = ({
   searchTerm,
   onSearchTermChange
 }: AutomationTabsProps) => {
+  const [selectedAutomationId, setSelectedAutomationId] = React.useState<string | null>(null);
+
   const filteredAutomations = automations.filter(automation => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
@@ -49,17 +56,22 @@ const AutomationTabs = ({
 
   return (
     <Tabs value={activeTab} onValueChange={onTabChange}>
-      <TabsList>
+      <TabsList className="grid w-full grid-cols-7">
         <TabsTrigger value="automations">Automations</TabsTrigger>
         <TabsTrigger value="ai-assistant" className="flex items-center gap-2">
           <Brain className="h-4 w-4" />
           AI Assistant
         </TabsTrigger>
-        <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+        <TabsTrigger value="webhooks" className="flex items-center gap-2">
+          <Webhook className="h-4 w-4" />
+          Webhooks
+        </TabsTrigger>
         <TabsTrigger value="performance" className="flex items-center gap-2">
           <Activity className="h-4 w-4" />
           Performance
         </TabsTrigger>
+        <TabsTrigger value="bulk">Bulk Ops</TabsTrigger>
+        <TabsTrigger value="conditional">Conditional</TabsTrigger>
         <TabsTrigger value="analytics">Analytics</TabsTrigger>
       </TabsList>
 
@@ -102,6 +114,16 @@ const AutomationTabs = ({
           <h3 className="text-lg font-semibold mb-2">Performance Monitor</h3>
           <p className="text-muted-foreground">Performance monitoring coming soon</p>
         </div>
+      </TabsContent>
+
+      <TabsContent value="bulk">
+        <BulkOperationsManager />
+      </TabsContent>
+
+      <TabsContent value="conditional">
+        <AdvancedConditionalBuilder 
+          onRulesChange={(rules) => console.log('Conditional rules updated:', rules)}
+        />
       </TabsContent>
 
       <TabsContent value="analytics" className="space-y-4">

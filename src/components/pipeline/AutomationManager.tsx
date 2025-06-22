@@ -137,86 +137,16 @@ const AutomationManager = () => {
           onBuilderOpenChange={setIsBuilderOpen}
         />
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="automations">Automations</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="bulk">Bulk Ops</TabsTrigger>
-            <TabsTrigger value="conditional">Conditional</TabsTrigger>
-            <TabsTrigger value="scheduling">Scheduling</TabsTrigger>
-            <TabsTrigger value="permissions">Permissions</TabsTrigger>
-            <TabsTrigger value="audit">Audit Log</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="automations">
-            <AutomationTabs
-              activeTab="automations"
-              onTabChange={() => {}}
-              automations={automations}
-              onToggleAutomation={toggleAutomation}
-              onCreateNew={() => setIsBuilderOpen(true)}
-              searchTerm={searchTerm}
-              onSearchTermChange={setSearchTerm}
-            />
-          </TabsContent>
-
-          <TabsContent value="performance">
-            <div className="text-center p-8">
-              <h3 className="text-lg font-semibold mb-2">Performance Monitor</h3>
-              <p className="text-muted-foreground">Performance monitoring functionality coming soon</p>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="bulk">
-            <BulkOperationsManager />
-          </TabsContent>
-
-          <TabsContent value="conditional">
-            <AdvancedConditionalBuilder 
-              onRulesChange={(rules) => console.log('Conditional rules updated:', rules)}
-            />
-          </TabsContent>
-
-          <TabsContent value="scheduling">
-            <TimeBasedTriggerManager />
-          </TabsContent>
-
-          <TabsContent value="permissions">
-            <div className="space-y-6">
-              <div className="text-sm text-muted-foreground mb-4">
-                Select an automation to manage its permissions
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {automations.map((automation) => (
-                  <div
-                    key={automation.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                      selectedAutomationId === automation.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => setSelectedAutomationId(automation.id)}
-                  >
-                    <h3 className="font-medium">{automation.name}</h3>
-                    <p className="text-sm text-muted-foreground">{automation.type}</p>
-                  </div>
-                ))}
-              </div>
-              {selectedAutomationId && (
-                <AutomationPermissions
-                  automationId={selectedAutomationId}
-                  onPermissionChange={(permissions) => {
-                    console.log('Permissions updated:', permissions);
-                  }}
-                />
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="audit">
-            <AutomationAuditLog automationId={selectedAutomationId || undefined} />
-          </TabsContent>
-        </Tabs>
+        {/* Use the single AutomationTabs component with proper event handling */}
+        <AutomationTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          automations={automations}
+          onToggleAutomation={toggleAutomation}
+          onCreateNew={() => setIsBuilderOpen(true)}
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+        />
       </div>
     </AutomationErrorBoundary>
   );
