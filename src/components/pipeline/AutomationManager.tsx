@@ -7,7 +7,12 @@ import PerformanceMonitor from './PerformanceMonitor';
 import AutomationPermissions from './automation/permissions/AutomationPermissions';
 import AutomationAuditLog from './automation/audit/AutomationAuditLog';
 import AutomationErrorBoundary from './automation/error-handling/AutomationErrorBoundary';
+import MobileAutomationView from './automation/mobile/MobileAutomationView';
+import BulkOperationsManager from './automation/bulk/BulkOperationsManager';
+import AdvancedConditionalBuilder from './automation/conditional/AdvancedConditionalBuilder';
+import TimeBasedTriggerManager from './automation/scheduling/TimeBasedTriggerManager';
 import { automationAuditService } from '@/services/automationAuditService';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Automation {
   id: string;
@@ -72,6 +77,7 @@ const AutomationManager = () => {
   const [activeTab, setActiveTab] = useState('automations');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAutomationId, setSelectedAutomationId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const toggleAutomation = async (id: string) => {
     const automation = automations.find(a => a.id === id);
@@ -103,6 +109,24 @@ const AutomationManager = () => {
     // Additional error handling logic could go here
   };
 
+  // Show mobile-optimized view on mobile devices
+  if (isMobile && activeTab === 'automations') {
+    return (
+      <AutomationErrorBoundary onError={handleAutomationError}>
+        <div className="space-y-6">
+          <AutomationHeader 
+            isBuilderOpen={isBuilderOpen}
+            onBuilderOpenChange={setIsBuilderOpen}
+          />
+          <MobileAutomationView 
+            automations={automations}
+            onToggleAutomation={toggleAutomation}
+          />
+        </div>
+      </AutomationErrorBoundary>
+    );
+  }
+
   return (
     <AutomationErrorBoundary onError={handleAutomationError}>
       <div className="space-y-6">
@@ -112,9 +136,12 @@ const AutomationManager = () => {
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="automations">Automations</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="bulk">Bulk Ops</TabsTrigger>
+            <TabsTrigger value="conditional">Conditional</TabsTrigger>
+            <TabsTrigger value="scheduling">Scheduling</TabsTrigger>
             <TabsTrigger value="permissions">Permissions</TabsTrigger>
             <TabsTrigger value="audit">Audit Log</TabsTrigger>
           </TabsList>
@@ -133,6 +160,20 @@ const AutomationManager = () => {
 
           <TabsContent value="performance">
             <PerformanceMonitor />
+          </TabsContent>
+
+          <TabsContent value="bulk">
+            <BulkOperationsManager />
+          </TabsContent>
+
+          <TabsContent value="conditional">
+            <AdvancedConditionalBuilder 
+              onRulesChange={(rules) => console.log('Conditional rules updated:', rules)}
+            />
+          </TabsContent>
+
+          <TabsContent value="scheduling">
+            <TimeBasedTriggerManager />
           </TabsContent>
 
           <TabsContent value="permissions">
