@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Check, Clock, User, Phone } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { MapPin, Check, Clock, User, Phone, Search, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { CustomerStatus } from '@/types/customer';
@@ -26,12 +27,15 @@ interface OnSiteStatusUpdateProps {
 
 const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [newStatus, setNewStatus] = useState<CustomerStatus>('existing');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -39,6 +43,20 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
       getCurrentLocation();
     }
   }, [isOpen]);
+
+  // Filter customers based on search term
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredCustomers(customers);
+    } else {
+      const filtered = customers.filter(customer =>
+        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.phone.includes(searchTerm)
+      );
+      setFilteredCustomers(filtered);
+    }
+  }, [searchTerm, customers]);
 
   const loadCustomers = async () => {
     setLoading(true);
@@ -81,6 +99,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
       }));
 
       setCustomers(formattedCustomers);
+      setFilteredCustomers(formattedCustomers);
     } catch (error: any) {
       console.error('Error loading customers:', error);
       toast({
@@ -109,13 +128,12 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
     }
   };
 
-  const handleCustomerSelect = (customerId: string) => {
-    const customer = customers.find(c => c.id === customerId);
-    if (customer) {
-      setSelectedCustomer(customer);
-      setNewStatus(customer.status);
-      setNotes('');
-    }
+  const handleCustomerSelect = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setNewStatus(customer.status);
+    setNotes('');
+    setSearchTerm('');
+    setIsDropdownOpen(false);
   };
 
   const handleSubmit = async () => {
@@ -169,6 +187,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
       // Reset form
       setSelectedCustomer(null);
       setNotes('');
+      setSearchTerm('');
       onClose();
     } catch (error: any) {
       console.error('Error updating status:', error);
@@ -182,103 +201,159 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
     }
   };
 
+  const clearSelection = () => {
+    setSelectedCustomer(null);
+    setSearchTerm('');
+    setNewStatus('existing');
+    setNotes('');
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md max-h-[90vh] overflow-auto">
-        <CardHeader className="text-center">
-          <CardTitle className="flex items-center gap-2 justify-center">
-            <Check className="h-5 w-5 text-green-600" />
+      <Card className="w-full max-w-md max-h-[90vh] overflow-auto bg-white shadow-xl">
+        <CardHeader className="text-center bg-gradient-to-r from-green-50 to-blue-50">
+          <CardTitle className="flex items-center gap-2 justify-center text-green-700">
+            <Check className="h-5 w-5" />
             Job Completion Update
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-6">
           {loading ? (
-            <div className="text-center py-8">Loading customers...</div>
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">Loading customers...</p>
+            </div>
           ) : (
             <>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Select Customer</label>
-                <Select onValueChange={handleCustomerSelect}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose customer..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customers.map(customer => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        <div className="flex items-center gap-2">
-                          <span>{customer.name}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {customer.status}
-                          </Badge>
+              {/* Enhanced Customer Search/Select */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">Select Customer</label>
+                {!selectedCustomer ? (
+                  <div className="relative">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search by name, email, or phone..."
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setIsDropdownOpen(true);
+                        }}
+                        onFocus={() => setIsDropdownOpen(true)}
+                        className="pl-10 border-2 border-gray-200 focus:border-green-500 rounded-lg"
+                      />
+                    </div>
+                    
+                    {isDropdownOpen && filteredCustomers.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
+                        {filteredCustomers.slice(0, 10).map(customer => (
+                          <div
+                            key={customer.id}
+                            onClick={() => handleCustomerSelect(customer)}
+                            className="p-3 hover:bg-green-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium text-gray-900">{customer.name}</p>
+                                <p className="text-sm text-gray-600">{customer.phone}</p>
+                              </div>
+                              <Badge 
+                                variant="outline" 
+                                className="text-xs bg-gray-50"
+                              >
+                                {customer.status}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {isDropdownOpen && searchTerm && filteredCustomers.length === 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg p-4 text-center text-gray-500 z-50">
+                        No customers found matching "{searchTerm}"
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Selected Customer Display */
+                  <Card className="bg-green-50 border-green-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-2 flex-1">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-green-600" />
+                            <span className="font-semibold text-green-800">{selectedCustomer.name}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-green-600" />
+                            <span className="text-sm text-green-700">{selectedCustomer.phone}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-green-600" />
+                            <span className="text-sm text-green-700">Current Status:</span>
+                            <Badge className="bg-green-100 text-green-800 border-green-300">
+                              {selectedCustomer.status}
+                            </Badge>
+                          </div>
                         </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={clearSelection}
+                          className="text-gray-500 hover:text-red-600"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
 
               {selectedCustomer && (
                 <>
-                  <Card className="bg-gray-50">
-                    <CardContent className="p-3">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          <span className="font-medium">{selectedCustomer.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4" />
-                          <span className="text-sm">{selectedCustomer.phone}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          <span className="text-sm">Current Status:</span>
-                          <Badge>{selectedCustomer.status}</Badge>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">New Status</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">New Status</label>
                     <Select value={newStatus} onValueChange={(value: CustomerStatus) => setNewStatus(value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="border-2 border-gray-200 focus:border-green-500">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="existing">Existing</SelectItem>
-                        <SelectItem value="finalised">Finalised</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
+                      <SelectContent className="bg-white border-2 border-gray-200 shadow-lg">
+                        <SelectItem value="existing" className="hover:bg-green-50">Existing</SelectItem>
+                        <SelectItem value="finalised" className="hover:bg-green-50">Finalised</SelectItem>
+                        <SelectItem value="pending" className="hover:bg-green-50">Pending</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Job Notes</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Job Notes</label>
                     <Textarea
                       placeholder="Add notes about the completed work..."
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       rows={3}
+                      className="border-2 border-gray-200 focus:border-green-500 resize-none"
                     />
                   </div>
 
                   {location && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-2 rounded-lg">
                       <MapPin className="h-4 w-4" />
-                      <span>Location captured</span>
+                      <span>Location captured successfully</span>
                     </div>
                   )}
                 </>
               )}
 
-              <div className="flex gap-2 pt-4">
+              <div className="flex gap-3 pt-4">
                 <Button
                   variant="outline"
                   onClick={onClose}
-                  className="flex-1"
+                  className="flex-1 border-2 hover:bg-gray-50"
                   disabled={submitting}
                 >
                   Cancel
@@ -286,9 +361,16 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
                 <Button
                   onClick={handleSubmit}
                   disabled={!selectedCustomer || submitting}
-                  className="flex-1"
+                  className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300"
                 >
-                  {submitting ? 'Updating...' : 'Update Status'}
+                  {submitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Updating...
+                    </>
+                  ) : (
+                    'Update Status'
+                  )}
                 </Button>
               </div>
             </>
