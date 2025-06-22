@@ -1,4 +1,3 @@
-
 export interface SatisfactionSurvey {
   id: string;
   customerId: string;
@@ -16,7 +15,6 @@ export interface SatisfactionSurvey {
     feedback?: string;
   };
   sentAt?: string;
-  completedAt?: string;
   remindersSent: number;
 }
 

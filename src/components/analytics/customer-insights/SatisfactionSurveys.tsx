@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Star, Send, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Star, Send, Clock, CheckCircle, AlertCircle, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { SatisfactionSurvey, CustomerInsightsSettings } from './types';
 
