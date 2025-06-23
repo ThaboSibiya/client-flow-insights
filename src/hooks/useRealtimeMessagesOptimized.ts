@@ -46,7 +46,7 @@ export const useRealtimeMessagesOptimized = (
         }
       )
       .subscribe((status) => {
-        if (status === 'SUBSCRIPTION_ERROR') {
+        if (status === 'CHANNEL_ERROR') {
           console.error('Real-time subscription error for conversation:', conversationId);
         }
       });

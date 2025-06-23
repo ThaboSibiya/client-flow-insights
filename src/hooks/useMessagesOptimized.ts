@@ -13,6 +13,7 @@ export const useMessagesOptimized = (conversationId: string) => {
     loading,
     loadingOlder,
     hasMoreMessages,
+    error,
     loadMessages,
     loadOlderMessages,
   } = useMessageDataOptimized(conversationId);
@@ -44,6 +45,7 @@ export const useMessagesOptimized = (conversationId: string) => {
     sendMessage,
     loadOlderMessages,
     refreshMessages: loadMessages,
+    error,
   }), [
     conversation,
     messages,
@@ -54,5 +56,6 @@ export const useMessagesOptimized = (conversationId: string) => {
     sendMessage,
     loadOlderMessages,
     loadMessages,
+    error,
   ]);
 };
