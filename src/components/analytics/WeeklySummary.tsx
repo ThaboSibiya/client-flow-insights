@@ -34,7 +34,7 @@ const WeeklySummary = ({ customers }: WeeklySummaryProps) => {
       ).length;
 
       // Estimate revenue (for visual purposes)
-      const estimatedRevenue = sales * 1500; // Assuming average sale value of $1500
+      const estimatedRevenue = sales * 1500; // Assuming average sale value of R1500
       
       data.push({
         name: `${dayName} ${dayDate}`,
@@ -91,7 +91,7 @@ const WeeklySummary = ({ customers }: WeeklySummaryProps) => {
                 }}
                 formatter={(value: any, name: string) => {
                   if (name === 'revenue') {
-                    return [`$${value.toLocaleString()}`, 'Revenue'];
+                    return [`R${value.toLocaleString()}`, 'Revenue'];
                   }
                   return [value, name.charAt(0).toUpperCase() + name.slice(1)];
                 }}

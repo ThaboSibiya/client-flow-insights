@@ -26,7 +26,7 @@ const RevenueForecastChart = () => {
                customer.status === 'finalised';
       }).length;
       
-      const baseRevenue = monthCustomers * 2500; // Assume $2500 average deal size
+      const baseRevenue = monthCustomers * 2500; // Assume R2500 average deal size
       
       months.push({
         month: monthName,
@@ -67,11 +67,11 @@ const RevenueForecastChart = () => {
         <div className="flex gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-quikle-primary rounded"></div>
-            <span>Actual: ${currentRevenue.toLocaleString()}</span>
+            <span>Actual: R{currentRevenue.toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-quikle-accent rounded"></div>
-            <span>Forecast: ${forecastedRevenue.toLocaleString()}</span>
+            <span>Forecast: R{forecastedRevenue.toLocaleString()}</span>
           </div>
         </div>
       </CardHeader>
@@ -91,10 +91,10 @@ const RevenueForecastChart = () => {
               </defs>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
-              <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+              <YAxis tickFormatter={(value) => `R${(value / 1000).toFixed(0)}k`} />
               <Tooltip 
                 formatter={(value, name) => [
-                  value ? `$${value.toLocaleString()}` : 'N/A', 
+                  value ? `R${value.toLocaleString()}` : 'N/A', 
                   name === 'actual' ? 'Actual' : name === 'forecast' ? 'Forecast' : 'Target'
                 ]}
               />

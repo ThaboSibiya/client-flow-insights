@@ -67,11 +67,11 @@ const RegionalPerformance = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={regionalData} layout="horizontal">
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+                  <XAxis type="number" tickFormatter={(value) => `R${(value / 1000).toFixed(0)}k`} />
                   <YAxis dataKey="name" type="category" width={80} />
                   <Tooltip 
                     formatter={(value, name) => [
-                      name === 'revenue' ? `$${value.toLocaleString()}` : value,
+                      name === 'revenue' ? `R${value.toLocaleString()}` : value,
                       name === 'revenue' ? 'Revenue' : name === 'customers' ? 'Customers' : 'Conversion Rate'
                     ]}
                   />
@@ -132,7 +132,7 @@ const RegionalPerformance = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-quikle-success">${city.revenue.toLocaleString()}</p>
+                  <p className="font-bold text-quikle-success">R{city.revenue.toLocaleString()}</p>
                   <p className="text-sm text-gray-600">Revenue</p>
                 </div>
               </div>
@@ -143,7 +143,7 @@ const RegionalPerformance = () => {
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <p className="text-sm text-gray-600">Total Revenue</p>
-                <p className="text-lg font-bold text-quikle-success">${totalRevenue.toLocaleString()}</p>
+                <p className="text-lg font-bold text-quikle-success">R{totalRevenue.toLocaleString()}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Top Region</p>

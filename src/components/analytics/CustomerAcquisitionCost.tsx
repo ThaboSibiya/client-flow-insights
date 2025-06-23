@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
@@ -51,7 +52,7 @@ const CustomerAcquisitionCost = () => {
         </CardTitle>
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <span>Average CAC: ${averageCAC}</span>
+            <span>Average CAC: R{averageCAC}</span>
             {trend === 'up' ? (
               <TrendingUp className="h-4 w-4 text-quikle-neutral" />
             ) : (
@@ -66,11 +67,11 @@ const CustomerAcquisitionCost = () => {
             <BarChart data={cacData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
-              <YAxis tickFormatter={(value) => `$${value}`} />
+              <YAxis tickFormatter={(value) => `R${value}`} />
               <Tooltip 
                 formatter={(value, name) => [
-                  name === 'cac' ? `$${value}` : 
-                  name === 'marketingSpend' ? `$${value}` : value,
+                  name === 'cac' ? `R${value}` : 
+                  name === 'marketingSpend' ? `R${value}` : value,
                   name === 'cac' ? 'CAC' : 
                   name === 'marketingSpend' ? 'Marketing Spend' : 'New Customers'
                 ]}
@@ -84,7 +85,7 @@ const CustomerAcquisitionCost = () => {
           <div className="text-center">
             <p className="text-sm text-gray-600">Total Spend</p>
             <p className="text-lg font-bold text-quikle-primary">
-              ${cacData.reduce((sum, month) => sum + month.marketingSpend, 0).toLocaleString()}
+              R{cacData.reduce((sum, month) => sum + month.marketingSpend, 0).toLocaleString()}
             </p>
           </div>
           <div className="text-center">
