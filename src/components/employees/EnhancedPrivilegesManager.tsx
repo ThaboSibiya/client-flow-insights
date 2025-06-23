@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -10,7 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Shield, Save, AlertTriangle, Users, Settings, Lock, DollarSign, Zap } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
-import { EnhancedEmployeePrivileges, getDefaultPrivileges, logPrivilegeChange } from '@/services/enhancedSecurityService';
+import { EnhancedEmployeePrivileges } from '@/types/enhancedSecurity';
+import { getDefaultPrivileges } from '@/services/privilegeService';
+import { logPrivilegeChange } from '@/services/privilegeAuditService';
 
 interface EnhancedPrivilegesManagerProps {
   employeeId?: string;

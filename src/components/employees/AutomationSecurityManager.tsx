@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Shield, Users, Plus, X, Clock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { getAutomationPermissions, grantAutomationPermission, AutomationPermission } from '@/services/enhancedSecurityService';
+import { getAutomationPermissions, grantAutomationPermission } from '@/services/automationPermissionService';
+import { AutomationPermission } from '@/types/enhancedSecurity';
 
 interface AutomationSecurityManagerProps {
   employeeId: string;

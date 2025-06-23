@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { getEnhancedUserPrivileges, EnhancedEmployeePrivileges, getDefaultPrivileges } from '@/services/enhancedSecurityService';
+import { getEnhancedUserPrivileges } from '@/services/privilegeService';
+import { EnhancedEmployeePrivileges, getDefaultPrivileges } from '@/services/privilegeService';
 import { useAuth } from '@/context/AuthContext';
 
 export const useEnhancedPrivileges = () => {

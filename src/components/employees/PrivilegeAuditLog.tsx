@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { CalendarDays, Shield, User, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { PrivilegeChangeAudit } from '@/services/enhancedSecurityService';
+import { PrivilegeChangeAudit } from '@/types/enhancedSecurity';
 
 interface PrivilegeAuditLogProps {
   employeeId?: string;
