@@ -1,13 +1,13 @@
 
 import React from 'react';
-import MessageThreadContainer from './MessageThreadContainer';
+import MessageThreadContainerOptimized from './MessageThreadContainerOptimized';
 
 interface MessageThreadProps {
   conversationId: string;
 }
 
 const MessageThread = ({ conversationId }: MessageThreadProps) => {
-  return <MessageThreadContainer conversationId={conversationId} />;
+  return <MessageThreadContainerOptimized conversationId={conversationId} />;
 };
 
 export default MessageThread;
