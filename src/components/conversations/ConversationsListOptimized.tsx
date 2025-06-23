@@ -53,12 +53,11 @@ const ConversationsListOptimized = ({
     default: 'bg-gray-500',
   }), []);
 
-  // Memoize status colors
+  // Memoize status colors with proper Badge variant types
   const statusColors = useMemo(() => ({
-    active: 'default',
-    closed: 'secondary',
-    archived: 'outline',
-    default: 'secondary',
+    active: 'default' as const,
+    closed: 'secondary' as const,
+    archived: 'outline' as const,
   }), []);
 
   const getTypeIcon = useCallback((type: string) => {
@@ -69,8 +68,8 @@ const ConversationsListOptimized = ({
     return typeColors[type as keyof typeof typeColors] || typeColors.default;
   }, [typeColors]);
 
-  const getStatusColor = useCallback((status: string) => {
-    return statusColors[status as keyof typeof statusColors] || statusColors.default;
+  const getStatusColor = useCallback((status: string): "default" | "secondary" | "outline" | "destructive" => {
+    return statusColors[status as keyof typeof statusColors] || 'secondary';
   }, [statusColors]);
 
   const highlightText = useCallback((text: string, query: string) => {
