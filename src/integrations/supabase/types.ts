@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      automation_permissions: {
+        Row: {
+          automation_id: string
+          created_at: string | null
+          employee_id: string
+          expires_at: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          permission_level: string
+        }
+        Insert: {
+          automation_id: string
+          created_at?: string | null
+          employee_id: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permission_level?: string
+        }
+        Update: {
+          automation_id?: string
+          created_at?: string | null
+          employee_id?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permission_level?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_permissions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_permissions_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_settings: {
         Row: {
           auto_create_invoice_from_quote: boolean
@@ -302,60 +350,120 @@ export type Database = {
       }
       employee_privileges: {
         Row: {
+          automation_scope: string | null
+          can_access_customer_pii: boolean | null
+          can_access_financial_automations: boolean | null
+          can_access_sensitive_automations: boolean | null
+          can_create_automations: boolean | null
           can_create_quotes: boolean | null
+          can_delete_automations: boolean | null
           can_delete_customers: boolean | null
           can_delete_quotes: boolean | null
+          can_edit_automations: boolean | null
+          can_edit_basic_settings: boolean | null
+          can_edit_billing_settings: boolean | null
           can_edit_customers: boolean | null
+          can_edit_integration_settings: boolean | null
           can_edit_quotes: boolean | null
+          can_edit_security_settings: boolean | null
+          can_execute_automations: boolean | null
+          can_export_customer_data: boolean | null
+          can_manage_automation_permissions: boolean | null
           can_manage_company_settings: boolean | null
+          can_manage_employee_settings: boolean | null
           can_manage_employees: boolean | null
+          can_modify_pricing_automations: boolean | null
           can_update_customer_status_onsite: boolean | null
           can_view_analytics: boolean | null
+          can_view_automations: boolean | null
+          can_view_company_settings: boolean | null
           can_view_customers: boolean | null
           can_view_quotes: boolean | null
           created_at: string
+          customer_access_scope: string | null
           employee_id: string
           id: string
           privilege_description: string | null
           privilege_name: string
+          requires_financial_approval: boolean | null
           updated_at: string
         }
         Insert: {
+          automation_scope?: string | null
+          can_access_customer_pii?: boolean | null
+          can_access_financial_automations?: boolean | null
+          can_access_sensitive_automations?: boolean | null
+          can_create_automations?: boolean | null
           can_create_quotes?: boolean | null
+          can_delete_automations?: boolean | null
           can_delete_customers?: boolean | null
           can_delete_quotes?: boolean | null
+          can_edit_automations?: boolean | null
+          can_edit_basic_settings?: boolean | null
+          can_edit_billing_settings?: boolean | null
           can_edit_customers?: boolean | null
+          can_edit_integration_settings?: boolean | null
           can_edit_quotes?: boolean | null
+          can_edit_security_settings?: boolean | null
+          can_execute_automations?: boolean | null
+          can_export_customer_data?: boolean | null
+          can_manage_automation_permissions?: boolean | null
           can_manage_company_settings?: boolean | null
+          can_manage_employee_settings?: boolean | null
           can_manage_employees?: boolean | null
+          can_modify_pricing_automations?: boolean | null
           can_update_customer_status_onsite?: boolean | null
           can_view_analytics?: boolean | null
+          can_view_automations?: boolean | null
+          can_view_company_settings?: boolean | null
           can_view_customers?: boolean | null
           can_view_quotes?: boolean | null
           created_at?: string
+          customer_access_scope?: string | null
           employee_id: string
           id?: string
           privilege_description?: string | null
           privilege_name: string
+          requires_financial_approval?: boolean | null
           updated_at?: string
         }
         Update: {
+          automation_scope?: string | null
+          can_access_customer_pii?: boolean | null
+          can_access_financial_automations?: boolean | null
+          can_access_sensitive_automations?: boolean | null
+          can_create_automations?: boolean | null
           can_create_quotes?: boolean | null
+          can_delete_automations?: boolean | null
           can_delete_customers?: boolean | null
           can_delete_quotes?: boolean | null
+          can_edit_automations?: boolean | null
+          can_edit_basic_settings?: boolean | null
+          can_edit_billing_settings?: boolean | null
           can_edit_customers?: boolean | null
+          can_edit_integration_settings?: boolean | null
           can_edit_quotes?: boolean | null
+          can_edit_security_settings?: boolean | null
+          can_execute_automations?: boolean | null
+          can_export_customer_data?: boolean | null
+          can_manage_automation_permissions?: boolean | null
           can_manage_company_settings?: boolean | null
+          can_manage_employee_settings?: boolean | null
           can_manage_employees?: boolean | null
+          can_modify_pricing_automations?: boolean | null
           can_update_customer_status_onsite?: boolean | null
           can_view_analytics?: boolean | null
+          can_view_automations?: boolean | null
+          can_view_company_settings?: boolean | null
           can_view_customers?: boolean | null
           can_view_quotes?: boolean | null
           created_at?: string
+          customer_access_scope?: string | null
           employee_id?: string
           id?: string
           privilege_description?: string | null
           privilege_name?: string
+          requires_financial_approval?: boolean | null
           updated_at?: string
         }
         Relationships: [
@@ -691,6 +799,57 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      privilege_change_audit: {
+        Row: {
+          changed_by: string
+          created_at: string | null
+          employee_id: string
+          id: string
+          ip_address: unknown | null
+          new_value: boolean | null
+          old_value: boolean | null
+          privilege_name: string
+          reason: string | null
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          ip_address?: unknown | null
+          new_value?: boolean | null
+          old_value?: boolean | null
+          privilege_name: string
+          reason?: string | null
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          ip_address?: unknown | null
+          new_value?: boolean | null
+          old_value?: boolean | null
+          privilege_name?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "privilege_change_audit_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "privilege_change_audit_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1151,6 +1310,16 @@ export type Database = {
           p_status?: string
         }
         Returns: string
+      }
+      log_privilege_change: {
+        Args: {
+          p_employee_id: string
+          p_privilege_name: string
+          p_old_value: boolean
+          p_new_value: boolean
+          p_reason?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
