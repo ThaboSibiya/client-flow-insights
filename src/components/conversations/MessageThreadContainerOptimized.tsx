@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useMessagesOptimized } from '@/hooks/useMessagesOptimized';
 import { useMessageSearch } from '@/hooks/useMessageSearch';
