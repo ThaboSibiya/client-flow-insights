@@ -1,15 +1,17 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { loadMessagesPaginated, loadOlderMessages } from '@/services/messagesPaginationService';
-import { messageCacheService } from '@/services/messageCacheService';
+import { simplifiedMessageCache } from '@/services/simplifiedMessageCache';
 import { useOptimisticMessages } from '@/hooks/useOptimisticUpdates';
 import { toast } from '@/hooks/use-toast';
+import type { Message } from '@/types/conversations';
 
 export const useMessageDataOptimized = (conversationId: string) => {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const { mergeWithOptimisticUpdates } = useOptimisticMessages(conversationId);
 
@@ -17,36 +19,37 @@ export const useMessageDataOptimized = (conversationId: string) => {
     if (!conversationId) return;
 
     setLoading(true);
+    setError(null);
+    
     try {
-      // Non-blocking cache check
-      setTimeout(async () => {
-        const cachedMessages = messageCacheService.getCachedMessages(conversationId);
-        if (cachedMessages && cachedMessages.length > 0) {
-          setMessages(cachedMessages);
-          setLoading(false);
-          return;
-        }
+      // Check cache first
+      const cachedMessages = simplifiedMessageCache.getCachedMessages(conversationId);
+      if (cachedMessages && cachedMessages.length > 0) {
+        setMessages(cachedMessages);
+        setLoading(false);
+        return;
+      }
 
-        // Load from server with reduced page size for faster initial load
-        const result = await loadMessagesPaginated({
-          conversationId,
-          pageSize: 20, // Reduced from 30
-        });
+      // Load from server
+      const result = await loadMessagesPaginated({
+        conversationId,
+        pageSize: 20,
+      });
 
-        const finalMessages = mergeWithOptimisticUpdates(result.messages, (msg) => msg.id);
-        setMessages(finalMessages);
-        setHasMoreMessages(result.hasMore);
+      const finalMessages = mergeWithOptimisticUpdates(result.messages, (msg) => msg.id);
+      setMessages(finalMessages);
+      setHasMoreMessages(result.hasMore);
 
-        // Non-blocking cache operation
-        setTimeout(() => {
-          messageCacheService.cacheMessages(conversationId, result.messages);
-        }, 0);
-      }, 0);
+      // Cache the results
+      simplifiedMessageCache.cacheMessages(conversationId, result.messages);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load messages';
+      setError(errorMessage);
       console.error('Error loading messages:', error);
+      
       toast({
         title: 'Error',
-        description: 'Failed to load messages.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -64,27 +67,29 @@ export const useMessageDataOptimized = (conversationId: string) => {
 
       if (result.messages.length > 0) {
         setMessages(prev => [...result.messages, ...prev]);
-        // Non-blocking cache operation
-        setTimeout(() => {
-          messageCacheService.cacheMessages(conversationId, result.messages);
-        }, 0);
+        simplifiedMessageCache.cacheMessages(conversationId, result.messages);
       }
       
       setHasMoreMessages(result.hasMore);
     } catch (error) {
       console.error('Error loading older messages:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load older messages',
+        variant: 'destructive',
+      });
     } finally {
       setLoadingOlder(false);
     }
   }, [conversationId, hasMoreMessages, loadingOlder, messages]);
 
-  // Memoize return object
   return useMemo(() => ({
     messages,
     setMessages,
     loading,
     loadingOlder,
     hasMoreMessages,
+    error,
     loadMessages,
     loadOlderMessages: loadOlderMessagesHandler,
   }), [
@@ -93,6 +98,7 @@ export const useMessageDataOptimized = (conversationId: string) => {
     loading,
     loadingOlder,
     hasMoreMessages,
+    error,
     loadMessages,
     loadOlderMessagesHandler,
   ]);

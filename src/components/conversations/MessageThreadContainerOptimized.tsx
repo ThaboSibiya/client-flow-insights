@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useMessagesOptimized } from '@/hooks/useMessagesOptimized';
@@ -6,6 +7,8 @@ import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import { useReadStatus } from '@/hooks/useReadStatus';
 import { useNotifications } from '@/hooks/useNotifications';
 import MessageThreadView from './MessageThreadView';
+import ConversationErrorBoundary from './ConversationErrorBoundary';
+import type { Message } from '@/types/conversations';
 
 interface MessageThreadContainerOptimizedProps {
   conversationId: string;
@@ -13,7 +16,7 @@ interface MessageThreadContainerOptimizedProps {
 
 const MessageThreadContainerOptimized = ({ conversationId }: MessageThreadContainerOptimizedProps) => {
   const { user } = useAuth();
-  const { conversation, messages, loading, sendMessage, sendingMessage } = useMessagesOptimized(conversationId);
+  const { conversation, messages, loading, sendMessage, sendingMessage, error } = useMessagesOptimized(conversationId);
   const { 
     searchQuery, 
     setSearchQuery, 
@@ -32,42 +35,33 @@ const MessageThreadContainerOptimized = ({ conversationId }: MessageThreadContai
   const { markAllAsRead } = useReadStatus();
   const { sendMessageNotification } = useNotifications();
 
-  // Memoize computed values to prevent unnecessary recalculations
   const displayMessages = useMemo(() => 
     searchQuery.trim() ? searchResults : messages
   , [searchQuery, searchResults, messages]);
   
   const unreadCount = useMemo(() => 
-    messages?.filter(m => !m.is_read && m.sender_type !== 'employee').length || 0
+    messages?.filter((m: Message) => !m.is_read && m.sender_type !== 'employee').length || 0
   , [messages]);
 
-  // Optimized notification effect with proper dependencies
+  // Simplified notification effect
   useEffect(() => {
-    if (!messages || !user?.email) return;
+    if (!messages || !user?.email || !Array.isArray(messages)) return;
     
     if (messages.length > prevMessagesLengthRef.current && prevMessagesLengthRef.current > 0) {
       const newMessages = messages.slice(prevMessagesLengthRef.current);
       
-      // Batch notification sending to prevent performance issues
-      const notificationsToSend = newMessages.filter(message => 
-        message.sender_email !== user.email && message.sender_type !== 'employee'
-      );
-
-      if (notificationsToSend.length > 0) {
-        // Send notifications in batch with a small delay
-        setTimeout(() => {
-          notificationsToSend.forEach(message => {
-            sendMessageNotification({
-              conversationId: conversationId,
-              messageId: message.id,
-              senderName: message.sender_name,
-              content: message.content,
-              type: 'new_message',
-              recipientId: user.id || '',
-            });
+      newMessages.forEach((message: Message) => {
+        if (message.sender_email !== user.email && message.sender_type !== 'employee') {
+          sendMessageNotification({
+            conversationId: conversationId,
+            messageId: message.id,
+            senderName: message.sender_name,
+            content: message.content,
+            type: 'new_message',
+            recipientId: user.id || '',
           });
-        }, 100);
-      }
+        }
+      });
     }
     
     prevMessagesLengthRef.current = messages.length;
@@ -81,14 +75,18 @@ const MessageThreadContainerOptimized = ({ conversationId }: MessageThreadContai
       content: newMessage.trim(),
       message_type: isInternal ? 'internal_note' : 'reply',
       sender_type: 'employee',
-      sender_name: `${user.email}`,
+      sender_name: user.email,
       sender_email: user.email,
       attachments: attachments || [],
       attachment_count: attachments?.length || 0,
     };
 
-    await sendMessage(messageData);
-    setNewMessage('');
+    try {
+      await sendMessage(messageData);
+      setNewMessage('');
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
   }, [newMessage, isInternal, user, conversation, sendMessage]);
 
   const handleMarkAllAsRead = useCallback(() => {
@@ -97,28 +95,43 @@ const MessageThreadContainerOptimized = ({ conversationId }: MessageThreadContai
     }
   }, [conversationId, markAllAsRead]);
 
+  // Show error state if there's an error
+  if (error) {
+    return (
+      <ConversationErrorBoundary>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-destructive">{error}</p>
+          </div>
+        </div>
+      </ConversationErrorBoundary>
+    );
+  }
+
   return (
-    <MessageThreadView
-      conversation={conversation}
-      messages={displayMessages}
-      loading={loading}
-      searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-      isSearching={isSearching}
-      setIsSearching={setIsSearching}
-      searchResults={searchResults}
-      searchLoading={searchLoading}
-      clearSearch={clearSearch}
-      typingUsers={typingUsers}
-      unreadCount={unreadCount}
-      newMessage={newMessage}
-      setNewMessage={setNewMessage}
-      isInternal={isInternal}
-      setIsInternal={setIsInternal}
-      onSendMessage={handleSendMessage}
-      onMarkAllAsRead={handleMarkAllAsRead}
-      conversationId={conversationId}
-    />
+    <ConversationErrorBoundary>
+      <MessageThreadView
+        conversation={conversation}
+        messages={displayMessages}
+        loading={loading}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        isSearching={isSearching}
+        setIsSearching={setIsSearching}
+        searchResults={searchResults}
+        searchLoading={searchLoading}
+        clearSearch={clearSearch}
+        typingUsers={typingUsers}
+        unreadCount={unreadCount}
+        newMessage={newMessage}
+        setNewMessage={setNewMessage}
+        isInternal={isInternal}
+        setIsInternal={setIsInternal}
+        onSendMessage={handleSendMessage}
+        onMarkAllAsRead={handleMarkAllAsRead}
+        conversationId={conversationId}
+      />
+    </ConversationErrorBoundary>
   );
 };
 

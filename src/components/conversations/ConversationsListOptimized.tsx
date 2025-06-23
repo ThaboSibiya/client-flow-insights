@@ -1,3 +1,4 @@
+
 import React, { useMemo, useCallback } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -6,18 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from 'date-fns';
 import { Mail, Phone, MessageCircle, FileText, User, UserCheck } from 'lucide-react';
-
-interface Conversation {
-  id: string;
-  type: 'email' | 'whatsapp' | 'internal_chat' | 'form_submission';
-  subject?: string | null;
-  status: 'active' | 'closed' | 'archived';
-  last_message_at: string | null;
-  customer_id?: string | null;
-  employee_id?: string | null;
-  unread_count?: number;
-  last_message_preview?: string;
-}
+import type { Conversation } from '@/types/conversations';
 
 interface ConversationsListOptimizedProps {
   conversations: Conversation[] | undefined;
@@ -35,42 +25,41 @@ const ConversationsListOptimized = ({
   searchQuery = ''
 }: ConversationsListOptimizedProps) => {
   
-  // Memoize icon mapping to prevent recreating on each render
+  // Simplified type mappings
   const typeIcons = useMemo(() => ({
     email: Mail,
     whatsapp: Phone,
     internal_chat: MessageCircle,
     form_submission: FileText,
-    default: MessageCircle,
-  }), []);
+  } as const), []);
 
-  // Memoize color mapping
   const typeColors = useMemo(() => ({
     email: 'bg-blue-500',
     whatsapp: 'bg-green-500',
     internal_chat: 'bg-purple-500',
     form_submission: 'bg-orange-500',
-    default: 'bg-gray-500',
-  }), []);
+  } as const), []);
 
-  // Memoize status colors with proper Badge variant types
-  const statusColors = useMemo(() => ({
-    active: 'default' as const,
-    closed: 'secondary' as const,
-    archived: 'outline' as const,
-  }), []);
-
-  const getTypeIcon = useCallback((type: string) => {
-    return typeIcons[type as keyof typeof typeIcons] || typeIcons.default;
+  const getTypeIcon = useCallback((type: Conversation['type']) => {
+    return typeIcons[type] || MessageCircle;
   }, [typeIcons]);
 
-  const getTypeColor = useCallback((type: string) => {
-    return typeColors[type as keyof typeof typeColors] || typeColors.default;
+  const getTypeColor = useCallback((type: Conversation['type']) => {
+    return typeColors[type] || 'bg-gray-500';
   }, [typeColors]);
 
-  const getStatusColor = useCallback((status: string): "default" | "secondary" | "outline" | "destructive" => {
-    return statusColors[status as keyof typeof statusColors] || 'secondary';
-  }, [statusColors]);
+  const getStatusVariant = useCallback((status: Conversation['status']): "default" | "secondary" | "outline" | "destructive" => {
+    switch (status) {
+      case 'active':
+        return 'default';
+      case 'closed':
+        return 'secondary';
+      case 'archived':
+        return 'outline';
+      default:
+        return 'secondary';
+    }
+  }, []);
 
   const highlightText = useCallback((text: string, query: string) => {
     if (!query.trim()) return text;
@@ -86,25 +75,22 @@ const ConversationsListOptimized = ({
     });
   }, []);
 
-  // Memoize skeleton loader to prevent recreation
-  const skeletonLoader = useMemo(() => (
-    <div className="p-4 space-y-3">
-      {[...Array(5)].map((_, i) => (
-        <Card key={i} className="p-3">
-          <div className="flex items-center space-x-3">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
-  ), []);
-
   if (loading) {
-    return skeletonLoader;
+    return (
+      <div className="p-4 space-y-3">
+        {[...Array(5)].map((_, i) => (
+          <Card key={i} className="p-3">
+            <div className="flex items-center space-x-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
   }
 
   if (!conversations?.length) {
@@ -179,7 +165,7 @@ const ConversationsListOptimized = ({
                 
                 <div className="flex items-center justify-between">
                   <Badge 
-                    variant={getStatusColor(conversation.status)}
+                    variant={getStatusVariant(conversation.status)}
                     className="text-xs"
                   >
                     {conversation.status}
