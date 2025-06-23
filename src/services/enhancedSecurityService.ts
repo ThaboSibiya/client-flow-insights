@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { logSecurityEvent } from './securityService';
 
@@ -105,7 +106,7 @@ export const getEnhancedUserPrivileges = async (): Promise<EnhancedEmployeePrivi
       can_delete_automations: privileges.can_delete_automations || false,
       can_execute_automations: privileges.can_execute_automations || false,
       can_manage_automation_permissions: privileges.can_manage_automation_permissions || false,
-      automation_scope: privileges.automation_scope || 'own_customers',
+      automation_scope: (privileges.automation_scope as 'own_customers' | 'department' | 'all_company') || 'own_customers',
       can_access_sensitive_automations: privileges.can_access_sensitive_automations || false,
       can_view_company_settings: privileges.can_view_company_settings || false,
       can_edit_basic_settings: privileges.can_edit_basic_settings || false,
@@ -113,7 +114,7 @@ export const getEnhancedUserPrivileges = async (): Promise<EnhancedEmployeePrivi
       can_edit_security_settings: privileges.can_edit_security_settings || false,
       can_edit_billing_settings: privileges.can_edit_billing_settings || false,
       can_manage_employee_settings: privileges.can_manage_employee_settings || false,
-      customer_access_scope: privileges.customer_access_scope || 'assigned_only',
+      customer_access_scope: (privileges.customer_access_scope as 'assigned_only' | 'team' | 'department' | 'all_company') || 'assigned_only',
       can_access_customer_pii: privileges.can_access_customer_pii || false,
       can_export_customer_data: privileges.can_export_customer_data || false,
       can_access_financial_automations: privileges.can_access_financial_automations || false,
@@ -208,7 +209,11 @@ export const getAutomationPermissions = async (employeeId: string): Promise<Auto
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    return (data || []).map(permission => ({
+      ...permission,
+      permission_level: permission.permission_level as 'view' | 'execute' | 'edit' | 'admin'
+    }));
   } catch (error) {
     console.error('Error getting automation permissions:', error);
     return [];

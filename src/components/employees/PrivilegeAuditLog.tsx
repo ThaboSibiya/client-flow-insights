@@ -50,7 +50,20 @@ const PrivilegeAuditLog: React.FC<PrivilegeAuditLogProps> = ({ employeeId, limit
 
       if (error) throw error;
 
-      setAuditLogs(data || []);
+      // Transform the data to match our interface
+      const transformedData: PrivilegeChangeAudit[] = (data || []).map(log => ({
+        id: log.id,
+        employee_id: log.employee_id,
+        changed_by: log.changed_by,
+        privilege_name: log.privilege_name,
+        old_value: log.old_value,
+        new_value: log.new_value,
+        reason: log.reason,
+        ip_address: log.ip_address ? String(log.ip_address) : undefined,
+        created_at: log.created_at
+      }));
+
+      setAuditLogs(transformedData);
     } catch (error) {
       console.error('Error loading audit logs:', error);
       toast({
@@ -124,15 +137,11 @@ const PrivilegeAuditLog: React.FC<PrivilegeAuditLogProps> = ({ employeeId, limit
                           <div className="space-y-1 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
                               <User className="h-4 w-4" />
-                              <span>
-                                Employee: {(log as any).employee?.first_name} {(log as any).employee?.last_name}
-                              </span>
+                              <span>Employee ID: {log.employee_id}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Shield className="h-4 w-4" />
-                              <span>
-                                Changed by: {(log as any).changed_by_employee?.first_name} {(log as any).changed_by_employee?.last_name}
-                              </span>
+                              <span>Changed by: {log.changed_by}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <CalendarDays className="h-4 w-4" />
