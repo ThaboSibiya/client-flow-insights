@@ -1,14 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Shield, Users, Plus, X, Clock } from 'lucide-react';
+import { Shield, Plus } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { getAutomationPermissions, grantAutomationPermission } from '@/services/automationPermissionService';
 import { AutomationPermission } from '@/types/enhancedSecurity';
+import PermissionForm from './automation-security/PermissionForm';
+import PermissionCard from './automation-security/PermissionCard';
+import EmptyPermissionsState from './automation-security/EmptyPermissionsState';
 
 interface AutomationSecurityManagerProps {
   employeeId: string;
@@ -47,6 +47,10 @@ const AutomationSecurityManager: React.FC<AutomationSecurityManagerProps> = ({ e
     }
   };
 
+  const handlePermissionChange = (field: string, value: string) => {
+    setNewPermission(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleAddPermission = async () => {
     if (!newPermission.automation_id.trim()) {
       toast({
@@ -75,19 +79,9 @@ const AutomationSecurityManager: React.FC<AutomationSecurityManagerProps> = ({ e
     }
   };
 
-  const getPermissionLevelColor = (level: string) => {
-    switch (level) {
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'edit': return 'bg-blue-100 text-blue-800';
-      case 'execute': return 'bg-green-100 text-green-800';
-      case 'view': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const isExpired = (expiresAt?: string) => {
-    if (!expiresAt) return false;
-    return new Date(expiresAt) < new Date();
+  const handleCancel = () => {
+    setIsAddingPermission(false);
+    setNewPermission({ automation_id: '', permission_level: 'view', expires_at: '' });
   };
 
   if (loading) {
@@ -118,92 +112,20 @@ const AutomationSecurityManager: React.FC<AutomationSecurityManagerProps> = ({ e
         </div>
 
         {isAddingPermission && (
-          <Card className="border-dashed">
-            <CardContent className="p-4 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Automation ID</Label>
-                  <Input
-                    placeholder="automation-123"
-                    value={newPermission.automation_id}
-                    onChange={(e) => setNewPermission(prev => ({ ...prev, automation_id: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Permission Level</Label>
-                  <Select 
-                    value={newPermission.permission_level} 
-                    onValueChange={(value: any) => setNewPermission(prev => ({ ...prev, permission_level: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="view">View Only</SelectItem>
-                      <SelectItem value="execute">Execute</SelectItem>
-                      <SelectItem value="edit">Edit</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Expires At (Optional)</Label>
-                  <Input
-                    type="datetime-local"
-                    value={newPermission.expires_at}
-                    onChange={(e) => setNewPermission(prev => ({ ...prev, expires_at: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={handleAddPermission}>Grant</Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => setIsAddingPermission(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <PermissionForm
+            newPermission={newPermission}
+            onPermissionChange={handlePermissionChange}
+            onAddPermission={handleAddPermission}
+            onCancel={handleCancel}
+          />
         )}
 
         <div className="space-y-3">
           {permissions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No specific automation permissions granted</p>
-              <p className="text-sm">Employee will use general automation privileges</p>
-            </div>
+            <EmptyPermissionsState />
           ) : (
             permissions.map((permission) => (
-              <Card key={permission.id} className={`border ${isExpired(permission.expires_at) ? 'border-red-200 bg-red-50' : ''}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">{permission.automation_id}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge className={getPermissionLevelColor(permission.permission_level)}>
-                            {permission.permission_level}
-                          </Badge>
-                          {permission.expires_at && (
-                            <Badge variant="outline" className={isExpired(permission.expires_at) ? 'border-red-300 text-red-700' : 'border-gray-300'}>
-                              <Clock className="h-3 w-3 mr-1" />
-                              {isExpired(permission.expires_at) ? 'Expired' : 'Expires'}: {new Date(permission.expires_at).toLocaleDateString()}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      <p>Granted: {new Date(permission.granted_at).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <PermissionCard key={permission.id} permission={permission} />
             ))
           )}
         </div>
