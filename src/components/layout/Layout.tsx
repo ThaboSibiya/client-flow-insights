@@ -3,6 +3,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AppSidebar from './Sidebar';
+import HelpButton from '@/components/help/HelpButton';
 
 const Layout = () => {
   return (
@@ -28,6 +29,8 @@ const Layout = () => {
             <Outlet />
           </main>
         </div>
+        
+        <HelpButton />
       </div>
     </SidebarProvider>
   );
