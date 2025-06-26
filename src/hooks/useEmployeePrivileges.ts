@@ -30,7 +30,21 @@ export const useEmployeePrivileges = () => {
   };
 
   const hasPrivilege = (privilege: keyof EmployeePrivileges): boolean => {
-    return privileges?.[privilege] || false;
+    if (!privileges) return false;
+    
+    const value = privileges[privilege];
+    
+    // Handle boolean privileges
+    if (typeof value === 'boolean') {
+      return value;
+    }
+    
+    // Handle string privileges (like scopes) - return true if they exist and are not empty
+    if (typeof value === 'string') {
+      return value.length > 0;
+    }
+    
+    return false;
   };
 
   const canUpdateCustomerStatusOnsite = hasPrivilege('can_update_customer_status_onsite');
