@@ -19,6 +19,7 @@ import QuoteInvoice from "./pages/QuoteInvoice";
 import Employees from "./pages/Employees";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import EmployeeSetup from "./pages/EmployeeSetup";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Conversations from "./pages/Conversations";
 import AuditLog from "./pages/AuditLog";
@@ -52,6 +53,7 @@ const App = () => (
                 <ErrorBoundary>
                   <Routes>
                     <Route path="/auth" element={<Auth />} />
+                    <Route path="/employee-setup" element={<EmployeeSetup />} />
                     <Route path="/" element={<ProtectedRoute element={<Layout />} />}>
                       <Route index element={<Index />} />
                       <Route path="dashboard" element={

@@ -17,7 +17,14 @@ export const useEmployeeData = () => {
 
       const { data, error } = await supabase
         .from('employees')
-        .select('*')
+        .select(`
+          *,
+          invitation_sent_at,
+          invitation_expires_at,
+          is_invited,
+          auth_user_id,
+          last_login_at
+        `)
         .eq('company_owner_id', user.id)
         .order('created_at', { ascending: false });
 

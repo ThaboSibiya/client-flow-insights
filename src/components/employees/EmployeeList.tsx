@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Mail, Phone, Calendar, Building, Users } from "lucide-react";
+import InvitationSender from './InvitationSender';
 
 interface Employee {
   id: string;
@@ -17,15 +19,21 @@ interface Employee {
   role: string;
   status: string;
   hire_date: string;
+  is_invited?: boolean;
+  invitation_sent_at?: string;
+  invitation_expires_at?: string;
+  auth_user_id?: string;
+  last_login_at?: string;
 }
 
 interface EmployeeListProps {
   employees: Employee[];
   loading: boolean;
   onEditEmployee: (employee: Employee) => void;
+  onInvitationSent?: () => void;
 }
 
-const EmployeeList = ({ employees, loading, onEditEmployee }: EmployeeListProps) => {
+const EmployeeList = ({ employees, loading, onEditEmployee, onInvitationSent }: EmployeeListProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-50 text-quikle-success border border-quikle-success/20';
@@ -45,6 +53,21 @@ const EmployeeList = ({ employees, loading, onEditEmployee }: EmployeeListProps)
       case 'intern': return 'bg-quikle-crystal text-quikle-slate border border-quikle-silver/80';
       default: return 'bg-quikle-platinum text-quikle-slate border border-quikle-silver';
     }
+  };
+
+  const getAuthStatus = (employee: Employee) => {
+    if (employee.auth_user_id) {
+      return (
+        <Badge variant="secondary" className="text-green-600 border-green-200">
+          ✓ Registered
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="outline" className="text-gray-600">
+        ⏳ Pending Setup
+      </Badge>
+    );
   };
 
   if (loading) {
@@ -77,6 +100,7 @@ const EmployeeList = ({ employees, loading, onEditEmployee }: EmployeeListProps)
                   <Badge className={getRoleColor(employee.role)}>
                     {employee.role}
                   </Badge>
+                  {getAuthStatus(employee)}
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
@@ -119,7 +143,21 @@ const EmployeeList = ({ employees, loading, onEditEmployee }: EmployeeListProps)
                       <Calendar className="h-4 w-4" />
                       <span>Hired: {new Date(employee.hire_date).toLocaleDateString()}</span>
                     </div>
+                    {employee.last_login_at && (
+                      <div className="text-sm text-quikle-slate">
+                        Last login: {new Date(employee.last_login_at).toLocaleDateString()}
+                      </div>
+                    )}
                   </div>
+                </div>
+
+                {/* Invitation Management */}
+                <div className="mt-4 pt-4 border-t border-quikle-silver/30">
+                  <InvitationSender
+                    employee={employee}
+                    companyName="Your Company" // This should come from company settings
+                    onInvitationSent={onInvitationSent || (() => {})}
+                  />
                 </div>
               </div>
               

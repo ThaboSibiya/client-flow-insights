@@ -316,6 +316,57 @@ export type Database = {
           },
         ]
       }
+      employee_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          created_by: string
+          email: string
+          employee_id: string
+          expires_at: string | null
+          id: string
+          invitation_token: string
+          is_used: boolean | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          created_by: string
+          email: string
+          employee_id: string
+          expires_at?: string | null
+          id?: string
+          invitation_token: string
+          is_used?: boolean | null
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          email?: string
+          employee_id?: string
+          expires_at?: string | null
+          id?: string
+          invitation_token?: string
+          is_used?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_invitations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_invitations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_login_history: {
         Row: {
           employee_id: string
@@ -478,6 +529,7 @@ export type Database = {
       }
       employees: {
         Row: {
+          auth_user_id: string | null
           company_owner_id: string
           created_at: string
           department: string | null
@@ -487,6 +539,11 @@ export type Database = {
           first_name: string
           hire_date: string
           id: string
+          invitation_expires_at: string | null
+          invitation_sent_at: string | null
+          invitation_token: string | null
+          is_invited: boolean | null
+          last_login_at: string | null
           last_name: string
           manager_id: string | null
           phone: string | null
@@ -498,6 +555,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          auth_user_id?: string | null
           company_owner_id: string
           created_at?: string
           department?: string | null
@@ -507,6 +565,11 @@ export type Database = {
           first_name: string
           hire_date?: string
           id?: string
+          invitation_expires_at?: string | null
+          invitation_sent_at?: string | null
+          invitation_token?: string | null
+          is_invited?: boolean | null
+          last_login_at?: string | null
           last_name: string
           manager_id?: string | null
           phone?: string | null
@@ -518,6 +581,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          auth_user_id?: string | null
           company_owner_id?: string
           created_at?: string
           department?: string | null
@@ -527,6 +591,11 @@ export type Database = {
           first_name?: string
           hire_date?: string
           id?: string
+          invitation_expires_at?: string | null
+          invitation_sent_at?: string | null
+          invitation_token?: string | null
+          is_invited?: boolean | null
+          last_login_at?: string | null
           last_name?: string
           manager_id?: string | null
           phone?: string | null
@@ -1283,7 +1352,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_employee_registration: {
+        Args: { p_token: string; p_user_id: string }
+        Returns: boolean
+      }
+      create_employee_invitation: {
+        Args: { p_employee_id: string; p_email: string; p_created_by: string }
+        Returns: string
+      }
       generate_employee_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_invitation_token: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
@@ -1320,6 +1401,15 @@ export type Database = {
           p_reason?: string
         }
         Returns: undefined
+      }
+      validate_invitation_token: {
+        Args: { p_token: string }
+        Returns: {
+          employee_id: string
+          email: string
+          is_valid: boolean
+          employee_data: Json
+        }[]
       }
     }
     Enums: {
