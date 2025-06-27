@@ -20,6 +20,7 @@ import Employees from "./pages/Employees";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import EmployeeSetup from "./pages/EmployeeSetup";
+import Documentation from "./pages/Documentation";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Conversations from "./pages/Conversations";
 import AuditLog from "./pages/AuditLog";
@@ -94,6 +95,11 @@ const App = () => (
                       <Route path="employees" element={
                         <ErrorBoundary>
                           <Employees />
+                        </ErrorBoundary>
+                      } />
+                      <Route path="documentation" element={
+                        <ErrorBoundary>
+                          <Documentation />
                         </ErrorBoundary>
                       } />
                       <Route path="audit-log" element={
