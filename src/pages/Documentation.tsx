@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Search, Book, FileText, Users, Settings, BarChart3, MessageSquare, Pipeline } from 'lucide-react';
+import { Search, Book, FileText, Users, Settings, BarChart3, MessageSquare, Workflow } from 'lucide-react';
 
 const Documentation = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,7 +38,7 @@ const Documentation = () => {
     },
     {
       title: "Pipeline Management",
-      icon: Pipeline,
+      icon: Workflow,
       articles: [
         { title: "Sales Pipeline Setup", content: "Configure your sales pipeline stages and workflows." },
         { title: "Ticket Management", content: "Handle support tickets through the pipeline system." },
