@@ -21,11 +21,28 @@ const HelpPanel = ({ isOpen, onClose }: HelpPanelProps) => {
   const currentPage = location.pathname.replace('/', '') || 'dashboard';
   const currentPageHelp = helpContent[currentPage] || helpContent.dashboard;
   
-  // Filter help items based on search
-  const filteredItems = currentPageHelp.sections.filter(section =>
-    section.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    section.content.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter help items based on search - improved search functionality
+  const filteredItems = currentPageHelp.sections.filter(section => {
+    if (!searchTerm.trim()) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    
+    // Search in title
+    if (section.title.toLowerCase().includes(searchLower)) return true;
+    
+    // Search in content
+    if (section.content.toLowerCase().includes(searchLower)) return true;
+    
+    // Search in steps
+    if (section.steps && section.steps.some(step => 
+      step.toLowerCase().includes(searchLower)
+    )) return true;
+    
+    // Search in tips
+    if (section.tips && section.tips.toLowerCase().includes(searchLower)) return true;
+    
+    return false;
+  });
 
   if (!isOpen) return null;
 
@@ -69,39 +86,56 @@ const HelpPanel = ({ isOpen, onClose }: HelpPanelProps) => {
         {/* Help Content */}
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
-            {filteredItems.map((section, index) => (
-              <div key={index} className="space-y-2">
-                <h3 className="font-medium text-quikle-charcoal flex items-center gap-2">
-                  {section.icon && <section.icon className="h-4 w-4" />}
-                  {section.title}
-                </h3>
-                <p className="text-sm text-quikle-neutral leading-relaxed">
-                  {section.content}
-                </p>
-                {section.steps && (
-                  <ol className="text-sm text-quikle-neutral space-y-1 ml-4">
-                    {section.steps.map((step, stepIndex) => (
-                      <li key={stepIndex} className="list-decimal">
-                        {step}
-                      </li>
-                    ))}
-                  </ol>
-                )}
-                {section.tips && (
-                  <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-400">
-                    <p className="text-sm text-blue-800">
-                      <strong>💡 Tip:</strong> {section.tips}
-                    </p>
-                  </div>
-                )}
+            {filteredItems.length === 0 && searchTerm ? (
+              <div className="text-center py-8">
+                <p className="text-quikle-neutral">No help topics found for "{searchTerm}"</p>
+                <Button 
+                  variant="link" 
+                  onClick={() => setSearchTerm('')}
+                  className="text-quikle-primary"
+                >
+                  Clear search
+                </Button>
               </div>
-            ))}
+            ) : (
+              filteredItems.map((section, index) => (
+                <div key={index} className="space-y-2">
+                  <h3 className="font-medium text-quikle-charcoal flex items-center gap-2">
+                    {section.icon && <section.icon className="h-4 w-4" />}
+                    {section.title}
+                  </h3>
+                  <p className="text-sm text-quikle-neutral leading-relaxed">
+                    {section.content}
+                  </p>
+                  {section.steps && (
+                    <ol className="text-sm text-quikle-neutral space-y-1 ml-4">
+                      {section.steps.map((step, stepIndex) => (
+                        <li key={stepIndex} className="list-decimal">
+                          {step}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                  {section.tips && (
+                    <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-400">
+                      <p className="text-sm text-blue-800">
+                        <strong>💡 Tip:</strong> {section.tips}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </ScrollArea>
 
         {/* Footer */}
         <div className="p-4 border-t border-quikle-silver">
-          <Button variant="outline" className="w-full" onClick={() => window.open('/docs', '_blank')}>
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={() => window.open('https://docs.lovable.dev/', '_blank')}
+          >
             <ExternalLink className="h-4 w-4 mr-2" />
             View Full Documentation
           </Button>
