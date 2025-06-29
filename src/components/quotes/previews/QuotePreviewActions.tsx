@@ -5,6 +5,7 @@ import { Download, Send, FileText, MessageSquare, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { QuoteInvoice } from '@/types/quote';
 import { useQuoteEmail } from '@/hooks/useQuoteEmail';
+import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 
 interface QuotePreviewActionsProps {
   quote: QuoteInvoice;
@@ -12,11 +13,13 @@ interface QuotePreviewActionsProps {
 
 export const QuotePreviewActions = ({ quote }: QuotePreviewActionsProps) => {
   const { sendQuoteEmail, isSending } = useQuoteEmail();
+  const { generatePDF, isGenerating } = usePDFGeneration();
 
   const handleDownloadPDF = () => {
-    toast({
-      title: "PDF Generated",
-      description: "Your PDF has been generated and downloaded"
+    generatePDF(quote, {
+      includeBranding: true,
+      template: 'professional',
+      watermark: false
     });
   };
 
@@ -50,8 +53,9 @@ export const QuotePreviewActions = ({ quote }: QuotePreviewActionsProps) => {
           onClick={handleDownloadPDF}
           variant="outline" 
           className="flex items-center gap-2 border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal"
+          disabled={isGenerating}
         >
-          <Download className="h-4 w-4" />
+          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
           PDF
         </Button>
         <Button 

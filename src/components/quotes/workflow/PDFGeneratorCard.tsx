@@ -8,43 +8,31 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, Download, Eye, Loader2, Palette } from "lucide-react";
 import { QuoteInvoice } from '@/types/quote';
-import { toast } from '@/hooks/use-toast';
+import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 
 interface PDFGeneratorCardProps {
   quote: QuoteInvoice;
 }
 
 const PDFGeneratorCard = ({ quote }: PDFGeneratorCardProps) => {
-  const [isGenerating, setIsGenerating] = useState(false);
+  const { generatePDF, downloadHTML, isGenerating } = usePDFGeneration();
   const [includeBranding, setIncludeBranding] = useState(true);
   const [template, setTemplate] = useState('professional');
   const [watermark, setWatermark] = useState(false);
 
-  const handleGeneratePDF = async () => {
-    setIsGenerating(true);
-    try {
-      // Simulate PDF generation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast({
-        title: "PDF Generated",
-        description: "Your branded PDF has been generated and is ready for download.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to generate PDF. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGenerating(false);
-    }
+  const handleGeneratePDF = () => {
+    generatePDF(quote, {
+      includeBranding,
+      template: template as any,
+      watermark
+    });
   };
 
   const handlePreviewPDF = () => {
-    toast({
-      title: "Preview Opening",
-      description: "PDF preview will open in a new window.",
+    downloadHTML(quote, {
+      includeBranding,
+      template: template as any,
+      watermark
     });
   };
 
@@ -131,7 +119,7 @@ const PDFGeneratorCard = ({ quote }: PDFGeneratorCardProps) => {
             disabled={isGenerating}
           >
             <Eye className="h-4 w-4 mr-2" />
-            Preview
+            Preview HTML
           </Button>
         </div>
       </CardContent>

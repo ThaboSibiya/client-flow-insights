@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +22,7 @@ import { QuoteInvoice } from '@/types/quote';
 import { useQuoteEmail } from '@/hooks/useQuoteEmail';
 import { useUpdateQuoteStatus } from '@/hooks/mutations/useUpdateQuoteStatus';
 import { useRevenueOptimization } from '@/hooks/useRevenueOptimization';
+import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 import { toast } from '@/hooks/use-toast';
 
 interface QuoteListProps {
@@ -36,6 +36,7 @@ const QuoteList = ({ quotes, onSelectQuote, onPreview, onEdit }: QuoteListProps)
   const { sendQuoteEmail, isSending } = useQuoteEmail();
   const { updateQuoteStatus } = useUpdateQuoteStatus();
   const { convertQuoteToInvoice } = useRevenueOptimization();
+  const { generatePDF } = usePDFGeneration();
 
   const getStatusColor = (status: string, type: string) => {
     switch (status) {
@@ -68,6 +69,14 @@ const QuoteList = ({ quotes, onSelectQuote, onPreview, onEdit }: QuoteListProps)
         });
       }
     }
+  };
+
+  const handleDownloadPDF = (quote: QuoteInvoice) => {
+    generatePDF(quote, {
+      includeBranding: true,
+      template: 'professional',
+      watermark: false
+    });
   };
 
   const formatCurrency = (amount: number) => {
@@ -179,7 +188,7 @@ const QuoteList = ({ quotes, onSelectQuote, onPreview, onEdit }: QuoteListProps)
                       Convert to Invoice
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleDownloadPDF(quote)}>
                     <Download className="h-4 w-4 mr-2" />
                     Download PDF
                   </DropdownMenuItem>
