@@ -3,9 +3,27 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AppSidebar from './Sidebar';
+import MobileNavigation from './MobileNavigation';
 import HelpButton from '@/components/help/HelpButton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Layout = () => {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <div className="min-h-screen flex flex-col w-full quikle-gradient-bg">
+        <MobileNavigation />
+        
+        <main className="flex-1 p-4 pb-20 quikle-gradient-bg overflow-x-hidden">
+          <Outlet />
+        </main>
+        
+        <HelpButton />
+      </div>
+    );
+  }
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full quikle-gradient-bg">

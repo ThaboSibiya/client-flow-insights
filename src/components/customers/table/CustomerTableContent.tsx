@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Customer } from '@/types/customer';
 import { useCustomerActions } from '../actions/CustomerActions';
@@ -6,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import CustomerTableHeader from './CustomerTableHeader';
 import CustomerTableRow from './CustomerTableRow';
 import CustomerPagination from './CustomerPagination';
-import MobileCustomerCard from './MobileCustomerCard';
+import EnhancedMobileCustomerCard from './EnhancedMobileCustomerCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CustomerTableContentProps {
@@ -83,13 +82,18 @@ const CustomerTableContent = ({
   if (isMobile) {
     return (
       <div className="space-y-4">
+        {/* Pull to refresh indicator */}
+        <div className="text-center py-2 text-xs text-quikle-slate">
+          Pull down to refresh
+        </div>
+        
         <div 
-          className="space-y-3"
+          className="space-y-4"
           role="list"
           aria-label="Customer list"
         >
           {paginatedCustomers.map((customer) => (
-            <MobileCustomerCard
+            <EnhancedMobileCustomerCard
               key={customer.id}
               customer={customer}
               isSelected={selectedCustomers.has(customer.id)}
