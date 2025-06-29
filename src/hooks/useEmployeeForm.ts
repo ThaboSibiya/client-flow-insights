@@ -49,11 +49,74 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void) => {
     }
   };
 
+  const validateForm = () => {
+    const errors: string[] = [];
+    
+    if (!formData.first_name.trim()) errors.push('First name is required');
+    if (!formData.last_name.trim()) errors.push('Last name is required');
+    if (!formData.email.trim()) errors.push('Email is required');
+    if (!formData.designation.trim()) errors.push('Designation is required');
+    if (!formData.title.trim()) errors.push('Title is required');
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      errors.push('Please enter a valid email address');
+    }
+    
+    // Phone validation (if provided)
+    if (formData.phone && formData.phone.length < 10) {
+      errors.push('Phone number must be at least 10 digits');
+    }
+    
+    return errors;
+  };
+
+  const checkEmailUniqueness = async (email: string, excludeId?: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      let query = supabase
+        .from('employees')
+        .select('id')
+        .eq('company_owner_id', user.id)
+        .eq('email', email.toLowerCase());
+
+      if (excludeId) {
+        query = query.neq('id', excludeId);
+      }
+
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error checking email uniqueness:', error);
+        return false;
+      }
+      
+      return data && data.length === 0;
+    } catch (error) {
+      console.error('Error checking email uniqueness:', error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // Validate form
+      const validationErrors = validateForm();
+      if (validationErrors.length > 0) {
+        toast({
+          title: "Validation Error",
+          description: validationErrors.join(', '),
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast({
@@ -64,11 +127,35 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void) => {
         return;
       }
 
+      // Check email uniqueness
+      const isEmailUnique = await checkEmailUniqueness(
+        formData.email.toLowerCase(), 
+        employee?.id
+      );
+      
+      if (!isEmailUnique) {
+        toast({
+          title: "Error",
+          description: "An employee with this email already exists",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const employeeData = {
-        ...formData,
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim(),
+        email: formData.email.toLowerCase().trim(),
+        phone: formData.phone?.trim() || null,
+        designation: formData.designation.trim(),
+        title: formData.title.trim(),
+        department: formData.department?.trim() || null,
+        role: formData.role,
+        status: formData.status,
+        hire_date: formData.hire_date,
+        salary: formData.salary ? parseFloat(formData.salary) : null,
         company_owner_id: user.id,
-        user_id: user.id, // For now, we'll use the same user ID. In a real app, this would be the employee's user ID
-        salary: formData.salary ? parseFloat(formData.salary) : null
+        user_id: user.id // This should be the company owner's ID for now
       };
 
       if (employee) {
@@ -76,22 +163,39 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void) => {
         const { error } = await supabase
           .from('employees')
           .update(employeeData)
-          .eq('id', employee.id);
+          .eq('id', employee.id)
+          .eq('company_owner_id', user.id); // Additional security check
 
-        if (error) throw error;
+        if (error) {
+          console.error('Database error:', error);
+          throw new Error(error.message);
+        }
 
         toast({
           title: "Success",
           description: "Employee updated successfully"
         });
       } else {
-        // Create new employee - remove employee_number since it's auto-generated
-        const { employee_number, ...insertData } = employeeData as any;
+        // Create new employee
         const { error } = await supabase
           .from('employees')
-          .insert(insertData);
+          .insert([employeeData]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Database error:', error);
+          
+          // Handle specific database errors
+          if (error.code === '23505') { // Unique constraint violation
+            toast({
+              title: "Error",
+              description: "An employee with this email already exists",
+              variant: "destructive"
+            });
+            return;
+          }
+          
+          throw new Error(error.message);
+        }
 
         toast({
           title: "Success",
@@ -104,7 +208,7 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void) => {
       console.error('Error saving employee:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to save employee",
+        description: error.message || "Failed to save employee. Please try again.",
         variant: "destructive"
       });
     } finally {

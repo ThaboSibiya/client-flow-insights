@@ -19,7 +19,9 @@ const EmployeeBasicInfo = ({ formData, onInputChange }: EmployeeBasicInfoProps) 
       <CardContent className="space-y-4 p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="first_name" className="text-quikle-charcoal font-medium">First Name *</Label>
+            <Label htmlFor="first_name" className="text-quikle-charcoal font-medium">
+              First Name <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="first_name"
               value={formData.first_name}
@@ -30,7 +32,9 @@ const EmployeeBasicInfo = ({ formData, onInputChange }: EmployeeBasicInfoProps) 
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="last_name" className="text-quikle-charcoal font-medium">Last Name *</Label>
+            <Label htmlFor="last_name" className="text-quikle-charcoal font-medium">
+              Last Name <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="last_name"
               value={formData.last_name}
@@ -44,7 +48,9 @@ const EmployeeBasicInfo = ({ formData, onInputChange }: EmployeeBasicInfoProps) 
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-quikle-charcoal font-medium">Email *</Label>
+            <Label htmlFor="email" className="text-quikle-charcoal font-medium">
+              Email <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="email"
               type="email"
@@ -54,6 +60,9 @@ const EmployeeBasicInfo = ({ formData, onInputChange }: EmployeeBasicInfoProps) 
               className="border-quikle-silver/50 focus:border-quikle-primary"
               required
             />
+            <p className="text-xs text-quikle-slate">
+              This email will be used for employee invitations
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone" className="text-quikle-charcoal font-medium">Phone</Label>
