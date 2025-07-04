@@ -693,6 +693,33 @@ export type Database = {
         }
         Relationships: []
       }
+      industry_customer_templates: {
+        Row: {
+          created_at: string
+          field_definitions: Json
+          id: string
+          industry: string
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          field_definitions: Json
+          id?: string
+          industry: string
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          field_definitions?: Json
+          id?: string
+          industry?: string
+          template_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       job_completions: {
         Row: {
           after_status: string | null
@@ -923,6 +950,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          business_type: string | null
           company: string | null
           company_address: string | null
           company_email: string | null
@@ -930,15 +958,19 @@ export type Database = {
           company_phone: string | null
           created_at: string
           email: string | null
+          employee_count: number | null
           first_name: string | null
           id: string
+          industry: string | null
           last_name: string | null
+          onboarding_completed: boolean | null
           phone: string | null
           role: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          business_type?: string | null
           company?: string | null
           company_address?: string | null
           company_email?: string | null
@@ -946,15 +978,19 @@ export type Database = {
           company_phone?: string | null
           created_at?: string
           email?: string | null
+          employee_count?: number | null
           first_name?: string | null
           id: string
+          industry?: string | null
           last_name?: string | null
+          onboarding_completed?: boolean | null
           phone?: string | null
           role?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          business_type?: string | null
           company?: string | null
           company_address?: string | null
           company_email?: string | null
@@ -962,9 +998,12 @@ export type Database = {
           company_phone?: string | null
           created_at?: string
           email?: string | null
+          employee_count?: number | null
           first_name?: string | null
           id?: string
+          industry?: string | null
           last_name?: string | null
+          onboarding_completed?: boolean | null
           phone?: string | null
           role?: string | null
           updated_at?: string

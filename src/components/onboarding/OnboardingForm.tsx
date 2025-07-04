@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,6 +26,8 @@ import { useCRM, CustomerStatus } from '@/context/CRMContext';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import IndustrySpecificOnboarding from './IndustrySpecificOnboarding';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -47,6 +49,31 @@ const OnboardingForm = () => {
   const { addCustomer } = useCRM();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [useIndustryTemplate, setUseIndustryTemplate] = useState(false);
+  const [userIndustry, setUserIndustry] = useState<string | null>(null);
+
+  // Check if user has a company profile with industry
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('industry')
+          .eq('id', user.id)
+          .single();
+        
+        if (data?.industry) {
+          setUserIndustry(data.industry);
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -98,12 +125,45 @@ const OnboardingForm = () => {
     }
   };
 
+  // Show industry-specific form if user chooses to use it
+  if (useIndustryTemplate && userIndustry) {
+    return (
+      <IndustrySpecificOnboarding
+        industry={userIndustry}
+        onComplete={() => {
+          setUseIndustryTemplate(false);
+          toast({
+            title: 'Customer Added!',
+            description: 'Customer has been successfully added with industry-specific details.',
+          });
+          setTimeout(() => navigate('/customers'), 1500);
+        }}
+        onBack={() => setUseIndustryTemplate(false)}
+      />
+    );
+  }
+
   return (
     <Card className="bg-gradient-to-br from-white via-quikle-crystal to-quikle-platinum border-quikle-silver/30 shadow-luxury">
       <CardHeader className="border-b border-quikle-silver/20">
         <CardTitle className="bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">Customer Onboarding</CardTitle>
       </CardHeader>
       <CardContent className="pt-6">
+        {userIndustry && (
+          <div className="mb-6 bg-quikle-crystal/50 p-4 rounded-lg border border-quikle-primary/20">
+            <p className="text-quikle-charcoal font-semibold mb-2">Industry-Specific Template Available</p>
+            <p className="text-quikle-slate text-sm mb-3">
+              We have a specialized form for your industry ({userIndustry.replace('_', ' ')}) with relevant fields.
+            </p>
+            <Button
+              onClick={() => setUseIndustryTemplate(true)}
+              variant="outline"
+              className="border-quikle-primary text-quikle-primary hover:bg-quikle-primary hover:text-white"
+            >
+              Use Industry Template
+            </Button>
+          </div>
+        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
