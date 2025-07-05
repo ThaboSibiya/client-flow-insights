@@ -11,22 +11,39 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Building2 } from 'lucide-react';
+import { Loader2, Building2, ArrowLeft } from 'lucide-react';
+import OnboardingProgress from './OnboardingProgress';
+import { useOnboardingPersistence } from '@/hooks/useOnboardingPersistence';
+import { validatePhoneNumber, validateEmail, sanitizeTextInput } from '@/utils/onboardingValidation';
 
 const companySchema = z.object({
-  company: z.string().min(2, 'Company name must be at least 2 characters'),
+  company: z.string()
+    .min(2, 'Company name must be at least 2 characters')
+    .max(100, 'Company name must not exceed 100 characters')
+    .transform(sanitizeTextInput),
   industry: z.string().min(1, 'Please select an industry'),
-  employee_count: z.number().min(1, 'Employee count must be at least 1'),
+  employee_count: z.number()
+    .min(1, 'Employee count must be at least 1')
+    .max(100000, 'Employee count seems unrealistic'),
   business_type: z.string().min(1, 'Please select a business type'),
-  company_address: z.string().min(5, 'Please provide a complete address'),
-  company_email: z.string().email('Please enter a valid email address'),
-  company_phone: z.string().min(10, 'Please enter a valid phone number'),
+  company_address: z.string()
+    .min(10, 'Please provide a complete address')
+    .max(500, 'Address must not exceed 500 characters')
+    .transform(sanitizeTextInput),
+  company_email: z.string()
+    .refine(validateEmail, 'Please enter a valid email address')
+    .transform(val => val.toLowerCase().trim()),
+  company_phone: z.string()
+    .refine(validatePhoneNumber, 'Please enter a valid phone number')
+    .transform(val => val.trim()),
 });
 
 type CompanyFormData = z.infer<typeof companySchema>;
 
 interface CompanyOnboardingFormProps {
   onComplete: () => void;
+  onBack?: () => void;
+  allowSkip?: boolean;
 }
 
 const INDUSTRIES = [
@@ -52,31 +69,54 @@ const BUSINESS_TYPES = [
   { value: 'nonprofit', label: 'Non-Profit' },
 ];
 
-const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({ onComplete }) => {
+const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({ 
+  onComplete, 
+  onBack, 
+  allowSkip = false 
+}) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  
+  const { persistedData, saveData, clearData } = useOnboardingPersistence('company', {
+    company: '',
+    industry: '',
+    employee_count: 1,
+    business_type: '',
+    company_address: '',
+    company_email: '',
+    company_phone: '',
+  });
+
+  const onboardingSteps = [
+    { key: 'company', title: 'Company Info', description: 'Business details' },
+    { key: 'customer', title: 'First Customer', description: 'Add initial customer' },
+    { key: 'complete', title: 'Complete', description: 'Setup finished' }
+  ];
 
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
-    defaultValues: {
-      company: '',
-      industry: '',
-      employee_count: 1,
-      business_type: '',
-      company_address: '',
-      company_email: '',
-      company_phone: '',
-    },
+    defaultValues: persistedData,
   });
+
+  // Save form data on change
+  React.useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (Object.keys(value).length > 0) {
+        saveData(value as CompanyFormData);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch, saveData]);
 
   const onSubmit = async (data: CompanyFormData) => {
     if (!user) return;
     
     setIsSubmitting(true);
     try {
+      // First save company data without marking onboarding as complete
       const profileData = {
         ...data,
-        onboarding_completed: true,
+        onboarding_completed: false, // Will be set to true after customer step
         updated_at: new Date().toISOString(),
       };
 
@@ -87,6 +127,9 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({ onComplet
         .single();
 
       if (error) throw error;
+
+      // Clear persisted data after successful save
+      clearData();
 
       toast({
         title: 'Company Profile Created!',
@@ -106,10 +149,22 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({ onComplet
     }
   };
 
+  const handleSkip = () => {
+    if (allowSkip) {
+      toast({
+        title: 'Skipped Setup',
+        description: 'You can complete your profile later in settings.',
+      });
+      onComplete();
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 quikle-gradient-bg">
       <Card className="w-full max-w-2xl glass-effect shadow-luxury">
-        <CardHeader className="text-center pb-8">
+        <CardHeader className="text-center pb-6">
+          <OnboardingProgress currentStep="company" steps={onboardingSteps} />
+          
           <div className="mx-auto mb-4 p-3 bg-quikle-primary/10 rounded-full w-fit">
             <Building2 className="h-8 w-8 text-quikle-primary" />
           </div>
@@ -130,8 +185,17 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({ onComplet
                     <FormItem className="md:col-span-2">
                       <FormLabel className="text-quikle-charcoal font-semibold">Company Name *</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Your Company Name" className="h-12" />
+                        <Input 
+                          {...field} 
+                          placeholder="Your Company Name" 
+                          className="h-12"
+                          aria-describedby="company-hint"
+                          autoComplete="organization"
+                        />
                       </FormControl>
+                      <p id="company-hint" className="text-xs text-quikle-slate mt-1">
+                        Enter your registered business name
+                      </p>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -215,8 +279,18 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({ onComplet
                     <FormItem>
                       <FormLabel className="text-quikle-charcoal font-semibold">Company Email *</FormLabel>
                       <FormControl>
-                        <Input type="email" {...field} placeholder="company@example.com" className="h-12" />
+                        <Input 
+                          type="email" 
+                          {...field} 
+                          placeholder="company@example.com" 
+                          className="h-12"
+                          autoComplete="email"
+                          aria-describedby="email-hint"
+                        />
                       </FormControl>
+                      <p id="email-hint" className="text-xs text-quikle-slate mt-1">
+                        Main contact email for your business
+                      </p>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -229,8 +303,18 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({ onComplet
                     <FormItem>
                       <FormLabel className="text-quikle-charcoal font-semibold">Company Phone *</FormLabel>
                       <FormControl>
-                        <Input type="tel" {...field} placeholder="+1 (555) 123-4567" className="h-12" />
+                        <Input 
+                          type="tel" 
+                          {...field} 
+                          placeholder="+1 (555) 123-4567" 
+                          className="h-12"
+                          autoComplete="tel"
+                          aria-describedby="phone-hint"
+                        />
                       </FormControl>
+                      <p id="phone-hint" className="text-xs text-quikle-slate mt-1">
+                        Include country code for international numbers
+                      </p>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -255,11 +339,24 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({ onComplet
                 />
               </div>
 
-              <div className="pt-6">
+              <div className="flex gap-4 pt-8">
+                {onBack && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={onBack}
+                    className="flex-1 h-12 text-lg font-semibold"
+                    disabled={isSubmitting}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                )}
+                
                 <Button 
                   type="submit" 
                   disabled={isSubmitting}
-                  className="w-full h-12 text-lg font-semibold quikle-button-primary"
+                  className={`${onBack ? 'flex-1' : 'w-full'} h-12 text-lg font-semibold quikle-button-primary`}
                 >
                   {isSubmitting ? (
                     <>
@@ -267,9 +364,21 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({ onComplet
                       Setting up your company...
                     </>
                   ) : (
-                    'Complete Setup'
+                    'Continue to Customer Setup'
                   )}
                 </Button>
+                
+                {allowSkip && (
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    onClick={handleSkip}
+                    className="text-quikle-slate hover:text-quikle-primary"
+                    disabled={isSubmitting}
+                  >
+                    Skip for now
+                  </Button>
+                )}
               </div>
             </form>
           </Form>

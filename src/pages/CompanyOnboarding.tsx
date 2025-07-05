@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useOnboardingFlow } from '@/hooks/useOnboardingFlow';
 import CompanyOnboardingForm from '@/components/onboarding/CompanyOnboardingForm';
 import IndustrySpecificOnboarding from '@/components/onboarding/IndustrySpecificOnboarding';
+import OnboardingErrorBoundary from '@/components/onboarding/OnboardingErrorBoundary';
 import { Loader2 } from 'lucide-react';
 
 const CompanyOnboarding = () => {
@@ -50,27 +51,30 @@ const CompanyOnboarding = () => {
     setCurrentStep('company');
   };
 
-  if (currentStep === 'company') {
-    return <CompanyOnboardingForm onComplete={handleCompanyComplete} />;
-  }
-
-  if (currentStep === 'customer' && profile?.industry) {
-    return (
-      <IndustrySpecificOnboarding
-        industry={profile.industry}
-        onComplete={handleCustomerComplete}
-        onBack={handleBackToCompany}
-      />
-    );
-  }
-
-  // Fallback
   return (
-    <div className="min-h-screen flex items-center justify-center quikle-gradient-bg">
-      <div className="text-center">
-        <p className="text-quikle-slate">Setting up your onboarding experience...</p>
-      </div>
-    </div>
+    <OnboardingErrorBoundary onRetry={() => window.location.reload()}>
+      {currentStep === 'company' && (
+        <CompanyOnboardingForm onComplete={handleCompanyComplete} />
+      )}
+      
+      {currentStep === 'customer' && profile?.industry && (
+        <IndustrySpecificOnboarding
+          industry={profile.industry}
+          onComplete={handleCustomerComplete}
+          onBack={handleBackToCompany}
+        />
+      )}
+      
+      {/* Fallback loading state */}
+      {currentStep !== 'company' && currentStep !== 'customer' && (
+        <div className="min-h-screen flex items-center justify-center quikle-gradient-bg">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-quikle-primary mx-auto mb-4" />
+            <p className="text-quikle-slate">Setting up your onboarding experience...</p>
+          </div>
+        </div>
+      )}
+    </OnboardingErrorBoundary>
   );
 };
 
