@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useEmployeeProfile } from './useEmployeeProfile';
 
 export interface EmployeeProfile {
   id: string;
@@ -20,65 +21,52 @@ export interface EmployeeProfile {
 
 export const useEmployeeAuth = () => {
   const { user } = useAuth();
+  const { data: profileData, isLoading: profileLoading, error: profileError } = useEmployeeProfile();
+  
   const [employeeProfile, setEmployeeProfile] = useState<EmployeeProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isCompanyOwner, setIsCompanyOwner] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      fetchEmployeeProfile();
-    } else {
-      setEmployeeProfile(null);
-      setIsCompanyOwner(false);
-      setLoading(false);
-    }
-  }, [user]);
-
-  const fetchEmployeeProfile = async () => {
-    try {
-      if (!user) return;
-
-      // First check if user is a company owner (has customers)
-      const { data: customerData } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('user_id', user.id)
-        .limit(1);
-
-      if (customerData && customerData.length > 0) {
-        setIsCompanyOwner(true);
-        setLoading(false);
-        return;
-      }
-
-      // Check if user is an employee
-      const { data: employee, error } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('auth_user_id', user.id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // User exists but is not an employee - might be company owner without employees
-          console.log('User is not registered as an employee');
-          setEmployeeProfile(null);
-        } else {
-          console.error('Error fetching employee profile:', error);
-        }
-      } else {
-        setEmployeeProfile(employee);
+    if (profileData) {
+      setIsCompanyOwner(profileData.isCompanyOwner);
+      
+      if (profileData.employee) {
+        // Map the limited employee data to full profile structure
+        setEmployeeProfile({
+          id: profileData.employee.id,
+          role: profileData.employee.role,
+          first_name: profileData.employee.first_name,
+          last_name: profileData.employee.last_name,
+          employee_number: profileData.employee.employee_number,
+          // Set reasonable defaults for missing fields
+          email: user?.email || '',
+          designation: '',
+          title: '',
+          company_owner_id: '',
+          auth_user_id: user?.id || '',
+        });
         
-        // Update last login time
-        await supabase
-          .from('employees')
-          .update({ last_login_at: new Date().toISOString() })
-          .eq('id', employee.id);
+        // Update last login time (non-blocking)
+        updateLastLogin(profileData.employee.id);
+      } else {
+        setEmployeeProfile(null);
       }
+    } else if (profileData === null) {
+      // No profile data means user is not an employee or owner
+      setIsCompanyOwner(false);
+      setEmployeeProfile(null);
+    }
+  }, [profileData, user]);
+
+  const updateLastLogin = async (employeeId: string) => {
+    try {
+      await supabase
+        .from('employees')
+        .update({ last_login_at: new Date().toISOString() })
+        .eq('id', employeeId);
     } catch (error) {
-      console.error('Error in fetchEmployeeProfile:', error);
-    } finally {
-      setLoading(false);
+      // Silently handle login update errors
+      console.debug('Could not update last login:', error);
     }
   };
 
@@ -110,10 +98,13 @@ export const useEmployeeAuth = () => {
 
   return {
     employeeProfile,
-    loading,
+    loading: profileLoading,
     isCompanyOwner,
     getAccessLevel,
     canAccessFeature,
-    refetch: fetchEmployeeProfile
+    refetch: () => {
+      // Refetch will be handled by React Query automatically
+      // or we can trigger a refetch of the profile query
+    }
   };
 };

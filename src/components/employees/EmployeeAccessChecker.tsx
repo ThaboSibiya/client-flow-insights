@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useEmployeePrivileges } from '@/hooks/useEmployeePrivileges';
+import { useEmployeeAuth } from '@/hooks/useEmployeeAuth';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, AlertTriangle } from 'lucide-react';
 
@@ -15,7 +15,7 @@ const EmployeeAccessChecker = ({
   requiredPrivilege, 
   fallback 
 }: EmployeeAccessCheckerProps) => {
-  const { privileges, loading, hasPrivilege } = useEmployeePrivileges();
+  const { loading, isCompanyOwner, canAccessFeature } = useEmployeeAuth();
 
   if (loading) {
     return (
@@ -25,13 +25,18 @@ const EmployeeAccessChecker = ({
     );
   }
 
+  // Company owners have full access
+  if (isCompanyOwner) {
+    return <>{children}</>;
+  }
+
   // If no specific privilege is required, show content
   if (!requiredPrivilege) {
     return <>{children}</>;
   }
 
   // Check if user has the required privilege
-  const hasAccess = hasPrivilege(requiredPrivilege as any);
+  const hasAccess = canAccessFeature(requiredPrivilege);
 
   if (!hasAccess) {
     return fallback || (
