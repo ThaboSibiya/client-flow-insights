@@ -15,6 +15,9 @@ import { Loader2, Building2, ArrowLeft } from 'lucide-react';
 import OnboardingProgress from './OnboardingProgress';
 import { useOnboardingPersistence } from '@/hooks/useOnboardingPersistence';
 import { validatePhoneNumber, validateEmail, sanitizeTextInput } from '@/utils/onboardingValidation';
+import { useOnboardingAnalytics } from '@/hooks/useOnboardingAnalytics';
+import OnboardingOptimizer from './OnboardingOptimizer';
+import KeyboardShortcuts from './KeyboardShortcuts';
 
 const companySchema = z.object({
   company: z.string()
@@ -76,6 +79,7 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({
 }) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { trackStep, getCompletionRate } = useOnboardingAnalytics();
   
   const { persistedData, saveData, clearData } = useOnboardingPersistence('company', {
     company: '',
@@ -98,15 +102,17 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({
     defaultValues: persistedData,
   });
 
-  // Save form data on change
+  // Save form data on change and track analytics
   React.useEffect(() => {
+    trackStep('company_form_viewed');
+    
     const subscription = form.watch((value) => {
       if (Object.keys(value).length > 0) {
         saveData(value as CompanyFormData);
       }
     });
     return () => subscription.unsubscribe();
-  }, [form.watch, saveData]);
+  }, [form.watch, saveData, trackStep]);
 
   const onSubmit = async (data: CompanyFormData) => {
     if (!user) return;
@@ -130,6 +136,9 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({
 
       // Clear persisted data after successful save
       clearData();
+
+      // Track successful completion
+      await trackStep('company_form_completed', { industry: data.industry });
 
       toast({
         title: 'Company Profile Created!',
@@ -384,6 +393,20 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({
           </Form>
         </CardContent>
       </Card>
+      
+      <OnboardingOptimizer
+        currentStep="company"
+        estimatedTimeRemaining={300} // 5 minutes estimated
+        completionRate={getCompletionRate()}
+        onSkipRecommendation={allowSkip ? handleSkip : undefined}
+      />
+      
+      <KeyboardShortcuts
+        shortcuts={[]}
+        onNext={() => form.handleSubmit(onSubmit)()}
+        onBack={onBack}
+        onSubmit={() => form.handleSubmit(onSubmit)()}
+      />
     </div>
   );
 };

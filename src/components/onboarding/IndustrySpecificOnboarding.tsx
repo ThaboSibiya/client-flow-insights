@@ -13,6 +13,9 @@ import { Loader2, Users, ArrowLeft, CheckCircle } from 'lucide-react';
 import OnboardingProgress from './OnboardingProgress';
 import { useOnboardingPersistence } from '@/hooks/useOnboardingPersistence';
 import { validateTemplate, sanitizeTextInput } from '@/utils/onboardingValidation';
+import { useOnboardingAnalytics } from '@/hooks/useOnboardingAnalytics';
+import OnboardingOptimizer from './OnboardingOptimizer';
+import KeyboardShortcuts from './KeyboardShortcuts';
 
 interface FieldDefinition {
   name: string;
@@ -44,6 +47,7 @@ const IndustrySpecificOnboarding: React.FC<IndustrySpecificOnboardingProps> = ({
   const [template, setTemplate] = useState<CustomerTemplate | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { trackStep, getCompletionRate } = useOnboardingAnalytics();
 
   const { persistedData, saveData, clearData } = useOnboardingPersistence(`customer-${industry}`, {});
   
@@ -92,6 +96,9 @@ const IndustrySpecificOnboarding: React.FC<IndustrySpecificOnboardingProps> = ({
         }
 
         setTemplate(parsedData);
+
+        // Track template loaded
+        await trackStep('customer_template_loaded', { industry, templateName: parsedData.template_name });
 
         // Set default values for the form with persisted data taking precedence
         const defaultValues: Record<string, any> = {};
@@ -158,6 +165,12 @@ const IndustrySpecificOnboarding: React.FC<IndustrySpecificOnboardingProps> = ({
 
       // Clear persisted data
       clearData();
+
+      // Track onboarding completion
+      await trackStep('onboarding_completed', { 
+        industry, 
+        customerName: sanitizedData.company_name || sanitizedData.client_name || sanitizedData.name 
+      });
 
       toast({
         title: 'Success!',
@@ -336,6 +349,19 @@ const IndustrySpecificOnboarding: React.FC<IndustrySpecificOnboardingProps> = ({
           </Form>
         </CardContent>
       </Card>
+      
+      <OnboardingOptimizer
+        currentStep="customer"
+        estimatedTimeRemaining={180} // 3 minutes estimated
+        completionRate={getCompletionRate()}
+      />
+      
+      <KeyboardShortcuts
+        shortcuts={[]}
+        onNext={() => form.handleSubmit(onSubmit)()}
+        onBack={onBack}
+        onSubmit={() => form.handleSubmit(onSubmit)()}
+      />
     </div>
   );
 };
