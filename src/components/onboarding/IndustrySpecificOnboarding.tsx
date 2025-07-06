@@ -298,7 +298,7 @@ const IndustrySpecificOnboarding: React.FC<IndustrySpecificOnboardingProps> = ({
     <div className="min-h-screen flex items-center justify-center p-4 quikle-gradient-bg">
       <Card className="w-full max-w-2xl glass-effect shadow-luxury">
         <CardHeader className="text-center pb-6">
-          <OnboardingProgress currentStep="customer" steps={onboardingSteps} />
+          <OnboardingProgress currentStep={3} totalSteps={3} steps={onboardingSteps} />
           
           <div className="mx-auto mb-4 p-3 bg-quikle-secondary/10 rounded-full w-fit">
             <Users className="h-8 w-8 text-quikle-secondary" />
@@ -352,7 +352,7 @@ const IndustrySpecificOnboarding: React.FC<IndustrySpecificOnboardingProps> = ({
       
       <OnboardingOptimizer
         currentStep="customer"
-        estimatedTimeRemaining={180} // 3 minutes estimated
+        estimatedTimeRemaining={180}
         completionRate={getCompletionRate()}
       />
       

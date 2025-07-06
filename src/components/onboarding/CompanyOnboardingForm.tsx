@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -172,7 +173,7 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({
     <div className="min-h-screen flex items-center justify-center p-4 quikle-gradient-bg">
       <Card className="w-full max-w-2xl glass-effect shadow-luxury">
         <CardHeader className="text-center pb-6">
-          <OnboardingProgress currentStep="company" steps={onboardingSteps} />
+          <OnboardingProgress currentStep={2} totalSteps={3} steps={onboardingSteps} />
           
           <div className="mx-auto mb-4 p-3 bg-quikle-primary/10 rounded-full w-fit">
             <Building2 className="h-8 w-8 text-quikle-primary" />
@@ -269,7 +270,7 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({
                       <FormControl>
                         <Input 
                           type="number" 
-                          {...field} 
+                          value={field.value?.toString() || ''}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                           placeholder="e.g. 10" 
                           className="h-12" 
@@ -396,7 +397,7 @@ const CompanyOnboardingForm: React.FC<CompanyOnboardingFormProps> = ({
       
       <OnboardingOptimizer
         currentStep="company"
-        estimatedTimeRemaining={300} // 5 minutes estimated
+        estimatedTimeRemaining={300}
         completionRate={getCompletionRate()}
         onSkipRecommendation={allowSkip ? handleSkip : undefined}
       />
