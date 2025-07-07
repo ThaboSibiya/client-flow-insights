@@ -19,7 +19,8 @@ import {
   Wifi,
   WifiOff,
   Settings,
-  Mic
+  Mic,
+  ArrowLeft
 } from 'lucide-react';
 import ConversationsListOptimized from '@/components/conversations/ConversationsListOptimized';
 import MessageThread from '@/components/conversations/MessageThread';
@@ -55,6 +56,25 @@ const Conversations = () => {
     { id: 'internal_chat', label: 'Internal', icon: MessageCircle, count: conversations?.filter(c => c.type === 'internal_chat').length || 0 },
     { id: 'form_submission', label: 'Forms', icon: FileText, count: conversations?.filter(c => c.type === 'form_submission').length || 0 },
   ];
+
+  // Mobile-specific state
+  const [showConversationList, setShowConversationList] = useState(true);
+
+  const handleConversationSelect = (id: string) => {
+    setSelectedConversation(id);
+    // On mobile, hide conversation list when selecting a conversation
+    if (window.innerWidth < 768) {
+      setShowConversationList(false);
+    }
+  };
+
+  const handleBackToList = () => {
+    setShowConversationList(true);
+    // Optionally clear selection on mobile
+    if (window.innerWidth < 768) {
+      setSelectedConversation(null);
+    }
+  };
 
   return (
     <div className="h-full bg-gradient-to-br from-quikle-crystal to-white">
@@ -104,71 +124,144 @@ const Conversations = () => {
 
         {/* Content */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Sidebar */}
-          <div className="w-80 bg-white border-r border-quikle-silver/30 flex flex-col">
-            {/* Type Tabs */}
-            <div className="p-4 border-b border-quikle-silver/20">
-              <Tabs value={filters.type} onValueChange={(value) => updateFilter('type', value)}>
-                <TabsList className="grid w-full grid-cols-5">
-                  {conversationTypes.map((type) => (
-                    <TabsTrigger key={type.id} value={type.id} className="text-xs">
-                      <type.icon className="h-3 w-3" />
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-            </div>
-
-            {/* Search */}
-            <div className="p-4 border-b border-quikle-silver/20">
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-quikle-neutral" />
-                <Input
-                  placeholder="Search conversations..."
-                  value={filters.searchQuery}
-                  onChange={(e) => updateFilter('searchQuery', e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-
-            {/* Conversations List */}
-            <ScrollArea className="flex-1">
-              <ConversationsListOptimized
-                conversations={conversations}
-                selectedId={selectedConversation}
-                onSelect={setSelectedConversation}
-                loading={loading}
-                searchQuery={filters.searchQuery}
-              />
-            </ScrollArea>
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col">
-            {selectedConversation ? (
-              <MessageThread conversationId={selectedConversation} />
-            ) : (
-              <div className="flex-1 flex items-center justify-center bg-quikle-crystal/30">
-                <div className="text-center">
-                  <MessageCircle className="h-16 w-16 text-quikle-neutral mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-quikle-charcoal mb-2">
-                    Select a conversation
-                  </h3>
-                  <p className="text-quikle-neutral max-w-sm">
-                    Choose a conversation from the sidebar to view messages and respond to customers or team members.
-                  </p>
-                  {conversations?.length === 0 && !loading && (
-                    <p className="text-quikle-neutral text-sm mt-2">
-                      No conversations match your current filters.
-                    </p>
-                  )}
+          {/* Mobile: Conditional rendering */}
+          <div className="md:hidden w-full">
+            {showConversationList ? (
+              /* Conversation List for Mobile */
+              <div className="w-full bg-white flex flex-col">
+                {/* Search and Filters */}
+                <div className="p-4 border-b border-quikle-silver/20 space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-quikle-neutral" />
+                    <Input
+                      placeholder="Search conversations..."
+                      value={filters.searchQuery}
+                      onChange={(e) => updateFilter('searchQuery', e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  
+                  {/* Mobile Type Filter */}
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {conversationTypes.map((type) => (
+                      <Button
+                        key={type.id}
+                        variant={filters.type === type.id ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => updateFilter('type', type.id)}
+                        className="shrink-0"
+                      >
+                        <type.icon className="h-4 w-4 mr-2" />
+                        {type.label}
+                        {type.count > 0 && (
+                          <Badge variant="secondary" className="ml-2 text-xs">
+                            {type.count}
+                          </Badge>
+                        )}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Conversations List */}
+                <ScrollArea className="flex-1">
+                  <ConversationsListOptimized
+                    conversations={conversations}
+                    selectedId={selectedConversation}
+                    onSelect={handleConversationSelect}
+                    loading={loading}
+                    searchQuery={filters.searchQuery}
+                  />
+                </ScrollArea>
+              </div>
+            ) : (
+              /* Message Thread for Mobile */
+              <div className="w-full">
+                {selectedConversation && (
+                  <MessageThread conversationId={selectedConversation} />
+                )}
               </div>
             )}
           </div>
+
+          {/* Desktop: Split pane layout */}
+          <div className="hidden md:flex w-full">
+            {/* Sidebar */}
+            <div className="w-80 bg-white border-r border-quikle-silver/30 flex flex-col">
+              {/* Type Tabs */}
+              <div className="p-4 border-b border-quikle-silver/20">
+                <Tabs value={filters.type} onValueChange={(value) => updateFilter('type', value)}>
+                  <TabsList className="grid w-full grid-cols-5">
+                    {conversationTypes.map((type) => (
+                      <TabsTrigger key={type.id} value={type.id} className="text-xs">
+                        <type.icon className="h-3 w-3" />
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              </div>
+
+              {/* Search */}
+              <div className="p-4 border-b border-quikle-silver/20">
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-quikle-neutral" />
+                  <Input
+                    placeholder="Search conversations..."
+                    value={filters.searchQuery}
+                    onChange={(e) => updateFilter('searchQuery', e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+
+              {/* Conversations List */}
+              <ScrollArea className="flex-1">
+                <ConversationsListOptimized
+                  conversations={conversations}
+                  selectedId={selectedConversation}
+                  onSelect={setSelectedConversation}
+                  loading={loading}
+                  searchQuery={filters.searchQuery}
+                />
+              </ScrollArea>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col">
+              {selectedConversation ? (
+                <MessageThread conversationId={selectedConversation} />
+              ) : (
+                <div className="flex-1 flex items-center justify-center bg-quikle-crystal/30">
+                  <div className="text-center">
+                    <MessageCircle className="h-16 w-16 text-quikle-neutral mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-quikle-charcoal mb-2">
+                      Select a conversation
+                    </h3>
+                    <p className="text-quikle-neutral max-w-sm">
+                      Choose a conversation from the sidebar to view messages and respond to customers or team members.
+                    </p>
+                    {conversations?.length === 0 && !loading && (
+                      <p className="text-quikle-neutral text-sm mt-2">
+                        No conversations match your current filters.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Mobile: Back button overlay when viewing conversation */}
+      {!showConversationList && (
+        <Button
+          className="md:hidden fixed top-20 left-4 z-50 rounded-full h-10 w-10 p-0 shadow-lg"
+          onClick={handleBackToList}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+      )}
 
       <NewConversationDialog 
         open={showNewDialog} 
