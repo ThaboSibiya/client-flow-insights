@@ -33,8 +33,13 @@ const DynamicCustomerTable = ({ customers, onCustomerClick }: DynamicCustomerTab
       return customer.equipment?.[0]?.brand || 'N/A';
     }
     
+    if (fieldName === 'printer_model' || fieldName === 'equipment_model') {
+      return customer.equipment?.[0]?.model || 'N/A';
+    }
+    
     // Handle standard customer properties
-    return (customer as any)[fieldName] || 'N/A';
+    const value = (customer as any)[fieldName];
+    return value || 'N/A';
   };
 
   return (

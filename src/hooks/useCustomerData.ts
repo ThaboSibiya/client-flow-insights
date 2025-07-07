@@ -1,3 +1,4 @@
+
 import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, CustomerStatus, CustomerTicket, TimeEntry, CustomerEquipment } from '@/types/customer';
@@ -114,12 +115,12 @@ export const useCustomerData = () => {
             customer_id: eq.customer_id,
             user_id: eq.user_id,
             equipment_type: eq.equipment_type,
-            brand: eq.brand,
-            model: eq.model,
-            serial_number: eq.serial_number,
+            brand: eq.brand || '',
+            model: eq.model || '',
+            serial_number: eq.serial_number || '',
             purchase_date: eq.purchase_date ? new Date(eq.purchase_date) : undefined,
             warranty_expiry: eq.warranty_expiry ? new Date(eq.warranty_expiry) : undefined,
-            notes: eq.notes,
+            notes: eq.notes || '',
             created_at: new Date(eq.created_at),
             updated_at: new Date(eq.updated_at),
           }));

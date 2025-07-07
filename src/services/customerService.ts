@@ -48,7 +48,6 @@ export const createCustomerWithEquipment = async (
 
       if (equipmentError) {
         console.error('Equipment creation error:', equipmentError);
-        // Don't fail the whole operation if equipment creation fails
       } else {
         equipment = equipmentRecord;
       }
