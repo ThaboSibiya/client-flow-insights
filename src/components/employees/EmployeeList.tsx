@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Mail, Phone, Calendar, Building, Users } from "lucide-react";
 import InvitationSender from './InvitationSender';
+import RoleBasedQuickActions from './RoleBasedQuickActions';
 
 interface Employee {
   id: string;
@@ -31,30 +32,16 @@ interface EmployeeListProps {
   loading: boolean;
   onEditEmployee: (employee: Employee) => void;
   onInvitationSent?: () => void;
+  currentUserRole?: string;
 }
 
-const EmployeeList = ({ employees, loading, onEditEmployee, onInvitationSent }: EmployeeListProps) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-50 text-quikle-success border border-quikle-success/20';
-      case 'inactive': return 'bg-quikle-platinum text-quikle-slate border border-quikle-silver';
-      case 'suspended': return 'bg-quikle-crystal text-quikle-accent border border-quikle-accent/30';
-      case 'terminated': return 'bg-red-50 text-quikle-danger border border-quikle-danger/20';
-      default: return 'bg-quikle-platinum text-quikle-slate border border-quikle-silver';
-    }
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin': return 'bg-purple-50 text-quikle-purple border border-quikle-purple/20';
-      case 'manager': return 'bg-blue-50 text-quikle-info border border-quikle-info/20';
-      case 'supervisor': return 'bg-quikle-platinum text-quikle-secondary border border-quikle-silver';
-      case 'employee': return 'bg-green-50 text-quikle-success border border-quikle-success/20';
-      case 'intern': return 'bg-quikle-crystal text-quikle-slate border border-quikle-silver/80';
-      default: return 'bg-quikle-platinum text-quikle-slate border border-quikle-silver';
-    }
-  };
-
+const EmployeeList = ({ 
+  employees, 
+  loading, 
+  onEditEmployee, 
+  onInvitationSent,
+  currentUserRole = 'admin' // Default to admin for now
+}: EmployeeListProps) => {
   const getAuthStatus = (employee: Employee) => {
     if (employee.auth_user_id) {
       return (
@@ -68,6 +55,31 @@ const EmployeeList = ({ employees, loading, onEditEmployee, onInvitationSent }: 
         ⏳ Pending Setup
       </Badge>
     );
+  };
+
+  const handleAssignTask = (employeeId: string) => {
+    console.log('Assign task to employee:', employeeId);
+    // Implement task assignment logic
+  };
+
+  const handleScheduleMeeting = (employeeId: string) => {
+    console.log('Schedule meeting with employee:', employeeId);
+    // Implement meeting scheduling logic
+  };
+
+  const handleManagePrivileges = (employeeId: string) => {
+    console.log('Manage privileges for employee:', employeeId);
+    // Implement privilege management logic
+  };
+
+  const handleViewPerformance = (employeeId: string) => {
+    console.log('View performance for employee:', employeeId);
+    // Implement performance viewing logic
+  };
+
+  const handleSendMessage = (employeeId: string) => {
+    console.log('Send message to employee:', employeeId);
+    // Implement messaging logic
   };
 
   if (loading) {
@@ -90,16 +102,10 @@ const EmployeeList = ({ employees, loading, onEditEmployee, onInvitationSent }: 
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2 flex-wrap">
+                <div className="flex items-center gap-3 mb-3 flex-wrap">
                   <h3 className="text-lg font-semibold text-quikle-charcoal">
                     {employee.first_name} {employee.last_name}
                   </h3>
-                  <Badge className={getStatusColor(employee.status)}>
-                    {employee.status}
-                  </Badge>
-                  <Badge className={getRoleColor(employee.role)}>
-                    {employee.role}
-                  </Badge>
                   {getAuthStatus(employee)}
                 </div>
                 
@@ -151,6 +157,20 @@ const EmployeeList = ({ employees, loading, onEditEmployee, onInvitationSent }: 
                   </div>
                 </div>
 
+                {/* Role-based Quick Actions */}
+                <div className="mt-4 pt-4 border-t border-quikle-silver/30">
+                  <RoleBasedQuickActions
+                    employee={employee}
+                    currentUserRole={currentUserRole}
+                    onEditEmployee={onEditEmployee}
+                    onAssignTask={handleAssignTask}
+                    onScheduleMeeting={handleScheduleMeeting}
+                    onManagePrivileges={handleManagePrivileges}
+                    onViewPerformance={handleViewPerformance}
+                    onSendMessage={handleSendMessage}
+                  />
+                </div>
+
                 {/* Invitation Management */}
                 <div className="mt-4 pt-4 border-t border-quikle-silver/30">
                   <InvitationSender
@@ -160,16 +180,6 @@ const EmployeeList = ({ employees, loading, onEditEmployee, onInvitationSent }: 
                   />
                 </div>
               </div>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onEditEmployee(employee)}
-                className="border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal"
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
             </div>
           </CardContent>
         </Card>
