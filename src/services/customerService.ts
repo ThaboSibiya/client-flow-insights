@@ -161,6 +161,7 @@ export const addCustomer = async (
     address: data.address || '',
     contact_person: data.contact_person || '',
     company_address: data.company_address || '',
+    status: data.status as CustomerStatus,
     equipment: [],
     activeTickets: [],
     ticketCount: 0,
