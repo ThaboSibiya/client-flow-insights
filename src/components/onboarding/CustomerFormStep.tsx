@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,34 +46,42 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
   const [template, setTemplate] = useState<CustomerTemplate | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Use ref to prevent multiple analytics tracking calls
+  const hasTrackedTemplate = useRef(false);
 
   const onboardingSteps = [
-    { key: 'company', title: 'Company Info', description: 'Business details' },
-    { key: 'customer', title: 'First Customer', description: 'Add initial customer' },
-    { key: 'complete', title: 'Complete', description: 'Setup finished' }
+    { title: 'Company Info', description: 'Business details' },
+    { title: 'First Customer', description: 'Add initial customer' },
+    { title: 'Complete', description: 'Setup finished' }
   ];
 
   const form = useForm<Record<string, any>>({
     defaultValues: {},
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchTemplate = async () => {
       if (!industry) {
+        setError('No industry specified');
         setIsLoading(false);
         return;
       }
 
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
+        setError(null);
+        
+        const { data, error: fetchError } = await supabase
           .from('industry_customer_templates')
           .select('*')
           .eq('industry', industry)
           .single();
 
-        if (error) {
-          console.error('Error fetching template:', error);
+        if (fetchError) {
+          console.error('Error fetching template:', fetchError);
+          setError('Failed to load customer template');
           setTemplate(null);
         } else if (data) {
           const parsedData = {
@@ -84,6 +92,12 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
           };
           setTemplate(parsedData);
 
+          // Track template loading only once
+          if (!hasTrackedTemplate.current) {
+            console.log('Template loaded:', parsedData.template_name);
+            hasTrackedTemplate.current = true;
+          }
+
           // Set default values for the form
           const defaultValues: Record<string, any> = {};
           parsedData.field_definitions.fields.forEach((field: FieldDefinition) => {
@@ -91,14 +105,10 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
           });
           form.reset(defaultValues);
         }
-      } catch (error) {
-        console.error('Error in fetchTemplate:', error);
+      } catch (err) {
+        console.error('Error in fetchTemplate:', err);
+        setError('Failed to load customer template');
         setTemplate(null);
-        toast({
-          title: 'Error',
-          description: 'Failed to load customer template',
-          variant: 'destructive',
-        });
       } finally {
         setIsLoading(false);
       }
@@ -245,7 +255,7 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
     );
   }
 
-  if (!template) {
+  if (error || !template) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 quikle-gradient-bg">
         <Card className="w-full max-w-md text-center glass-effect shadow-luxury">
@@ -255,7 +265,7 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
             </div>
             <h3 className="text-xl font-semibold mb-2">Template Not Found</h3>
             <p className="text-quikle-slate mb-6">
-              No customer template found for your industry: {industry.replace('_', ' ')}.
+              {error || `No customer template found for your industry: ${industry.replace('_', ' ')}.`}
             </p>
             <div className="space-y-3">
               <Button onClick={onComplete} className="w-full quikle-button-primary">
