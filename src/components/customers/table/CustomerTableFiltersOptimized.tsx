@@ -3,7 +3,15 @@ import React, { Suspense, lazy, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, RefreshCw } from 'lucide-react';
+import { X, RefreshCw, Filter } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 const EnhancedFilters = lazy(() => import('../filters/EnhancedFilters'));
 
@@ -27,6 +35,9 @@ interface CustomerTableFiltersOptimizedProps {
 }
 
 const CustomerTableFiltersOptimized = (props: CustomerTableFiltersOptimizedProps) => {
+  const isMobile = useIsMobile();
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = React.useState(false);
+
   const FiltersSkeleton = React.memo(() => (
     <div 
       className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm animate-pulse"
@@ -56,7 +67,79 @@ const CustomerTableFiltersOptimized = (props: CustomerTableFiltersOptimizedProps
     props.activeFilters.length, [props.activeFilters]
   );
 
-  const QuickActionsBar = React.memo(() => (
+  const MobileQuickActionsBar = React.memo(() => (
+    <div className="flex items-center justify-between mb-4 p-4 bg-white rounded-lg border border-slate-200">
+      <div className="flex items-center gap-3">
+        <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
+          <SheetTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2 touch-target h-11 px-4"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+              {activeFiltersCount > 0 && (
+                <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] text-xs">
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-[80vh] overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>Customer Filters</SheetTitle>
+            </SheetHeader>
+            <div className="mt-4">
+              <Suspense fallback={<FiltersSkeleton />}>
+                <EnhancedFilters
+                  searchQuery={props.searchQuery}
+                  onSearchQueryChange={props.onSearchQueryChange}
+                  statusFilter={props.statusFilter}
+                  onStatusFilterChange={props.onStatusFilterChange}
+                  dateRange={props.dateRange}
+                  onDateRangeChange={props.onDateRangeChange}
+                  ticketFilter={props.ticketCountFilter}
+                  onTicketFilterChange={props.onTicketCountFilterChange}
+                  savedPresets={props.savedPresets}
+                  onApplyPreset={props.onApplyPreset}
+                  onSavePreset={props.onSavePreset}
+                  onQuickDateRange={props.onQuickDateRange}
+                />
+              </Suspense>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {activeFiltersCount > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={props.onClearAllFilters}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 touch-target h-11 px-3"
+          >
+            <X className="h-4 w-4 mr-1" />
+            Clear
+          </Button>
+        )}
+      </div>
+      
+      {props.onRefresh && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={props.onRefresh}
+          disabled={props.isRefreshing}
+          className="flex items-center gap-2 touch-target h-11 px-4"
+        >
+          <RefreshCw className={`h-4 w-4 ${props.isRefreshing ? 'animate-spin' : ''}`} />
+          {props.isRefreshing ? 'Refreshing...' : 'Refresh'}
+        </Button>
+      )}
+    </div>
+  ));
+
+  const DesktopQuickActionsBar = React.memo(() => (
     <div className="flex items-center justify-between mb-6">
       <div className="flex items-center gap-3">
         <h2 className="text-xl font-semibold text-slate-900">Customer Filters</h2>
@@ -93,9 +176,17 @@ const CustomerTableFiltersOptimized = (props: CustomerTableFiltersOptimizedProps
     </div>
   ));
 
+  if (isMobile) {
+    return (
+      <div role="search" aria-label="Customer filters" className="space-y-4">
+        <MobileQuickActionsBar />
+      </div>
+    );
+  }
+
   return (
     <div role="search" aria-label="Customer filters" className="space-y-6">
-      <QuickActionsBar />
+      <DesktopQuickActionsBar />
       
       <Suspense fallback={<FiltersSkeleton />}>
         <EnhancedFilters

@@ -1,11 +1,11 @@
-
 import React, { useCallback, useTransition } from 'react';
 import { useCustomerData } from '@/hooks/useCustomerData';
 import { useCustomerFilters } from '@/hooks/useCustomerFilters/index';
 import { useTableSelection } from '@/hooks/useTableSelection';
 import { useCustomerExport } from '@/hooks/useCustomerExport';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import DynamicCustomerTableOptimized from './DynamicCustomerTableOptimized';
+import { useIsMobile } from '@/hooks/use-mobile';
+import ResponsiveCustomerTable from './ResponsiveCustomerTable';
 import CustomerTableFiltersOptimized from './CustomerTableFiltersOptimized';
 import QuickActionsBar from '../QuickActionsBar';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
@@ -13,6 +13,7 @@ import { toast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
 
 const CustomerTableContainerOptimized = () => {
+  const isMobile = useIsMobile();
   const [isPending, startTransition] = useTransition();
   const {
     customers,
@@ -152,7 +153,6 @@ const CustomerTableContainerOptimized = () => {
     }
   ]);
 
-  // Effect for initial data load and refresh
   React.useEffect(() => {
     const justOnboarded = sessionStorage.getItem('justOnboarded');
     
@@ -164,7 +164,6 @@ const CustomerTableContainerOptimized = () => {
     }
   }, [refreshCustomers, customers.length, isLoading]);
 
-  // Listen for focus events to refresh data
   React.useEffect(() => {
     const handleFocus = () => refreshCustomers();
     const handleVisibilityChange = () => {
@@ -183,12 +182,14 @@ const CustomerTableContainerOptimized = () => {
   return (
     <ErrorBoundary>
       <div className="space-y-6">
-        <QuickActionsBar
-          onExportCSV={handleExportCSV}
-          onExportJSON={handleExportJSON}
-          onExportExcel={handleExportExcel}
-          shortcuts={shortcuts}
-        />
+        {!isMobile && (
+          <QuickActionsBar
+            onExportCSV={handleExportCSV}
+            onExportJSON={handleExportJSON}
+            onExportExcel={handleExportExcel}
+            shortcuts={shortcuts}
+          />
+        )}
         
         <ErrorBoundary>
           <CustomerTableFiltersOptimized
@@ -212,11 +213,23 @@ const CustomerTableContainerOptimized = () => {
         </ErrorBoundary>
         
         <ErrorBoundary>
-          <DynamicCustomerTableOptimized
+          <ResponsiveCustomerTable
             customers={filteredCustomers}
-            onCustomerClick={(customer) => {
-              console.log('Customer clicked:', customer.name);
+            searchQuery={searchInput}
+            statusFilter={statusFilter}
+            dateRange={dateRange}
+            ticketCountFilter={ticketCountFilter}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={(field) => {
+              if (sortBy === field) {
+                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+              } else {
+                setSortBy(field);
+                setSortOrder('asc');
+              }
             }}
+            isLoading={isLoading}
           />
         </ErrorBoundary>
       </div>

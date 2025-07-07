@@ -15,7 +15,7 @@ const Layout = () => {
       <div className="min-h-screen flex flex-col w-full quikle-gradient-bg safe-area-top safe-area-bottom">
         <MobileNavigation />
         
-        <main className="flex-1 mobile-container pb-20 quikle-gradient-bg overflow-x-hidden">
+        <main className="flex-1 px-4 py-4 pb-20 quikle-gradient-bg overflow-x-hidden">
           <div className="max-w-full">
             <Outlet />
           </div>
