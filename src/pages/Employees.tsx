@@ -12,6 +12,9 @@ import TeamHierarchy from '../components/employees/TeamHierarchy';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useEmployeeData } from '../hooks/useEmployeeData';
 import { toast } from '@/hooks/use-toast';
+import ResponsiveEmployeeManager from '../components/employees/ResponsiveEmployeeManager';
+import MobileEmployeeForm from '../components/employees/mobile/MobileEmployeeForm';
+import { useMobileDetection } from '@/hooks/useMobileDetection';
 
 const Employees = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,6 +22,7 @@ const Employees = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [activeTab, setActiveTab] = useState('list');
   const { employees, loading, refetch } = useEmployeeData();
+  const { shouldUseMobileView } = useMobileDetection();
 
   const handleAddEmployee = () => {
     setSelectedEmployee(null);
@@ -84,81 +88,106 @@ const Employees = () => {
           </Button>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="list" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Employee List
-            </TabsTrigger>
-            <TabsTrigger value="org-chart" className="flex items-center gap-2">
-              <Network className="h-4 w-4" />
-              Org Chart
-            </TabsTrigger>
-            <TabsTrigger value="hierarchy" className="flex items-center gap-2">
-              <Layers className="h-4 w-4" />
-              Team Hierarchy
-            </TabsTrigger>
-          </TabsList>
+        {shouldUseMobileView ? (
+          // Mobile View - Simple layout
+          <ResponsiveEmployeeManager
+            employees={filteredEmployees}
+            loading={loading}
+            onEditEmployee={handleEditEmployee}
+            onInvitationSent={handleInvitationSent}
+            onAddEmployee={handleAddEmployee}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+          />
+        ) : (
+          // Desktop View - Tabs layout
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="list" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Employee List
+              </TabsTrigger>
+              <TabsTrigger value="org-chart" className="flex items-center gap-2">
+                <Network className="h-4 w-4" />
+                Org Chart
+              </TabsTrigger>
+              <TabsTrigger value="hierarchy" className="flex items-center gap-2">
+                <Layers className="h-4 w-4" />
+                Team Hierarchy
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="list" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-quikle-charcoal">
-                  <Users className="h-5 w-5 text-quikle-primary" />
-                  Employee Directory
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-quikle-slate h-4 w-4" />
-                    <Input
-                      placeholder="Search employees..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 border-quikle-silver"
-                    />
+            <TabsContent value="list" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-quikle-charcoal">
+                    <Users className="h-5 w-5 text-quikle-primary" />
+                    Employee Directory
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-quikle-slate h-4 w-4" />
+                      <Input
+                        placeholder="Search employees..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 border-quikle-silver"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <EmployeeList 
-                  employees={filteredEmployees}
-                  loading={loading}
-                  onEditEmployee={handleEditEmployee}
-                  onInvitationSent={handleInvitationSent}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  <ResponsiveEmployeeManager
+                    employees={filteredEmployees}
+                    loading={loading}
+                    onEditEmployee={handleEditEmployee}
+                    onInvitationSent={handleInvitationSent}
+                    onAddEmployee={handleAddEmployee}
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          <TabsContent value="org-chart" className="space-y-6">
-            <OrgChart 
-              employees={employees}
-              onUpdateHierarchy={handleUpdateHierarchy}
-              onEditEmployee={handleEditEmployee}
-            />
-          </TabsContent>
+            <TabsContent value="org-chart" className="space-y-6">
+              <OrgChart 
+                employees={employees}
+                onUpdateHierarchy={handleUpdateHierarchy}
+                onEditEmployee={handleEditEmployee}
+              />
+            </TabsContent>
 
-          <TabsContent value="hierarchy" className="space-y-6">
-            <TeamHierarchy 
-              employees={employees}
-              onEmployeeSelect={handleEditEmployee}
-            />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="hierarchy" className="space-y-6">
+              <TeamHierarchy 
+                employees={employees}
+                onEmployeeSelect={handleEditEmployee}
+              />
+            </TabsContent>
+          </Tabs>
+        )}
 
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className={`${shouldUseMobileView ? 'max-w-sm h-full max-h-none m-0 rounded-none' : 'max-w-4xl max-h-[90vh] overflow-y-auto'}`}>
             <DialogHeader>
               <DialogTitle className="text-quikle-charcoal">
                 {selectedEmployee ? 'Edit Employee' : 'Add New Employee'}
               </DialogTitle>
             </DialogHeader>
-            <EmployeeForm
-              employee={selectedEmployee}
-              onSave={handleFormClose}
-              onCancel={handleFormClose}
-            />
+            {shouldUseMobileView ? (
+              <MobileEmployeeForm
+                employee={selectedEmployee}
+                onSave={handleFormClose}
+                onCancel={handleFormClose}
+              />
+            ) : (
+              <EmployeeForm
+                employee={selectedEmployee}
+                onSave={handleFormClose}
+                onCancel={handleFormClose}
+              />
+            )}
           </DialogContent>
         </Dialog>
       </div>
