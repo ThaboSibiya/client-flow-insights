@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { useCustomerData } from '@/hooks/useCustomerData';
 import { useCustomerFilters } from '@/hooks/useCustomerFilters';
 import { useTableSelection } from '@/hooks/useTableSelection';
 import { useCustomerExport } from '@/hooks/useCustomerExport';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import CustomerTableContent from './CustomerTableContent';
+import DynamicCustomerTable from './DynamicCustomerTable';
 import CustomerTableFilters from './CustomerTableFilters';
 import QuickActionsBar from '../QuickActionsBar';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
@@ -96,13 +97,7 @@ const CustomerTableContainer = () => {
     };
   }, [refreshCustomers]);
 
-  const [currentPage, setCurrentPage] = React.useState(1);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
-  
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedCustomers = filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
 
   const {
     selectedItems: selectedCustomers,
@@ -111,7 +106,7 @@ const CustomerTableContainer = () => {
     handleSelectAll,
     handleSelectItem,
     clearSelection
-  } = useTableSelection(paginatedCustomers);
+  } = useTableSelection(filteredCustomers);
 
   const {
     handleExportCSV,
@@ -174,19 +169,6 @@ const CustomerTableContainer = () => {
     }
   ]);
 
-  const handleSort = (field: string) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('asc');
-    }
-  };
-
-  const handleSelectCustomer = (customerId: string, checked: boolean) => {
-    handleSelectItem(customerId, checked);
-  };
-
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
@@ -236,20 +218,12 @@ const CustomerTableContainer = () => {
         </ErrorBoundary>
         
         <ErrorBoundary>
-          <CustomerTableContent
-            paginatedCustomers={paginatedCustomers}
-            selectedCustomers={selectedCustomers}
-            isAllSelected={isAllSelected}
-            isIndeterminate={isPartiallySelected}
-            onSelectAll={handleSelectAll}
-            onSelectCustomer={handleSelectCustomer}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            onSort={handleSort}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            isLoading={isLoading || isRefreshing}
+          <DynamicCustomerTable
+            customers={filteredCustomers}
+            onCustomerClick={(customer) => {
+              console.log('Customer clicked:', customer.name);
+              // Handle customer click - could open details dialog
+            }}
           />
         </ErrorBoundary>
       </div>
