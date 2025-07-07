@@ -47,7 +47,7 @@ export const useCustomerData = () => {
         ticketNumber: `TKT-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
         status: 'open',
         priority: 'high',
-        subject: 'Policy inquiry regarding coverage',
+        subject: 'Equipment setup and configuration',
         timeEntries: sampleTimeEntries,
         totalTimeSpent: 75, // 45 + 30 minutes
         createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
@@ -88,29 +88,37 @@ export const useCustomerData = () => {
     setError(null);
 
     try {
-      const { data, error } = await supabase
+      // Fetch customers with equipment data
+      const { data: customersData, error: customersError } = await supabase
         .from('customers')
-        .select('*')
+        .select(`
+          *,
+          customer_equipment (*)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching customers:', error);
-        throw error;
+      if (customersError) {
+        console.error('Error fetching customers:', customersError);
+        throw customersError;
       }
 
-      console.log('Raw customer data from database:', data?.length || 0, 'customers');
+      console.log('Raw customer data from database:', customersData?.length || 0, 'customers');
 
-      if (data) {
-        const formattedCustomers: Customer[] = data.map(item => {
+      if (customersData) {
+        const formattedCustomers: Customer[] = customersData.map(item => {
           const activeTickets = generateSampleTickets(item.id);
           const customer = {
             id: item.id,
             name: item.name,
             email: item.email,
             phone: item.phone || '',
+            address: item.address || '',
+            contact_person: item.contact_person || '',
+            company_address: item.company_address || '',
             status: item.status as CustomerStatus,
             notes: item.notes || '',
+            equipment: item.customer_equipment || [],
             createdAt: new Date(item.created_at),
             updatedAt: new Date(item.updated_at),
             activeTickets,

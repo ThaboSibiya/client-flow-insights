@@ -203,8 +203,64 @@ export type Database = {
           },
         ]
       }
+      customer_equipment: {
+        Row: {
+          brand: string | null
+          created_at: string
+          customer_id: string
+          equipment_type: string
+          id: string
+          model: string | null
+          notes: string | null
+          purchase_date: string | null
+          serial_number: string | null
+          updated_at: string
+          user_id: string
+          warranty_expiry: string | null
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          customer_id: string
+          equipment_type?: string
+          id?: string
+          model?: string | null
+          notes?: string | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          updated_at?: string
+          user_id: string
+          warranty_expiry?: string | null
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          customer_id?: string
+          equipment_type?: string
+          id?: string
+          model?: string | null
+          notes?: string | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          updated_at?: string
+          user_id?: string
+          warranty_expiry?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_customer_equipment_customer"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
+          address: string | null
+          company_address: string | null
+          contact_person: string | null
           created_at: string
           email: string
           id: string
@@ -216,6 +272,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          address?: string | null
+          company_address?: string | null
+          contact_person?: string | null
           created_at?: string
           email: string
           id?: string
@@ -227,6 +286,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          address?: string | null
+          company_address?: string | null
+          contact_person?: string | null
           created_at?: string
           email?: string
           id?: string

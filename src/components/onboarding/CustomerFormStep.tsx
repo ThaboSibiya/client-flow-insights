@@ -12,6 +12,7 @@ import { toast } from '@/hooks/use-toast';
 import { Loader2, Users, ArrowLeft, CheckCircle } from 'lucide-react';
 import OnboardingProgress from './OnboardingProgress';
 import { sanitizeTextInput } from '@/utils/onboardingValidation';
+import { createCustomerWithEquipment } from '@/services/customerService';
 
 interface FieldDefinition {
   name: string;
@@ -116,6 +117,45 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
     fetchTemplate();
   }, [industry, form]);
 
+  const parseCustomerData = (formData: Record<string, any>) => {
+    // Extract standard customer fields
+    const customerName = formData.company_name || 
+                        formData.client_name || 
+                        formData.name || 
+                        formData.business_name ||
+                        'New Customer';
+
+    const customerData = {
+      name: customerName,
+      email: formData.email || formData.contact_email || '',
+      phone: formData.phone_number || formData.phone || formData.contact_phone || '',
+      address: formData.address || '',
+      contact_person: formData.contact_person || '',
+      company_address: formData.company_address || formData.address || '',
+      status: 'new' as const,
+      notes: `Industry: ${industry.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}\nTemplate: ${template?.template_name || 'Unknown'}`,
+    };
+
+    // Extract equipment data if present
+    const equipmentData = {
+      equipment_type: formData.printer_brand ? 'printer' : 'other',
+      brand: formData.printer_brand || formData.equipment_brand || '',
+      model: formData.printer_model || formData.equipment_model || '',
+      serial_number: formData.serial_number || '',
+      purchase_date: formData.purchase_date ? new Date(formData.purchase_date) : undefined,
+      warranty_expiry: formData.warranty_expiry ? new Date(formData.warranty_expiry) : undefined,
+      notes: formData.equipment_notes || '',
+    };
+
+    // Only include equipment if we have meaningful data
+    const hasEquipmentData = equipmentData.brand || equipmentData.model || equipmentData.serial_number;
+
+    return {
+      customerData,
+      equipmentData: hasEquipmentData ? equipmentData : undefined,
+    };
+  };
+
   const onSubmit = async (data: Record<string, any>) => {
     if (!user || !template) {
       toast({
@@ -140,42 +180,17 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
         return acc;
       }, {} as Record<string, any>);
 
-      // Create customer name from available fields
-      const customerName = sanitizedData.company_name || 
-                          sanitizedData.client_name || 
-                          sanitizedData.name || 
-                          sanitizedData.business_name ||
-                          'New Customer';
+      const { customerData, equipmentData } = parseCustomerData(sanitizedData);
 
-      // Create detailed notes with industry-specific data
-      const industryDetails = Object.entries(sanitizedData)
-        .filter(([key, value]) => value && value !== '')
-        .map(([key, value]) => `${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${value}`)
-        .join('\n');
+      console.log('Creating customer with structured data:', { customerData, equipmentData });
 
-      const customerData = {
-        user_id: user.id,
-        name: customerName,
-        email: sanitizedData.email || sanitizedData.contact_email || '',
-        phone: sanitizedData.phone_number || sanitizedData.phone || sanitizedData.contact_phone || '',
-        status: 'new' as const,
-        notes: `Industry: ${industry.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}\nTemplate: ${template.template_name}\n\nCustomer Details:\n${industryDetails}`,
-      };
+      const customer = await createCustomerWithEquipment(
+        customerData,
+        equipmentData,
+        user.id
+      );
 
-      console.log('Creating customer with data:', customerData);
-
-      const { data: createdCustomer, error: customerError } = await supabase
-        .from('customers')
-        .insert(customerData)
-        .select()
-        .single();
-
-      if (customerError) {
-        console.error('Customer creation error:', customerError);
-        throw customerError;
-      }
-
-      console.log('Customer created successfully:', createdCustomer);
+      console.log('Customer created successfully:', customer);
 
       // Mark onboarding as complete
       const { error: profileError } = await supabase
@@ -195,7 +210,7 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
 
       toast({
         title: 'Success!',
-        description: `${customerName} has been added successfully and onboarding is complete.`,
+        description: `${customerData.name} has been added successfully${equipmentData ? ' with equipment details and an initial service ticket' : ''}.`,
         duration: 5000,
       });
 
@@ -249,6 +264,12 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
                   {...formField}
                   placeholder={`Enter ${field.label.toLowerCase()}`}
                   className="min-h-[80px]"
+                />
+              ) : field.type === 'date' ? (
+                <Input
+                  {...formField}
+                  type="date"
+                  className="h-12"
                 />
               ) : (
                 <Input
