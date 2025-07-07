@@ -134,6 +134,8 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
       company_address: formData.company_address || formData.address || '',
       status: 'new' as const,
       notes: `Industry: ${industry.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}\nTemplate: ${template?.template_name || 'Unknown'}`,
+      activeTickets: [],
+      ticketCount: 0,
     };
 
     // Extract equipment data if present
@@ -186,8 +188,8 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
 
       const customer = await createCustomerWithEquipment(
         customerData,
-        equipmentData,
-        user.id
+        user.id,
+        equipmentData
       );
 
       console.log('Customer created successfully:', customer);

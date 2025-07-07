@@ -1,7 +1,6 @@
-
 import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Customer, CustomerStatus, CustomerTicket, TimeEntry } from '@/types/customer';
+import { Customer, CustomerStatus, CustomerTicket, TimeEntry, CustomerEquipment } from '@/types/customer';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 import { useCustomerStore } from '@/stores/customerStore';
@@ -108,7 +107,24 @@ export const useCustomerData = () => {
       if (customersData) {
         const formattedCustomers: Customer[] = customersData.map(item => {
           const activeTickets = generateSampleTickets(item.id);
-          const customer = {
+          
+          // Format equipment data with proper date conversion
+          const equipment: CustomerEquipment[] = (item.customer_equipment || []).map((eq: any) => ({
+            id: eq.id,
+            customer_id: eq.customer_id,
+            user_id: eq.user_id,
+            equipment_type: eq.equipment_type,
+            brand: eq.brand,
+            model: eq.model,
+            serial_number: eq.serial_number,
+            purchase_date: eq.purchase_date ? new Date(eq.purchase_date) : undefined,
+            warranty_expiry: eq.warranty_expiry ? new Date(eq.warranty_expiry) : undefined,
+            notes: eq.notes,
+            created_at: new Date(eq.created_at),
+            updated_at: new Date(eq.updated_at),
+          }));
+
+          const customer: Customer = {
             id: item.id,
             name: item.name,
             email: item.email,
@@ -118,7 +134,7 @@ export const useCustomerData = () => {
             company_address: item.company_address || '',
             status: item.status as CustomerStatus,
             notes: item.notes || '',
-            equipment: item.customer_equipment || [],
+            equipment,
             createdAt: new Date(item.created_at),
             updatedAt: new Date(item.updated_at),
             activeTickets,
