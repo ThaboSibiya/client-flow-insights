@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Plus, Settings, Smartphone, Monitor } from "lucide-react";
 import AddStageDialog from './AddStageDialog';
 import PipelineMetrics from './PipelineMetrics';
+import PipelineAdvancedFilters from './PipelineAdvancedFilters';
+import CustomStageBuilder from './CustomStageBuilder';
 import { useTicketPipeline } from '@/hooks/useTicketPipeline';
 import { useMobileDetection } from '@/hooks/useMobileDetection';
+import { usePipelineFilters } from '@/hooks/usePipelineFilters';
 import DroppableStage from './DroppableStage';
 import MobilePipelineView from './MobilePipelineView';
 
@@ -28,8 +31,41 @@ const TicketPipeline = () => {
 
   const { shouldUseMobileView } = useMobileDetection();
   const [forceMobileView, setForceMobileView] = React.useState(false);
+  const [showStageBuilder, setShowStageBuilder] = React.useState(false);
+  const [editingStage, setEditingStage] = React.useState(null);
 
   const useMobileView = shouldUseMobileView || forceMobileView;
+
+  // Get all items for filtering
+  const allItems = React.useMemo(() => {
+    return stages.flatMap(stage => stage.tickets || []);
+  }, [stages]);
+
+  const {
+    searchQuery,
+    setSearchQuery,
+    selectedStageIds,
+    setSelectedStageIds,
+    selectedPriorities,
+    setSelectedPriorities,
+    selectedAssignees,
+    setSelectedAssignees,
+    dateRange,
+    setDateRange,
+    selectedStatuses,
+    setSelectedStatuses,
+    filteredStages,
+    savedPresets,
+    applyPreset,
+    saveCurrentAsPreset,
+    deletePreset,
+    clearFilters,
+    activeFiltersCount
+  } = usePipelineFilters({
+    stages,
+    items: allItems,
+    type: 'ticket'
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -37,6 +73,35 @@ const TicketPipeline = () => {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  const handleStageBuilderSave = (stage: any) => {
+    // In a real implementation, this would save to backend
+    console.log('Saving custom stage:', stage);
+    setShowStageBuilder(false);
+    setEditingStage(null);
+  };
+
+  const handleEditStage = (stageId: string) => {
+    const stage = stages.find(s => s.id === stageId);
+    setEditingStage(stage);
+    setShowStageBuilder(true);
+  };
+
+  if (showStageBuilder) {
+    return (
+      <div className="space-y-6">
+        <CustomStageBuilder
+          stage={editingStage}
+          onSave={handleStageBuilderSave}
+          onCancel={() => {
+            setShowStageBuilder(false);
+            setEditingStage(null);
+          }}
+          type="ticket"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -71,10 +136,11 @@ const TicketPipeline = () => {
           
           <Button 
             variant="outline" 
+            onClick={() => setShowStageBuilder(true)}
             className="flex items-center gap-2 border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal hover:border-quikle-slate"
           >
             <Settings className="h-4 w-4" />
-            Pipeline Settings
+            Custom Stages
           </Button>
           <Button 
             onClick={() => setIsAddStageOpen(true)} 
@@ -86,11 +152,34 @@ const TicketPipeline = () => {
         </div>
       </div>
 
-      <PipelineMetrics type="ticket" stages={stages} />
+      <PipelineMetrics type="ticket" stages={filteredStages} />
+
+      <PipelineAdvancedFilters
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedStageIds={selectedStageIds}
+        setSelectedStageIds={setSelectedStageIds}
+        selectedPriorities={selectedPriorities}
+        setSelectedPriorities={setSelectedPriorities}
+        selectedAssignees={selectedAssignees}
+        setSelectedAssignees={setSelectedAssignees}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+        selectedStatuses={selectedStatuses}
+        setSelectedStatuses={setSelectedStatuses}
+        stages={stages}
+        savedPresets={savedPresets}
+        applyPreset={applyPreset}
+        saveCurrentAsPreset={saveCurrentAsPreset}
+        deletePreset={deletePreset}
+        clearFilters={clearFilters}
+        activeFiltersCount={activeFiltersCount}
+        type="ticket"
+      />
 
       {useMobileView ? (
         <MobilePipelineView
-          stages={stages}
+          stages={filteredStages}
           onMove={handleTicketMove}
           type="ticket"
         />
@@ -101,14 +190,14 @@ const TicketPipeline = () => {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext items={stages.map(s => s.id)}>
+          <SortableContext items={filteredStages.map(s => s.id)}>
             <div className="flex gap-4 overflow-x-auto pb-4">
-              {stages.map((stage) => (
+              {filteredStages.map((stage) => (
                 <DroppableStage
                   key={stage.id}
                   stage={stage}
                   onCustomerMove={handleTicketMove}
-                  onStageEdit={handleStageEdit}
+                  onStageEdit={() => handleEditStage(stage.id)}
                   onStageDelete={handleStageDelete}
                   onAddItem={handleAddTicket}
                   type="ticket"
