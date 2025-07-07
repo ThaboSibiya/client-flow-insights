@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Users, Sitemap, Layers } from "lucide-react";
+import { Plus, Search, Users, Network, Layers } from "lucide-react";
 import EmployeeList from '../components/employees/EmployeeList';
 import EmployeeForm from '../components/employees/EmployeeForm';
 import EmployeeAccessChecker from '../components/employees/EmployeeAccessChecker';
@@ -92,7 +91,7 @@ const Employees = () => {
               Employee List
             </TabsTrigger>
             <TabsTrigger value="org-chart" className="flex items-center gap-2">
-              <Sitemap className="h-4 w-4" />
+              <Network className="h-4 w-4" />
               Org Chart
             </TabsTrigger>
             <TabsTrigger value="hierarchy" className="flex items-center gap-2">
