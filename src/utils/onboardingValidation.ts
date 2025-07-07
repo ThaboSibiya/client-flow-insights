@@ -1,3 +1,4 @@
+
 import DOMPurify from 'isomorphic-dompurify';
 
 // Phone number validation for international formats
