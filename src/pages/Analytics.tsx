@@ -9,7 +9,11 @@ import WeeklySummary from '@/components/analytics/WeeklySummary';
 import TicketAnalyticsDashboard from '@/components/analytics/TicketAnalyticsDashboard';
 import AdvancedAnalyticsDashboard from '@/components/analytics/AdvancedAnalyticsDashboard';
 import InteractiveReports from '@/components/analytics/InteractiveReports';
-import { Users, Ticket, TrendingUp, FileBarChart } from 'lucide-react';
+import ExecutiveSummaryCards from '@/components/analytics/ExecutiveSummaryCards';
+import MobileAnalyticsView from '@/components/analytics/MobileAnalyticsView';
+import ReportScheduler from '@/components/analytics/ReportScheduler';
+import VoiceQueryInterface from '@/components/analytics/VoiceQueryInterface';
+import { Users, Ticket, TrendingUp, FileBarChart, Calendar, Mic } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
 import { generateReportData, calculateSummary } from '@/utils/customer-analytics';
 
@@ -36,50 +40,75 @@ const Analytics = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="customers" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="customers" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Customer Analytics
-          </TabsTrigger>
-          <TabsTrigger value="tickets" className="flex items-center gap-2">
-            <Ticket className="h-4 w-4" />
-            Ticket Analytics
-          </TabsTrigger>
-          <TabsTrigger value="advanced" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Advanced Analytics
-          </TabsTrigger>
-          <TabsTrigger value="interactive" className="flex items-center gap-2">
-            <FileBarChart className="h-4 w-4" />
-            Interactive Reports
-          </TabsTrigger>
-        </TabsList>
+      {/* Executive Summary Cards - Always Visible */}
+      <ExecutiveSummaryCards />
 
-        <TabsContent value="customers" className="space-y-6">
-          <CustomerMetricsSummary summary={summary} />
-          <div className="grid gap-6 md:grid-cols-2">
-            <CustomerChart reportData={reportData} timeframe={timeframe} />
-            <StatusDistribution customers={customers} />
-          </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            <MonthlyTrends customers={customers} />
-            <WeeklySummary customers={customers} />
-          </div>
-        </TabsContent>
+      {/* Mobile Analytics View - Mobile Only */}
+      <MobileAnalyticsView />
 
-        <TabsContent value="tickets" className="space-y-6">
-          <TicketAnalyticsDashboard />
-        </TabsContent>
+      {/* Desktop Tabs - Hidden on Mobile */}
+      <div className="hidden md:block">
+        <Tabs defaultValue="customers" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="customers" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Customer Analytics
+            </TabsTrigger>
+            <TabsTrigger value="tickets" className="flex items-center gap-2">
+              <Ticket className="h-4 w-4" />
+              Ticket Analytics
+            </TabsTrigger>
+            <TabsTrigger value="advanced" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Advanced Analytics
+            </TabsTrigger>
+            <TabsTrigger value="interactive" className="flex items-center gap-2">
+              <FileBarChart className="h-4 w-4" />
+              Interactive Reports
+            </TabsTrigger>
+            <TabsTrigger value="scheduler" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Report Scheduler
+            </TabsTrigger>
+            <TabsTrigger value="voice" className="flex items-center gap-2">
+              <Mic className="h-4 w-4" />
+              Voice Queries
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="advanced" className="space-y-6">
-          <AdvancedAnalyticsDashboard />
-        </TabsContent>
+          <TabsContent value="customers" className="space-y-6">
+            <CustomerMetricsSummary summary={summary} />
+            <div className="grid gap-6 md:grid-cols-2">
+              <CustomerChart reportData={reportData} timeframe={timeframe} />
+              <StatusDistribution customers={customers} />
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <MonthlyTrends customers={customers} />
+              <WeeklySummary customers={customers} />
+            </div>
+          </TabsContent>
 
-        <TabsContent value="interactive" className="space-y-6">
-          <InteractiveReports />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="tickets" className="space-y-6">
+            <TicketAnalyticsDashboard />
+          </TabsContent>
+
+          <TabsContent value="advanced" className="space-y-6">
+            <AdvancedAnalyticsDashboard />
+          </TabsContent>
+
+          <TabsContent value="interactive" className="space-y-6">
+            <InteractiveReports />
+          </TabsContent>
+
+          <TabsContent value="scheduler" className="space-y-6">
+            <ReportScheduler />
+          </TabsContent>
+
+          <TabsContent value="voice" className="space-y-6">
+            <VoiceQueryInterface />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
