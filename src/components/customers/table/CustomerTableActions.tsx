@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,23 +32,6 @@ const CustomerTableActions = ({
   onManageTickets, 
   onDelete 
 }: CustomerTableActionsProps) => {
-  const getTicketBadgeColor = (count: number) => {
-    if (count === 0) return 'bg-slate-100 text-slate-600 border-slate-200';
-    if (count <= 2) return 'bg-blue-100 text-blue-700 border-blue-200';
-    if (count <= 5) return 'bg-amber-100 text-amber-700 border-amber-200';
-    return 'bg-red-100 text-red-700 border-red-200';
-  };
-
-  const getStatusBadgeColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'new': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'existing': return 'bg-green-100 text-green-800 border-green-200';
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'finalised': return 'bg-purple-100 text-purple-800 border-purple-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
   const handleCall = () => {
     if (customer.phone) {
       window.open(`tel:${customer.phone}`, '_self');
@@ -63,24 +45,7 @@ const CustomerTableActions = ({
   };
 
   return (
-    <div className="flex items-center justify-end gap-2 min-w-[200px]">
-      {/* Status Badge */}
-      <Badge
-        variant="outline"
-        className={`text-xs font-medium px-2 py-1 ${getStatusBadgeColor(customer.status || 'new')}`}
-      >
-        {(customer.status || 'new').charAt(0).toUpperCase() + (customer.status || 'new').slice(1)}
-      </Badge>
-
-      {/* Ticket Badge */}
-      <Badge 
-        variant="outline"
-        className={`text-xs font-medium px-2 py-1 cursor-pointer hover:shadow-sm transition-all ${getTicketBadgeColor(customer.ticketCount || 0)}`}
-        onClick={() => onManageTickets(customer)}
-      >
-        {customer.ticketCount || 0} ticket{(customer.ticketCount || 0) !== 1 ? 's' : ''}
-      </Badge>
-
+    <div className="flex items-center justify-end gap-2 min-w-[120px]">
       {/* Quick Contact Actions */}
       <div className="flex items-center gap-1">
         {customer.phone && (
