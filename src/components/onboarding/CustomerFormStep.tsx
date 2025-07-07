@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -129,6 +128,8 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
 
     setIsSubmitting(true);
     try {
+      console.log('Starting customer creation with data:', data);
+      
       // Sanitize all text inputs
       const sanitizedData = Object.entries(data).reduce((acc, [key, value]) => {
         if (typeof value === 'string') {
@@ -139,27 +140,42 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
         return acc;
       }, {} as Record<string, any>);
 
-      // Create a customer with industry-specific data
+      // Create customer name from available fields
+      const customerName = sanitizedData.company_name || 
+                          sanitizedData.client_name || 
+                          sanitizedData.name || 
+                          sanitizedData.business_name ||
+                          'New Customer';
+
+      // Create detailed notes with industry-specific data
+      const industryDetails = Object.entries(sanitizedData)
+        .filter(([key, value]) => value && value !== '')
+        .map(([key, value]) => `${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${value}`)
+        .join('\n');
+
       const customerData = {
         user_id: user.id,
-        name: sanitizedData.company_name || sanitizedData.client_name || sanitizedData.name || 'New Customer',
-        email: sanitizedData.email || '',
-        phone: sanitizedData.phone_number || sanitizedData.phone || '',
+        name: customerName,
+        email: sanitizedData.email || sanitizedData.contact_email || '',
+        phone: sanitizedData.phone_number || sanitizedData.phone || sanitizedData.contact_phone || '',
         status: 'new' as const,
-        notes: `Industry: ${industry.replace('_', ' ')}\n\nCustomer Details:\n${Object.entries(sanitizedData)
-          .filter(([, value]) => value)
-          .map(([key, value]) => `${key.replace('_', ' ')}: ${value}`)
-          .join('\n')}`,
+        notes: `Industry: ${industry.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}\nTemplate: ${template.template_name}\n\nCustomer Details:\n${industryDetails}`,
       };
 
-      const { error: customerError } = await supabase
+      console.log('Creating customer with data:', customerData);
+
+      const { data: createdCustomer, error: customerError } = await supabase
         .from('customers')
-        .insert(customerData);
+        .insert(customerData)
+        .select()
+        .single();
 
       if (customerError) {
         console.error('Customer creation error:', customerError);
         throw customerError;
       }
+
+      console.log('Customer created successfully:', createdCustomer);
 
       // Mark onboarding as complete
       const { error: profileError } = await supabase
@@ -172,13 +188,19 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
         throw profileError;
       }
 
+      console.log('Onboarding marked as complete');
+
       toast({
         title: 'Success!',
-        description: 'Your first customer has been added and onboarding is complete.',
+        description: `${customerName} has been added successfully and onboarding is complete.`,
         duration: 5000,
       });
 
-      onComplete();
+      // Small delay to ensure data is committed before navigation
+      setTimeout(() => {
+        onComplete();
+      }, 1000);
+
     } catch (error: any) {
       console.error('Error creating customer:', error);
       toast({

@@ -16,6 +16,7 @@ const CustomerTableContainer = () => {
   const {
     customers,
     isLoading,
+    refreshCustomers,
   } = useCustomerData();
 
   const {
@@ -55,8 +56,19 @@ const CustomerTableContainer = () => {
     }
   }, [searchQuery, searchInput]);
 
+  // Effect to refresh data when component mounts (useful after onboarding)
+  React.useEffect(() => {
+    console.log('CustomerTableContainer mounted, current customers:', customers.length);
+    
+    // If we have no customers and we're not loading, try to refresh
+    if (customers.length === 0 && !isLoading) {
+      console.log('No customers found, triggering refresh');
+      refreshCustomers();
+    }
+  }, [customers.length, isLoading, refreshCustomers]);
+
   const [currentPage, setCurrentPage] = React.useState(1);
-  const [isRefreshing, setIsRefreshing] = React.useState(false); // For UI feedback on manual refresh
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
   const itemsPerPage = 10;
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
   
@@ -122,6 +134,14 @@ const CustomerTableContainer = () => {
         }
       },
       description: 'Clear selection'
+    },
+    {
+      key: 'r',
+      ctrlKey: true,
+      action: () => {
+        handleRefresh();
+      },
+      description: 'Refresh data'
     }
   ]);
 
@@ -141,14 +161,14 @@ const CustomerTableContainer = () => {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      // Data is real-time, so this is mostly for user feedback.
-      // A full implementation might expose a 'refetch' from useCustomerData.
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Manual refresh triggered from table container');
+      await refreshCustomers();
       toast({
-        title: "Data is up-to-date",
-        description: "Customer data is being synchronized automatically.",
+        title: "Data refreshed",
+        description: "Customer data has been updated successfully.",
       });
     } catch (error) {
+      console.error('Refresh error:', error);
       toast({
         title: "Refresh failed",
         description: "An error occurred while trying to refresh.",

@@ -66,9 +66,14 @@ export const useCustomerData = () => {
     return Math.random() > 0.6 ? sampleTickets : [];
   }, []);
 
-  const fetchCustomers = useCallback(async () => {
+  const fetchCustomers = useCallback(async (forceRefresh = false) => {
     if (!user) {
       setCustomers([]);
+      return;
+    }
+
+    // Skip loading if we already have data and this isn't a forced refresh
+    if (!forceRefresh && customers.length > 0 && !isLoading) {
       return;
     }
 
@@ -76,18 +81,25 @@ export const useCustomerData = () => {
     setError(null);
 
     try {
+      console.log('Fetching customers for user:', user.id);
+      
       const { data, error } = await supabase
         .from('customers')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching customers:', error);
+        throw error;
+      }
+
+      console.log('Raw customer data from database:', data);
 
       if (data) {
         const formattedCustomers: Customer[] = data.map(item => {
           const activeTickets = generateSampleTickets(item.id);
-          return {
+          const customer = {
             id: item.id,
             name: item.name,
             email: item.email,
@@ -100,7 +112,11 @@ export const useCustomerData = () => {
             ticketCount: activeTickets.length,
             lastTicketDate: activeTickets.length > 0 ? activeTickets[0].createdAt : undefined,
           };
+          console.log('Formatted customer:', customer);
+          return customer;
         });
+        
+        console.log('Setting customers in store:', formattedCustomers);
         setCustomers(formattedCustomers);
       }
     } catch (error: any) {
@@ -114,23 +130,27 @@ export const useCustomerData = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, setCustomers, setLoading, setError, generateSampleTickets]);
+  }, [user, setCustomers, setLoading, setError, generateSampleTickets, customers.length, isLoading]);
 
   // Effect for initial data load
   useEffect(() => {
-    if (user && customers.length === 0) {
+    if (user) {
+      console.log('Initial customer data load for user:', user.id);
       fetchCustomers();
     }
     // Clear data on logout
     if (!user) {
+      console.log('Clearing customer data due to logout');
       setCustomers([]);
     }
-  }, [user, customers.length, fetchCustomers, setCustomers]);
+  }, [user, fetchCustomers, setCustomers]);
 
-  // Effect for real-time updates
+  // Effect for real-time updates with improved logging
   useEffect(() => {
     if (!user) return;
 
+    console.log('Setting up real-time subscription for customers');
+    
     const subscription = supabase
       .channel('customers-channel-realtime')
       .on(
@@ -141,17 +161,35 @@ export const useCustomerData = () => {
           table: 'customers',
           filter: `user_id=eq.${user.id}`,
         },
-        () => {
-          toast({ description: "Customer data updated in real-time." });
-          fetchCustomers();
+        (payload) => {
+          console.log('Real-time customer update received:', payload);
+          toast({ 
+            description: "Customer data updated in real-time.",
+            duration: 3000 
+          });
+          // Force refresh to get latest data
+          fetchCustomers(true);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Real-time subscription status:', status);
+      });
 
     return () => {
+      console.log('Cleaning up real-time subscription');
       supabase.removeChannel(subscription);
     };
   }, [user, fetchCustomers]);
 
-  return { customers, isLoading };
+  // Expose a manual refresh function
+  const refreshCustomers = useCallback(() => {
+    console.log('Manual customer refresh triggered');
+    fetchCustomers(true);
+  }, [fetchCustomers]);
+
+  return { 
+    customers, 
+    isLoading,
+    refreshCustomers 
+  };
 };
