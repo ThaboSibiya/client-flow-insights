@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useMessagesOptimized } from '@/hooks/useMessagesOptimized';
 import { useAuth } from '@/context/AuthContext';
+import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import MessageBubble from './MessageBubble';
 import MessageSearch from './MessageSearch';
 import TypingIndicator from './TypingIndicator';
@@ -40,6 +41,8 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
     hasMoreMessages,
     error
   } = useMessagesOptimized(conversationId);
+
+  const { typingUsers, startTyping, stopTyping } = useTypingIndicator(conversationId);
 
   const [newMessage, setNewMessage] = useState('');
   const [isInternal, setIsInternal] = useState(false);
@@ -102,6 +105,16 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
   const getLastMessage = () => {
     if (!messages || messages.length === 0) return '';
     return messages[messages.length - 1]?.content || '';
+  };
+
+  // Handle typing indicators
+  const handleMessageChange = (value: string) => {
+    setNewMessage(value);
+    if (value.trim()) {
+      startTyping();
+    } else {
+      stopTyping();
+    }
   };
 
   if (loading && (!messages || messages.length === 0)) {
@@ -263,7 +276,7 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
           ))}
 
           {/* Typing Indicator */}
-          <TypingIndicator conversationId={conversationId} />
+          <TypingIndicator typingUsers={typingUsers} />
           
           {/* Scroll anchor */}
           <div ref={messagesEndRef} />
@@ -287,7 +300,7 @@ const MessageThread = ({ conversationId }: MessageThreadProps) => {
         conversationId={conversationId}
         conversationType={conversation.type || 'email'}
         lastMessage={getLastMessage()}
-        onMessageChange={setNewMessage}
+        onMessageChange={handleMessageChange}
         onInternalToggle={() => setIsInternal(!isInternal)}
         onSendMessage={handleSendMessage}
         disabled={sendingMessage}
