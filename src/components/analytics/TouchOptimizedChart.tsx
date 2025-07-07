@@ -82,9 +82,6 @@ const TouchOptimizedChart = ({
             <ComposedChart 
               {...commonProps} 
               onClick={handleChartClick}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={() => handleTouchEnd(selectedDataPoint)}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
               <XAxis dataKey="name" stroke="#6B7280" fontSize={12} />
@@ -108,9 +105,6 @@ const TouchOptimizedChart = ({
             <ComposedChart 
               {...commonProps} 
               onClick={handleChartClick}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={() => handleTouchEnd(selectedDataPoint)}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
               <XAxis dataKey="name" stroke="#6B7280" fontSize={12} />
@@ -166,9 +160,6 @@ const TouchOptimizedChart = ({
             <ComposedChart 
               {...commonProps} 
               onClick={handleChartClick}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={() => handleTouchEnd(selectedDataPoint)}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
               <XAxis dataKey="name" stroke="#6B7280" fontSize={12} />
@@ -257,6 +248,9 @@ const TouchOptimizedChart = ({
           ref={chartRef}
           className="w-full touch-pan-y"
           style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'top left' }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={() => handleTouchEnd(selectedDataPoint)}
         >
           {renderChart()}
         </div>
