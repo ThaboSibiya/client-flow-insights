@@ -167,11 +167,19 @@ const QuoteInvoice = () => {
         </TabsContent>
 
         <TabsContent value="create-quote" className="mt-6">
-          <QuoteForm onSave={handleSave} initialData={editingQuote?.type === 'quote' ? editingQuote : null} />
+          <ResponsiveQuoteManager 
+            onSave={handleSave} 
+            initialData={editingQuote?.type === 'quote' ? editingQuote : null}
+            type="quote"
+          />
         </TabsContent>
 
         <TabsContent value="create-invoice" className="mt-6">
-          <InvoiceForm onSave={handleSave} initialData={editingQuote?.type === 'invoice' ? editingQuote : null} />
+          <ResponsiveQuoteManager 
+            onSave={handleSave} 
+            initialData={editingQuote?.type === 'invoice' ? editingQuote : null}
+            type="invoice"
+          />
         </TabsContent>
 
         <TabsContent value="workflow" className="mt-6">
