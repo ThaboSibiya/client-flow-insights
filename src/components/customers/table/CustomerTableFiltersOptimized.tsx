@@ -29,7 +29,7 @@ interface CustomerTableFiltersOptimizedProps {
 const CustomerTableFiltersOptimized = (props: CustomerTableFiltersOptimizedProps) => {
   const FiltersSkeleton = React.memo(() => (
     <div 
-      className="p-6 bg-gradient-to-r from-white via-quikle-crystal to-quikle-platinum border border-quikle-silver/30 rounded-lg shadow-elegant animate-pulse"
+      className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm animate-pulse"
       role="status"
       aria-label="Loading filters"
     >
@@ -57,23 +57,24 @@ const CustomerTableFiltersOptimized = (props: CustomerTableFiltersOptimizedProps
   );
 
   const QuickActionsBar = React.memo(() => (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center gap-3">
+        <h2 className="text-xl font-semibold text-slate-900">Customer Filters</h2>
         {activeFiltersCount > 0 && (
-          <>
-            <Badge variant="secondary" className="bg-quikle-primary/10 text-quikle-primary">
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
               {activeFiltersCount} active filter{activeFiltersCount > 1 ? 's' : ''}
             </Badge>
             <Button
               variant="ghost"
               size="sm"
               onClick={props.onClearAllFilters}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 px-3"
             >
               <X className="h-3 w-3 mr-1" />
               Clear All
             </Button>
-          </>
+          </div>
         )}
       </div>
       
@@ -83,17 +84,17 @@ const CustomerTableFiltersOptimized = (props: CustomerTableFiltersOptimizedProps
           size="sm"
           onClick={props.onRefresh}
           disabled={props.isRefreshing}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 border-slate-300 hover:bg-slate-50"
         >
-          <RefreshCw className={`h-3 w-3 ${props.isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh
+          <RefreshCw className={`h-4 w-4 ${props.isRefreshing ? 'animate-spin' : ''}`} />
+          {props.isRefreshing ? 'Refreshing...' : 'Refresh'}
         </Button>
       )}
     </div>
   ));
 
   return (
-    <div role="search" aria-label="Customer filters" className="space-y-4">
+    <div role="search" aria-label="Customer filters" className="space-y-6">
       <QuickActionsBar />
       
       <Suspense fallback={<FiltersSkeleton />}>
