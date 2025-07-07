@@ -1,7 +1,7 @@
 
 import React, { useCallback, useTransition } from 'react';
 import { useCustomerData } from '@/hooks/useCustomerData';
-import { useCustomerFilters } from '@/hooks/useCustomerFilters';
+import { useCustomerFilters } from '@/hooks/useCustomerFilters/index';
 import { useTableSelection } from '@/hooks/useTableSelection';
 import { useCustomerExport } from '@/hooks/useCustomerExport';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 // Optimized icon imports
 import { Search, Calendar as CalendarIcon, Filter, Save, Star } from 'lucide-react';
 import { formatDate } from '@/utils/dateUtils';
-import { FilterPreset } from '@/hooks/useCustomerFilters';
+import { FilterPreset } from '@/hooks/useCustomerFilters/types';
 
 interface EnhancedFiltersProps {
   statusFilter: string;
