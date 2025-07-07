@@ -84,35 +84,31 @@ const PipelineAdvancedFilters = ({
   }, [stages, type]);
 
   const handleStageToggle = (stageId: string) => {
-    setSelectedStageIds(prev => 
-      prev.includes(stageId) 
-        ? prev.filter(id => id !== stageId)
-        : [...prev, stageId]
-    );
+    const newSelectedStageIds = selectedStageIds.includes(stageId) 
+      ? selectedStageIds.filter(id => id !== stageId)
+      : [...selectedStageIds, stageId];
+    setSelectedStageIds(newSelectedStageIds);
   };
 
   const handlePriorityToggle = (priority: string) => {
-    setSelectedPriorities(prev => 
-      prev.includes(priority) 
-        ? prev.filter(p => p !== priority)
-        : [...prev, priority]
-    );
+    const newSelectedPriorities = selectedPriorities.includes(priority) 
+      ? selectedPriorities.filter(p => p !== priority)
+      : [...selectedPriorities, priority];
+    setSelectedPriorities(newSelectedPriorities);
   };
 
   const handleStatusToggle = (status: string) => {
-    setSelectedStatuses(prev => 
-      prev.includes(status) 
-        ? prev.filter(s => s !== status)
-        : [...prev, status]
-    );
+    const newSelectedStatuses = selectedStatuses.includes(status) 
+      ? selectedStatuses.filter(s => s !== status)
+      : [...selectedStatuses, status];
+    setSelectedStatuses(newSelectedStatuses);
   };
 
   const handleAssigneeToggle = (assignee: string) => {
-    setSelectedAssignees(prev => 
-      prev.includes(assignee) 
-        ? prev.filter(a => a !== assignee)
-        : [...prev, assignee]
-    );
+    const newSelectedAssignees = selectedAssignees.includes(assignee) 
+      ? selectedAssignees.filter(a => a !== assignee)
+      : [...selectedAssignees, assignee];
+    setSelectedAssignees(newSelectedAssignees);
   };
 
   const handleSavePreset = () => {
