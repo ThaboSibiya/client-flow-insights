@@ -1,5 +1,5 @@
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, CustomerStatus, CustomerTicket, TimeEntry } from '@/types/customer';
 import { useAuth } from '@/context/AuthContext';
@@ -9,6 +9,10 @@ import { useCustomerStore } from '@/stores/customerStore';
 export const useCustomerData = () => {
   const { user } = useAuth();
   const { customers, setCustomers, setLoading, setError, isLoading } = useCustomerStore();
+  
+  // Use refs to prevent infinite loops
+  const isInitializedRef = useRef(false);
+  const subscriptionRef = useRef<any>(null);
 
   // Generate sample ticket data with time tracking for demonstration
   const generateSampleTickets = useCallback((customerId: string): CustomerTicket[] => {
@@ -68,21 +72,22 @@ export const useCustomerData = () => {
 
   const fetchCustomers = useCallback(async (forceRefresh = false) => {
     if (!user) {
+      console.log('No user, clearing customers');
       setCustomers([]);
       return;
     }
 
     // Skip loading if we already have data and this isn't a forced refresh
-    if (!forceRefresh && customers.length > 0 && !isLoading) {
+    if (!forceRefresh && customers.length > 0 && !isLoading && isInitializedRef.current) {
+      console.log('Skipping fetch - already have data');
       return;
     }
 
+    console.log('Fetching customers for user:', user.id, 'forceRefresh:', forceRefresh);
     setLoading(true);
     setError(null);
 
     try {
-      console.log('Fetching customers for user:', user.id);
-      
       const { data, error } = await supabase
         .from('customers')
         .select('*')
@@ -94,7 +99,7 @@ export const useCustomerData = () => {
         throw error;
       }
 
-      console.log('Raw customer data from database:', data);
+      console.log('Raw customer data from database:', data?.length || 0, 'customers');
 
       if (data) {
         const formattedCustomers: Customer[] = data.map(item => {
@@ -112,12 +117,12 @@ export const useCustomerData = () => {
             ticketCount: activeTickets.length,
             lastTicketDate: activeTickets.length > 0 ? activeTickets[0].createdAt : undefined,
           };
-          console.log('Formatted customer:', customer);
           return customer;
         });
         
-        console.log('Setting customers in store:', formattedCustomers);
+        console.log('Setting formatted customers:', formattedCustomers.length);
         setCustomers(formattedCustomers);
+        isInitializedRef.current = true;
       }
     } catch (error: any) {
       console.error('Error fetching customers:', error.message);
@@ -130,29 +135,37 @@ export const useCustomerData = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, setCustomers, setLoading, setError, generateSampleTickets, customers.length, isLoading]);
+  }, [user?.id, setCustomers, setLoading, setError, generateSampleTickets]);
 
   // Effect for initial data load
   useEffect(() => {
-    if (user) {
+    if (user && !isInitializedRef.current) {
       console.log('Initial customer data load for user:', user.id);
       fetchCustomers();
     }
+    
     // Clear data on logout
     if (!user) {
       console.log('Clearing customer data due to logout');
       setCustomers([]);
+      isInitializedRef.current = false;
     }
-  }, [user, fetchCustomers, setCustomers]);
+  }, [user?.id, fetchCustomers, setCustomers]);
 
-  // Effect for real-time updates with improved logging
+  // Effect for real-time updates
   useEffect(() => {
-    if (!user) return;
+    if (!user || !isInitializedRef.current) return;
+
+    // Clean up existing subscription
+    if (subscriptionRef.current) {
+      console.log('Cleaning up existing real-time subscription');
+      supabase.removeChannel(subscriptionRef.current);
+    }
 
     console.log('Setting up real-time subscription for customers');
     
     const subscription = supabase
-      .channel('customers-channel-realtime')
+      .channel('customers-realtime-' + user.id)
       .on(
         'postgres_changes',
         {
@@ -162,7 +175,7 @@ export const useCustomerData = () => {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('Real-time customer update received:', payload);
+          console.log('Real-time customer update received:', payload.eventType);
           toast({ 
             description: "Customer data updated in real-time.",
             duration: 3000 
@@ -175,11 +188,16 @@ export const useCustomerData = () => {
         console.log('Real-time subscription status:', status);
       });
 
+    subscriptionRef.current = subscription;
+
     return () => {
-      console.log('Cleaning up real-time subscription');
-      supabase.removeChannel(subscription);
+      if (subscriptionRef.current) {
+        console.log('Cleaning up real-time subscription');
+        supabase.removeChannel(subscriptionRef.current);
+        subscriptionRef.current = null;
+      }
     };
-  }, [user, fetchCustomers]);
+  }, [user?.id, fetchCustomers]);
 
   // Expose a manual refresh function
   const refreshCustomers = useCallback(() => {

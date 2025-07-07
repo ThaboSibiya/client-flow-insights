@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useCustomerData } from '@/hooks/useCustomerData';
 import { useCustomerFilters } from '@/hooks/useCustomerFilters';
@@ -56,16 +55,46 @@ const CustomerTableContainer = () => {
     }
   }, [searchQuery, searchInput]);
 
-  // Effect to refresh data when component mounts (useful after onboarding)
+  // Effect to refresh data when component mounts or when coming from onboarding
   React.useEffect(() => {
     console.log('CustomerTableContainer mounted, current customers:', customers.length);
     
-    // If we have no customers and we're not loading, try to refresh
-    if (customers.length === 0 && !isLoading) {
-      console.log('No customers found, triggering refresh');
+    // Check if we came from onboarding by looking at the URL or session storage
+    const justOnboarded = sessionStorage.getItem('justOnboarded');
+    
+    if (justOnboarded || (customers.length === 0 && !isLoading)) {
+      console.log('Triggering refresh - just onboarded or no customers');
       refreshCustomers();
+      
+      // Clear the onboarding flag
+      if (justOnboarded) {
+        sessionStorage.removeItem('justOnboarded');
+      }
     }
-  }, [customers.length, isLoading, refreshCustomers]);
+  }, []);
+
+  // Listen for focus events to refresh data when user returns to tab
+  React.useEffect(() => {
+    const handleFocus = () => {
+      console.log('Window focused, refreshing customer data');
+      refreshCustomers();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Tab visible, refreshing customer data');
+        refreshCustomers();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [refreshCustomers]);
 
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isRefreshing, setIsRefreshing] = React.useState(false);

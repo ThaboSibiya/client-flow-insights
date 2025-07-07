@@ -190,6 +190,9 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
 
       console.log('Onboarding marked as complete');
 
+      // Set flag to indicate we just onboarded a customer
+      sessionStorage.setItem('justOnboarded', 'true');
+
       toast({
         title: 'Success!',
         description: `${customerName} has been added successfully and onboarding is complete.`,
