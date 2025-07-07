@@ -15,6 +15,7 @@ import {
   Award
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import EmployeeQRCode from './EmployeeQRCode';
 
 interface Employee {
   id: string;
@@ -23,6 +24,10 @@ interface Employee {
   email: string;
   role: string;
   status: string;
+  phone?: string;
+  title: string;
+  department?: string;
+  employee_number: string;
 }
 
 interface RoleBasedQuickActionsProps {
@@ -158,6 +163,9 @@ const RoleBasedQuickActions = ({
           <FileText className="h-4 w-4" />
         </Button>
       )}
+
+      {/* QR Code for Contact Sharing */}
+      <EmployeeQRCode employee={employee} size={150} />
 
       {/* Privilege Management (Admin only) */}
       {canManagePrivileges() && (

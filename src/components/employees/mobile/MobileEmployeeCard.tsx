@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   Edit, 
   Phone, 
@@ -15,6 +15,7 @@ import {
   MoreHorizontal
 } from "lucide-react";
 import { useMobileDetection } from '@/hooks/useMobileDetection';
+import EmployeeQRCode from '../EmployeeQRCode';
 
 interface Employee {
   id: string;
@@ -32,6 +33,7 @@ interface Employee {
   is_invited?: boolean;
   auth_user_id?: string;
   last_login_at?: string;
+  photo_url?: string;
 }
 
 interface MobileEmployeeCardProps {
@@ -126,6 +128,7 @@ const MobileEmployeeCard = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
             <Avatar className="h-12 w-12">
+              <AvatarImage src={employee.photo_url} alt={`${employee.first_name} ${employee.last_name}`} />
               <AvatarFallback className="bg-quikle-primary text-white">
                 {employee.first_name[0]}{employee.last_name[0]}
               </AvatarFallback>
@@ -218,13 +221,17 @@ const MobileEmployeeCard = ({
               </div>
             </div>
             
-            <Button
-              onClick={() => onEditEmployee(employee)}
-              className="w-full mt-3 bg-quikle-primary hover:bg-quikle-secondary"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Employee
-            </Button>
+            <div className="flex gap-2 mt-3">
+              <Button
+                onClick={() => onEditEmployee(employee)}
+                className="flex-1 bg-quikle-primary hover:bg-quikle-secondary"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Employee
+              </Button>
+              
+              <EmployeeQRCode employee={employee} size={150} />
+            </div>
           </div>
         )}
       </CardContent>
