@@ -69,7 +69,6 @@ const TouchOptimizedChart = ({
 
   const renderChart = () => {
     const commonProps = {
-      width: '100%',
       height: 300,
       data: data,
       margin: { top: 20, right: 30, left: 20, bottom: 20 },
@@ -78,7 +77,7 @@ const TouchOptimizedChart = ({
     switch (chartType) {
       case 'bar':
         return (
-          <ResponsiveContainer {...commonProps}>
+          <ResponsiveContainer width="100%" height={300}>
             <ComposedChart 
               {...commonProps} 
               onClick={handleChartClick}
@@ -101,7 +100,7 @@ const TouchOptimizedChart = ({
 
       case 'line':
         return (
-          <ResponsiveContainer {...commonProps}>
+          <ResponsiveContainer width="100%" height={300}>
             <ComposedChart 
               {...commonProps} 
               onClick={handleChartClick}
@@ -131,7 +130,7 @@ const TouchOptimizedChart = ({
 
       case 'pie':
         return (
-          <ResponsiveContainer {...commonProps}>
+          <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
                 data={data}
@@ -156,7 +155,7 @@ const TouchOptimizedChart = ({
 
       default: // combo
         return (
-          <ResponsiveContainer {...commonProps}>
+          <ResponsiveContainer width="100%" height={300}>
             <ComposedChart 
               {...commonProps} 
               onClick={handleChartClick}
