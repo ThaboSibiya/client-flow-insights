@@ -66,9 +66,20 @@ export const useCustomerFilters = (customers: Customer[]) => {
     search: (customer: Customer) => {
       if (!debouncedSearchQuery) return true;
       const query = debouncedSearchQuery.toLowerCase();
-      return customer.name.toLowerCase().includes(query) ||
+      
+      // Search in basic customer fields
+      const basicFieldsMatch = customer.name.toLowerCase().includes(query) ||
              customer.email.toLowerCase().includes(query) ||
              customer.phone.toLowerCase().includes(query);
+      
+      // Search in equipment fields (serial number, model)
+      const equipmentMatch = customer.equipment?.some(equipment => 
+        equipment.serial_number?.toLowerCase().includes(query) ||
+        equipment.model?.toLowerCase().includes(query) ||
+        equipment.brand?.toLowerCase().includes(query)
+      );
+      
+      return basicFieldsMatch || equipmentMatch;
     },
     dateRange: (customer: Customer) => {
       if (!dateRange.start && !dateRange.end) return true;
