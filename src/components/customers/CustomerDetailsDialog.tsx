@@ -1,33 +1,14 @@
-import React, { useState } from 'react';
-import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
+
+import React from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Save, X } from 'lucide-react';
-import CustomerFileUpload from './CustomerFileUpload';
+import { Badge } from '@/components/ui/badge';
+import { Customer } from '@/types/customer';
+import { Mail, Phone, MapPin, Calendar, FileText } from 'lucide-react';
 
 interface CustomerDetailsDialogProps {
   customer: Customer | null;
@@ -36,136 +17,118 @@ interface CustomerDetailsDialogProps {
 }
 
 const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDialogProps) => {
-  const { updateCustomer } = useCRM();
-  const [activeTab, setActiveTab] = useState('details');
-  
-  const form = useForm<Partial<Customer>>({
-    defaultValues: customer || {},
-  });
-  
-  const onSubmit = (data: Partial<Customer>) => {
-    if (customer) {
-      updateCustomer(customer.id, data);
-      onClose();
+  if (!customer) return null;
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'new':
+        return 'bg-blue-100 text-blue-800';
+      case 'existing':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'finalised':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()} modal={true}>
-      <DialogContent className="sm:max-w-[700px] bg-white border-0 shadow-xl">
-        <DialogHeader className="bg-gradient-to-r from-quikle-primary/10 to-quikle-accent/10 p-4 -m-6 mb-2 rounded-t-lg">
-          <DialogTitle className="text-xl font-semibold text-quikle-primary">
-            {customer?.name || 'Customer Details'}
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center justify-between">
+            <span>{customer.name}</span>
+            <Badge className={getStatusColor(customer.status)}>
+              {customer.status}
+            </Badge>
           </DialogTitle>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="details">Customer Details</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="details">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-quikle-charcoal font-medium">Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Customer name" {...field} className="border-quikle-silver focus:border-quikle-accent" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-quikle-charcoal font-medium">Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="Email address" {...field} className="border-quikle-silver focus:border-quikle-accent" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-quikle-charcoal font-medium">Phone</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Phone number" {...field} className="border-quikle-silver focus:border-quikle-accent" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-quikle-charcoal font-medium">Status</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="border-quikle-silver focus:border-quikle-accent">
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="new" className="text-quikle-info">New</SelectItem>
-                            <SelectItem value="existing" className="text-quikle-success">Existing</SelectItem>
-                            <SelectItem value="pending" className="text-quikle-accent">Pending Policy</SelectItem>
-                            <SelectItem value="finalised" className="text-quikle-purple">Finalised Sale</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+        <div className="space-y-6">
+          {/* Contact Information */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-quikle-slate" />
+                <span className="text-sm">{customer.email}</span>
+              </div>
+              {customer.phone && (
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-quikle-slate" />
+                  <span className="text-sm">{customer.phone}</span>
                 </div>
-                
-                <div className="flex justify-end gap-2 mt-4">
-                  <Button type="button" variant="outline" onClick={onClose} className="border-quikle-silver">
-                    <X className="mr-2 h-4 w-4" />
-                    Cancel
-                  </Button>
-                  <Button type="submit">
-                    <Save className="mr-2 h-4 w-4" />
-                    Save Changes
-                  </Button>
+              )}
+              {customer.address && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-quikle-slate" />
+                  <span className="text-sm">{customer.address}</span>
                 </div>
-              </form>
-            </Form>
-          </TabsContent>
-          
-          <TabsContent value="documents">
-            {customer && (
-              <CustomerFileUpload customerId={customer.id} />
-            )}
-            
-            <div className="mt-6 flex justify-end">
-              <Button variant="outline" onClick={onClose} className="border-quikle-silver">
-                <X className="mr-2 h-4 w-4" />
-                Close
-              </Button>
+              )}
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-quikle-slate" />
+                <span className="text-sm">
+                  Created: {new Date(customer.createdAt).toLocaleDateString()}
+                </span>
+              </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+
+          {/* Company Information */}
+          {(customer.contact_person || customer.company_address) && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Company Information</h3>
+              <div className="grid grid-cols-1 gap-4">
+                {customer.contact_person && (
+                  <div>
+                    <span className="text-sm font-medium">Contact Person: </span>
+                    <span className="text-sm">{customer.contact_person}</span>
+                  </div>
+                )}
+                {customer.company_address && (
+                  <div>
+                    <span className="text-sm font-medium">Company Address: </span>
+                    <span className="text-sm">{customer.company_address}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Equipment */}
+          {customer.equipment && customer.equipment.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Equipment</h3>
+              <div className="space-y-2">
+                {customer.equipment.map((equipment) => (
+                  <div key={equipment.id} className="border rounded-lg p-3">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div><strong>Type:</strong> {equipment.equipment_type}</div>
+                      {equipment.brand && <div><strong>Brand:</strong> {equipment.brand}</div>}
+                      {equipment.model && <div><strong>Model:</strong> {equipment.model}</div>}
+                      {equipment.serial_number && <div><strong>Serial:</strong> {equipment.serial_number}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Notes */}
+          {customer.notes && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Notes
+              </h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm whitespace-pre-wrap">{customer.notes}</p>
+              </div>
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
