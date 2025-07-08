@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Search, ShieldCheck, Download, RefreshCw, Filter, AlertTriangle, Calendar, Eye } from 'lucide-react';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import LoginHistoryList from './LoginHistoryList';
 import FileAccessHistoryList from './FileAccessHistoryList';
 import AuditLogTimeline from './mobile/AuditLogTimeline';
@@ -29,7 +28,7 @@ const AuditLogManager = ({ searchTerm, onSearchChange }: AuditLogManagerProps) =
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [suspiciousActivities, setSuspiciousActivities] = useState(0);
   const [realtimeEnabled, setRealtimeEnabled] = useState(true);
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (realtimeEnabled) {

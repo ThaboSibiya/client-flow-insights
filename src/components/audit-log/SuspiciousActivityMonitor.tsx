@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +23,17 @@ interface SuspiciousActivityMonitorProps {
   onSuspiciousActivityCount: (count: number) => void;
 }
 
+interface LoginHistoryItem {
+  id: string;
+  login_timestamp: string;
+  ip_address: string;
+  employees?: {
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+  };
+}
+
 const SuspiciousActivityMonitor = ({ onSuspiciousActivityCount }: SuspiciousActivityMonitorProps) => {
   const [suspiciousActivities, setSuspiciousActivities] = useState<SuspiciousActivity[]>([]);
   const [selectedActivity, setSelectedActivity] = useState<SuspiciousActivity | null>(null);
@@ -34,14 +44,14 @@ const SuspiciousActivityMonitor = ({ onSuspiciousActivityCount }: SuspiciousActi
   });
 
   useEffect(() => {
-    if (loginHistory) {
+    if (loginHistory && Array.isArray(loginHistory)) {
       const activities = analyzeSuspiciousActivity(loginHistory);
       setSuspiciousActivities(activities);
       onSuspiciousActivityCount(activities.filter(a => !a.resolved).length);
     }
   }, [loginHistory, onSuspiciousActivityCount]);
 
-  const analyzeSuspiciousActivity = (loginData: any[]): SuspiciousActivity[] => {
+  const analyzeSuspiciousActivity = (loginData: LoginHistoryItem[]): SuspiciousActivity[] => {
     const activities: SuspiciousActivity[] = [];
     
     // Group by user
@@ -50,7 +60,7 @@ const SuspiciousActivityMonitor = ({ onSuspiciousActivityCount }: SuspiciousActi
       if (!acc[userKey]) acc[userKey] = [];
       acc[userKey].push(login);
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {} as Record<string, LoginHistoryItem[]>);
 
     // Analyze each user's activity
     Object.entries(userLogins).forEach(([userEmail, logins]) => {
