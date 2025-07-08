@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TwilioSettings } from '@/components/pipeline/settings/TwilioSettings';
-import { TelnyxSettings } from '@/components/pipeline/settings/TelnyxSettings';
-import { EmailSettings } from '@/components/pipeline/settings/EmailSettings';
+import TwilioSettings from '@/components/pipeline/settings/TwilioSettings';
+import TelnyxSettings from '@/components/pipeline/settings/TelnyxSettings';
+import EmailSettings from '@/components/pipeline/settings/EmailSettings';
 
 const IntegrationSettings = () => {
   return (
