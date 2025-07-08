@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import QuoteSettings from "@/components/quotes/QuoteSettings";
 import RevenueOptimizationDashboard from "@/components/quotes/revenue/RevenueOptimizationDashboard";
 import AutoConversionSettings from "@/components/quotes/revenue/AutoConversionSettings";
 import DocumentWorkflowManager from "@/components/quotes/workflow/DocumentWorkflowManager";
+import ResponsiveQuoteManager from "@/components/quotes/ResponsiveQuoteManager";
 import { useFetchQuotes } from '@/hooks/useFetchQuotes';
 import { useCreateQuote } from '@/hooks/mutations/useCreateQuote';
 import { useUpdateQuote } from '@/hooks/mutations/useUpdateQuote';
