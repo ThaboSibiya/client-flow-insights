@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
+import { Customer, CustomerStatus } from '@/types/customer';
+import { useCRM } from '@/context/CRMContext';
 import CustomerDetailsDialog from './CustomerDetailsDialog';
 import TicketManagementDialog from './TicketManagementDialog';
 import { toast } from '@/hooks/use-toast';
@@ -53,6 +54,31 @@ export const useCustomerActions = () => {
     }
   };
 
+  // Fixed function signatures to match expected interface
+  const handleCreateTicket = (customerId: string, ticketData: any) => {
+    // Transform the data to match the expected format
+    const transformedTicket = {
+      customerId,
+      assignedTo: ticketData.assignedTo,
+      status: ticketData.status,
+      priority: ticketData.priority,
+      title: ticketData.subject || ticketData.title,
+      description: ticketData.description,
+    };
+    createTicket(transformedTicket);
+  };
+
+  const handleAddTimeEntry = (ticketId: string, timeEntry: any) => {
+    const transformedEntry = {
+      ticketId,
+      description: timeEntry.description,
+      hours: timeEntry.hours,
+      date: timeEntry.date,
+      employeeId: timeEntry.employeeId,
+    };
+    addTimeEntry(transformedEntry);
+  };
+
   const CustomerDialogs = () => (
     <>
       <CustomerDetailsDialog 
@@ -72,9 +98,9 @@ export const useCustomerActions = () => {
           setIsTicketDialogOpen(false);
           setSelectedCustomer(null);
         }}
-        onCreateTicket={createTicket}
+        onCreateTicket={handleCreateTicket}
         onUpdateTicketStatus={updateTicketStatus}
-        onAddTimeEntry={addTimeEntry}
+        onAddTimeEntry={handleAddTimeEntry}
       />
     </>
   );

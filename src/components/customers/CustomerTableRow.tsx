@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Customer, CustomerStatus } from '@/context/CRMContext';
+import { Customer, CustomerStatus } from '@/types/customer';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';

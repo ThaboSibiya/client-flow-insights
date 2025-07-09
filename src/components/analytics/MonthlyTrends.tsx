@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Customer } from '@/context/CRMContext';
+import { Customer } from '@/types/customer';
 import { ChevronDown } from 'lucide-react';
 import {
   Select,
@@ -38,8 +38,8 @@ const MonthlyTrends = ({ customers }: MonthlyTrendsProps) => {
       
       const finalisedCount = customers.filter(c => 
         c.status === 'finalised' && 
-        c.updatedAt.getMonth() === month.getMonth() && 
-        c.updatedAt.getFullYear() === month.getFullYear()
+        new Date(c.updated_at).getMonth() === month.getMonth() && 
+        new Date(c.updated_at).getFullYear() === month.getFullYear()
       ).length;
       
       data.push({

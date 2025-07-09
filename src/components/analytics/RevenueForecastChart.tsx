@@ -19,8 +19,8 @@ const RevenueForecastChart = () => {
       
       // Calculate actual revenue based on finalized customers
       const monthCustomers = customers.filter(customer => {
-        const customerMonth = customer.updatedAt.getMonth();
-        const customerYear = customer.updatedAt.getFullYear();
+        const customerMonth = new Date(customer.updated_at).getMonth();
+        const customerYear = new Date(customer.updated_at).getFullYear();
         return customerMonth === date.getMonth() && 
                customerYear === date.getFullYear() && 
                customer.status === 'finalised';
