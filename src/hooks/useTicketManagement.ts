@@ -23,13 +23,17 @@ export const useTicketManagement = () => {
       // Map TicketPriority to the priority expected by createTicket (handle "urgent" -> "high")
       const mappedPriority = ticketData.priority === 'urgent' ? 'high' : ticketData.priority === 'low' ? 'low' : ticketData.priority === 'medium' ? 'medium' : 'medium';
       
+      // Extract assignedTo ID if it's a TeamMember object, otherwise use as string
+      const assignedToId = typeof ticketData.assignedTo === 'object' && ticketData.assignedTo ? ticketData.assignedTo.id : ticketData.assignedTo as string | undefined;
+      
       // Create the ticket with title (using subject as title)
       await createTicket({
-        ...ticketData,
         customerId,
         title: ticketData.subject, // Add title property required by Ticket interface
+        description: ticketData.description,
         status: mappedStatus as 'open' | 'in-progress' | 'closed',
-        priority: mappedPriority as 'low' | 'medium' | 'high'
+        priority: mappedPriority as 'low' | 'medium' | 'high',
+        assignedTo: assignedToId
       });
       
       // Generate a temporary ticket ID for auto-assignment
