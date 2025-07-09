@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,8 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Users, ArrowLeft, CheckCircle } from 'lucide-react';
-import OnboardingProgress from './OnboardingProgress';
-import { sanitizeTextInput } from '@/utils/onboardingValidation';
 import { createCustomerWithEquipment } from '@/services/customerService';
 
 interface FieldDefinition {
@@ -48,15 +46,6 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Use ref to prevent multiple analytics tracking calls
-  const hasTrackedTemplate = useRef(false);
-
-  const onboardingSteps = [
-    { title: 'Company Info', description: 'Business details' },
-    { title: 'First Customer', description: 'Add initial customer' },
-    { title: 'Complete', description: 'Setup finished' }
-  ];
 
   const form = useForm<Record<string, any>>({
     defaultValues: {},
@@ -92,12 +81,6 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
               : data.field_definitions
           };
           setTemplate(parsedData);
-
-          // Track template loading only once
-          if (!hasTrackedTemplate.current) {
-            console.log('Template loaded:', parsedData.template_name);
-            hasTrackedTemplate.current = true;
-          }
 
           // Set default values for the form
           const defaultValues: Record<string, any> = {};
@@ -173,17 +156,7 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
     try {
       console.log('Starting customer creation with data:', data);
       
-      // Sanitize all text inputs
-      const sanitizedData = Object.entries(data).reduce((acc, [key, value]) => {
-        if (typeof value === 'string') {
-          acc[key] = sanitizeTextInput(value);
-        } else {
-          acc[key] = value;
-        }
-        return acc;
-      }, {} as Record<string, any>);
-
-      const { customerData, equipmentData } = parseCustomerData(sanitizedData);
+      const { customerData, equipmentData } = parseCustomerData(data);
 
       console.log('Creating customer with structured data:', { customerData, equipmentData });
 
@@ -195,29 +168,12 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
 
       console.log('Customer created successfully:', customer);
 
-      // Mark onboarding as complete
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ onboarding_completed: true })
-        .eq('id', user.id);
-
-      if (profileError) {
-        console.error('Profile update error:', profileError);
-        throw profileError;
-      }
-
-      console.log('Onboarding marked as complete');
-
-      // Set flag to indicate we just onboarded a customer
-      sessionStorage.setItem('justOnboarded', 'true');
-
       toast({
         title: 'Success!',
-        description: `${customerData.name} has been added successfully${equipmentData ? ' with equipment details and an initial service ticket' : ''}.`,
+        description: `${customerData.name} has been added successfully${equipmentData ? ' with equipment details' : ''}.`,
         duration: 5000,
       });
 
-      // Small delay to ensure data is committed before navigation
       setTimeout(() => {
         onComplete();
       }, 1000);
@@ -266,13 +222,7 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
                 <Textarea
                   {...formField}
                   placeholder={`Enter ${field.label.toLowerCase()}`}
-                  className="min-h-[80px]"
-                />
-              ) : field.type === 'date' ? (
-                <Input
-                  {...formField}
-                  type="date"
-                  className="h-12"
+                  className="min-h-[100px] resize-none"
                 />
               ) : (
                 <Input
@@ -280,7 +230,6 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
                   type={field.type}
                   placeholder={`Enter ${field.label.toLowerCase()}`}
                   className="h-12"
-                  autoComplete={field.type === 'email' ? 'email' : field.type === 'tel' ? 'tel' : 'off'}
                 />
               )}
             </FormControl>
@@ -293,11 +242,16 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center quikle-gradient-bg">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-quikle-crystal via-white to-quikle-platinum">
         <Card className="w-full max-w-md glass-effect shadow-luxury">
-          <CardContent className="pt-8 text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-quikle-primary mx-auto mb-4" />
-            <p className="text-quikle-slate">Loading customer template...</p>
+          <CardContent className="p-8 text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-quikle-primary mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-quikle-charcoal mb-2">
+              Loading Customer Form
+            </h3>
+            <p className="text-quikle-slate">
+              Preparing industry-specific fields...
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -306,25 +260,20 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
 
   if (error || !template) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 quikle-gradient-bg">
-        <Card className="w-full max-w-md text-center glass-effect shadow-luxury">
-          <CardContent className="pt-8">
-            <div className="mx-auto mb-4 p-3 bg-yellow-500/10 rounded-full w-fit">
-              <Users className="h-8 w-8 text-yellow-500" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Template Not Found</h3>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-quikle-crystal via-white to-quikle-platinum">
+        <Card className="w-full max-w-md glass-effect shadow-luxury">
+          <CardContent className="p-8 text-center">
+            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <h3 className="text-xl font-semibold text-quikle-charcoal mb-2">
+              Unable to Load Form
+            </h3>
             <p className="text-quikle-slate mb-6">
-              {error || `No customer template found for your industry: ${industry.replace('_', ' ')}.`}
+              {error || 'No template found for this industry'}
             </p>
-            <div className="space-y-3">
-              <Button onClick={onComplete} className="w-full quikle-button-primary">
-                Continue to Dashboard
-              </Button>
-              <Button onClick={onBack} variant="outline" className="w-full">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Company Setup
-              </Button>
-            </div>
+            <Button onClick={onBack} variant="outline" className="mr-2">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Go Back
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -332,60 +281,78 @@ const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 quikle-gradient-bg">
-      <Card className="w-full max-w-2xl glass-effect shadow-luxury">
-        <CardHeader className="text-center pb-6">
-          <OnboardingProgress currentStep={3} totalSteps={3} steps={onboardingSteps} />
-          
-          <div className="mx-auto mb-4 p-3 bg-quikle-secondary/10 rounded-full w-fit">
-            <Users className="h-8 w-8 text-quikle-secondary" />
-          </div>
-          <CardTitle className="text-3xl font-bold luxury-text">Add Your First Customer</CardTitle>
-          <CardDescription className="text-lg text-quikle-slate mt-2">
-            {template.template_name} - Let's add your first customer with industry-specific details
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {template.field_definitions.fields.map((field) => renderField(field))}
+    <div className="min-h-screen bg-gradient-to-br from-quikle-crystal via-white to-quikle-platinum">
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-4xl mx-auto glass-effect shadow-luxury border-quikle-silver/30">
+          <CardHeader className="border-b border-quikle-silver/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-quikle-primary/10 rounded-lg">
+                  <Users className="h-6 w-6 text-quikle-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">
+                    Add Your First Customer
+                  </CardTitle>
+                  <CardDescription className="text-quikle-slate">
+                    {template.template_name} - Customized for {industry.replace('_', ' ')}
+                  </CardDescription>
+                </div>
               </div>
+              <Button 
+                onClick={onBack} 
+                variant="ghost" 
+                size="sm"
+                className="text-quikle-slate hover:text-quikle-charcoal"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+            </div>
+          </CardHeader>
 
-              <div className="flex gap-4 pt-8">
-                <Button 
-                  type="button" 
-                  onClick={onBack}
-                  variant="outline"
-                  className="flex-1 h-12 text-lg font-semibold"
-                  disabled={isSubmitting}
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="flex-1 h-12 text-lg font-semibold quikle-button-primary"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Adding Customer...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      Complete Onboarding
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+          <CardContent className="p-8">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {template.field_definitions.fields.map(renderField)}
+                </div>
+
+                <div className="flex gap-4 pt-6 border-t border-quikle-silver/20">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onBack}
+                    disabled={isSubmitting}
+                    className="flex-1"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Company Setup
+                  </Button>
+                  
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 bg-gradient-to-r from-quikle-primary to-quikle-secondary hover:shadow-luxury"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Adding Customer...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Complete Setup
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
