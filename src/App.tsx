@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { CRMProvider } from "@/context/CRMContext";
-import Layout from "./components/Layout";
+import Layout from "./components/layout/Layout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import EmployeeSetup from "./pages/EmployeeSetup";
@@ -16,11 +16,6 @@ import Onboarding from "./pages/Onboarding";
 import Pipeline from "./pages/Pipeline";
 import Analytics from "./pages/Analytics";
 import QuoteInvoice from "./pages/QuoteInvoice";
-import Tickets from "./pages/Tickets";
-import Settings from "./pages/Settings";
-import Automation from "./pages/Automation";
-import Messages from "./pages/Messages";
-import FormBuilder from "./pages/FormBuilder";
 import Employees from "./pages/Employees";
 import CustomerInsights from "./pages/Customer Insights";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -55,11 +50,6 @@ const App = () => (
                   <Route path="pipeline" element={<Pipeline />} />
                   <Route path="analytics" element={<Analytics />} />
                   <Route path="quotes" element={<QuoteInvoice />} />
-                  <Route path="tickets" element={<Tickets />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="automation" element={<Automation />} />
-                  <Route path="messages" element={<Messages />} />
-                  <Route path="form-builder" element={<FormBuilder />} />
                   <Route path="employees" element={<Employees />} />
                   <Route path="customer-insights" element={<CustomerInsights />} />
                 </Route>
