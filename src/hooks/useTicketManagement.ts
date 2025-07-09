@@ -20,12 +20,16 @@ export const useTicketManagement = () => {
       // Map TicketStatus to the status expected by createTicket
       const mappedStatus = ticketData.status === 'resolved' ? 'closed' : ticketData.status === 'open' ? 'open' : ticketData.status === 'in-progress' ? 'in-progress' : 'open';
       
+      // Map TicketPriority to the priority expected by createTicket (handle "urgent" -> "high")
+      const mappedPriority = ticketData.priority === 'urgent' ? 'high' : ticketData.priority === 'low' ? 'low' : ticketData.priority === 'medium' ? 'medium' : 'medium';
+      
       // Create the ticket with title (using subject as title)
       await createTicket({
         ...ticketData,
         customerId,
         title: ticketData.subject, // Add title property required by Ticket interface
-        status: mappedStatus as 'open' | 'in-progress' | 'closed'
+        status: mappedStatus as 'open' | 'in-progress' | 'closed',
+        priority: mappedPriority as 'low' | 'medium' | 'high'
       });
       
       // Generate a temporary ticket ID for auto-assignment
@@ -82,7 +86,10 @@ export const useTicketManagement = () => {
     timeEntryData: Omit<TimeEntry, 'id' | 'createdAt' | 'ticketId'>
   ) => {
     try {
-      await addTimeEntry(ticketId, timeEntryData);
+      await addTimeEntry({
+        ...timeEntryData,
+        ticketId
+      });
       toast({
         title: "Success",
         description: "Time entry added successfully",
