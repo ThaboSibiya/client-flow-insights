@@ -7,7 +7,7 @@ import CustomerTable from './CustomerTable';
 import EnhancedFilters from './EnhancedFilters';
 
 const CustomerTableOptimized = () => {
-  const { customers, isLoading, error } = useCustomerData();
+  const { customers, isLoading } = useCustomerData();
   
   const {
     statusFilter,
@@ -28,16 +28,6 @@ const CustomerTableOptimized = () => {
   const handleQuickDateRange = (range: string) => {
     getQuickDateRange(range);
   };
-
-  if (error) {
-    return (
-      <Card className="p-6">
-        <div className="text-center text-red-600">
-          Error loading customers: {error}
-        </div>
-      </Card>
-    );
-  }
 
   return (
     <div className="space-y-6">
