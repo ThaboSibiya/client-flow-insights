@@ -35,7 +35,7 @@ const EnhancedQuoteForm = ({ onSave, initialData, type }: EnhancedQuoteFormProps
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [dismissedWarnings, setDismissedWarnings] = useState<number[]>([]);
 
-  // Form state (this would be passed to/from the QuoteForm component)
+  // Form state
   const [formData, setFormData] = useState({
     quoteNumber: `${type.toUpperCase()}-${Date.now()}`,
     customerName: '',
@@ -54,6 +54,37 @@ const EnhancedQuoteForm = ({ onSave, initialData, type }: EnhancedQuoteFormProps
   const [items, setItems] = useState<QuoteItem[]>([
     { id: '1', description: '', quantity: 1, rate: 0, amount: 0 }
   ]);
+
+  // Initialize form data from initialData
+  useEffect(() => {
+    if (initialData) {
+      const taxBase = initialData.subtotal - initialData.discount;
+      const taxRate = taxBase > 0 ? (initialData.tax * 100) / taxBase : 15;
+
+      setFormData({
+        quoteNumber: initialData.number,
+        customerName: initialData.customer_name || '',
+        customerEmail: initialData.customer_email || '',
+        customerPhone: '',
+        issueDate: new Date(initialData.issue_date).toISOString().split('T')[0],
+        validUntil: initialData.valid_until ? new Date(initialData.valid_until).toISOString().split('T')[0] : '',
+        subject: initialData.subject || '',
+        notes: initialData.notes || '',
+        terms: initialData.terms || 'Payment due within 30 days',
+        taxRate: taxRate,
+        discountType: 'fixed',
+        discountValue: initialData.discount || 0,
+      });
+
+      setItems(initialData.quote_invoice_items.map(item => ({
+        id: item.id,
+        description: item.description,
+        quantity: item.quantity,
+        rate: item.rate,
+        amount: item.quantity * item.rate,
+      })));
+    }
+  }, [initialData]);
 
   // Real-time calculations
   const calculations = useMemo(() => {
@@ -209,8 +240,11 @@ const EnhancedQuoteForm = ({ onSave, initialData, type }: EnhancedQuoteFormProps
         </TabsList>
 
         <TabsContent value="form" className="mt-6">
-          {/* This would integrate with your existing QuoteForm component */}
-          <QuoteForm onSave={onSave} initialData={initialData} />
+          <QuoteForm 
+            onSave={onSave} 
+            initialData={initialData} 
+            type={type}
+          />
         </TabsContent>
 
         <TabsContent value="preview" className="mt-6">
