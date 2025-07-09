@@ -69,7 +69,7 @@ export const useTicketManagement = () => {
 
   const handleAddTimeEntry = async (
     ticketId: string, 
-    timeEntryData: Omit<TimeEntry, 'id' | 'ticketId' | 'createdAt'>
+    timeEntryData: Omit<TimeEntry, 'id' | 'createdAt' | 'ticketId'>
   ) => {
     try {
       await addTimeEntry(ticketId, timeEntryData);

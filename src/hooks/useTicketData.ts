@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { TicketTemplate, TeamMember } from '@/types/customer';
 
 export const useTicketData = () => {
-  // Sample ticket templates
+  // Sample ticket templates with all required properties
   const [templates] = useState<TicketTemplate[]>([
     {
       id: 'template-1',
@@ -11,7 +11,9 @@ export const useTicketData = () => {
       subject: 'Policy coverage question',
       description: 'Customer has questions about their policy coverage and benefits.',
       priority: 'medium',
-      category: 'Policy'
+      defaultPriority: 'medium',
+      category: 'Policy',
+      estimatedTime: 30
     },
     {
       id: 'template-2',
@@ -19,7 +21,9 @@ export const useTicketData = () => {
       subject: 'Assistance with claim filing',
       description: 'Customer needs help filing or tracking a claim.',
       priority: 'high',
-      category: 'Claims'
+      defaultPriority: 'high',
+      category: 'Claims',
+      estimatedTime: 60
     },
     {
       id: 'template-3',
@@ -27,7 +31,9 @@ export const useTicketData = () => {
       subject: 'Document request',
       description: 'Customer is requesting policy documents or certificates.',
       priority: 'low',
-      category: 'Documentation'
+      defaultPriority: 'low',
+      category: 'Documentation',
+      estimatedTime: 15
     },
     {
       id: 'template-4',
@@ -35,7 +41,9 @@ export const useTicketData = () => {
       subject: 'Technical support needed',
       description: 'Customer experiencing technical difficulties with online services.',
       priority: 'medium',
-      category: 'Technical'
+      defaultPriority: 'medium',
+      category: 'Technical',
+      estimatedTime: 45
     },
     {
       id: 'template-5',
@@ -43,7 +51,9 @@ export const useTicketData = () => {
       subject: 'Billing inquiry',
       description: 'Customer has questions about their bill or payment.',
       priority: 'medium',
-      category: 'Billing'
+      defaultPriority: 'medium',
+      category: 'Billing',
+      estimatedTime: 20
     }
   ]);
 

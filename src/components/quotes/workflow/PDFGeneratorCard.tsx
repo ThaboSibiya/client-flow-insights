@@ -15,7 +15,7 @@ interface PDFGeneratorCardProps {
 }
 
 const PDFGeneratorCard = ({ quote }: PDFGeneratorCardProps) => {
-  const { generatePDF, downloadHTML, isGenerating } = usePDFGeneration();
+  const { generatePDF, isGenerating } = usePDFGeneration();
   const [includeBranding, setIncludeBranding] = useState(true);
   const [template, setTemplate] = useState('professional');
   const [watermark, setWatermark] = useState(false);
@@ -29,10 +29,11 @@ const PDFGeneratorCard = ({ quote }: PDFGeneratorCardProps) => {
   };
 
   const handlePreviewPDF = () => {
-    downloadHTML(quote, {
+    // Generate a preview version
+    generatePDF(quote, {
       includeBranding,
       template: template as any,
-      watermark
+      watermark: Boolean(watermark)
     });
   };
 
@@ -103,7 +104,7 @@ const PDFGeneratorCard = ({ quote }: PDFGeneratorCardProps) => {
         <div className="flex gap-2">
           <Button 
             onClick={handleGeneratePDF} 
-            disabled={isGenerating}
+            disabled={Boolean(isGenerating)}
             className="flex-1"
           >
             {isGenerating ? (
@@ -116,10 +117,10 @@ const PDFGeneratorCard = ({ quote }: PDFGeneratorCardProps) => {
           <Button 
             variant="outline" 
             onClick={handlePreviewPDF}
-            disabled={isGenerating}
+            disabled={Boolean(isGenerating)}
           >
             <Eye className="h-4 w-4 mr-2" />
-            Preview HTML
+            Preview
           </Button>
         </div>
       </CardContent>

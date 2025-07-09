@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, CustomerStatus } from '@/types/customer';
 import { automationPerformanceService } from './automationPerformanceService';
@@ -23,6 +22,11 @@ interface FollowUpTask {
 }
 
 export class LeadNurturingService {
+  private static instance: LeadNurturingService;
+  private automationRules: AutomationRule[] = [];
+  private emailTemplates: EmailTemplate[] = [];
+  private workflowDefinitions: WorkflowDefinition[] = [];
+
   // Auto-assign new leads to sales reps
   async autoAssignLead(customer: Customer): Promise<string | null> {
     try {
@@ -334,6 +338,80 @@ export class LeadNurturingService {
         created_at: new Date().toISOString()
       }
     });
+  }
+
+  private evaluateRules(customer: Customer): AutomationRule[] {
+    return this.automationRules.filter(rule => {
+      return rule.conditions.every(condition => {
+        const value = this.getCustomerValue(customer, condition.field);
+        return this.evaluateCondition(value, condition.operator, condition.value);
+      });
+    });
+  }
+
+  private getCustomerValue(customer: Customer, field: string): any {
+    switch (field) {
+      case 'status':
+        return customer.status;
+      case 'lastInteraction':
+        return customer.updated_at;
+      case 'createdAt':
+        return customer.created_at;
+      case 'email':
+        return customer.email;
+      case 'name':
+        return customer.name;
+      case 'phone':
+        return customer.phone;
+      case 'address':
+        return customer.address;
+      case 'notes':
+        return customer.notes;
+      case 'contact_person':
+        return customer.contact_person;
+      case 'company_address':
+        return customer.company_address;
+      case 'assigned_to':
+        return customer.assigned_to || null;
+      // Note: 'territory' property doesn't exist in Customer type
+      // Removing reference to undefined property
+      default:
+        return null;
+    }
+  }
+
+  async generateNurturingReport(startDate: Date, endDate: Date): Promise<NurturingReport> {
+    const customers = await this.getCustomersInRange(startDate, endDate);
+    const customerAnalysis = await Promise.all(
+      customers.map(async (customer) => {
+        const analysis = await this.analyzeCustomerBehavior(customer);
+        const predictedValue = this.predictCustomerValue(customer);
+        
+        return {
+          id: customer.id,
+          name: customer.name,
+          email: customer.email,
+          status: customer.status,
+          lastInteraction: new Date(customer.updated_at),
+          engagementScore: analysis.engagementScore,
+          predictedValue,
+          recommendedActions: analysis.recommendedActions,
+        };
+      })
+    );
+
+    const report: NurturingReport = {
+      startDate,
+      endDate,
+      customers: customerAnalysis,
+      totalEngagementScore: customerAnalysis.reduce((acc, curr) => acc + curr.engagementScore, 0),
+      averageEngagementScore: customerAnalysis.length > 0 ? customerAnalysis.reduce((acc, curr) => acc + curr.engagementScore, 0) / customerAnalysis.length : 0,
+      totalPredictedValue: customerAnalysis.reduce((acc, curr) => acc + curr.predictedValue, 0),
+      averagePredictedValue: customerAnalysis.length > 0 ? customerAnalysis.reduce((acc, curr) => acc + curr.predictedValue, 0) / customerAnalysis.length : 0,
+      recommendedActions: customerAnalysis.reduce((acc, curr) => acc.concat(curr.recommendedActions), [])
+    };
+
+    return report;
   }
 }
 

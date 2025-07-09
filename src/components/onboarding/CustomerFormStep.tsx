@@ -1,21 +1,20 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
-import StatusSelector from '@/components/customers/StatusSelector';
-import { CheckCircle } from 'lucide-react';
+import { useCRM } from '@/context/CRMContext';
+import { CustomerStatus } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
 
 interface CustomerFormStepProps {
+  industry?: string;
   onComplete: () => void;
+  onBack: () => void;
 }
 
-const CustomerFormStep = ({ onComplete }: CustomerFormStepProps) => {
-  const { addCustomer } = useCRM();
+const CustomerFormStep = ({ industry, onComplete, onBack }: CustomerFormStepProps) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,46 +22,29 @@ const CustomerFormStep = ({ onComplete }: CustomerFormStepProps) => {
     address: '',
     contact_person: '',
     company_address: '',
-    status: 'new' as CustomerStatus,
     notes: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleStatusChange = (status: CustomerStatus) => {
-    setFormData(prev => ({ ...prev, status }));
-  };
+  const { addCustomer } = useCRM();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email) {
-      toast({
-        title: "Validation Error",
-        description: "Name and email are required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    
     try {
-      const customerData = {
+      await addCustomer({
         ...formData,
+        status: 'new' as CustomerStatus,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      };
-      
-      await addCustomer(customerData);
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        activeTickets: [],
+        ticketCount: 0
+      });
       
       toast({
         title: "Success",
-        description: "Your first customer has been added!",
+        description: "Customer added successfully",
       });
       
       onComplete();
@@ -72,134 +54,91 @@ const CustomerFormStep = ({ onComplete }: CustomerFormStepProps) => {
         description: "Failed to add customer",
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CheckCircle className="h-6 w-6 text-green-600" />
-          Add Your First Customer
+        <CardTitle>
+          {industry ? `Add ${industry} Customer` : 'Add Customer'}
         </CardTitle>
-        <p className="text-muted-foreground">
-          Let's start by adding your first customer to the system.
-        </p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="name" className="text-sm font-medium">
-                Customer Name <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="name">Company Name</Label>
               <Input
                 id="name"
-                name="name"
                 value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Enter customer name"
+                onChange={(e) => handleInputChange('name', e.target.value)}
                 required
               />
             </div>
-
             <div>
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                name="email"
                 type="email"
                 value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Enter email address"
+                onChange={(e) => handleInputChange('email', e.target.value)}
                 required
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="phone" className="text-sm font-medium">Phone</Label>
+              <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
-                name="phone"
                 value={formData.phone}
-                onChange={handleInputChange}
-                placeholder="Enter phone number"
+                onChange={(e) => handleInputChange('phone', e.target.value)}
               />
             </div>
-
             <div>
-              <Label className="text-sm font-medium">Status</Label>
-              <StatusSelector
-                status={formData.status}
-                onChange={handleStatusChange}
+              <Label htmlFor="contact_person">Contact Person</Label>
+              <Input
+                id="contact_person"
+                value={formData.contact_person}
+                onChange={(e) => handleInputChange('contact_person', e.target.value)}
               />
             </div>
           </div>
-
+          
           <div>
-            <Label htmlFor="contact_person" className="text-sm font-medium">Contact Person</Label>
-            <Input
-              id="contact_person"
-              name="contact_person"
-              value={formData.contact_person}
-              onChange={handleInputChange}
-              placeholder="Primary contact person"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="address" className="text-sm font-medium">Address</Label>
-            <Input
+            <Label htmlFor="address">Address</Label>
+            <Textarea
               id="address"
-              name="address"
               value={formData.address}
-              onChange={handleInputChange}
-              placeholder="Customer address"
+              onChange={(e) => handleInputChange('address', e.target.value)}
             />
           </div>
-
+          
           <div>
-            <Label htmlFor="company_address" className="text-sm font-medium">Company Address</Label>
-            <Input
+            <Label htmlFor="company_address">Company Address</Label>
+            <Textarea
               id="company_address"
-              name="company_address"
               value={formData.company_address}
-              onChange={handleInputChange}
-              placeholder="Company address (if different)"
+              onChange={(e) => handleInputChange('company_address', e.target.value)}
             />
           </div>
-
+          
           <div>
-            <Label htmlFor="notes" className="text-sm font-medium">Notes</Label>
+            <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
-              name="notes"
               value={formData.notes}
-              onChange={handleInputChange}
-              rows={3}
-              placeholder="Add any notes about this customer..."
+              onChange={(e) => handleInputChange('notes', e.target.value)}
             />
           </div>
-
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                  Adding Customer...
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Add Customer & Continue
-                </>
-              )}
+          
+          <div className="flex gap-2">
+            <Button type="submit">Add Customer</Button>
+            <Button type="button" variant="outline" onClick={onBack}>
+              Back
             </Button>
           </div>
         </form>

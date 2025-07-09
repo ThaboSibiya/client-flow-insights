@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -176,7 +177,7 @@ const QuoteList = ({ quotes, onSelectQuote, onPreview, onEdit }: QuoteListProps)
                   {quote.customer_email && (
                     <DropdownMenuItem 
                       onClick={() => handleSendEmail(quote)}
-                      disabled={isSending}
+                      disabled={Boolean(isSending)}
                     >
                       <Send className="h-4 w-4 mr-2" />
                       Send Email
