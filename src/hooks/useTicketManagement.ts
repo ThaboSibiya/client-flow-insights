@@ -24,7 +24,9 @@ export const useTicketManagement = () => {
       const mappedPriority = ticketData.priority === 'urgent' ? 'high' : ticketData.priority === 'low' ? 'low' : ticketData.priority === 'medium' ? 'medium' : 'medium';
       
       // Extract assignedTo ID if it's a TeamMember object, otherwise use as string
-      const assignedToId = typeof ticketData.assignedTo === 'object' && ticketData.assignedTo ? ticketData.assignedTo.id : ticketData.assignedTo as string | undefined;
+      const assignedToId = typeof ticketData.assignedTo === 'object' && ticketData.assignedTo 
+        ? ticketData.assignedTo.id 
+        : (ticketData.assignedTo as unknown as string | undefined);
       
       // Create the ticket with title (using subject as title)
       await createTicket({
@@ -86,14 +88,10 @@ export const useTicketManagement = () => {
   };
 
   const handleAddTimeEntry = async (
-    ticketId: string, 
-    timeEntryData: Omit<TimeEntry, 'id' | 'createdAt' | 'ticketId'>
+    timeEntryData: Omit<TimeEntry, 'id' | 'createdAt'>
   ) => {
     try {
-      await addTimeEntry({
-        ...timeEntryData,
-        ticketId
-      });
+      await addTimeEntry(timeEntryData);
       toast({
         title: "Success",
         description: "Time entry added successfully",
