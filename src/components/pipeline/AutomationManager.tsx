@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Play, Pause, Edit, Trash2, Zap, Clock, Target, TrendingUp } from "lucide-react";
-import AutomationBuilder from './AutomationBuilder';
+import AutomationHeader from './automation/AutomationHeader';
 import PerformanceMonitor from './PerformanceMonitor';
 
 interface Automation {
@@ -62,7 +62,7 @@ const AutomationManager = () => {
     }
   ]);
 
-  const [showBuilder, setShowBuilder] = useState(false);
+  const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [editingAutomation, setEditingAutomation] = useState<Automation | null>(null);
 
   const toggleAutomation = (id: string) => {
@@ -77,40 +77,25 @@ const AutomationManager = () => {
 
   const editAutomation = (automation: Automation) => {
     setEditingAutomation(automation);
-    setShowBuilder(true);
+    setIsBuilderOpen(true);
   };
 
   const handleBuilderClose = () => {
-    setShowBuilder(false);
+    setIsBuilderOpen(false);
     setEditingAutomation(null);
   };
 
-  if (showBuilder) {
-    return (
-      <AutomationBuilder 
-        onClose={handleBuilderClose}
-        initialData={editingAutomation}
-      />
-    );
-  }
+  const handleCreateNew = () => {
+    setEditingAutomation(null);
+    setIsBuilderOpen(true);
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-quikle-charcoal">Pipeline Automation</h2>
-          <p className="text-quikle-slate">
-            Automate stage progression, notifications, and actions based on time, conditions, or user actions.
-          </p>
-        </div>
-        <Button 
-          onClick={() => setShowBuilder(true)}
-          className="bg-quikle-primary text-white hover:bg-quikle-primary/90"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Create Automation
-        </Button>
-      </div>
+      <AutomationHeader 
+        isBuilderOpen={isBuilderOpen}
+        onBuilderOpenChange={setIsBuilderOpen}
+      />
 
       <Tabs defaultValue="automations" className="w-full">
         <TabsList>
