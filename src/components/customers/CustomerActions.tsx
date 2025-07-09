@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
-import { Customer, CustomerStatus } from '@/types/customer';
-import { useCRM } from '@/context/CRMContext';
+import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
 import CustomerDetailsDialog from './CustomerDetailsDialog';
 import TicketManagementDialog from './TicketManagementDialog';
 import { toast } from '@/hooks/use-toast';
@@ -54,9 +53,7 @@ export const useCustomerActions = () => {
     }
   };
 
-  // Fixed function signatures to match expected interface
   const handleCreateTicket = (customerId: string, ticketData: any) => {
-    // Transform the data to match the expected format
     const transformedTicket = {
       customerId,
       assignedTo: ticketData.assignedTo,
@@ -71,10 +68,15 @@ export const useCustomerActions = () => {
   const handleAddTimeEntry = (ticketId: string, timeEntry: any) => {
     const transformedEntry = {
       ticketId,
+      employeeId: timeEntry.userId || timeEntry.employeeId,
+      userName: timeEntry.userName,
       description: timeEntry.description,
-      hours: timeEntry.hours,
-      date: timeEntry.date,
-      employeeId: timeEntry.employeeId,
+      hours: Math.floor(timeEntry.duration / 60) || timeEntry.hours,
+      duration: timeEntry.duration,
+      date: timeEntry.date || new Date(),
+      startTime: timeEntry.startTime,
+      endTime: timeEntry.endTime,
+      userId: timeEntry.userId,
     };
     addTimeEntry(transformedEntry);
   };

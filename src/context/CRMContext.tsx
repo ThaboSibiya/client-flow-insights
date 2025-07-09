@@ -1,9 +1,10 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { Customer, CustomerStatus, CustomerTicket, TimeEntry } from '@/types/customer';
+import type { Customer, CustomerStatus, CustomerTicket, TimeEntry } from '@/types/customer';
 
-export { Customer, CustomerStatus, CustomerTicket, TimeEntry };
+export type { Customer, CustomerStatus, CustomerTicket, TimeEntry };
 
 export interface Ticket {
   id: string;
@@ -22,13 +23,13 @@ interface CRMContextType {
   loading: boolean;
   error: string | null;
   refreshCustomers: () => Promise<void>;
-  addCustomer: (customer: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'createdAt'>) => Promise<void>;
+  addCustomer: (customer: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateCustomer: (id: string, customer: Partial<Customer>) => Promise<void>;
   deleteCustomer: (id: string) => Promise<void>;
   updateCustomerStatus: (id: string, status: CustomerStatus) => Promise<void>;
   createTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateTicketStatus: (ticketId: string, status: Ticket['status']) => Promise<void>;
-  addTimeEntry: (entry: Omit<TimeEntry, 'id'>) => Promise<void>;
+  addTimeEntry: (entry: Omit<TimeEntry, 'id' | 'createdAt'>) => Promise<void>;
 }
 
 const CRMContext = createContext<CRMContextType | undefined>(undefined);
@@ -68,7 +69,9 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ...customer,
         createdAt: new Date(customer.created_at),
         updatedAt: new Date(customer.updated_at),
-        status: customer.status as CustomerStatus
+        status: customer.status as CustomerStatus,
+        activeTickets: [],
+        ticketCount: 0
       }));
       
       setCustomers(transformedCustomers);
@@ -80,7 +83,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const addCustomer = async (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'createdAt'>) => {
+  const addCustomer = async (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'createdAt' | 'updatedAt'>) => {
     if (!user) throw new Error('User not authenticated');
 
     try {
@@ -96,7 +99,9 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ...data,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
-        status: data.status as CustomerStatus
+        status: data.status as CustomerStatus,
+        activeTickets: [],
+        ticketCount: 0
       };
       
       setCustomers(prev => [transformedCustomer, ...prev]);
@@ -124,7 +129,9 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ...data,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
-        status: data.status as CustomerStatus
+        status: data.status as CustomerStatus,
+        activeTickets: [],
+        ticketCount: 0
       };
       
       setCustomers(prev => prev.map(customer => 
@@ -160,17 +167,14 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const createTicket = async (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>) => {
-    // Mock implementation - replace with actual Supabase call when tickets table exists
     console.log('Creating ticket:', ticket);
   };
 
   const updateTicketStatus = async (ticketId: string, status: Ticket['status']) => {
-    // Mock implementation - replace with actual Supabase call when tickets table exists
     console.log('Updating ticket status:', ticketId, status);
   };
 
-  const addTimeEntry = async (entry: Omit<TimeEntry, 'id'>) => {
-    // Mock implementation - replace with actual Supabase call when time_entries table exists
+  const addTimeEntry = async (entry: Omit<TimeEntry, 'id' | 'createdAt'>) => {
     console.log('Adding time entry:', entry);
   };
 
@@ -185,90 +189,13 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     loading,
     error,
     refreshCustomers,
-    addCustomer: async (customerData) => {
-      if (!user) throw new Error('User not authenticated');
-
-      try {
-        const { data, error } = await supabase
-          .from('customers')
-          .insert([{ ...customerData, user_id: user.id }])
-          .select()
-          .single();
-
-        if (error) throw error;
-        
-        const transformedCustomer: Customer = {
-          ...data,
-          createdAt: new Date(data.created_at),
-          updatedAt: new Date(data.updated_at),
-          status: data.status as CustomerStatus
-        };
-        
-        setCustomers(prev => [transformedCustomer, ...prev]);
-      } catch (err) {
-        console.error('Error adding customer:', err);
-        throw err;
-      }
-    },
-    updateCustomer: async (id, customerData) => {
-      if (!user) throw new Error('User not authenticated');
-
-      try {
-        const { data, error } = await supabase
-          .from('customers')
-          .update(customerData)
-          .eq('id', id)
-          .eq('user_id', user.id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        
-        const transformedCustomer: Customer = {
-          ...data,
-          createdAt: new Date(data.created_at),
-          updatedAt: new Date(data.updated_at),
-          status: data.status as CustomerStatus
-        };
-        
-        setCustomers(prev => prev.map(customer => 
-          customer.id === id ? { ...customer, ...transformedCustomer } : customer
-        ));
-      } catch (err) {
-        console.error('Error updating customer:', err);
-        throw err;
-      }
-    },
-    deleteCustomer: async (id) => {
-      if (!user) throw new Error('User not authenticated');
-
-      try {
-        const { error } = await supabase
-          .from('customers')
-          .delete()
-          .eq('id', id)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-        
-        setCustomers(prev => prev.filter(customer => customer.id !== id));
-      } catch (err) {
-        console.error('Error deleting customer:', err);
-        throw err;
-      }
-    },
-    updateCustomerStatus: async (id, status) => {
-      await value.updateCustomer(id, { status });
-    },
-    createTicket: async (ticket) => {
-      console.log('Creating ticket:', ticket);
-    },
-    updateTicketStatus: async (ticketId, status) => {
-      console.log('Updating ticket status:', ticketId, status);
-    },
-    addTimeEntry: async (entry) => {
-      console.log('Adding time entry:', entry);
-    },
+    addCustomer,
+    updateCustomer,
+    deleteCustomer,
+    updateCustomerStatus,
+    createTicket,
+    updateTicketStatus,
+    addTimeEntry,
   };
 
   return (

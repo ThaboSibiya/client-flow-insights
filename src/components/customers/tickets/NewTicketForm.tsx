@@ -41,9 +41,9 @@ const NewTicketForm = ({ onSubmit, onCancel }: NewTicketFormProps) => {
     setSelectedTemplate(templateId);
     const template = templates.find(t => t.id === templateId);
     if (template) {
-      form.setValue('subject', template.subject);
+      form.setValue('subject', template.name);
       form.setValue('description', template.description);
-      form.setValue('priority', template.priority);
+      form.setValue('priority', template.defaultPriority);
     }
   };
 
@@ -53,6 +53,7 @@ const NewTicketForm = ({ onSubmit, onCancel }: NewTicketFormProps) => {
     
     onSubmit({
       ...data,
+      customerId: 'temp-customer-id', // This will be replaced by the actual customer ID
       assignedTo: assignedMember,
       timeEntries: [],
       totalTimeSpent: 0,

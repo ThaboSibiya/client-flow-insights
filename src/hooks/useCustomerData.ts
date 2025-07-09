@@ -1,4 +1,3 @@
-
 import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, CustomerStatus, CustomerTicket, TimeEntry, CustomerEquipment } from '@/types/customer';
@@ -10,20 +9,21 @@ export const useCustomerData = () => {
   const { user } = useAuth();
   const { customers, setCustomers, setLoading, setError, isLoading } = useCustomerStore();
   
-  // Use refs to prevent infinite loops
   const isInitializedRef = useRef(false);
   const subscriptionRef = useRef<any>(null);
 
-  // Generate sample ticket data with time tracking for demonstration
   const generateSampleTickets = useCallback((customerId: string): CustomerTicket[] => {
     const sampleTimeEntries: TimeEntry[] = [
       {
         id: 'time-1',
         ticketId: `ticket-${customerId}-1`,
+        employeeId: 'user-1',
         userId: 'user-1',
         userName: 'John Doe',
         description: 'Initial investigation',
+        hours: 1,
         duration: 45,
+        date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
         startTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
         endTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 + 45 * 60000),
         createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
@@ -31,10 +31,13 @@ export const useCustomerData = () => {
       {
         id: 'time-2',
         ticketId: `ticket-${customerId}-1`,
+        employeeId: 'user-2',
         userId: 'user-2',
         userName: 'Jane Smith',
         description: 'Customer follow-up',
+        hours: 1,
         duration: 30,
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
         startTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
         endTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 30 * 60000),
         createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
@@ -45,28 +48,31 @@ export const useCustomerData = () => {
       {
         id: `ticket-${customerId}-1`,
         ticketNumber: `TKT-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+        customerId,
         status: 'open',
         priority: 'high',
         subject: 'Equipment setup and configuration',
+        description: 'Customer needs help with equipment setup',
         timeEntries: sampleTimeEntries,
-        totalTimeSpent: 75, // 45 + 30 minutes
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-        updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+        totalTimeSpent: 75,
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
       },
       {
         id: `ticket-${customerId}-2`,
         ticketNumber: `TKT-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+        customerId,
         status: 'resolved',
         priority: 'medium',
         subject: 'Documentation request',
+        description: 'Customer requested product documentation',
         timeEntries: [],
         totalTimeSpent: 0,
-        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-        updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       }
     ];
     
-    // Randomly assign tickets to some customers (not all)
     return Math.random() > 0.6 ? sampleTickets : [];
   }, []);
 
@@ -77,7 +83,6 @@ export const useCustomerData = () => {
       return;
     }
 
-    // Skip loading if we already have data and this isn't a forced refresh
     if (!forceRefresh && customers.length > 0 && !isLoading && isInitializedRef.current) {
       console.log('Skipping fetch - already have data');
       return;
@@ -88,7 +93,6 @@ export const useCustomerData = () => {
     setError(null);
 
     try {
-      // Fetch customers with equipment data
       const { data: customersData, error: customersError } = await supabase
         .from('customers')
         .select(`
@@ -109,7 +113,6 @@ export const useCustomerData = () => {
         const formattedCustomers: Customer[] = customersData.map(item => {
           const activeTickets = generateSampleTickets(item.id);
           
-          // Format equipment data with proper date conversion
           const equipment: CustomerEquipment[] = (item.customer_equipment || []).map((eq: any) => ({
             id: eq.id,
             customer_id: eq.customer_id,
@@ -136,6 +139,8 @@ export const useCustomerData = () => {
             status: item.status as CustomerStatus,
             notes: item.notes || '',
             equipment,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
             createdAt: new Date(item.created_at),
             updatedAt: new Date(item.updated_at),
             activeTickets,
@@ -162,14 +167,12 @@ export const useCustomerData = () => {
     }
   }, [user?.id, setCustomers, setLoading, setError, generateSampleTickets]);
 
-  // Effect for initial data load
   useEffect(() => {
     if (user && !isInitializedRef.current) {
       console.log('Initial customer data load for user:', user.id);
       fetchCustomers();
     }
     
-    // Clear data on logout
     if (!user) {
       console.log('Clearing customer data due to logout');
       setCustomers([]);
@@ -177,11 +180,9 @@ export const useCustomerData = () => {
     }
   }, [user?.id, fetchCustomers, setCustomers]);
 
-  // Effect for real-time updates
   useEffect(() => {
     if (!user || !isInitializedRef.current) return;
 
-    // Clean up existing subscription
     if (subscriptionRef.current) {
       console.log('Cleaning up existing real-time subscription');
       supabase.removeChannel(subscriptionRef.current);
@@ -205,7 +206,6 @@ export const useCustomerData = () => {
             description: "Customer data updated in real-time.",
             duration: 3000 
           });
-          // Force refresh to get latest data
           fetchCustomers(true);
         }
       )
@@ -224,7 +224,6 @@ export const useCustomerData = () => {
     };
   }, [user?.id, fetchCustomers]);
 
-  // Expose a manual refresh function
   const refreshCustomers = useCallback(() => {
     console.log('Manual customer refresh triggered');
     fetchCustomers(true);
