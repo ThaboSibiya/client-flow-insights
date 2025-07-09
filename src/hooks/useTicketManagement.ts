@@ -88,10 +88,14 @@ export const useTicketManagement = () => {
   };
 
   const handleAddTimeEntry = async (
-    timeEntryData: Omit<TimeEntry, 'id' | 'createdAt'>
+    ticketId: string,
+    timeEntryData: Omit<TimeEntry, 'id' | 'createdAt' | 'ticketId'>
   ) => {
     try {
-      await addTimeEntry(timeEntryData);
+      await addTimeEntry({
+        ...timeEntryData,
+        ticketId
+      });
       toast({
         title: "Success",
         description: "Time entry added successfully",
