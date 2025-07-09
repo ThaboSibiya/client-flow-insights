@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -72,7 +71,7 @@ const EnhancedQuoteForm = ({ onSave, initialData, type }: EnhancedQuoteFormProps
         notes: initialData.notes || '',
         terms: initialData.terms || 'Payment due within 30 days',
         taxRate: taxRate,
-        discountType: 'fixed',
+        discountType: 'percentage',
         discountValue: initialData.discount || 0,
       });
 
