@@ -1,143 +1,89 @@
-import { useState, useCallback, useMemo } from 'react';
-import { revenueOptimizationService, UpsellTrigger } from '@/services/revenueOptimizationService';
+
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { QuoteInvoice } from '@/types/quote';
 import { toast } from '@/hooks/use-toast';
 
 export const useRevenueOptimization = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [isProcessing, setIsProcessing] = useState(false);
 
-  // Cache revenue metrics with React Query
-  const { data: revenueMetrics, isLoading: metricsLoading, refetch: refetchMetrics } = useQuery({
-    queryKey: ['revenue-metrics', user?.id],
-    queryFn: () => user ? revenueOptimizationService.calculateRevenueMetrics(user.id) : null,
-    enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-  });
+  const convertQuoteToInvoiceMutation = useMutation({
+    mutationFn: async (quoteId: string): Promise<QuoteInvoice | null> => {
+      if (!user) throw new Error('User not authenticated');
 
-  // Cache upsell opportunities
-  const { data: upsellOpportunities = [], isLoading: upsellLoading, refetch: refetchUpsell } = useQuery({
-    queryKey: ['upsell-opportunities', user?.id],
-    queryFn: () => user ? revenueOptimizationService.identifyUpsellOpportunities(user.id) : [],
-    enabled: !!user,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 15 * 60 * 1000, // 15 minutes
-  });
+      // Fetch the original quote
+      const { data: quote, error: fetchError } = await supabase
+        .from('quotes_invoices')
+        .select('*, quote_invoice_items(*)')
+        .eq('id', quoteId)
+        .eq('type', 'quote')
+        .single();
 
-  const loadRevenueMetrics = useCallback(async () => {
-    await refetchMetrics();
-  }, [refetchMetrics]);
-
-  const loadUpsellOpportunities = useCallback(async () => {
-    await refetchUpsell();
-  }, [refetchUpsell]);
-
-  const processOverdueInvoices = useCallback(async () => {
-    if (!user) return;
-    
-    setIsProcessing(true);
-    try {
-      const overdueInvoices = await revenueOptimizationService.checkOverdueInvoices();
-      
-      if (overdueInvoices.length > 0) {
-        await revenueOptimizationService.notifyFinanceTeam(overdueInvoices);
-        toast({
-          title: "Overdue Invoices Processed",
-          description: `${overdueInvoices.length} overdue invoices found and finance team notified.`,
-        });
-      } else {
-        toast({
-          title: "No Overdue Invoices",
-          description: "All invoices are up to date.",
-        });
+      if (fetchError || !quote) {
+        throw new Error('Quote not found');
       }
-      
-      // Invalidate and refetch metrics
-      queryClient.invalidateQueries({ queryKey: ['revenue-metrics', user.id] });
-    } catch (error) {
-      console.error('Error processing overdue invoices:', error);
-      toast({
-        title: "Error",
-        description: "Failed to process overdue invoices.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [user, queryClient]);
 
-  const generatePaymentReminders = useCallback(async (reminderConfig: any) => {
-    if (!user) return;
-    
-    setIsProcessing(true);
-    try {
-      const reminders = await revenueOptimizationService.generatePaymentReminders(reminderConfig);
-      
-      toast({
-        title: "Payment Reminders Generated",
-        description: `${reminders.length} payment reminders have been queued.`,
-      });
-    } catch (error) {
-      console.error('Error generating payment reminders:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate payment reminders.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [user]);
+      // Create new invoice from quote
+      const invoiceData = {
+        ...quote,
+        id: undefined,
+        type: 'invoice' as const,
+        status: 'draft' as const,
+        number: `INV-${Date.now()}`,
+        due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
-  const convertQuoteToInvoice = useCallback(async (quoteId: string) => {
-    if (!user) return null;
-    
-    setIsProcessing(true);
-    try {
-      const invoice = await revenueOptimizationService.autoConvertQuoteToInvoice(quoteId);
-      
-      if (invoice) {
-        toast({
-          title: "Quote Converted",
-          description: `Quote has been successfully converted to Invoice ${invoice.number}`,
-        });
-        
-        // Invalidate related queries
-        queryClient.invalidateQueries({ queryKey: ['quotes_invoices'] });
-        queryClient.invalidateQueries({ queryKey: ['revenue-metrics', user.id] });
+      const { data: newInvoice, error: createError } = await supabase
+        .from('quotes_invoices')
+        .insert(invoiceData)
+        .select()
+        .single();
+
+      if (createError || !newInvoice) {
+        throw new Error('Failed to create invoice');
       }
-      
-      return invoice;
-    } catch (error) {
-      console.error('Error converting quote to invoice:', error);
-      toast({
-        title: "Error",
-        description: "Failed to convert quote to invoice.",
-        variant: "destructive"
-      });
-      return null;
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [user, queryClient]);
 
-  // Memoize the loading state
-  const isLoading = useMemo(() => {
-    return metricsLoading || upsellLoading;
-  }, [metricsLoading, upsellLoading]);
+      // Copy quote items to invoice
+      const invoiceItems = quote.quote_invoice_items.map(item => ({
+        ...item,
+        id: undefined,
+        quote_invoice_id: newInvoice.id,
+        created_at: new Date().toISOString()
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('quote_invoice_items')
+        .insert(invoiceItems);
+
+      if (itemsError) {
+        throw new Error('Failed to create invoice items');
+      }
+
+      return newInvoice as QuoteInvoice;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quotes_invoices'] });
+      toast({
+        title: 'Success',
+        description: 'Quote converted to invoice successfully.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: `Failed to convert quote: ${error.message}`,
+        variant: 'destructive',
+      });
+    },
+  });
 
   return {
-    revenueMetrics,
-    upsellOpportunities,
-    isLoading,
-    isProcessing,
-    loadRevenueMetrics,
-    loadUpsellOpportunities,
-    processOverdueInvoices,
-    generatePaymentReminders,
-    convertQuoteToInvoice,
+    convertQuoteToInvoice: convertQuoteToInvoiceMutation.mutateAsync,
+    isConverting: convertQuoteToInvoiceMutation.isPending,
   };
 };

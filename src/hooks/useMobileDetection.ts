@@ -3,31 +3,27 @@ import { useState, useEffect } from 'react';
 
 export const useMobileDetection = () => {
   const [isMobile, setIsMobile] = useState(false);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [shouldUseMobileView, setShouldUseMobileView] = useState(false);
 
   useEffect(() => {
-    const checkDevice = () => {
-      // Check for mobile viewport
-      const mobileViewport = window.innerWidth <= 768;
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent;
+      const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+      const isMobileDevice = mobileRegex.test(userAgent);
+      const isSmallScreen = window.innerWidth < 768;
       
-      // Check for touch capability
-      const touchCapable = 'ontouchstart' in window || 
-                          navigator.maxTouchPoints > 0 || 
-                          (navigator as any).msMaxTouchPoints > 0;
-      
-      setIsMobile(mobileViewport);
-      setIsTouchDevice(touchCapable);
+      setIsMobile(isMobileDevice);
+      setShouldUseMobileView(isMobileDevice || isSmallScreen);
     };
 
-    checkDevice();
-    window.addEventListener('resize', checkDevice);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
 
-    return () => window.removeEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  return { 
-    isMobile, 
-    isTouchDevice,
-    shouldUseMobileView: isMobile || isTouchDevice 
+  return {
+    isMobile,
+    shouldUseMobileView,
   };
 };
