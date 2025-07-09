@@ -35,8 +35,6 @@ const CustomerFormStep = ({ industry, onComplete, onBack }: CustomerFormStepProp
       await addCustomer({
         ...formData,
         status: 'new' as CustomerStatus,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         activeTickets: [],
         ticketCount: 0
       });

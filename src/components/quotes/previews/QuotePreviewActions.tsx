@@ -19,7 +19,7 @@ export const QuotePreviewActions = ({ quote }: QuotePreviewActionsProps) => {
     generatePDF(quote, {
       includeBranding: true,
       template: 'professional',
-      watermark: false
+      watermark: 'false'
     });
   };
 

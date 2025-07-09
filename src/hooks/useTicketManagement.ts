@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { CustomerTicket, useCRM } from '@/context/CRMContext';
-import { TimeEntry, TicketStatus } from '@/types/customer';
+import { TimeEntry, TicketStatus, TicketPriority } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
 import { useTicketRouting } from './useTicketRouting';
 
@@ -17,10 +17,11 @@ export const useTicketManagement = () => {
   ) => {
     setIsCreating(true);
     try {
-      // Create the ticket first
+      // Create the ticket with title (using subject as title)
       await createTicket({
         ...ticketData,
-        customerId
+        customerId,
+        title: ticketData.subject // Add title property required by Ticket interface
       });
       
       // Generate a temporary ticket ID for auto-assignment
@@ -54,7 +55,9 @@ export const useTicketManagement = () => {
   const handleUpdateTicketStatus = async (ticketId: string, status: TicketStatus) => {
     setIsUpdating(true);
     try {
-      await updateTicketStatus(ticketId, status);
+      // Map TicketStatus to the status expected by updateTicketStatus
+      const mappedStatus = status === 'resolved' ? 'closed' : status === 'open' ? 'open' : status === 'in-progress' ? 'in-progress' : 'closed';
+      await updateTicketStatus(ticketId, mappedStatus as 'open' | 'in-progress' | 'closed');
       toast({
         title: "Success",
         description: `Ticket status updated to ${status}`,

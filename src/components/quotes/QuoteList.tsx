@@ -76,7 +76,7 @@ const QuoteList = ({ quotes, onSelectQuote, onPreview, onEdit }: QuoteListProps)
     generatePDF(quote, {
       includeBranding: true,
       template: 'professional',
-      watermark: false
+      watermark: 'false'
     });
   };
 
