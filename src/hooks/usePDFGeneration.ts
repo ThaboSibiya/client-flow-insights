@@ -8,6 +8,8 @@ export interface PDFOptions {
   orientation?: 'portrait' | 'landscape';
   includeAttachments?: boolean;
   watermark?: string;
+  includeBranding?: boolean;
+  template?: 'professional' | 'modern' | 'classic' | 'minimal';
 }
 
 export const usePDFGeneration = () => {

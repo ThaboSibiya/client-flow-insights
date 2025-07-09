@@ -17,11 +17,15 @@ export const useTicketManagement = () => {
   ) => {
     setIsCreating(true);
     try {
+      // Map TicketStatus to the status expected by createTicket
+      const mappedStatus = ticketData.status === 'resolved' ? 'closed' : ticketData.status === 'open' ? 'open' : ticketData.status === 'in-progress' ? 'in-progress' : 'open';
+      
       // Create the ticket with title (using subject as title)
       await createTicket({
         ...ticketData,
         customerId,
-        title: ticketData.subject // Add title property required by Ticket interface
+        title: ticketData.subject, // Add title property required by Ticket interface
+        status: mappedStatus as 'open' | 'in-progress' | 'closed'
       });
       
       // Generate a temporary ticket ID for auto-assignment
