@@ -22,18 +22,20 @@ const PDFGeneratorCard = ({ quote }: PDFGeneratorCardProps) => {
 
   const handleGeneratePDF = () => {
     generatePDF(quote, {
-      includeBranding,
-      template: template as any,
-      watermark
+      format: 'A4',
+      orientation: 'portrait',
+      includeAttachments: false,
+      watermark: watermark ? 'DRAFT' : undefined
     });
   };
 
   const handlePreviewPDF = () => {
     // Generate a preview version
     generatePDF(quote, {
-      includeBranding,
-      template: template as any,
-      watermark: Boolean(watermark)
+      format: 'A4',
+      orientation: 'portrait',
+      includeAttachments: false,
+      watermark: watermark ? 'PREVIEW' : undefined
     });
   };
 
@@ -104,7 +106,7 @@ const PDFGeneratorCard = ({ quote }: PDFGeneratorCardProps) => {
         <div className="flex gap-2">
           <Button 
             onClick={handleGeneratePDF} 
-            disabled={Boolean(isGenerating)}
+            disabled={isGenerating}
             className="flex-1"
           >
             {isGenerating ? (
@@ -117,7 +119,7 @@ const PDFGeneratorCard = ({ quote }: PDFGeneratorCardProps) => {
           <Button 
             variant="outline" 
             onClick={handlePreviewPDF}
-            disabled={Boolean(isGenerating)}
+            disabled={isGenerating}
           >
             <Eye className="h-4 w-4 mr-2" />
             Preview

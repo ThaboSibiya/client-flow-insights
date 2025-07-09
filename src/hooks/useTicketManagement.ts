@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
-import { CustomerTicket, TicketStatus, useCRM } from '@/context/CRMContext';
-import { TimeEntry } from '@/types/customer';
+import { CustomerTicket, useCRM } from '@/context/CRMContext';
+import { TimeEntry, TicketStatus } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
 import { useTicketRouting } from './useTicketRouting';
 
@@ -18,7 +18,10 @@ export const useTicketManagement = () => {
     setIsCreating(true);
     try {
       // Create the ticket first
-      await createTicket(customerId, ticketData);
+      await createTicket({
+        ...ticketData,
+        customerId
+      });
       
       // Generate a temporary ticket ID for auto-assignment
       const tempTicketId = `ticket-${Date.now()}`;

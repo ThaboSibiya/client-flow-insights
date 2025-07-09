@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,8 +35,6 @@ const CustomerFormStep = ({ industry, onComplete, onBack }: CustomerFormStepProp
       await addCustomer({
         ...formData,
         status: 'new' as CustomerStatus,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
         createdAt: new Date(),
         updatedAt: new Date(),
         activeTickets: [],

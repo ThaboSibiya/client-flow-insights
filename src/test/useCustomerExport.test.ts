@@ -1,3 +1,4 @@
+
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { useCustomerExport } from '@/hooks/useCustomerExport';
@@ -26,7 +27,6 @@ describe('useCustomerExport', () => {
       updated_at: '2023-01-01T00:00:00Z',
       createdAt: new Date('2023-01-01'),
       updatedAt: new Date('2023-01-01'),
-      user_id: 'user-1',
       activeTickets: [],
       ticketCount: 0,
     },

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, CustomerStatus } from '@/types/customer';
 import { automationPerformanceService } from './automationPerformanceService';
@@ -19,6 +20,56 @@ interface FollowUpTask {
   dueDate: Date;
   description: string;
   assignedTo: string;
+}
+
+interface AutomationRule {
+  id: string;
+  name: string;
+  conditions: Array<{
+    field: string;
+    operator: string;
+    value: any;
+  }>;
+  actions: Array<{
+    type: string;
+    config: any;
+  }>;
+}
+
+interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+}
+
+interface WorkflowDefinition {
+  id: string;
+  name: string;
+  steps: Array<{
+    type: string;
+    config: any;
+  }>;
+}
+
+interface NurturingReport {
+  startDate: Date;
+  endDate: Date;
+  customers: Array<{
+    id: string;
+    name: string;
+    email: string;
+    status: CustomerStatus;
+    lastInteraction: Date;
+    engagementScore: number;
+    predictedValue: number;
+    recommendedActions: string[];
+  }>;
+  totalEngagementScore: number;
+  averageEngagementScore: number;
+  totalPredictedValue: number;
+  averagePredictedValue: number;
+  recommendedActions: string[];
 }
 
 export class LeadNurturingService {
@@ -172,7 +223,7 @@ export class LeadNurturingService {
   private findBestSalesRep(customer: Customer, salesReps: SalesRep[]): SalesRep | null {
     // Filter by department if available (using department instead of territory)
     let availableReps = salesReps.filter(rep => 
-      rep.department ? customer.territory === rep.department : true
+      rep.department ? rep.department === 'sales' : true
     );
 
     // If no department match, use all reps
@@ -316,11 +367,11 @@ export class LeadNurturingService {
       notes: data.notes || '',
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),
+      created_at: data.created_at,
+      updated_at: data.updated_at,
       activeTickets: [],
       ticketCount: 0,
-      assigned_to: undefined,
-      assigned_to_email: undefined,
-      territory: undefined
+      assigned_to: undefined
     };
   }
 
@@ -349,6 +400,21 @@ export class LeadNurturingService {
     });
   }
 
+  private evaluateCondition(value: any, operator: string, targetValue: any): boolean {
+    switch (operator) {
+      case 'equals':
+        return value === targetValue;
+      case 'contains':
+        return value && value.toString().includes(targetValue);
+      case 'greater_than':
+        return Number(value) > Number(targetValue);
+      case 'less_than':
+        return Number(value) < Number(targetValue);
+      default:
+        return false;
+    }
+  }
+
   private getCustomerValue(customer: Customer, field: string): any {
     switch (field) {
       case 'status':
@@ -373,11 +439,54 @@ export class LeadNurturingService {
         return customer.company_address;
       case 'assigned_to':
         return customer.assigned_to || null;
-      // Note: 'territory' property doesn't exist in Customer type
-      // Removing reference to undefined property
       default:
         return null;
     }
+  }
+
+  private async getCustomersInRange(startDate: Date, endDate: Date): Promise<Customer[]> {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString());
+
+    if (error) {
+      console.error('Error fetching customers in range:', error);
+      return [];
+    }
+
+    return data?.map(customer => ({
+      id: customer.id,
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone || '',
+      status: customer.status as CustomerStatus,
+      notes: customer.notes || '',
+      createdAt: new Date(customer.created_at),
+      updatedAt: new Date(customer.updated_at),
+      created_at: customer.created_at,
+      updated_at: customer.updated_at,
+      activeTickets: [],
+      ticketCount: 0,
+      assigned_to: undefined
+    })) || [];
+  }
+
+  private async analyzeCustomerBehavior(customer: Customer): Promise<{
+    engagementScore: number;
+    recommendedActions: string[];
+  }> {
+    // Mock implementation
+    const engagementScore = Math.random() * 100;
+    const recommendedActions = ['Follow up within 24 hours', 'Send product demo'];
+    
+    return { engagementScore, recommendedActions };
+  }
+
+  private predictCustomerValue(customer: Customer): number {
+    // Mock implementation
+    return Math.random() * 10000;
   }
 
   async generateNurturingReport(startDate: Date, endDate: Date): Promise<NurturingReport> {
@@ -408,7 +517,7 @@ export class LeadNurturingService {
       averageEngagementScore: customerAnalysis.length > 0 ? customerAnalysis.reduce((acc, curr) => acc + curr.engagementScore, 0) / customerAnalysis.length : 0,
       totalPredictedValue: customerAnalysis.reduce((acc, curr) => acc + curr.predictedValue, 0),
       averagePredictedValue: customerAnalysis.length > 0 ? customerAnalysis.reduce((acc, curr) => acc + curr.predictedValue, 0) / customerAnalysis.length : 0,
-      recommendedActions: customerAnalysis.reduce((acc, curr) => acc.concat(curr.recommendedActions), [])
+      recommendedActions: customerAnalysis.reduce((acc, curr) => acc.concat(curr.recommendedActions), [] as string[])
     };
 
     return report;

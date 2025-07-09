@@ -43,7 +43,7 @@ export const QuotePreviewActions = ({ quote }: QuotePreviewActionsProps) => {
     });
   };
 
-  const isEmailDisabled = Boolean(isSending || !quote || quote.status === 'sent' || quote.status === 'paid' || !quote.customer_email);
+  const isEmailDisabled = isSending || !quote || quote.status === 'sent' || quote.status === 'paid' || !quote.customer_email;
 
   return (
     <div className="flex justify-between items-center">
@@ -55,7 +55,7 @@ export const QuotePreviewActions = ({ quote }: QuotePreviewActionsProps) => {
           onClick={handleDownloadPDF}
           variant="outline" 
           className="flex items-center gap-2 border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal"
-          disabled={Boolean(isGenerating)}
+          disabled={isGenerating}
         >
           {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
           PDF
