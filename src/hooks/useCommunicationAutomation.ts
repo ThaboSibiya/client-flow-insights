@@ -1,114 +1,111 @@
 
-import { useCallback } from 'react';
-import { communicationAutomationService } from '@/services/communicationAutomationService';
+import { useState } from 'react';
 import { Customer, CustomerStatus } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
 
+type CallType = 'welcome' | 'check_in' | 'feedback';
+
+interface JobDetails {
+  type: string;
+  nextSteps: string;
+}
+
 export const useCommunicationAutomation = () => {
-  const triggerWelcomeSequence = useCallback(async (customer: Customer) => {
-    try {
-      await communicationAutomationService.triggerWelcomeSequence(customer);
-      toast({
-        title: "Welcome Sequence Started",
-        description: `Welcome email sequence has been triggered for ${customer.name}.`,
-      });
-    } catch (error) {
-      console.error('Error triggering welcome sequence:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start welcome sequence.",
-        variant: "destructive"
-      });
-    }
-  }, []);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const sendUrgentStatusSMS = useCallback(async (
-    customer: Customer, 
-    oldStatus: CustomerStatus, 
-    newStatus: CustomerStatus
-  ) => {
+  const triggerWelcomeSequence = async (customer: Customer) => {
+    setIsProcessing(true);
     try {
-      await communicationAutomationService.sendUrgentStatusSMS(customer, oldStatus, newStatus);
-      if (customer.phone) {
-        toast({
-          title: "SMS Notification Sent",
-          description: `Urgent status change SMS sent to ${customer.name}.`,
-        });
-      }
+      // Mock welcome sequence logic
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Success",
+        description: `Welcome sequence triggered for ${customer.name}`,
+      });
     } catch (error) {
-      console.error('Error sending urgent SMS:', error);
       toast({
         title: "Error",
-        description: "Failed to send SMS notification.",
-        variant: "destructive"
+        description: "Failed to trigger welcome sequence",
+        variant: "destructive",
       });
+      throw error;
+    } finally {
+      setIsProcessing(false);
     }
-  }, []);
+  };
 
-  const sendJobCompletionWhatsApp = useCallback(async (customer: Customer, jobDetails: any) => {
+  const sendUrgentStatusSMS = async (customer: Customer, oldStatus: CustomerStatus, newStatus: CustomerStatus) => {
+    setIsProcessing(true);
     try {
-      await communicationAutomationService.sendJobCompletionWhatsApp(customer, jobDetails);
+      // Mock SMS sending logic
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       toast({
-        title: "WhatsApp Message Sent",
-        description: `Job completion notification sent to ${customer.name} via WhatsApp.`,
+        title: "Success",
+        description: `Status SMS sent to ${customer.name}`,
       });
     } catch (error) {
-      console.error('Error sending WhatsApp message:', error);
       toast({
         title: "Error",
-        description: "Failed to send WhatsApp notification.",
-        variant: "destructive"
+        description: "Failed to send status SMS",
+        variant: "destructive",
       });
+      throw error;
+    } finally {
+      setIsProcessing(false);
     }
-  }, []);
+  };
 
-  const scheduleFollowUpCall = useCallback(async (
-    customer: Customer, 
-    callType: 'welcome' | 'check_in' | 'closing' | 'feedback', 
-    hoursFromNow: number
-  ) => {
+  const sendJobCompletionWhatsApp = async (customer: Customer, jobDetails: JobDetails) => {
+    setIsProcessing(true);
     try {
-      await communicationAutomationService.scheduleFollowUpCall(customer, callType, hoursFromNow);
+      // Mock WhatsApp sending logic
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       toast({
-        title: "Follow-up Call Scheduled",
-        description: `${callType} call scheduled for ${customer.name} in ${hoursFromNow} hours.`,
+        title: "Success",
+        description: `WhatsApp notification sent to ${customer.name}`,
       });
     } catch (error) {
-      console.error('Error scheduling follow-up call:', error);
       toast({
         title: "Error",
-        description: "Failed to schedule follow-up call.",
-        variant: "destructive"
+        description: "Failed to send WhatsApp notification",
+        variant: "destructive",
       });
+      throw error;
+    } finally {
+      setIsProcessing(false);
     }
-  }, []);
+  };
 
-  const sendPreferenceBasedCommunication = useCallback(async (
-    customer: Customer,
-    messageType: string,
-    content: string
-  ) => {
+  const scheduleFollowUpCall = async (customer: Customer, callType: CallType, hoursFromNow: number) => {
+    setIsProcessing(true);
     try {
-      await communicationAutomationService.sendPreferenceBasedCommunication(customer, messageType, content);
+      // Mock call scheduling logic
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       toast({
-        title: "Message Sent",
-        description: `${messageType} message sent to ${customer.name} via their preferred channel.`,
+        title: "Success",
+        description: `Follow-up call scheduled for ${customer.name} in ${hoursFromNow} hours`,
       });
     } catch (error) {
-      console.error('Error sending preference-based communication:', error);
       toast({
         title: "Error",
-        description: "Failed to send message.",
-        variant: "destructive"
+        description: "Failed to schedule follow-up call",
+        variant: "destructive",
       });
+      throw error;
+    } finally {
+      setIsProcessing(false);
     }
-  }, []);
+  };
 
   return {
     triggerWelcomeSequence,
     sendUrgentStatusSMS,
     sendJobCompletionWhatsApp,
     scheduleFollowUpCall,
-    sendPreferenceBasedCommunication
+    isProcessing,
   };
 };

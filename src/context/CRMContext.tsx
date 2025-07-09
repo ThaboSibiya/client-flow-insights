@@ -1,34 +1,9 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { Customer, CustomerStatus, CustomerTicket, TimeEntry } from '@/types/customer';
 
-export interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  status: string;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-  createdAt: Date;
-  contact_person?: string;
-  company_address?: string;
-  equipment?: Array<{
-    id: string;
-    equipment_type: string;
-    brand?: string;
-    model?: string;
-    serial_number?: string;
-  }>;
-  activeTickets?: Array<any>;
-  ticketCount?: number;
-  lastTicketDate?: Date;
-}
-
-export type CustomerStatus = 'new' | 'existing' | 'pending' | 'finalised';
+export { Customer, CustomerStatus, CustomerTicket, TimeEntry };
 
 export interface Ticket {
   id: string;
@@ -40,15 +15,6 @@ export interface Ticket {
   assignedTo?: string;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface TimeEntry {
-  id: string;
-  ticketId: string;
-  description: string;
-  hours: number;
-  date: Date;
-  employeeId: string;
 }
 
 interface CRMContextType {
@@ -75,7 +41,6 @@ export const useCRMContext = () => {
   return context;
 };
 
-// Export useCRM as an alias for useCRMContext for compatibility
 export const useCRM = useCRMContext;
 
 export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -99,11 +64,11 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (error) throw error;
       
-      // Transform data to match our Customer interface
       const transformedCustomers: Customer[] = (data || []).map(customer => ({
         ...customer,
         createdAt: new Date(customer.created_at),
-        status: customer.status || 'new'
+        updatedAt: new Date(customer.updated_at),
+        status: customer.status as CustomerStatus
       }));
       
       setCustomers(transformedCustomers);
@@ -130,7 +95,8 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const transformedCustomer: Customer = {
         ...data,
         createdAt: new Date(data.created_at),
-        status: data.status || 'new'
+        updatedAt: new Date(data.updated_at),
+        status: data.status as CustomerStatus
       };
       
       setCustomers(prev => [transformedCustomer, ...prev]);
@@ -157,7 +123,8 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const transformedCustomer: Customer = {
         ...data,
         createdAt: new Date(data.created_at),
-        status: data.status || 'new'
+        updatedAt: new Date(data.updated_at),
+        status: data.status as CustomerStatus
       };
       
       setCustomers(prev => prev.map(customer => 
@@ -218,13 +185,90 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     loading,
     error,
     refreshCustomers,
-    addCustomer,
-    updateCustomer,
-    deleteCustomer,
-    updateCustomerStatus,
-    createTicket,
-    updateTicketStatus,
-    addTimeEntry,
+    addCustomer: async (customerData) => {
+      if (!user) throw new Error('User not authenticated');
+
+      try {
+        const { data, error } = await supabase
+          .from('customers')
+          .insert([{ ...customerData, user_id: user.id }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        
+        const transformedCustomer: Customer = {
+          ...data,
+          createdAt: new Date(data.created_at),
+          updatedAt: new Date(data.updated_at),
+          status: data.status as CustomerStatus
+        };
+        
+        setCustomers(prev => [transformedCustomer, ...prev]);
+      } catch (err) {
+        console.error('Error adding customer:', err);
+        throw err;
+      }
+    },
+    updateCustomer: async (id, customerData) => {
+      if (!user) throw new Error('User not authenticated');
+
+      try {
+        const { data, error } = await supabase
+          .from('customers')
+          .update(customerData)
+          .eq('id', id)
+          .eq('user_id', user.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        
+        const transformedCustomer: Customer = {
+          ...data,
+          createdAt: new Date(data.created_at),
+          updatedAt: new Date(data.updated_at),
+          status: data.status as CustomerStatus
+        };
+        
+        setCustomers(prev => prev.map(customer => 
+          customer.id === id ? { ...customer, ...transformedCustomer } : customer
+        ));
+      } catch (err) {
+        console.error('Error updating customer:', err);
+        throw err;
+      }
+    },
+    deleteCustomer: async (id) => {
+      if (!user) throw new Error('User not authenticated');
+
+      try {
+        const { error } = await supabase
+          .from('customers')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+        
+        setCustomers(prev => prev.filter(customer => customer.id !== id));
+      } catch (err) {
+        console.error('Error deleting customer:', err);
+        throw err;
+      }
+    },
+    updateCustomerStatus: async (id, status) => {
+      await value.updateCustomer(id, { status });
+    },
+    createTicket: async (ticket) => {
+      console.log('Creating ticket:', ticket);
+    },
+    updateTicketStatus: async (ticketId, status) => {
+      console.log('Updating ticket status:', ticketId, status);
+    },
+    addTimeEntry: async (entry) => {
+      console.log('Adding time entry:', entry);
+    },
   };
 
   return (

@@ -1,359 +1,210 @@
 
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
+import StatusSelector from '@/components/customers/StatusSelector';
+import { CheckCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Users, ArrowLeft, CheckCircle } from 'lucide-react';
-import { createCustomerWithEquipment } from '@/services/customerService';
-
-interface FieldDefinition {
-  name: string;
-  label: string;
-  type: string;
-  required: boolean;
-  options?: string[];
-}
-
-interface CustomerTemplate {
-  id: string;
-  industry: string;
-  template_name: string;
-  field_definitions: {
-    fields: FieldDefinition[];
-  };
-}
 
 interface CustomerFormStepProps {
-  industry: string;
   onComplete: () => void;
-  onBack: () => void;
 }
 
-const CustomerFormStep: React.FC<CustomerFormStepProps> = ({
-  industry,
-  onComplete,
-  onBack,
-}) => {
-  const { user } = useAuth();
-  const [template, setTemplate] = useState<CustomerTemplate | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const form = useForm<Record<string, any>>({
-    defaultValues: {},
+const CustomerFormStep = ({ onComplete }: CustomerFormStepProps) => {
+  const { addCustomer } = useCRM();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    contact_person: '',
+    company_address: '',
+    status: 'new' as CustomerStatus,
+    notes: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const fetchTemplate = async () => {
-      if (!industry) {
-        setError('No industry specified');
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        const { data, error: fetchError } = await supabase
-          .from('industry_customer_templates')
-          .select('*')
-          .eq('industry', industry)
-          .single();
-
-        if (fetchError) {
-          console.error('Error fetching template:', fetchError);
-          setError('Failed to load customer template');
-          setTemplate(null);
-        } else if (data) {
-          const parsedData = {
-            ...data,
-            field_definitions: typeof data.field_definitions === 'string' 
-              ? JSON.parse(data.field_definitions) 
-              : data.field_definitions
-          };
-          setTemplate(parsedData);
-
-          // Set default values for the form
-          const defaultValues: Record<string, any> = {};
-          parsedData.field_definitions.fields.forEach((field: FieldDefinition) => {
-            defaultValues[field.name] = '';
-          });
-          form.reset(defaultValues);
-        }
-      } catch (err) {
-        console.error('Error in fetchTemplate:', err);
-        setError('Failed to load customer template');
-        setTemplate(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTemplate();
-  }, [industry, form]);
-
-  const parseCustomerData = (formData: Record<string, any>) => {
-    // Extract standard customer fields
-    const customerName = formData.company_name || 
-                        formData.client_name || 
-                        formData.name || 
-                        formData.business_name ||
-                        'New Customer';
-
-    const customerData = {
-      name: customerName,
-      email: formData.email || formData.contact_email || '',
-      phone: formData.phone_number || formData.phone || formData.contact_phone || '',
-      address: formData.address || '',
-      contact_person: formData.contact_person || '',
-      company_address: formData.company_address || formData.address || '',
-      status: 'new' as const,
-      notes: `Industry: ${industry.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}\nTemplate: ${template?.template_name || 'Unknown'}`,
-      activeTickets: [],
-      ticketCount: 0,
-    };
-
-    // Extract equipment data if present
-    const equipmentData = {
-      equipment_type: formData.printer_brand ? 'printer' : 'other',
-      brand: formData.printer_brand || formData.equipment_brand || '',
-      model: formData.printer_model || formData.equipment_model || '',
-      serial_number: formData.serial_number || '',
-      purchase_date: formData.purchase_date ? new Date(formData.purchase_date) : undefined,
-      warranty_expiry: formData.warranty_expiry ? new Date(formData.warranty_expiry) : undefined,
-      notes: formData.equipment_notes || '',
-    };
-
-    // Only include equipment if we have meaningful data
-    const hasEquipmentData = equipmentData.brand || equipmentData.model || equipmentData.serial_number;
-
-    return {
-      customerData,
-      equipmentData: hasEquipmentData ? equipmentData : undefined,
-    };
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const onSubmit = async (data: Record<string, any>) => {
-    if (!user || !template) {
+  const handleStatusChange = (status: CustomerStatus) => {
+    setFormData(prev => ({ ...prev, status }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.email) {
       toast({
-        title: 'Error',
-        description: 'Missing user or template data',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "Name and email are required",
+        variant: "destructive",
       });
       return;
     }
 
     setIsSubmitting(true);
+    
     try {
-      console.log('Starting customer creation with data:', data);
+      const customerData = {
+        ...formData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
       
-      const { customerData, equipmentData } = parseCustomerData(data);
-
-      console.log('Creating customer with structured data:', { customerData, equipmentData });
-
-      const customer = await createCustomerWithEquipment(
-        customerData,
-        user.id,
-        equipmentData
-      );
-
-      console.log('Customer created successfully:', customer);
-
+      await addCustomer(customerData);
+      
       toast({
-        title: 'Success!',
-        description: `${customerData.name} has been added successfully${equipmentData ? ' with equipment details' : ''}.`,
-        duration: 5000,
+        title: "Success",
+        description: "Your first customer has been added!",
       });
-
-      setTimeout(() => {
-        onComplete();
-      }, 1000);
-
-    } catch (error: any) {
-      console.error('Error creating customer:', error);
+      
+      onComplete();
+    } catch (error) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create customer',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to add customer",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const renderField = (field: FieldDefinition) => {
-    const fieldName = field.name;
-
-    return (
-      <FormField
-        key={fieldName}
-        control={form.control}
-        name={fieldName}
-        rules={{ required: field.required ? `${field.label} is required` : false }}
-        render={({ field: formField }) => (
-          <FormItem>
-            <FormLabel className="text-quikle-charcoal font-semibold">
-              {field.label} {field.required && <span className="text-red-500">*</span>}
-            </FormLabel>
-            <FormControl>
-              {field.type === 'select' ? (
-                <Select onValueChange={formField.onChange} value={formField.value}>
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {field.options?.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : field.type === 'textarea' ? (
-                <Textarea
-                  {...formField}
-                  placeholder={`Enter ${field.label.toLowerCase()}`}
-                  className="min-h-[100px] resize-none"
-                />
-              ) : (
-                <Input
-                  {...formField}
-                  type={field.type}
-                  placeholder={`Enter ${field.label.toLowerCase()}`}
-                  className="h-12"
-                />
-              )}
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-quikle-crystal via-white to-quikle-platinum">
-        <Card className="w-full max-w-md glass-effect shadow-luxury">
-          <CardContent className="p-8 text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-quikle-primary mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-quikle-charcoal mb-2">
-              Loading Customer Form
-            </h3>
-            <p className="text-quikle-slate">
-              Preparing industry-specific fields...
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error || !template) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-quikle-crystal via-white to-quikle-platinum">
-        <Card className="w-full max-w-md glass-effect shadow-luxury">
-          <CardContent className="p-8 text-center">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <h3 className="text-xl font-semibold text-quikle-charcoal mb-2">
-              Unable to Load Form
-            </h3>
-            <p className="text-quikle-slate mb-6">
-              {error || 'No template found for this industry'}
-            </p>
-            <Button onClick={onBack} variant="outline" className="mr-2">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Go Back
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-quikle-crystal via-white to-quikle-platinum">
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-4xl mx-auto glass-effect shadow-luxury border-quikle-silver/30">
-          <CardHeader className="border-b border-quikle-silver/20">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-quikle-primary/10 rounded-lg">
-                  <Users className="h-6 w-6 text-quikle-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-2xl bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">
-                    Add Your First Customer
-                  </CardTitle>
-                  <CardDescription className="text-quikle-slate">
-                    {template.template_name} - Customized for {industry.replace('_', ' ')}
-                  </CardDescription>
-                </div>
-              </div>
-              <Button 
-                onClick={onBack} 
-                variant="ghost" 
-                size="sm"
-                className="text-quikle-slate hover:text-quikle-charcoal"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <CheckCircle className="h-6 w-6 text-green-600" />
+          Add Your First Customer
+        </CardTitle>
+        <p className="text-muted-foreground">
+          Let's start by adding your first customer to the system.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="name" className="text-sm font-medium">
+                Customer Name <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Enter customer name"
+                required
+              />
             </div>
-          </CardHeader>
 
-          <CardContent className="p-8">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {template.field_definitions.fields.map(renderField)}
-                </div>
+            <div>
+              <Label htmlFor="email" className="text-sm font-medium">
+                Email <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Enter email address"
+                required
+              />
+            </div>
+          </div>
 
-                <div className="flex gap-4 pt-6 border-t border-quikle-silver/20">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onBack}
-                    disabled={isSubmitting}
-                    className="flex-1"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Company Setup
-                  </Button>
-                  
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 bg-gradient-to-r from-quikle-primary to-quikle-secondary hover:shadow-luxury"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Adding Customer...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Complete Setup
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="phone" className="text-sm font-medium">Phone</Label>
+              <Input
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="Enter phone number"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium">Status</Label>
+              <StatusSelector
+                status={formData.status}
+                onChange={handleStatusChange}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="contact_person" className="text-sm font-medium">Contact Person</Label>
+            <Input
+              id="contact_person"
+              name="contact_person"
+              value={formData.contact_person}
+              onChange={handleInputChange}
+              placeholder="Primary contact person"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="address" className="text-sm font-medium">Address</Label>
+            <Input
+              id="address"
+              name="address"
+              value={formData.address}
+              onChange={handleInputChange}
+              placeholder="Customer address"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="company_address" className="text-sm font-medium">Company Address</Label>
+            <Input
+              id="company_address"
+              name="company_address"
+              value={formData.company_address}
+              onChange={handleInputChange}
+              placeholder="Company address (if different)"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="notes" className="text-sm font-medium">Notes</Label>
+            <Textarea
+              id="notes"
+              name="notes"
+              value={formData.notes}
+              onChange={handleInputChange}
+              rows={3}
+              placeholder="Add any notes about this customer..."
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  Adding Customer...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Add Customer & Continue
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

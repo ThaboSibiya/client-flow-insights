@@ -10,25 +10,31 @@ export interface Customer {
   created_at: string;
   updated_at: string;
   createdAt: Date;
+  updatedAt: Date;
   contact_person?: string;
   company_address?: string;
   equipment?: CustomerEquipment[];
   activeTickets?: CustomerTicket[];
   ticketCount?: number;
   lastTicketDate?: Date;
+  assigned_to?: string;
 }
 
 export type CustomerStatus = 'new' | 'existing' | 'pending' | 'finalised';
 
 export interface CustomerEquipment {
   id: string;
+  customer_id: string;
+  user_id: string;
   equipment_type: string;
   brand?: string;
   model?: string;
   serial_number?: string;
-  purchase_date?: string;
-  warranty_expiry?: string;
+  purchase_date?: Date;
+  warranty_expiry?: Date;
   notes?: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface CustomerTicket {
@@ -39,10 +45,11 @@ export interface CustomerTicket {
   status: TicketStatus;
   priority: TicketPriority;
   customerId: string;
-  assignedTo?: string;
+  assignedTo?: TeamMember;
   createdAt: Date;
   updatedAt: Date;
   totalTimeSpent?: number;
+  timeEntries?: TimeEntry[];
 }
 
 export type TicketStatus = 'open' | 'in-progress' | 'resolved' | 'closed';
@@ -51,10 +58,16 @@ export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
 export interface TimeEntry {
   id: string;
   ticketId: string;
+  employeeId: string;
   description: string;
   hours: number;
+  duration: number;
   date: Date;
-  employeeId: string;
+  startTime: Date;
+  endTime: Date;
+  createdAt: Date;
+  userId: string;
+  userName: string;
 }
 
 export interface TicketTemplate {
@@ -64,6 +77,8 @@ export interface TicketTemplate {
   category: string;
   defaultPriority: TicketPriority;
   estimatedTime?: number;
+  subject: string;
+  priority: TicketPriority;
 }
 
 export interface TeamMember {
