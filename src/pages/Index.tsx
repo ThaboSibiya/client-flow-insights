@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { useOnboardingFlow } from '@/hooks/useOnboardingFlow';
 import { 
   Users, 
   BarChart3, 
@@ -22,7 +21,6 @@ import {
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { needsOnboarding } = useOnboardingFlow();
   const backgroundRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   
@@ -191,15 +189,13 @@ const Index = () => {
               onClick={() => {
                 if (!user) {
                   navigate('/auth');
-                } else if (needsOnboarding()) {
-                  navigate('/company-onboarding');
                 } else {
                   navigate('/dashboard');
                 }
               }} 
               className="quikle-button-primary px-8 py-4 h-auto shadow-luxury hover:shadow-platinum text-lg font-medium"
             >
-              {!user ? 'Get Started' : needsOnboarding() ? 'Complete Setup' : 'Enter Dashboard'}
+              {!user ? 'Get Started' : 'Enter Dashboard'}
             </Button>
           </div>
         </div>

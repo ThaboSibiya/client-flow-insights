@@ -13,7 +13,6 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Customers from "./pages/Customers";
 import Onboarding from "./pages/Onboarding";
-import CompanyOnboarding from "./pages/CompanyOnboarding";
 import Pipeline from "./pages/Pipeline";
 import Analytics from "./pages/Analytics";
 import QuoteInvoice from "./pages/QuoteInvoice";
@@ -56,12 +55,6 @@ const App = () => (
                   <Routes>
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/employee-setup" element={<EmployeeSetup />} />
-                    <Route path="/company-onboarding" element={
-                      <ProtectedRoute 
-                        element={<CompanyOnboarding />} 
-                        requiresOnboarding={true}
-                      />
-                    } />
                     <Route path="/" element={<ProtectedRoute element={<Layout />} />}>
                       <Route index element={<Index />} />
                       <Route path="dashboard" element={
