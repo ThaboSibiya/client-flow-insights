@@ -18,6 +18,7 @@ import Analytics from "./pages/Analytics";
 import QuoteInvoice from "./pages/QuoteInvoice";
 import Employees from "./pages/Employees";
 import CustomerInsights from "./pages/Customer Insights";
+import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient({
@@ -52,6 +53,7 @@ const App = () => (
                   <Route path="quotes" element={<QuoteInvoice />} />
                   <Route path="employees" element={<Employees />} />
                   <Route path="customer-insights" element={<CustomerInsights />} />
+                  <Route path="settings" element={<Settings />} />
                 </Route>
               </Routes>
             </div>

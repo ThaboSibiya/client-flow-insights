@@ -8,7 +8,8 @@ import {
   MessageCircle, 
   BarChart3, 
   UserPlus,
-  Menu
+  Menu,
+  Settings
 } from 'lucide-react';
 import {
   Sheet,
@@ -38,6 +39,7 @@ const MobileNavigation = () => {
     { path: '/pipeline', icon: BarChart3, label: 'Pipeline' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/onboarding', icon: UserPlus, label: 'Add Customer' },
+    { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
   return (
