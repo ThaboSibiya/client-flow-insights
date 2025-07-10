@@ -29,11 +29,19 @@ interface SettingsCategory {
 
 const SettingsManager = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('company');
+  const [activeTab, setActiveTab] = useState('integrations'); // Changed default to integrations
   const { privileges, hasPrivilege } = useEnhancedPrivileges();
   const { shouldUseMobileView } = useMobileDetection();
 
   const settingsCategories: SettingsCategory[] = [
+    {
+      id: 'integrations',
+      label: 'Integrations',
+      icon: Database,
+      component: IntegrationSettings,
+      requiredPrivilege: 'can_edit_integration_settings',
+      description: 'SMS, WhatsApp, Email, and API connections'
+    },
     {
       id: 'company',
       label: 'Company',
@@ -63,14 +71,6 @@ const SettingsManager = () => {
       icon: Palette,
       component: AppearanceSettings,
       description: 'Theme, layout, and visual customization'
-    },
-    {
-      id: 'integrations',
-      label: 'Integrations',
-      icon: Database,
-      component: IntegrationSettings,
-      requiredPrivilege: 'can_edit_integration_settings',
-      description: 'Third-party services and API connections'
     }
   ];
 
