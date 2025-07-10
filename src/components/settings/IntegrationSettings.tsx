@@ -30,24 +30,30 @@ const IntegrationSettings = () => {
         </TabsList>
 
         <TabsContent value="communications" className="space-y-6">
-          <div>
-            <h4 className="text-md font-semibold text-quikle-charcoal mb-4 flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              SMS & WhatsApp Services
-            </h4>
-            <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Phone className="h-5 w-5 text-blue-500" />
+                SMS & WhatsApp Services
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <TwilioSettings />
               <TelnyxSettings />
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div>
-            <h4 className="text-md font-semibold text-quikle-charcoal mb-4 flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Email Services
-            </h4>
-            <EmailSettings />
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5 text-green-500" />
+                Email Services
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EmailSettings />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="other" className="space-y-6">
