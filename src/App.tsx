@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
+import { CRMProvider } from "@/context/CRMContext";
 import { ThemeProvider } from "next-themes";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import MainLayout from "@/components/layout/MainLayout";
@@ -31,46 +32,48 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <AuthProvider>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                
-                <Route path="/dashboard" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Dashboard />} />
-                </Route>
-                
-                <Route path="/conversations" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Conversations />} />
-                </Route>
-                
-                <Route path="/customers" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Customers />} />
-                </Route>
-                
-                <Route path="/tickets" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Tickets />} />
-                </Route>
-                
-                <Route path="/analytics" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Analytics />} />
-                </Route>
-                
-                <Route path="/quotes" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Quotes />} />
-                </Route>
-                
-                <Route path="/automations" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Automations />} />
-                </Route>
-                
-                <Route path="/employees" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<EmployeeManagement />} />
-                </Route>
-                
-                <Route path="/settings" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Settings />} />
-                </Route>
-              </Routes>
+              <CRMProvider>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  
+                  <Route path="/dashboard" element={<ProtectedRoute element={<MainLayout />} />}>
+                    <Route index element={<Dashboard />} />
+                  </Route>
+                  
+                  <Route path="/conversations" element={<ProtectedRoute element={<MainLayout />} />}>
+                    <Route index element={<Conversations />} />
+                  </Route>
+                  
+                  <Route path="/customers" element={<ProtectedRoute element={<MainLayout />} />}>
+                    <Route index element={<Customers />} />
+                  </Route>
+                  
+                  <Route path="/tickets" element={<ProtectedRoute element={<MainLayout />} />}>
+                    <Route index element={<Tickets />} />
+                  </Route>
+                  
+                  <Route path="/analytics" element={<ProtectedRoute element={<MainLayout />} />}>
+                    <Route index element={<Analytics />} />
+                  </Route>
+                  
+                  <Route path="/quotes" element={<ProtectedRoute element={<MainLayout />} />}>
+                    <Route index element={<Quotes />} />
+                  </Route>
+                  
+                  <Route path="/automations" element={<ProtectedRoute element={<MainLayout />} />}>
+                    <Route index element={<Automations />} />
+                  </Route>
+                  
+                  <Route path="/employees" element={<ProtectedRoute element={<MainLayout />} />}>
+                    <Route index element={<EmployeeManagement />} />
+                  </Route>
+                  
+                  <Route path="/settings" element={<ProtectedRoute element={<MainLayout />} />}>
+                    <Route index element={<Settings />} />
+                  </Route>
+                </Routes>
+              </CRMProvider>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
