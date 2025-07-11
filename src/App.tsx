@@ -35,77 +35,41 @@ function App() {
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
                 
-                <Route path="/dashboard" element={
-                  <ProtectedRoute element={
-                    <MainLayout>
-                      <Dashboard />
-                    </MainLayout>
-                  } />
-                } />
+                <Route path="/dashboard" element={<ProtectedRoute element={<MainLayout />} />}>
+                  <Route index element={<Dashboard />} />
+                </Route>
                 
-                <Route path="/conversations" element={
-                  <ProtectedRoute element={
-                    <MainLayout>
-                      <Conversations />
-                    </MainLayout>
-                  } />
-                } />
+                <Route path="/conversations" element={<ProtectedRoute element={<MainLayout />} />}>
+                  <Route index element={<Conversations />} />
+                </Route>
                 
-                <Route path="/customers" element={
-                  <ProtectedRoute element={
-                    <MainLayout>
-                      <Customers />
-                    </MainLayout>
-                  } />
-                } />
+                <Route path="/customers" element={<ProtectedRoute element={<MainLayout />} />}>
+                  <Route index element={<Customers />} />
+                </Route>
                 
-                <Route path="/tickets" element={
-                  <ProtectedRoute element={
-                    <MainLayout>
-                      <Tickets />
-                    </MainLayout>
-                  } />
-                } />
+                <Route path="/tickets" element={<ProtectedRoute element={<MainLayout />} />}>
+                  <Route index element={<Tickets />} />
+                </Route>
                 
-                <Route path="/analytics" element={
-                  <ProtectedRoute element={
-                    <MainLayout>
-                      <Analytics />
-                    </MainLayout>
-                  } />
-                } />
+                <Route path="/analytics" element={<ProtectedRoute element={<MainLayout />} />}>
+                  <Route index element={<Analytics />} />
+                </Route>
                 
-                <Route path="/quotes" element={
-                  <ProtectedRoute element={
-                    <MainLayout>
-                      <Quotes />
-                    </MainLayout>
-                  } />
-                } />
+                <Route path="/quotes" element={<ProtectedRoute element={<MainLayout />} />}>
+                  <Route index element={<Quotes />} />
+                </Route>
                 
-                <Route path="/automations" element={
-                  <ProtectedRoute element={
-                    <MainLayout>
-                      <Automations />
-                    </MainLayout>
-                  } />
-                } />
+                <Route path="/automations" element={<ProtectedRoute element={<MainLayout />} />}>
+                  <Route index element={<Automations />} />
+                </Route>
                 
-                <Route path="/employees" element={
-                  <ProtectedRoute element={
-                    <MainLayout>
-                      <EmployeeManagement />
-                    </MainLayout>
-                  } />
-                } />
+                <Route path="/employees" element={<ProtectedRoute element={<MainLayout />} />}>
+                  <Route index element={<EmployeeManagement />} />
+                </Route>
                 
-                <Route path="/settings" element={
-                  <ProtectedRoute element={
-                    <MainLayout>
-                      <Settings />
-                    </MainLayout>
-                  } />
-                } />
+                <Route path="/settings" element={<ProtectedRoute element={<MainLayout />} />}>
+                  <Route index element={<Settings />} />
+                </Route>
               </Routes>
             </AuthProvider>
           </BrowserRouter>
