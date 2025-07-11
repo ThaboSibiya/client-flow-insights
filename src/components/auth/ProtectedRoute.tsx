@@ -2,6 +2,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { CRMProvider } from '@/context/CRMContext';
 import LoadingSpinner from './LoadingSpinner';
 
 interface ProtectedRouteProps {
@@ -23,7 +24,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={redirectTo} replace />;
   }
 
-  return element;
+  return (
+    <CRMProvider>
+      {element}
+    </CRMProvider>
+  );
 };
 
 export default ProtectedRoute;
