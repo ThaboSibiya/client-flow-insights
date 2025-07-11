@@ -62,7 +62,9 @@ const ResponsiveEmployeeManager = ({
     <EmployeeList
       employees={employees}
       loading={loading}
+      onAddEmployee={onAddEmployee}
       onEditEmployee={onEditEmployee}
+      onInviteEmployee={() => {}} // Placeholder since invite functionality might be handled elsewhere
       onInvitationSent={onInvitationSent}
       currentUserRole={currentUserRole}
     />

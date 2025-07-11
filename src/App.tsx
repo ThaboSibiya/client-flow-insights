@@ -18,7 +18,7 @@ import Tickets from "./pages/Tickets";
 import Analytics from "./pages/Analytics";
 import Quotes from "./pages/Quotes";
 import Automations from "./pages/Automations";
-import EmployeeManagement from "./pages/EmployeeManagement";
+import Employees from "./pages/Employees";
 import Pipeline from "./pages/Pipeline";
 import Onboarding from "./pages/Onboarding";
 
@@ -74,7 +74,7 @@ function App() {
                 </Route>
                 
                 <Route path="/employees" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<EmployeeManagement />} />
+                  <Route index element={<Employees />} />
                 </Route>
                 
                 <Route path="/settings" element={<ProtectedRoute element={<MainLayout />} />}>
