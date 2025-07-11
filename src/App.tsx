@@ -36,75 +36,75 @@ function App() {
                 <Route path="/auth" element={<Auth />} />
                 
                 <Route path="/dashboard" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute element={
                     <MainLayout>
                       <Dashboard />
                     </MainLayout>
-                  </ProtectedRoute>
+                  } />
                 } />
                 
                 <Route path="/conversations" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute element={
                     <MainLayout>
                       <Conversations />
                     </MainLayout>
-                  </ProtectedRoute>
+                  } />
                 } />
                 
                 <Route path="/customers" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute element={
                     <MainLayout>
                       <Customers />
                     </MainLayout>
-                  </ProtectedRoute>
+                  } />
                 } />
                 
                 <Route path="/tickets" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute element={
                     <MainLayout>
                       <Tickets />
                     </MainLayout>
-                  </ProtectedRoute>
+                  } />
                 } />
                 
                 <Route path="/analytics" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute element={
                     <MainLayout>
                       <Analytics />
                     </MainLayout>
-                  </ProtectedRoute>
+                  } />
                 } />
                 
                 <Route path="/quotes" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute element={
                     <MainLayout>
                       <Quotes />
                     </MainLayout>
-                  </ProtectedRoute>
+                  } />
                 } />
                 
                 <Route path="/automations" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute element={
                     <MainLayout>
                       <Automations />
                     </MainLayout>
-                  </ProtectedRoute>
+                  } />
                 } />
                 
                 <Route path="/employees" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute element={
                     <MainLayout>
                       <EmployeeManagement />
                     </MainLayout>
-                  </ProtectedRoute>
+                  } />
                 } />
                 
                 <Route path="/settings" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute element={
                     <MainLayout>
                       <Settings />
                     </MainLayout>
-                  </ProtectedRoute>
+                  } />
                 } />
               </Routes>
             </AuthProvider>
