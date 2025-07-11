@@ -20,6 +20,7 @@ import Quotes from "./pages/Quotes";
 import Automations from "./pages/Automations";
 import EmployeeManagement from "./pages/EmployeeManagement";
 import Pipeline from "./pages/Pipeline";
+import Onboarding from "./pages/Onboarding";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,10 @@ function App() {
                 
                 <Route path="/pipeline" element={<ProtectedRoute element={<MainLayout />} />}>
                   <Route index element={<Pipeline />} />
+                </Route>
+                
+                <Route path="/onboarding" element={<ProtectedRoute element={<MainLayout />} />}>
+                  <Route index element={<Onboarding />} />
                 </Route>
                 
                 <Route path="/employees" element={<ProtectedRoute element={<MainLayout />} />}>
