@@ -1,210 +1,349 @@
 
-import React, { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Calculator, User, FileText, Settings, Copy } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Plus, X, ArrowLeft, ArrowRight, Save, Copy } from "lucide-react";
+import { QuoteInvoiceInsert, QuoteInvoice } from '@/types/quote';
 import { toast } from "@/hooks/use-toast";
-import { QuoteInvoiceInsert } from '@/types/quote';
-import { useCRM } from '@/context/CRMContext';
-
-interface QuoteItem {
-  id: string;
-  description: string;
-  quantity: number;
-  rate: number;
-  amount: number;
-}
+import { supabase } from "@/integrations/supabase/client";
 
 interface MobileQuoteBuilderProps {
-  onSave: (quote: QuoteInvoiceInsert) => void;
-  onDuplicate?: (quote: QuoteInvoiceInsert) => void;
-  initialData?: any;
+  onSave: (data: QuoteInvoiceInsert) => void;
+  onDuplicate: (data: QuoteInvoiceInsert) => void;
+  initialData?: QuoteInvoice | null;
   type: 'quote' | 'invoice';
 }
 
 const MobileQuoteBuilder = ({ onSave, onDuplicate, initialData, type }: MobileQuoteBuilderProps) => {
-  const { customers } = useCRM();
-  const [activeSection, setActiveSection] = useState('customer');
-  
+  const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
-    quoteNumber: `${type.toUpperCase()}-${Date.now()}`,
-    customerName: '',
-    customerEmail: '',
+    number: '',
+    type: type,
+    customer_name: '',
+    customer_email: '',
+    customer_id: '',
     subject: '',
+    issue_date: new Date().toISOString().split('T')[0],
+    due_date: '',
+    valid_until: '',
     notes: '',
-    terms: type === 'quote' ? 'Quote valid for 30 days' : 'Payment due within 30 days',
-    taxRate: 15,
-    discountValue: 0
+    terms: '',
+    tax: 0,
+    discount: 0,
+    items: [{ description: '', quantity: 1, rate: 0, amount: 0 }]
   });
 
-  const [items, setItems] = useState<QuoteItem[]>([
-    { id: '1', description: '', quantity: 1, rate: 0, amount: 0 }
-  ]);
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const calculations = useMemo(() => {
-    const subtotal = items.reduce((sum, item) => sum + (item.amount || 0), 0);
-    const discount = (subtotal * formData.discountValue) / 100;
-    const tax = ((subtotal - discount) * formData.taxRate) / 100;
-    const total = subtotal - discount + tax;
-    return { subtotal, discount, tax, total };
-  }, [items, formData.discountValue, formData.taxRate]);
-
-  const sections = [
-    { id: 'customer', label: 'Customer', icon: User },
-    { id: 'items', label: 'Items', icon: FileText },
-    { id: 'calculations', label: 'Totals', icon: Calculator },
-    { id: 'details', label: 'Details', icon: Settings }
+  const steps = [
+    { title: 'Basic Info', icon: '📋' },
+    { title: 'Customer', icon: '👤' },
+    { title: 'Items', icon: '📦' },
+    { title: 'Settings', icon: '⚙️' },
+    { title: 'Review', icon: '✅' }
   ];
 
-  const updateItem = (id: string, field: keyof QuoteItem, value: any) => {
-    setItems(items.map(item => {
-      if (item.id === id) {
-        const updated = { ...item, [field]: value };
-        if (field === 'quantity' || field === 'rate') {
-          updated.amount = updated.quantity * updated.rate;
-        }
-        return updated;
+  useEffect(() => {
+    fetchCustomers();
+    if (initialData) {
+      populateForm();
+    } else {
+      generateNumber();
+    }
+  }, [initialData, type]);
+
+  const fetchCustomers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id, name, email')
+        .order('name');
+      
+      if (error) throw error;
+      setCustomers(data || []);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+    }
+  };
+
+  const generateNumber = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const prefix = type === 'quote' ? 'QUO' : 'INV';
+      const { data, error } = await supabase
+        .from('quotes_invoices')
+        .select('number')
+        .eq('user_id', user.id)
+        .like('number', `${prefix}%`)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+
+      let nextNumber = 1;
+      if (data && data.length > 0) {
+        const lastNumber = data[0].number;
+        const numPart = parseInt(lastNumber.replace(/[A-Z]/g, ''));
+        nextNumber = numPart + 1;
       }
-      return item;
-    }));
+
+      setFormData(prev => ({
+        ...prev,
+        number: `${prefix}${nextNumber.toString().padStart(4, '0')}`
+      }));
+    } catch (error) {
+      console.error('Error generating number:', error);
+    }
+  };
+
+  const populateForm = async () => {
+    if (!initialData) return;
+
+    try {
+      const { data: items, error } = await supabase
+        .from('quote_invoice_items')
+        .select('*')
+        .eq('quote_invoice_id', initialData.id);
+
+      if (error) throw error;
+
+      setFormData({
+        number: initialData.number,
+        type: initialData.type,
+        customer_name: initialData.customer_name || '',
+        customer_email: initialData.customer_email || '',
+        customer_id: initialData.customer_id || '',
+        subject: initialData.subject || '',
+        issue_date: initialData.issue_date?.split('T')[0] || '',
+        due_date: initialData.due_date?.split('T')[0] || '',
+        valid_until: initialData.valid_until?.split('T')[0] || '',
+        notes: initialData.notes || '',
+        terms: initialData.terms || '',
+        tax: initialData.tax || 0,
+        discount: initialData.discount || 0,
+        items: items?.map(item => ({
+          id: item.id,
+          description: item.description,
+          quantity: item.quantity,
+          rate: item.rate,
+          amount: item.quantity * item.rate
+        })) || [{ description: '', quantity: 1, rate: 0, amount: 0 }]
+      });
+    } catch (error) {
+      console.error('Error populating form:', error);
+    }
+  };
+
+  const nextStep = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const previousStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
   };
 
   const addItem = () => {
-    const newItem: QuoteItem = {
-      id: Date.now().toString(),
-      description: '',
-      quantity: 1,
-      rate: 0,
-      amount: 0
-    };
-    setItems([...items, newItem]);
+    setFormData(prev => ({
+      ...prev,
+      items: [...prev.items, { description: '', quantity: 1, rate: 0, amount: 0 }]
+    }));
   };
 
-  const removeItem = (id: string) => {
-    if (items.length > 1) {
-      setItems(items.filter(item => item.id !== id));
-    }
+  const removeItem = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index)
+    }));
   };
 
-  const handleCustomerSelect = (customerId: string) => {
-    const customer = customers.find(c => c.id === customerId);
-    if (customer) {
-      setFormData(prev => ({
-        ...prev,
-        customerName: customer.name,
-        customerEmail: customer.email
-      }));
-    }
-  };
-
-  const handleSave = () => {
-    if (!formData.customerName || !formData.subject) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in customer name and subject",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const quoteToSave: QuoteInvoiceInsert = {
-      number: formData.quoteNumber,
-      customer_name: formData.customerName,
-      customer_email: formData.customerEmail,
-      issue_date: new Date().toISOString(),
-      valid_until: type === 'quote' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : undefined,
-      subject: formData.subject,
-      notes: formData.notes,
-      terms: formData.terms,
-      subtotal: calculations.subtotal,
-      discount: calculations.discount,
-      tax: calculations.tax,
-      total: calculations.total,
-      type: type,
-      status: 'draft',
-      items: items.map(item => ({
-        description: item.description,
-        quantity: item.quantity,
-        rate: item.rate
-      }))
-    };
-
-    onSave(quoteToSave);
-  };
-
-  const handleDuplicate = () => {
-    const duplicatedQuote: QuoteInvoiceInsert = {
-      number: `${type.toUpperCase()}-${Date.now()}`,
-      customer_name: formData.customerName,
-      customer_email: formData.customerEmail,
-      issue_date: new Date().toISOString(),
-      valid_until: type === 'quote' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : undefined,
-      subject: `Copy of ${formData.subject}`,
-      notes: formData.notes,
-      terms: formData.terms,
-      subtotal: calculations.subtotal,
-      discount: calculations.discount,
-      tax: calculations.tax,
-      total: calculations.total,
-      type: type,
-      status: 'draft',
-      items: items.map(item => ({
-        description: item.description,
-        quantity: item.quantity,
-        rate: item.rate
-      }))
-    };
-
-    if (onDuplicate) {
-      onDuplicate(duplicatedQuote);
-    }
-    toast({
-      title: "Quote Duplicated",
-      description: "A copy of this quote has been created"
+  const updateItem = (index: number, field: string, value: any) => {
+    setFormData(prev => {
+      const newItems = [...prev.items];
+      newItems[index] = { ...newItems[index], [field]: value };
+      
+      if (field === 'quantity' || field === 'rate') {
+        newItems[index].amount = newItems[index].quantity * newItems[index].rate;
+      }
+      
+      return { ...prev, items: newItems };
     });
   };
 
-  return (
-    <div className="space-y-4 pb-20">
-      {/* Mobile Navigation */}
-      <div className="flex overflow-x-auto gap-2 p-2 bg-white rounded-lg border border-quikle-silver/20">
-        {sections.map(section => {
-          const Icon = section.icon;
-          return (
-            <Button
-              key={section.id}
-              variant={activeSection === section.id ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveSection(section.id)}
-              className="whitespace-nowrap flex-shrink-0"
-            >
-              <Icon className="h-4 w-4 mr-2" />
-              {section.label}
-            </Button>
-          );
-        })}
-      </div>
+  const calculateTotals = () => {
+    const subtotal = formData.items.reduce((sum, item) => sum + item.amount, 0);
+    const discountAmount = (subtotal * formData.discount) / 100;
+    const taxableAmount = subtotal - discountAmount;
+    const taxAmount = (taxableAmount * formData.tax) / 100;
+    const total = taxableAmount + taxAmount;
 
-      {/* Customer Section */}
-      {activeSection === 'customer' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Customer Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Select Customer</Label>
-              <Select onValueChange={handleCustomerSelect}>
+    return { subtotal, discountAmount, taxAmount, total };
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const { subtotal, total } = calculateTotals();
+      
+      const quoteInvoiceData: QuoteInvoiceInsert = {
+        number: formData.number,
+        type: formData.type,
+        customer_id: formData.customer_id || null,
+        customer_name: formData.customer_name,
+        customer_email: formData.customer_email,
+        subject: formData.subject || null,
+        status: 'draft',
+        issue_date: formData.issue_date,
+        due_date: formData.due_date || null,
+        valid_until: formData.valid_until || null,
+        notes: formData.notes || null,
+        terms: formData.terms || null,
+        subtotal,
+        tax: formData.tax,
+        discount: formData.discount,
+        total,
+        items: formData.items.map(item => ({
+          description: item.description,
+          quantity: item.quantity,
+          rate: item.rate
+        }))
+      };
+
+      onSave(quoteInvoiceData);
+    } catch (error: any) {
+      console.error(`Error saving ${formData.type}:`, error);
+      toast({
+        title: "Error",
+        description: error.message || `Failed to save ${formData.type}`,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDuplicate = async () => {
+    const { subtotal, total } = calculateTotals();
+    
+    const duplicateData: QuoteInvoiceInsert = {
+      number: `${formData.number}-COPY`,
+      type: formData.type,
+      customer_id: formData.customer_id || null,
+      customer_name: formData.customer_name,
+      customer_email: formData.customer_email,
+      subject: formData.subject ? `${formData.subject} (Copy)` : null,
+      status: 'draft',
+      issue_date: new Date().toISOString().split('T')[0],
+      due_date: formData.due_date || null,
+      valid_until: formData.valid_until || null,
+      notes: formData.notes || null,
+      terms: formData.terms || null,
+      subtotal,
+      tax: formData.tax,
+      discount: formData.discount,
+      total,
+      items: formData.items.map(item => ({
+        description: item.description,
+        quantity: item.quantity,
+        rate: item.rate
+      }))
+    };
+
+    onDuplicate(duplicateData);
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0: // Basic Info
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="number">Number</Label>
+              <Input
+                id="number"
+                value={formData.number}
+                onChange={(e) => setFormData(prev => ({ ...prev, number: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="subject">Subject</Label>
+              <Input
+                id="subject"
+                value={formData.subject}
+                onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                placeholder="Brief description"
+              />
+            </div>
+            <div>
+              <Label htmlFor="issue_date">Issue Date</Label>
+              <Input
+                id="issue_date"
+                type="date"
+                value={formData.issue_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, issue_date: e.target.value }))}
+                required
+              />
+            </div>
+            {type === 'invoice' && (
+              <div>
+                <Label htmlFor="due_date">Due Date</Label>
+                <Input
+                  id="due_date"
+                  type="date"
+                  value={formData.due_date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, due_date: e.target.value }))}
+                />
+              </div>
+            )}
+            {type === 'quote' && (
+              <div>
+                <Label htmlFor="valid_until">Valid Until</Label>
+                <Input
+                  id="valid_until"
+                  type="date"
+                  value={formData.valid_until}
+                  onChange={(e) => setFormData(prev => ({ ...prev, valid_until: e.target.value }))}
+                />
+              </div>
+            )}
+          </div>
+        );
+
+      case 1: // Customer
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="customer">Select Customer</Label>
+              <Select 
+                value={formData.customer_id} 
+                onValueChange={(value) => {
+                  const customer = customers.find((c: any) => c.id === value);
+                  if (customer) {
+                    setFormData(prev => ({
+                      ...prev,
+                      customer_id: value,
+                      customer_name: (customer as any).name,
+                      customer_email: (customer as any).email
+                    }));
+                  }
+                }}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose customer..." />
+                  <SelectValue placeholder="Choose existing customer" />
                 </SelectTrigger>
                 <SelectContent>
-                  {customers.map(customer => (
+                  {customers.map((customer: any) => (
                     <SelectItem key={customer.id} value={customer.id}>
                       {customer.name}
                     </SelectItem>
@@ -212,196 +351,269 @@ const MobileQuoteBuilder = ({ onSave, onDuplicate, initialData, type }: MobileQu
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Customer Name *</Label>
+            <div>
+              <Label htmlFor="customer_name">Customer Name</Label>
               <Input
-                value={formData.customerName}
-                onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
-                placeholder="Enter customer name"
+                id="customer_name"
+                value={formData.customer_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, customer_name: e.target.value }))}
+                required
               />
             </div>
-            <div className="space-y-2">
-              <Label>Email</Label>
+            <div>
+              <Label htmlFor="customer_email">Customer Email</Label>
               <Input
+                id="customer_email"
                 type="email"
-                value={formData.customerEmail}
-                onChange={(e) => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
-                placeholder="customer@email.com"
+                value={formData.customer_email}
+                onChange={(e) => setFormData(prev => ({ ...prev, customer_email: e.target.value }))}
+                required
               />
             </div>
-            <div className="space-y-2">
-              <Label>Subject *</Label>
-              <Input
-                value={formData.subject}
-                onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-                placeholder="Quote for services..."
-              />
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        );
 
-      {/* Items Section */}
-      {activeSection === 'items' && (
-        <Card>
-          <CardHeader>
+      case 2: // Items
+        return (
+          <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-lg">Items</CardTitle>
+              <h3 className="text-lg font-semibold">Line Items</h3>
               <Button onClick={addItem} size="sm">
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4 mr-2" />
+                Add
               </Button>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {items.map((item, index) => (
-              <div key={item.id} className="border border-quikle-silver/30 rounded-lg p-4 space-y-3">
-                <div className="flex justify-between items-start">
-                  <span className="font-medium text-sm">Item {index + 1}</span>
-                  {items.length > 1 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeItem(item.id)}
-                      className="text-red-600"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+            {formData.items.map((item, index) => (
+              <Card key={index} className="p-4">
                 <div className="space-y-3">
-                  <div className="space-y-1">
-                    <Label className="text-sm">Description</Label>
+                  <div>
+                    <Label>Description</Label>
                     <Input
                       value={item.description}
-                      onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                      placeholder="Item description"
-                      className="text-sm"
+                      onChange={(e) => updateItem(index, 'description', e.target.value)}
+                      placeholder="Service or product"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-sm">Qty</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label>Quantity</Label>
                       <Input
                         type="number"
                         value={item.quantity}
-                        onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 0)}
-                        className="text-sm"
+                        onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
                       />
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-sm">Rate</Label>
+                    <div>
+                      <Label>Rate</Label>
                       <Input
                         type="number"
                         value={item.rate}
-                        onChange={(e) => updateItem(item.id, 'rate', parseFloat(e.target.value) || 0)}
-                        className="text-sm"
+                        onChange={(e) => updateItem(index, 'rate', parseFloat(e.target.value) || 0)}
                       />
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-lg font-semibold text-quikle-primary">
-                      R{item.amount.toFixed(2)}
-                    </span>
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Amount: ${item.amount.toFixed(2)}</span>
+                    {formData.items.length > 1 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeItem(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
-              </div>
+              </Card>
             ))}
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        );
 
-      {/* Calculations Section */}
-      {activeSection === 'calculations' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Totals</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span>Subtotal:</span>
-                <span className="font-semibold">R{calculations.subtotal.toFixed(2)}</span>
-              </div>
-              <div className="space-y-2">
-                <Label>Discount %</Label>
+      case 3: // Settings
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="tax">Tax Rate (%)</Label>
                 <Input
+                  id="tax"
                   type="number"
-                  value={formData.discountValue}
-                  onChange={(e) => setFormData(prev => ({ ...prev, discountValue: parseFloat(e.target.value) || 0 }))}
-                  min="0"
-                  max="100"
+                  step="0.01"
+                  value={formData.tax}
+                  onChange={(e) => setFormData(prev => ({ ...prev, tax: parseFloat(e.target.value) || 0 }))}
                 />
-                <div className="text-right text-green-600">
-                  -R{calculations.discount.toFixed(2)}
-                </div>
               </div>
-              <div className="space-y-2">
-                <Label>VAT %</Label>
+              <div>
+                <Label htmlFor="discount">Discount (%)</Label>
                 <Input
+                  id="discount"
                   type="number"
-                  value={formData.taxRate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, taxRate: parseFloat(e.target.value) || 0 }))}
-                  min="0"
-                  max="100"
+                  step="0.01"
+                  value={formData.discount}
+                  onChange={(e) => setFormData(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
                 />
-                <div className="text-right">
-                  R{calculations.tax.toFixed(2)}
-                </div>
-              </div>
-              <div className="border-t border-quikle-silver/30 pt-3 flex justify-between text-xl font-bold text-quikle-primary">
-                <span>Total:</span>
-                <span>R{calculations.total.toFixed(2)}</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Details Section */}
-      {activeSection === 'details' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Additional Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Notes</Label>
+            <div>
+              <Label htmlFor="notes">Notes</Label>
               <Textarea
+                id="notes"
                 value={formData.notes}
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                 placeholder="Additional notes..."
                 rows={3}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Terms & Conditions</Label>
+            <div>
+              <Label htmlFor="terms">Terms & Conditions</Label>
               <Textarea
+                id="terms"
                 value={formData.terms}
                 onChange={(e) => setFormData(prev => ({ ...prev, terms: e.target.value }))}
+                placeholder="Payment terms..."
                 rows={3}
               />
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        );
 
-      {/* Fixed Bottom Actions */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-quikle-silver/20 p-4 flex gap-2">
-        <Button 
-          onClick={handleDuplicate} 
-          variant="outline" 
-          className="flex-1"
-          disabled={!formData.customerName || !formData.subject}
+      case 4: // Review
+        const { subtotal, discountAmount, taxAmount, total } = calculateTotals();
+        return (
+          <div className="space-y-4">
+            <div className="p-4 bg-quikle-crystal rounded-lg">
+              <h3 className="font-semibold mb-2">{type === 'quote' ? 'Quote' : 'Invoice'} Summary</h3>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span>Number:</span>
+                  <span>{formData.number}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Customer:</span>
+                  <span>{formData.customer_name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Items:</span>
+                  <span>{formData.items.length}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 border rounded-lg">
+              <h4 className="font-semibold mb-2">Totals</h4>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span>Subtotal:</span>
+                  <span>${subtotal.toFixed(2)}</span>
+                </div>
+                {formData.discount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount:</span>
+                    <span>-${discountAmount.toFixed(2)}</span>
+                  </div>
+                )}
+                {formData.tax > 0 && (
+                  <div className="flex justify-between">
+                    <span>Tax:</span>
+                    <span>${taxAmount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-bold border-t pt-1">
+                  <span>Total:</span>
+                  <span>${total.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleSave} 
+                disabled={loading}
+                className="flex-1 bg-quikle-primary hover:bg-quikle-secondary"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {loading ? 'Saving...' : 'Save'}
+              </Button>
+              {initialData && (
+                <Button 
+                  onClick={handleDuplicate}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Duplicate
+                </Button>
+              )}
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto p-4 space-y-6">
+      {/* Progress Steps */}
+      <div className="flex justify-between items-center">
+        {steps.map((step, index) => (
+          <div
+            key={index}
+            className={`flex flex-col items-center text-xs ${
+              index === currentStep
+                ? 'text-quikle-primary font-semibold'
+                : index < currentStep
+                ? 'text-green-600'
+                : 'text-quikle-slate'
+            }`}
+          >
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-lg mb-1 ${
+                index === currentStep
+                  ? 'bg-quikle-primary text-white'
+                  : index < currentStep
+                  ? 'bg-green-500 text-white'
+                  : 'bg-quikle-silver text-quikle-slate'
+              }`}
+            >
+              {step.icon}
+            </div>
+            <span>{step.title}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Step Content */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-center">
+            {steps[currentStep].title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {renderStepContent()}
+        </CardContent>
+      </Card>
+
+      {/* Navigation */}
+      <div className="flex justify-between">
+        <Button
+          onClick={previousStep}
+          disabled={currentStep === 0}
+          variant="outline"
         >
-          <Copy className="h-4 w-4 mr-2" />
-          Duplicate
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Previous
         </Button>
-        <Button 
-          onClick={handleSave} 
-          className="flex-1 bg-quikle-primary hover:bg-quikle-secondary"
-        >
-          Save {type}
-        </Button>
+        
+        {currentStep < steps.length - 1 ? (
+          <Button onClick={nextStep}>
+            Next
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        ) : null}
       </div>
     </div>
   );
