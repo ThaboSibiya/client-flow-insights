@@ -26,5 +26,13 @@ export const useMobileDetection = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  return { shouldUseMobileView };
+  // Add missing properties that components expect
+  const isMobile = shouldUseMobileView;
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  return { 
+    shouldUseMobileView, 
+    isMobile, 
+    isTouchDevice 
+  };
 };

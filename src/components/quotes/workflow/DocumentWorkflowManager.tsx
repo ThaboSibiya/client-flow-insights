@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,7 @@ import {
   User,
   Activity
 } from "lucide-react";
-import { QuoteInvoice } from '@/types/quote';
+import { QuoteInvoice, QuoteInvoiceStatus } from '@/types/quote';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
 
@@ -125,10 +124,13 @@ const DocumentWorkflowManager = ({ quote }: DocumentWorkflowManagerProps) => {
   const updateStatus = async (newStatus: string) => {
     setUpdating(true);
     try {
+      // Type assertion to ensure the status is valid
+      const validStatus = newStatus as QuoteInvoiceStatus;
+      
       const { error } = await supabase
         .from('quotes_invoices')
         .update({ 
-          status: newStatus,
+          status: validStatus,
           updated_at: new Date().toISOString()
         })
         .eq('id', quote.id);
