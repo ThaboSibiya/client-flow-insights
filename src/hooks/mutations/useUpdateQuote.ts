@@ -1,29 +1,24 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
-import { QuoteInvoiceInsert, QuoteInvoice } from '@/types/quote';
 import { toast } from '@/hooks/use-toast';
-
-interface UpdateQuoteParams {
-  id: string;
-  quoteData: QuoteInvoiceInsert;
-}
+import { QuoteInvoiceInsert } from '@/types/quote';
+import { useAuth } from '@/context/AuthContext';
 
 export const useUpdateQuote = () => {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
-  const mutation = useMutation({
-    mutationFn: async ({ id, quoteData }: UpdateQuoteParams): Promise<QuoteInvoice> => {
+  const updateQuoteInvoiceMutation = useMutation({
+    mutationFn: async ({ id, quoteData }: { id: string; quoteData: QuoteInvoiceInsert }) => {
       if (!user) throw new Error('User not authenticated');
 
       // Update the quote/invoice
-      const { data: quote, error: quoteError } = await supabase
+      const { data: quoteInvoice, error: quoteError } = await supabase
         .from('quotes_invoices')
         .update({
           ...quoteData,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', id)
         .eq('user_id', user.id)
@@ -33,62 +28,47 @@ export const useUpdateQuote = () => {
       if (quoteError) throw quoteError;
 
       // Delete existing items
-      const { error: deleteError } = await supabase
+      await supabase
         .from('quote_invoice_items')
         .delete()
         .eq('quote_invoice_id', id);
 
-      if (deleteError) throw deleteError;
-
       // Create new items
       if (quoteData.items && quoteData.items.length > 0) {
-        const itemsToInsert = quoteData.items.map(item => ({
+        const items = quoteData.items.map(item => ({
+          ...item,
           quote_invoice_id: id,
           user_id: user.id,
-          description: item.description,
-          quantity: item.quantity,
-          rate: item.rate,
-          created_at: new Date().toISOString()
         }));
 
         const { error: itemsError } = await supabase
           .from('quote_invoice_items')
-          .insert(itemsToInsert);
+          .insert(items);
 
         if (itemsError) throw itemsError;
       }
 
-      // Fetch the complete updated quote with items
-      const { data: completeQuote, error: fetchError } = await supabase
-        .from('quotes_invoices')
-        .select('*, quote_invoice_items(*)')
-        .eq('id', id)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      return completeQuote as QuoteInvoice;
+      return quoteInvoice;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['quotes_invoices'] });
       toast({
         title: "Success",
-        description: `${data.type} updated successfully`
+        description: `${data.type === 'quote' ? 'Quote' : 'Invoice'} updated successfully`,
       });
+      queryClient.invalidateQueries({ queryKey: ['quotes_invoices'] });
     },
     onError: (error: any) => {
       console.error('Error updating quote/invoice:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update quote/invoice",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   return {
-    updateQuoteInvoice: mutation.mutate,
-    isUpdating: mutation.isPending,
-    error: mutation.error
+    updateQuoteInvoice: updateQuoteInvoiceMutation.mutateAsync,
+    isLoading: updateQuoteInvoiceMutation.isPending,
   };
 };
