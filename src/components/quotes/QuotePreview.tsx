@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Download, Mail, Share2, Edit, Print } from "lucide-react";
+import { Download, Mail, Share2, Edit, Printer } from "lucide-react";
 import { QuoteInvoice } from '@/types/quote';
 import { toast } from "@/hooks/use-toast";
 import { useCompanyProfile } from '@/hooks/useCompanyProfile';
@@ -93,7 +93,7 @@ const QuotePreview = ({ quote }: QuotePreviewProps) => {
         
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={handlePrint}>
-            <Print className="h-4 w-4 mr-2" />
+            <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
           <Button variant="outline" size="sm" onClick={handleDownload}>

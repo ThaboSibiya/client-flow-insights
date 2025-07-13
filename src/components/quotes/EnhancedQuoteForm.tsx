@@ -10,7 +10,7 @@ import { Plus, X, Calendar, User, Mail, Building } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { QuoteInvoiceInsert, QuoteInvoice } from '@/types/quote';
-import { validateQuoteData } from '@/utils/quoteValidation';
+import { validateQuoteForm } from '@/utils/quoteValidation';
 
 interface QuoteInvoiceItem {
   id?: string;
@@ -197,11 +197,11 @@ const EnhancedQuoteForm = ({ onSave, initialData, type }: EnhancedQuoteFormProps
       const { subtotal, total } = calculateTotals();
       
       // Validate the form data
-      const validation = validateQuoteData(formData);
-      if (!validation.isValid) {
+      const validation = validateQuoteForm(formData, formData.items);
+      if (validation.length > 0) {
         toast({
           title: "Validation Error",
-          description: validation.errors.join(', '),
+          description: validation.map(v => v.message).join(', '),
           variant: "destructive"
         });
         return;

@@ -32,7 +32,9 @@ const ResponsiveQuoteManager = ({ onSave, initialData, type }: ResponsiveQuoteMa
 
   return (
     <EnhancedQuoteForm
-      onSave={onSave}
+      onSave={async (data) => {
+        await onSave(data);
+      }}
       initialData={initialData}
       type={type}
     />
