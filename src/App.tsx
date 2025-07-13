@@ -5,88 +5,43 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
-import { ThemeProvider } from "next-themes";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import MainLayout from "@/components/layout/MainLayout";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import Settings from "./pages/Settings";
-import Conversations from "./pages/Conversations";
-import Customers from "./pages/Customers";
-import Tickets from "./pages/Tickets";
-import Analytics from "./pages/Analytics";
-import Quotes from "./pages/Quotes";
-import Automations from "./pages/Automations";
-import Employees from "./pages/Employees";
-import Pipeline from "./pages/Pipeline";
-import Onboarding from "./pages/Onboarding";
+import Layout from "@/components/Layout";
+import Index from "@/pages/Index";
+import Customers from "@/pages/Customers";
+import QuoteInvoice from "@/pages/QuoteInvoice";
+import Tickets from "@/pages/Tickets";
+import Analytics from "@/pages/Analytics";
+import Settings from "@/pages/Settings";
+import Employees from "@/pages/Employees";
+import CustomerInsights from "@/pages/Customer Insights";
+import Profile from "@/pages/Profile";
 
 const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="light">
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AuthProvider>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                
-                <Route path="/dashboard" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Dashboard />} />
-                </Route>
-                
-                <Route path="/conversations" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Conversations />} />
-                </Route>
-                
-                <Route path="/customers" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Customers />} />
-                </Route>
-                
-                <Route path="/tickets" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Tickets />} />
-                </Route>
-                
-                <Route path="/analytics" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Analytics />} />
-                </Route>
-                
-                <Route path="/quotes" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Quotes />} />
-                </Route>
-                
-                <Route path="/automations" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Automations />} />
-                </Route>
-                
-                <Route path="/pipeline" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Pipeline />} />
-                </Route>
-                
-                <Route path="/onboarding" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Onboarding />} />
-                </Route>
-                
-                <Route path="/employees" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Employees />} />
-                </Route>
-                
-                <Route path="/settings" element={<ProtectedRoute element={<MainLayout />} />}>
-                  <Route index element={<Settings />} />
-                </Route>
-              </Routes>
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  );
-}
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Index />} />
+              <Route path="customers" element={<Customers />} />
+              <Route path="quotes" element={<QuoteInvoice />} />
+              <Route path="tickets" element={<Tickets />} />
+              <Route path="analytics" element={<Analytics />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="employees" element={<Employees />} />
+              <Route path="customer-insights" element={<CustomerInsights />} />
+              <Route path="profile" element={<Profile />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
