@@ -1,351 +1,363 @@
 
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   TrendingUp, 
+  TrendingDown, 
   DollarSign, 
-  AlertTriangle, 
   Clock, 
   Target,
-  ArrowUpRight,
-  Mail,
+  AlertTriangle,
+  CheckCircle,
+  BarChart3,
+  PieChart,
   Calendar,
-  Loader2
+  Users
 } from "lucide-react";
-import { useRevenueOptimization } from '@/hooks/useRevenueOptimization';
-import { PaymentReminderConfig } from '@/services/revenueOptimizationService';
+import { useAuth } from '@/context/AuthContext';
+import { revenueOptimizationService } from '@/services/revenueOptimizationService';
+import { toast } from "@/hooks/use-toast";
+
+interface RevenueMetrics {
+  totalQuotes: number;
+  acceptedQuotes: number;
+  totalInvoices: number;
+  paidInvoices: number;
+  overdueInvoices: number;
+  totalRevenue: number;
+  pendingRevenue: number;
+  overdueAmount: number;
+  quoteAcceptanceRate: number;
+  paymentCollectionRate: number;
+}
+
+interface UpsellOpportunity {
+  id: string;
+  customerId: string;
+  trigger: string;
+  recommendation: string;
+  potentialValue: number;
+  priority: 'low' | 'medium' | 'high';
+  createdAt: Date;
+}
 
 const RevenueOptimizationDashboard = () => {
-  const {
-    isProcessing,
-    isLoading,
-    upsellOpportunities,
-    revenueMetrics,
-    processOverdueInvoices,
-    generatePaymentReminders,
-    loadUpsellOpportunities,
-  } = useRevenueOptimization();
+  const { user } = useAuth();
+  const [metrics, setMetrics] = useState<RevenueMetrics | null>(null);
+  const [upsellOpportunities, setUpsellOpportunities] = useState<UpsellOpportunity[]>([]);
+  const [dateRange, setDateRange] = useState('30');
+  const [loading, setLoading] = useState(true);
 
-  const reminderConfig: PaymentReminderConfig = useMemo(() => ({
-    enabled: true,
-    reminderDays: [3, 7, 14],
-    template: 'Friendly payment reminder',
-    escalateToFinance: true,
-  }), []);
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, dateRange]);
 
-  const handleProcessOverdue = async () => {
-    await processOverdueInvoices();
+  const loadData = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - parseInt(dateRange));
+
+      const [metricsData, opportunities] = await Promise.all([
+        revenueOptimizationService.calculateRevenueMetrics(user.id, { start: startDate, end: endDate }),
+        revenueOptimizationService.identifyUpsellOpportunities(user.id)
+      ]);
+
+      setMetrics(metricsData);
+      setUpsellOpportunities(opportunities);
+    } catch (error) {
+      console.error('Error loading revenue data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load revenue data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGenerateReminders = async () => {
-    await generatePaymentReminders(reminderConfig);
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-300';
-      case 'medium': return 'bg-orange-100 text-orange-800 border-orange-300';
-      case 'low': return 'bg-blue-100 text-blue-800 border-blue-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'high': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'low': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  // Loading skeleton for metrics
-  const MetricsSkeleton = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {[...Array(4)].map((_, i) => (
-        <Card key={i}>
-          <CardContent className="p-4">
-            <Skeleton className="h-4 w-24 mb-2" />
-            <Skeleton className="h-8 w-20" />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
+  if (loading) {
+    return <div className="p-6">Loading revenue data...</div>;
+  }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <MetricsSkeleton />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Skeleton className="h-48" />
-          <Skeleton className="h-48" />
-        </div>
-      </div>
-    );
+  if (!metrics) {
+    return <div className="p-6">No revenue data available</div>;
   }
 
   return (
     <div className="space-y-6">
-      {/* Revenue Metrics Overview */}
-      {revenueMetrics && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    R{revenueMetrics.totalRevenue.toFixed(2)}
-                  </p>
-                </div>
-                <DollarSign className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Pending Revenue</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    R{revenueMetrics.pendingRevenue.toFixed(2)}
-                  </p>
-                </div>
-                <Clock className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Overdue Amount</p>
-                  <p className="text-2xl font-bold text-red-600">
-                    R{revenueMetrics.overdueAmount.toFixed(2)}
-                  </p>
-                </div>
-                <AlertTriangle className="h-8 w-8 text-red-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Collection Rate</p>
-                  <p className="text-2xl font-bold text-purple-600">
-                    {revenueMetrics.paymentCollectionRate.toFixed(1)}%
-                  </p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-purple-600" />
-              </div>
-            </CardContent>
-          </Card>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-quikle-charcoal">Revenue Optimization</h2>
+          <p className="text-quikle-slate">Track performance and identify growth opportunities</p>
         </div>
-      )}
+        <Select value={dateRange} onValueChange={setDateRange}>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="7">Last 7 days</SelectItem>
+            <SelectItem value="30">Last 30 days</SelectItem>
+            <SelectItem value="90">Last 90 days</SelectItem>
+            <SelectItem value="365">Last year</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-      <Tabs defaultValue="automation" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="automation">Automation</TabsTrigger>
-          <TabsTrigger value="upselling">Upselling</TabsTrigger>
+      {/* Key Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <DollarSign className="h-8 w-8 text-green-500" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-quikle-slate">Total Revenue</p>
+                <p className="text-2xl font-bold text-quikle-charcoal">
+                  {formatCurrency(metrics.totalRevenue)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <Clock className="h-8 w-8 text-yellow-500" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-quikle-slate">Pending Revenue</p>
+                <p className="text-2xl font-bold text-quikle-charcoal">
+                  {formatCurrency(metrics.pendingRevenue)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <AlertTriangle className="h-8 w-8 text-red-500" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-quikle-slate">Overdue Amount</p>
+                <p className="text-2xl font-bold text-quikle-charcoal">
+                  {formatCurrency(metrics.overdueAmount)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <Target className="h-8 w-8 text-blue-500" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-quikle-slate">Quote Acceptance</p>
+                <p className="text-2xl font-bold text-quikle-charcoal">
+                  {metrics.quoteAcceptanceRate.toFixed(1)}%
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="opportunities">Opportunities</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="automation" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Payment Reminders */}
+        <TabsContent value="overview" className="mt-6">
+          <div className="grid gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Conversion Rates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Quote Acceptance Rate</span>
+                      <span>{metrics.quoteAcceptanceRate.toFixed(1)}%</span>
+                    </div>
+                    <Progress value={metrics.quoteAcceptanceRate} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Payment Collection Rate</span>
+                      <span>{metrics.paymentCollectionRate.toFixed(1)}%</span>
+                    </div>
+                    <Progress value={metrics.paymentCollectionRate} className="h-2" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <PieChart className="h-5 w-5" />
+                    Document Status
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Total Quotes</span>
+                      <Badge variant="outline">{metrics.totalQuotes}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Accepted Quotes</span>
+                      <Badge className="bg-green-100 text-green-800">{metrics.acceptedQuotes}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Paid Invoices</span>
+                      <Badge className="bg-blue-100 text-blue-800">{metrics.paidInvoices}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Overdue Invoices</span>
+                      <Badge className="bg-red-100 text-red-800">{metrics.overdueInvoices}</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="performance" className="mt-6">
+          <div className="grid gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mail className="h-5 w-5" />
-                  Payment Reminders
-                </CardTitle>
+                <CardTitle>Performance Indicators</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Reminder Schedule (Days Before Due)</label>
-                  <div className="flex gap-2">
-                    {reminderConfig.reminderDays.map((day, index) => (
-                      <Badge key={index} variant="outline">{day} days</Badge>
-                    ))}
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center p-4 border rounded-lg">
+                    <TrendingUp className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                    <h3 className="font-semibold">Revenue Growth</h3>
+                    <p className="text-2xl font-bold text-green-600">+12.5%</p>
+                    <p className="text-sm text-quikle-slate">vs last period</p>
+                  </div>
+                  <div className="text-center p-4 border rounded-lg">
+                    <Target className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                    <h3 className="font-semibold">Conversion Rate</h3>
+                    <p className="text-2xl font-bold text-blue-600">{metrics.quoteAcceptanceRate.toFixed(1)}%</p>
+                    <p className="text-sm text-quikle-slate">quotes to invoices</p>
+                  </div>
+                  <div className="text-center p-4 border rounded-lg">
+                    <Clock className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+                    <h3 className="font-semibold">Avg. Payment Time</h3>
+                    <p className="text-2xl font-bold text-yellow-600">18 days</p>
+                    <p className="text-sm text-quikle-slate">from invoice date</p>
                   </div>
                 </div>
-                <Button 
-                  onClick={handleGenerateReminders}
-                  disabled={isProcessing}
-                  className="w-full"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Generate Reminders
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Overdue Management */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  Overdue Management
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {revenueMetrics && (
-                  <div className="text-center p-4 bg-red-50 rounded-lg">
-                    <p className="text-2xl font-bold text-red-600">{revenueMetrics.overdueInvoices}</p>
-                    <p className="text-sm text-red-600">Overdue Invoices</p>
-                  </div>
-                )}
-                <Button 
-                  onClick={handleProcessOverdue}
-                  disabled={isProcessing}
-                  variant="destructive"
-                  className="w-full"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <AlertTriangle className="h-4 w-4 mr-2" />
-                      Process Overdue Invoices
-                    </>
-                  )}
-                </Button>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        <TabsContent value="upselling" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
-                Upselling Opportunities
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {upsellOpportunities.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No upselling opportunities identified at this time.</p>
-                  <Button 
-                    onClick={loadUpsellOpportunities}
-                    variant="outline"
-                    className="mt-4"
-                    disabled={isProcessing}
-                  >
-                    {isProcessing ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : null}
-                    Refresh Opportunities
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {upsellOpportunities.map((opportunity) => (
-                    <div key={opportunity.id} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge className={getPriorityColor(opportunity.priority)}>
-                              {opportunity.priority.toUpperCase()}
-                            </Badge>
-                            <span className="text-sm text-muted-foreground">
-                              {opportunity.trigger.replace('_', ' ').toUpperCase()}
-                            </span>
-                          </div>
-                          <h4 className="font-semibold mb-1">{opportunity.recommendation}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Potential Value: R{opportunity.potentialValue.toFixed(2)}
-                          </p>
-                        </div>
-                        <Button size="sm" variant="outline">
-                          <ArrowUpRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <TabsContent value="opportunities" className="mt-6">
+          <div className="grid gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Quote Performance</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Upselling Opportunities
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                {revenueMetrics ? (
-                  <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <span>Total Quotes:</span>
-                      <span className="font-semibold">{revenueMetrics.totalQuotes}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Accepted Quotes:</span>
-                      <span className="font-semibold">{revenueMetrics.acceptedQuotes}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Acceptance Rate:</span>
-                      <span className="font-semibold text-green-600">
-                        {revenueMetrics.quoteAcceptanceRate.toFixed(1)}%
-                      </span>
-                    </div>
+                {upsellOpportunities.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                    <p className="text-quikle-slate">No immediate upselling opportunities identified</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <Skeleton className="h-5 w-full" />
-                    <Skeleton className="h-5 w-full" />
-                    <Skeleton className="h-5 w-full" />
+                    {upsellOpportunities.map((opportunity) => (
+                      <div key={opportunity.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <h4 className="font-medium">{opportunity.recommendation}</h4>
+                            <p className="text-sm text-quikle-slate capitalize">
+                              Trigger: {opportunity.trigger.replace('_', ' ')}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <Badge className={getPriorityColor(opportunity.priority)}>
+                              {opportunity.priority}
+                            </Badge>
+                            <p className="text-sm font-medium mt-1">
+                              {formatCurrency(opportunity.potentialValue)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center mt-3">
+                          <p className="text-xs text-quikle-slate">
+                            {new Date(opportunity.createdAt).toLocaleDateString()}
+                          </p>
+                          <Button size="sm" variant="outline">
+                            Contact Customer
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
             </Card>
+          </div>
+        </TabsContent>
 
+        <TabsContent value="analytics" className="mt-6">
+          <div className="grid gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Invoice Performance</CardTitle>
+                <CardTitle>Revenue Analytics</CardTitle>
               </CardHeader>
               <CardContent>
-                {revenueMetrics ? (
-                  <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <span>Total Invoices:</span>
-                      <span className="font-semibold">{revenueMetrics.totalInvoices}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Paid Invoices:</span>
-                      <span className="font-semibold">{revenueMetrics.paidInvoices}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Collection Rate:</span>
-                      <span className="font-semibold text-green-600">
-                        {revenueMetrics.paymentCollectionRate.toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <Skeleton className="h-5 w-full" />
-                    <Skeleton className="h-5 w-full" />
-                    <Skeleton className="h-5 w-full" />
-                  </div>
-                )}
+                <div className="text-center py-8">
+                  <BarChart3 className="h-12 w-12 text-quikle-slate mx-auto mb-4" />
+                  <p className="text-quikle-slate">Advanced analytics charts coming soon</p>
+                  <p className="text-sm text-quikle-slate mt-2">
+                    Integration with charting library in progress
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>
