@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
-import Layout from "@/components/Layout";
+import Layout from "@/components/layout/Layout";
 import Index from "@/pages/Index";
 import Customers from "@/pages/Customers";
 import QuoteInvoice from "@/pages/QuoteInvoice";
@@ -14,7 +14,6 @@ import Analytics from "@/pages/Analytics";
 import Settings from "@/pages/Settings";
 import Employees from "@/pages/Employees";
 import CustomerInsights from "@/pages/Customer Insights";
-import Profile from "@/pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -35,7 +34,6 @@ const App = () => (
               <Route path="settings" element={<Settings />} />
               <Route path="employees" element={<Employees />} />
               <Route path="customer-insights" element={<CustomerInsights />} />
-              <Route path="profile" element={<Profile />} />
             </Route>
           </Routes>
         </BrowserRouter>
