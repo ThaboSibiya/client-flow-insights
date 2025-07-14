@@ -18,6 +18,7 @@ import Employees from "@/pages/Employees";
 import CustomerInsights from "@/pages/Customer Insights";
 import Onboarding from "@/pages/Onboarding";
 import Conversations from "@/pages/Conversations";
+import Pipeline from "@/pages/Pipeline";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="employees" element={<ProtectedRoute element={<Employees />} />} />
               <Route path="customer-insights" element={<ProtectedRoute element={<CustomerInsights />} />} />
               <Route path="onboarding" element={<ProtectedRoute element={<Onboarding />} />} />
+              <Route path="pipeline" element={<ProtectedRoute element={<Pipeline />} />} />
             </Route>
           </Routes>
         </BrowserRouter>
