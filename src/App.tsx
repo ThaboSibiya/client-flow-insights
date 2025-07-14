@@ -17,6 +17,7 @@ import Settings from "@/pages/Settings";
 import Employees from "@/pages/Employees";
 import CustomerInsights from "@/pages/Customer Insights";
 import Onboarding from "@/pages/Onboarding";
+import Conversations from "@/pages/Conversations";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
               <Route index element={<ProtectedRoute element={<Index />} />} />
               <Route path="dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
               <Route path="customers" element={<ProtectedRoute element={<Customers />} />} />
+              <Route path="conversations" element={<ProtectedRoute element={<Conversations />} />} />
               <Route path="quotes" element={<ProtectedRoute element={<QuoteInvoice />} />} />
               <Route path="tickets" element={<ProtectedRoute element={<Tickets />} />} />
               <Route path="analytics" element={<ProtectedRoute element={<Analytics />} />} />
