@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import Layout from "@/components/layout/Layout";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "@/pages/Index";
 import Customers from "@/pages/Customers";
 import QuoteInvoice from "@/pages/QuoteInvoice";
@@ -26,14 +27,14 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout />}>
-              <Route index element={<Index />} />
-              <Route path="customers" element={<Customers />} />
-              <Route path="quotes" element={<QuoteInvoice />} />
-              <Route path="tickets" element={<Tickets />} />
-              <Route path="analytics" element={<Analytics />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="employees" element={<Employees />} />
-              <Route path="customer-insights" element={<CustomerInsights />} />
+              <Route index element={<ProtectedRoute element={<Index />} />} />
+              <Route path="customers" element={<ProtectedRoute element={<Customers />} />} />
+              <Route path="quotes" element={<ProtectedRoute element={<QuoteInvoice />} />} />
+              <Route path="tickets" element={<ProtectedRoute element={<Tickets />} />} />
+              <Route path="analytics" element={<ProtectedRoute element={<Analytics />} />} />
+              <Route path="settings" element={<ProtectedRoute element={<Settings />} />} />
+              <Route path="employees" element={<ProtectedRoute element={<Employees />} />} />
+              <Route path="customer-insights" element={<ProtectedRoute element={<CustomerInsights />} />} />
             </Route>
           </Routes>
         </BrowserRouter>
