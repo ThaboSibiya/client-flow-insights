@@ -15,6 +15,7 @@ import Analytics from "@/pages/Analytics";
 import Settings from "@/pages/Settings";
 import Employees from "@/pages/Employees";
 import CustomerInsights from "@/pages/Customer Insights";
+import Onboarding from "@/pages/Onboarding";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="settings" element={<ProtectedRoute element={<Settings />} />} />
               <Route path="employees" element={<ProtectedRoute element={<Employees />} />} />
               <Route path="customer-insights" element={<ProtectedRoute element={<CustomerInsights />} />} />
+              <Route path="onboarding" element={<ProtectedRoute element={<Onboarding />} />} />
             </Route>
           </Routes>
         </BrowserRouter>
