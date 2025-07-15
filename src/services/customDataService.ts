@@ -25,10 +25,17 @@ export class CustomDataService {
 
     if (error) throw error;
     
-    // Type cast the data to ensure field_type matches our enum
+    // Transform the data to match our TypeScript interface
     return (data || []).map(field => ({
-      ...field,
-      field_type: field.field_type as TemplateField['field_type']
+      id: field.id,
+      template_id: field.template_id || '',
+      field_name: field.field_name,
+      field_label: field.field_label,
+      field_type: field.field_type as TemplateField['field_type'],
+      field_options: field.field_options as TemplateField['field_options'],
+      is_required: field.is_required || false,
+      display_order: field.display_order || 0,
+      created_at: field.created_at || new Date().toISOString()
     }));
   }
 
