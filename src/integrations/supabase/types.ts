@@ -203,6 +203,51 @@ export type Database = {
           },
         ]
       }
+      customer_custom_data: {
+        Row: {
+          created_at: string | null
+          customer_id: string | null
+          field_id: string | null
+          field_value: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id?: string | null
+          field_id?: string | null
+          field_value?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string | null
+          field_id?: string | null
+          field_value?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_custom_data_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_custom_data_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "template_fields"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_equipment: {
         Row: {
           brand: string | null
@@ -252,6 +297,45 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_templates: {
+        Row: {
+          applied_at: string | null
+          customer_id: string | null
+          id: string
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          customer_id?: string | null
+          id?: string
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          customer_id?: string | null
+          id?: string
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_templates_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "industry_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -787,6 +871,39 @@ export type Database = {
         }
         Relationships: []
       }
+      industry_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          industry: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          industry: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          industry?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          version?: number | null
+        }
+        Relationships: []
+      }
       job_completions: {
         Row: {
           after_status: string | null
@@ -1232,6 +1349,50 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_fields: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          field_label: string
+          field_name: string
+          field_options: Json | null
+          field_type: string
+          id: string
+          is_required: boolean | null
+          template_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          field_label: string
+          field_name: string
+          field_options?: Json | null
+          field_type: string
+          id?: string
+          is_required?: boolean | null
+          template_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          field_label?: string
+          field_name?: string
+          field_options?: Json | null
+          field_type?: string
+          id?: string
+          is_required?: boolean | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_fields_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "industry_templates"
             referencedColumns: ["id"]
           },
         ]
