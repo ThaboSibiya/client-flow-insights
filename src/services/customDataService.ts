@@ -24,7 +24,12 @@ export class CustomDataService {
       .order('display_order');
 
     if (error) throw error;
-    return data || [];
+    
+    // Type cast the data to ensure field_type matches our enum
+    return (data || []).map(field => ({
+      ...field,
+      field_type: field.field_type as TemplateField['field_type']
+    }));
   }
 
   // Apply a template to a customer
@@ -155,20 +160,25 @@ export class CustomDataService {
 
   // Remove template from customer
   static async removeTemplateFromCustomer(customerId: string, templateId: string, userId: string): Promise<void> {
-    // Remove custom data first
-    const { error: dataError } = await supabase
-      .from('customer_custom_data')
-      .delete()
-      .eq('customer_id', customerId)
-      .eq('user_id', userId)
-      .in('field_id', 
-        supabase
-          .from('template_fields')
-          .select('id')
-          .eq('template_id', templateId)
-      );
+    // Get field IDs for this template
+    const { data: templateFields } = await supabase
+      .from('template_fields')
+      .select('id')
+      .eq('template_id', templateId);
 
-    if (dataError) throw dataError;
+    if (templateFields && templateFields.length > 0) {
+      const fieldIds = templateFields.map(field => field.id);
+
+      // Remove custom data first
+      const { error: dataError } = await supabase
+        .from('customer_custom_data')
+        .delete()
+        .eq('customer_id', customerId)
+        .eq('user_id', userId)
+        .in('field_id', fieldIds);
+
+      if (dataError) throw dataError;
+    }
 
     // Remove template association
     const { error: templateError } = await supabase
