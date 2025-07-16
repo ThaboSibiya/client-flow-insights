@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CustomDataService } from '@/services/customDataService';
 import { IndustryTemplate } from '@/types/customData';
-import { Building2, Shield, Heart, Scale, DollarSign, Printer, Loader2, ChevronDown } from 'lucide-react';
+import { Building2, Shield, Heart, Scale, DollarSign, Printer, Loader2, ChevronDown, Settings } from 'lucide-react';
 
 interface IndustryTemplateSelectorProps {
   onTemplateSelected: (templateId: string | null) => void;
@@ -72,13 +71,26 @@ const IndustryTemplateSelector: React.FC<IndustryTemplateSelectorProps> = ({
   return (
     <Card className="border-quikle-silver/30 bg-gradient-to-br from-white to-quikle-crystal/30 shadow-luxury">
       <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-semibold bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">
-          Choose Your Industry Template
-        </CardTitle>
-        <p className="text-sm text-quikle-slate/80">
-          Select a template to automatically add industry-specific fields to your customers.
-          You can always change this later.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-xl font-semibold bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">
+              Choose Your Industry Template
+            </CardTitle>
+            <p className="text-sm text-quikle-slate/80">
+              Select a template to automatically add industry-specific fields to your customers.
+              You can always change this later.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open('/template-management', '_blank')}
+            className="text-quikle-primary border-quikle-primary/30 hover:bg-quikle-primary/10"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Manage Templates
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">

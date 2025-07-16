@@ -1,54 +1,41 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from './context/AuthContext';
+import Dashboard from './pages/Dashboard';
+import Customers from './pages/Customers';
+import Onboarding from './pages/Onboarding';
+import CustomerDetails from './pages/CustomerDetails';
+import Quotes from './pages/Quotes';
+import QuoteDetails from './pages/QuoteDetails';
+import Invoices from './pages/Invoices';
+import FormBuilder from './pages/FormBuilder';
+import CustomerInsights from './pages/Customer Insights';
+import TemplateManagement from './pages/TemplateManagement';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/context/AuthContext";
-import Layout from "@/components/layout/Layout";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import Index from "@/pages/Index";
-import Dashboard from "@/pages/Dashboard";
-import Customers from "@/pages/Customers";
-import QuoteInvoice from "@/pages/QuoteInvoice";
-import Tickets from "@/pages/Tickets";
-import Analytics from "@/pages/Analytics";
-import Settings from "@/pages/Settings";
-import Employees from "@/pages/Employees";
-import CustomerInsights from "@/pages/Customer Insights";
-import Onboarding from "@/pages/Onboarding";
-import Conversations from "@/pages/Conversations";
-import Pipeline from "@/pages/Pipeline";
-
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+function App() {
+  return (
+    <Router>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+        <div className="min-h-screen bg-gradient-to-br from-quikle-crystal via-quikle-platinum to-quikle-crystal">
+          <Toaster />
           <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<ProtectedRoute element={<Index />} />} />
-              <Route path="dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
-              <Route path="customers" element={<ProtectedRoute element={<Customers />} />} />
-              <Route path="conversations" element={<ProtectedRoute element={<Conversations />} />} />
-              <Route path="quotes" element={<ProtectedRoute element={<QuoteInvoice />} />} />
-              <Route path="tickets" element={<ProtectedRoute element={<Tickets />} />} />
-              <Route path="analytics" element={<ProtectedRoute element={<Analytics />} />} />
-              <Route path="settings" element={<ProtectedRoute element={<Settings />} />} />
-              <Route path="employees" element={<ProtectedRoute element={<Employees />} />} />
-              <Route path="customer-insights" element={<ProtectedRoute element={<CustomerInsights />} />} />
-              <Route path="onboarding" element={<ProtectedRoute element={<Onboarding />} />} />
-              <Route path="pipeline" element={<ProtectedRoute element={<Pipeline />} />} />
-            </Route>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/customers/:customerId" element={<CustomerDetails />} />
+            <Route path="/quotes" element={<Quotes />} />
+            <Route path="/quotes/:quoteId" element={<QuoteDetails />} />
+            <Route path="/invoices" element={<Invoices />} />
+            <Route path="/form-builder" element={<FormBuilder />} />
+            <Route path="/customer-insights" element={<CustomerInsights />} />
+            <Route path="/template-management" element={<TemplateManagement />} />
           </Routes>
-        </BrowserRouter>
+        </div>
       </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </Router>
+  );
+}
 
 export default App;
