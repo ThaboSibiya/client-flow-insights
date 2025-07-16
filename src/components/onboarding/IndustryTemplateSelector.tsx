@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { CustomDataService } from '@/services/customDataService';
 import { IndustryTemplate } from '@/types/customData';
-import { Building2, Shield, Heart, Scale, DollarSign, Loader2 } from 'lucide-react';
+import { Building2, Shield, Heart, Scale, DollarSign, Printer, Loader2 } from 'lucide-react';
 
 interface IndustryTemplateSelectorProps {
   onTemplateSelected: (templateId: string | null) => void;
@@ -26,7 +25,8 @@ const IndustryTemplateSelector: React.FC<IndustryTemplateSelectorProps> = ({
     insurance: Shield,
     healthcare: Heart,
     legal: Scale,
-    finance: DollarSign
+    finance: DollarSign,
+    printer_service: Printer
   };
 
   useEffect(() => {

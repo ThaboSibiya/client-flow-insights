@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CustomDataService } from '@/services/customDataService';
 import { IndustryTemplate } from '@/types/customData';
 import { useAuth } from '@/context/AuthContext';
-import { Building2, Shield, Heart, Scale, DollarSign, Loader2 } from 'lucide-react';
+import { Building2, Shield, Heart, Scale, DollarSign, Printer, Loader2 } from 'lucide-react';
 
 interface TemplateGalleryProps {
   customerId?: string;
@@ -31,7 +30,8 @@ const TemplateGallery: React.FC<TemplateGalleryProps> = ({
     insurance: Shield,
     healthcare: Heart,
     legal: Scale,
-    finance: DollarSign
+    finance: DollarSign,
+    printer_service: Printer
   };
 
   useEffect(() => {
