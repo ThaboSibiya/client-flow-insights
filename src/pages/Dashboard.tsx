@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useCRM } from '@/context/CRMContext';
+import Layout from '@/components/layout/Layout';
 import StatusCard from '@/components/dashboard/StatusCard';
 import CustomerActivityChart from '@/components/dashboard/CustomerActivityChart';
 import RecentActivity from '@/components/dashboard/RecentActivity';
@@ -188,42 +189,44 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-8 rounded-xl mb-6 shadow-lg border border-white/20 backdrop-blur-sm quikle-card">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gradient-quikle drop-shadow-sm">Dashboard Overview</h1>
-            <p className="text-quikle-slate mt-1">Monitor your business performance at a glance</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
+    <Layout>
+      <div className="space-y-6">
+        <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-8 rounded-xl mb-6 shadow-lg border border-white/20 backdrop-blur-sm quikle-card">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gradient-quikle drop-shadow-sm">Dashboard Overview</h1>
+              <p className="text-quikle-slate mt-1">Monitor your business performance at a glance</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
-      </div>
 
-      <DashboardLayoutManager 
-        isEditMode={isEditMode} 
-        onToggleEditMode={() => setIsEditMode(!isEditMode)}
-      >
-        {isEditMode && !isMobile ? (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext items={widgetOrder} strategy={verticalListSortingStrategy}>
-              <div className="space-y-6">
-                {widgetOrder.map(renderWidget)}
-              </div>
-            </SortableContext>
-          </DndContext>
-        ) : (
-          <div className="space-y-6">
-            {widgetOrder.map(renderWidget)}
-          </div>
-        )}
-      </DashboardLayoutManager>
-    </div>
+        <DashboardLayoutManager 
+          isEditMode={isEditMode} 
+          onToggleEditMode={() => setIsEditMode(!isEditMode)}
+        >
+          {isEditMode && !isMobile ? (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={widgetOrder} strategy={verticalListSortingStrategy}>
+                <div className="space-y-6">
+                  {widgetOrder.map(renderWidget)}
+                </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <div className="space-y-6">
+              {widgetOrder.map(renderWidget)}
+            </div>
+          )}
+        </DashboardLayoutManager>
+      </div>
+    </Layout>
   );
 };
 
