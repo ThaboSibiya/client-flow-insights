@@ -21,8 +21,8 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthProvider>
+      <AuthProvider>
+        <Router>
           <div className="min-h-screen bg-gradient-to-br from-quikle-crystal via-quikle-platinum to-quikle-crystal">
             <Toaster />
             <Routes>
@@ -39,8 +39,8 @@ function App() {
               <Route path="/template-management" element={<ProtectedRoute element={<TemplateManagement />} />} />
             </Routes>
           </div>
-        </AuthProvider>
-      </Router>
+        </Router>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
