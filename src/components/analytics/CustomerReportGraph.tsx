@@ -6,7 +6,7 @@ import { ChartPieIcon } from 'lucide-react';
 import CustomerChart from './CustomerChart';
 import CustomerMetricsSummary from './CustomerMetricsSummary';
 import TimeframeSelector from './TimeframeSelector';
-import { generateReportData, calculateSummary } from '@/utils/customer-analytics';
+import { generateReportData, calculateReportSummary } from '@/utils/customer-analytics';
 
 interface CustomerReportGraphProps {
   customers: Customer[];
@@ -16,7 +16,7 @@ const CustomerReportGraph = ({ customers }: CustomerReportGraphProps) => {
   const [timeframe, setTimeframe] = useState<'monthly' | 'yearly'>('monthly');
   
   const reportData = generateReportData(customers, timeframe);
-  const summary = calculateSummary(reportData);
+  const summary = calculateReportSummary(reportData);
 
   return (
     <Card className="shadow-lg border border-white/30 quikle-card transform hover:scale-[1.01] transition-all duration-300">

@@ -19,7 +19,7 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
         <DialogHeader>
           <DialogTitle>Customer Details - {customer.name}</DialogTitle>
         </DialogHeader>
-        <CustomerDetailsForm customer={customer} onClose={onClose} />
+        <CustomerDetailsForm customer={customer} isOpen={isOpen} onClose={onClose} />
       </DialogContent>
     </Dialog>
   );

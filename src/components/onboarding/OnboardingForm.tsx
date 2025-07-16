@@ -28,11 +28,7 @@ const OnboardingForm = () => {
     setIsSubmitting(true);
     
     try {
-      await addCustomer({
-        ...formData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
+      await addCustomer(formData);
       
       // Reset form
       setFormData({

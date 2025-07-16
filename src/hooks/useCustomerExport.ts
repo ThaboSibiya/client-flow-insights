@@ -59,9 +59,17 @@ export const useCustomerExport = ({ customers, filteredCustomers, selectedCustom
     }
   };
 
+  // Legacy method names for backward compatibility
+  const handleExportCSV = () => exportCustomers('csv');
+  const handleExportJSON = () => exportCustomers('json');
+  const handleExportExcel = () => exportCustomers('excel');
+
   return {
     exportCustomers,
     getExportCount,
-    isExporting
+    isExporting,
+    handleExportCSV,
+    handleExportJSON,
+    handleExportExcel
   };
 };
