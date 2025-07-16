@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { CustomDataService } from '@/services/customDataService';
 import { IndustryTemplate } from '@/types/customData';
-import { Building2, Shield, Heart, Scale, DollarSign, Printer, Loader2, Plus, Edit } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { Building2, Shield, Heart, Scale, DollarSign, Printer, Loader2 } from 'lucide-react';
 
 interface TemplateGalleryProps {
   customerId?: string;
@@ -14,13 +14,15 @@ interface TemplateGalleryProps {
   appliedTemplateIds?: string[];
 }
 
-const TemplateGallery: React.FC<TemplateGalleryProps> = ({ 
-  customerId, 
-  onTemplateApplied, 
-  appliedTemplateIds = [] 
+const TemplateGallery: React.FC<TemplateGalleryProps> = ({
+  customerId,
+  onTemplateApplied,
+  appliedTemplateIds = []
 }) => {
   const [templates, setTemplates] = useState<IndustryTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [applyingId, setApplyingId] = useState<string | null>(null);
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const industryIcons = {
@@ -53,104 +55,92 @@ const TemplateGallery: React.FC<TemplateGalleryProps> = ({
   };
 
   const handleApplyTemplate = async (template: IndustryTemplate) => {
-    if (!customerId) return;
+    if (!customerId || !user) return;
 
+    setApplyingId(template.id);
     try {
-      await CustomDataService.applyTemplateToCustomer(customerId, template.id);
-      
+      await CustomDataService.applyTemplateToCustomer(customerId, template.id, user.id);
       toast({
         title: "Success",
-        description: `${template.name} has been applied to this customer.`
+        description: `${template.name} template applied successfully`
       });
-
-      if (onTemplateApplied) {
-        onTemplateApplied(template);
-      }
+      onTemplateApplied?.(template);
     } catch (error: any) {
+      console.error('Error applying template:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to apply template",
         variant: "destructive"
       });
+    } finally {
+      setApplyingId(null);
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-        <span className="ml-2">Loading templates...</span>
+        <Loader2 className="h-6 w-6 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="space-y-4">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold">Industry Templates</h2>
+        <p className="text-muted-foreground">
+          Choose a template to add industry-specific fields to your customers
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {templates.map((template) => {
           const Icon = industryIcons[template.industry as keyof typeof industryIcons] || Building2;
           const isApplied = appliedTemplateIds.includes(template.id);
+          const isApplying = applyingId === template.id;
 
           return (
-            <Card key={template.id} className="border-quikle-silver/30 hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-quikle-crystal/50 rounded-md p-2">
-                      <Icon className="h-6 w-6 text-quikle-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg text-quikle-charcoal">{template.name}</CardTitle>
-                      <Badge variant="secondary" className="mt-1">
+            <Card key={template.id} className={`transition-all hover:shadow-lg ${isApplied ? 'border-green-500 bg-green-50' : ''}`}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <Icon className="h-8 w-8 text-primary" />
+                  <div className="flex-1">
+                    <CardTitle className="text-lg">{template.name}</CardTitle>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="secondary" className="text-xs">
                         {template.industry.replace('_', ' ')}
                       </Badge>
+                      {isApplied && (
+                        <Badge variant="default" className="text-xs bg-green-600">
+                          Applied
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                  {isApplied && (
-                    <Badge variant="default" className="bg-green-100 text-green-800">
-                      Applied
-                    </Badge>
-                  )}
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-quikle-slate mb-4">{template.description}</p>
+                <CardDescription className="mb-4">
+                  {template.description}
+                </CardDescription>
                 
-                <div className="flex gap-2">
-                  {customerId && (
-                    <Button
-                      onClick={() => handleApplyTemplate(template)}
-                      disabled={isApplied}
-                      size="sm"
-                      className="flex-1"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      {isApplied ? 'Applied' : 'Apply Template'}
-                    </Button>
-                  )}
-                  
+                {customerId && (
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(`/template-management?edit=${template.id}`, '_blank')}
+                    onClick={() => handleApplyTemplate(template)}
+                    disabled={isApplied || isApplying}
+                    className="w-full"
+                    variant={isApplied ? "secondary" : "default"}
                   >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
+                    {isApplying && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                    {isApplied ? 'Applied' : 'Apply Template'}
                   </Button>
-                </div>
+                )}
               </CardContent>
             </Card>
           );
         })}
       </div>
-
-      {templates.length === 0 && (
-        <div className="text-center py-12">
-          <Building2 className="h-16 w-16 text-quikle-slate mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-quikle-charcoal mb-2">No templates available</h3>
-          <p className="text-quikle-slate">Templates will appear here once they are configured.</p>
-        </div>
-      )}
     </div>
   );
 };

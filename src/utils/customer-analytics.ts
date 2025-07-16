@@ -1,92 +1,124 @@
 
-import { Customer } from '@/types/customer';
+import { Customer } from '@/context/CRMContext';
 
 export interface ReportData {
-  month: string;
+  name: string;
   new: number;
   existing: number;
   pending: number;
   finalised: number;
   conversionRate: number;
-  name: string; // Added for compatibility
 }
 
 export interface ReportSummary {
   totalNew: number;
-  totalExisting: number;
-  totalPending: number;
   totalFinalised: number;
   overallConversion: number;
 }
 
-export interface Summary {
-  totalCustomers: number;
-  newCustomers: number;
-  finalisedCustomers: number;
-  averageConversionRate: number;
-}
-
 export const generateReportData = (customers: Customer[], timeframe: 'monthly' | 'yearly'): ReportData[] => {
-  const monthlyData: { [key: string]: { new: number; existing: number; pending: number; finalised: number } } = {};
+  const data: ReportData[] = [];
+  const today = new Date();
   
-  customers.forEach(customer => {
-    const date = new Date(customer.createdAt);
-    const monthKey = timeframe === 'monthly' 
-      ? date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-      : date.getFullYear().toString();
-    
-    if (!monthlyData[monthKey]) {
-      monthlyData[monthKey] = { new: 0, existing: 0, pending: 0, finalised: 0 };
+  if (timeframe === 'monthly') {
+    // Generate data for the past 12 months
+    for (let i = 11; i >= 0; i--) {
+      const month = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthName = month.toLocaleString('default', { month: 'short', year: '2-digit' });
+      
+      // Count customers by status for this month
+      const newCustomers = customers.filter(c => 
+        c.status === 'new' && 
+        c.createdAt.getMonth() === month.getMonth() && 
+        c.createdAt.getFullYear() === month.getFullYear()
+      ).length;
+      
+      const existingCustomers = customers.filter(c => 
+        c.status === 'existing' && 
+        c.updatedAt.getMonth() === month.getMonth() && 
+        c.updatedAt.getFullYear() === month.getFullYear()
+      ).length;
+      
+      const pendingCustomers = customers.filter(c => 
+        c.status === 'pending' && 
+        c.updatedAt.getMonth() === month.getMonth() && 
+        c.updatedAt.getFullYear() === month.getFullYear()
+      ).length;
+      
+      const finalisedCustomers = customers.filter(c => 
+        c.status === 'finalised' && 
+        c.updatedAt.getMonth() === month.getMonth() && 
+        c.updatedAt.getFullYear() === month.getFullYear()
+      ).length;
+      
+      // Calculate conversion rate (finalised / new) * 100, or 0 if no new customers
+      const conversionRate = newCustomers > 0 
+        ? Math.round((finalisedCustomers / newCustomers) * 100) 
+        : 0;
+      
+      data.push({
+        name: monthName,
+        new: newCustomers,
+        existing: existingCustomers,
+        pending: pendingCustomers,
+        finalised: finalisedCustomers,
+        conversionRate: conversionRate
+      });
     }
-    
-    if (customer.status === 'new') {
-      monthlyData[monthKey].new++;
-    } else if (customer.status === 'existing') {
-      monthlyData[monthKey].existing++;
-    } else if (customer.status === 'pending') {
-      monthlyData[monthKey].pending++;
-    } else if (customer.status === 'finalised') {
-      monthlyData[monthKey].finalised++;
+  } else {
+    // Generate data for the past 5 years
+    for (let i = 4; i >= 0; i--) {
+      const year = today.getFullYear() - i;
+      
+      // Count customers by status for this year
+      const newCustomers = customers.filter(c => 
+        c.status === 'new' && 
+        c.createdAt.getFullYear() === year
+      ).length;
+      
+      const existingCustomers = customers.filter(c => 
+        c.status === 'existing' && 
+        c.updatedAt.getFullYear() === year
+      ).length;
+      
+      const pendingCustomers = customers.filter(c => 
+        c.status === 'pending' && 
+        c.updatedAt.getFullYear() === year
+      ).length;
+      
+      const finalisedCustomers = customers.filter(c => 
+        c.status === 'finalised' && 
+        c.updatedAt.getFullYear() === year
+      ).length;
+      
+      // Calculate conversion rate
+      const conversionRate = newCustomers > 0 
+        ? Math.round((finalisedCustomers / newCustomers) * 100) 
+        : 0;
+      
+      data.push({
+        name: year.toString(),
+        new: newCustomers,
+        existing: existingCustomers,
+        pending: pendingCustomers,
+        finalised: finalisedCustomers,
+        conversionRate: conversionRate
+      });
     }
-  });
+  }
   
-  return Object.entries(monthlyData).map(([month, data]) => ({
-    month,
-    name: month, // Added for compatibility
-    new: data.new,
-    existing: data.existing,
-    pending: data.pending,
-    finalised: data.finalised,
-    conversionRate: data.new > 0 ? (data.finalised / data.new) * 100 : 0
-  }));
+  return data;
 };
 
-export const calculateSummary = (reportData: ReportData[]): Summary => {
+export const calculateSummary = (reportData: ReportData[]): ReportSummary => {
   const totalNew = reportData.reduce((sum, item) => sum + item.new, 0);
   const totalFinalised = reportData.reduce((sum, item) => sum + item.finalised, 0);
-  const averageConversionRate = reportData.length > 0 
-    ? reportData.reduce((sum, item) => sum + item.conversionRate, 0) / reportData.length
+  const overallConversion = totalNew > 0 
+    ? Math.round((totalFinalised / totalNew) * 100) 
     : 0;
   
   return {
-    totalCustomers: totalNew + totalFinalised,
-    newCustomers: totalNew,
-    finalisedCustomers: totalFinalised,
-    averageConversionRate
-  };
-};
-
-export const calculateReportSummary = (reportData: ReportData[]): ReportSummary => {
-  const totalNew = reportData.reduce((sum, item) => sum + item.new, 0);
-  const totalExisting = reportData.reduce((sum, item) => sum + item.existing, 0);
-  const totalPending = reportData.reduce((sum, item) => sum + item.pending, 0);
-  const totalFinalised = reportData.reduce((sum, item) => sum + item.finalised, 0);
-  const overallConversion = totalNew > 0 ? (totalFinalised / totalNew) * 100 : 0;
-  
-  return {
     totalNew,
-    totalExisting,
-    totalPending,
     totalFinalised,
     overallConversion
   };

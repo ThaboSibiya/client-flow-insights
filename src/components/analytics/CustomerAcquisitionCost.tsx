@@ -19,9 +19,8 @@ const CustomerAcquisitionCost = () => {
       
       // Count new customers for this month
       const newCustomers = customers.filter(customer => {
-        const customerDate = new Date(customer.created_at);
-        const customerMonth = customerDate.getMonth();
-        const customerYear = customerDate.getFullYear();
+        const customerMonth = customer.createdAt.getMonth();
+        const customerYear = customer.createdAt.getFullYear();
         return customerMonth === date.getMonth() && customerYear === date.getFullYear();
       }).length;
       

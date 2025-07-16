@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Customer, CustomerStatus } from '@/types/customer';
-import { useCRM } from '@/context/CRMContext';
+import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
 import StatusSelector from '../StatusSelector';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import { toast } from '@/hooks/use-toast';
@@ -124,7 +123,6 @@ const ValidatedCustomerForm = ({ customer, onClose, onSuccess }: ValidatedCustom
           updatedAt: new Date(),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          user_id: '', // This will be set by the context
         };
         toast({
           title: "Success", 

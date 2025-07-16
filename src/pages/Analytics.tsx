@@ -15,7 +15,7 @@ import ReportScheduler from '@/components/analytics/ReportScheduler';
 import VoiceQueryInterface from '@/components/analytics/VoiceQueryInterface';
 import { Users, Ticket, TrendingUp, FileBarChart, Calendar, Mic } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
-import { generateReportData, calculateReportSummary } from '@/utils/customer-analytics';
+import { generateReportData, calculateSummary } from '@/utils/customer-analytics';
 
 const Analytics = () => {
   const { customers } = useCRM();
@@ -23,7 +23,7 @@ const Analytics = () => {
   
   // Generate analytics data from customer data
   const reportData = generateReportData(customers, timeframe);
-  const summary = calculateReportSummary(reportData);
+  const summary = calculateSummary(reportData);
 
   return (
     <div className="space-y-6">

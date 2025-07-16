@@ -1,23 +1,21 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { IndustryTemplate, TemplateField, CustomFieldValue } from '@/types/customData';
+import { IndustryTemplate, TemplateField, CustomerTemplate, CustomerCustomData, EnhancedCustomer, CustomFieldValue } from '@/types/customData';
 
 export class CustomDataService {
+  // Get all available industry templates
   static async getIndustryTemplates(): Promise<IndustryTemplate[]> {
     const { data, error } = await supabase
       .from('industry_templates')
       .select('*')
       .eq('is_active', true)
-      .order('name');
+      .order('industry');
 
-    if (error) {
-      console.error('Error fetching industry templates:', error);
-      throw new Error('Failed to fetch industry templates');
-    }
-
+    if (error) throw error;
     return data || [];
   }
 
+  // Get template fields for a specific template
   static async getTemplateFields(templateId: string): Promise<TemplateField[]> {
     const { data, error } = await supabase
       .from('template_fields')
@@ -25,163 +23,178 @@ export class CustomDataService {
       .eq('template_id', templateId)
       .order('display_order');
 
-    if (error) {
-      console.error('Error fetching template fields:', error);
-      throw new Error('Failed to fetch template fields');
-    }
-
-    return data || [];
+    if (error) throw error;
+    
+    // Transform the data to match our TypeScript interface
+    return (data || []).map(field => ({
+      id: field.id,
+      template_id: field.template_id || '',
+      field_name: field.field_name,
+      field_label: field.field_label,
+      field_type: field.field_type as TemplateField['field_type'],
+      field_options: field.field_options as TemplateField['field_options'],
+      is_required: field.is_required || false,
+      display_order: field.display_order || 0,
+      created_at: field.created_at || new Date().toISOString()
+    }));
   }
 
-  static async applyTemplateToCustomer(customerId: string, templateId: string): Promise<void> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) throw new Error('User not authenticated');
-
-    // Check if template is already applied
-    const { data: existingTemplate } = await supabase
+  // Apply a template to a customer
+  static async applyTemplateToCustomer(customerId: string, templateId: string, userId: string): Promise<void> {
+    // First, check if template is already applied
+    const { data: existing } = await supabase
       .from('customer_templates')
       .select('id')
       .eq('customer_id', customerId)
       .eq('template_id', templateId)
       .single();
 
-    if (existingTemplate) {
-      throw new Error('Template is already applied to this customer');
+    if (existing) {
+      throw new Error('Template already applied to this customer');
     }
 
     // Apply the template
-    const { error } = await supabase
+    const { error: templateError } = await supabase
       .from('customer_templates')
       .insert({
         customer_id: customerId,
         template_id: templateId,
-        user_id: user.user.id
+        user_id: userId
       });
 
-    if (error) {
-      console.error('Error applying template:', error);
-      throw new Error('Failed to apply template to customer');
+    if (templateError) throw templateError;
+
+    // Get template fields and create empty custom data records
+    const fields = await this.getTemplateFields(templateId);
+    
+    if (fields.length > 0) {
+      const customDataRecords = fields.map(field => ({
+        customer_id: customerId,
+        field_id: field.id,
+        field_value: '',
+        user_id: userId
+      }));
+
+      const { error: dataError } = await supabase
+        .from('customer_custom_data')
+        .insert(customDataRecords);
+
+      if (dataError) throw dataError;
     }
   }
 
-  static async removeTemplateFromCustomer(customerId: string, templateId: string): Promise<void> {
-    const { error } = await supabase
-      .from('customer_templates')
-      .delete()
-      .eq('customer_id', customerId)
-      .eq('template_id', templateId);
+  // Get enhanced customer data with custom fields
+  static async getEnhancedCustomer(customerId: string, userId: string): Promise<EnhancedCustomer | null> {
+    // Get base customer data
+    const { data: customer, error: customerError } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', customerId)
+      .eq('user_id', userId)
+      .single();
 
-    if (error) {
-      console.error('Error removing template:', error);
-      throw new Error('Failed to remove template from customer');
-    }
-  }
+    if (customerError || !customer) return null;
 
-  static async getCustomerTemplates(customerId: string) {
-    const { data, error } = await supabase
+    // Get applied templates
+    const { data: customerTemplates, error: templatesError } = await supabase
       .from('customer_templates')
       .select(`
-        *,
+        template_id,
         industry_templates (*)
       `)
-      .eq('customer_id', customerId);
+      .eq('customer_id', customerId)
+      .eq('user_id', userId);
 
-    if (error) {
-      console.error('Error fetching customer templates:', error);
-      throw new Error('Failed to fetch customer templates');
-    }
+    if (templatesError) throw templatesError;
 
-    return data || [];
-  }
-
-  static async getCustomerCustomFields(customerId: string): Promise<CustomFieldValue[]> {
-    const { data, error } = await supabase
+    // Get custom field data
+    const { data: customFieldsData, error: fieldsError } = await supabase
       .from('customer_custom_data')
       .select(`
-        *,
+        field_value,
         template_fields (
           field_name,
           field_label,
           field_type,
           is_required,
-          field_options
+          field_options,
+          display_order
         )
       `)
-      .eq('customer_id', customerId);
+      .eq('customer_id', customerId)
+      .eq('user_id', userId);
 
-    if (error) {
-      console.error('Error fetching customer custom fields:', error);
-      throw new Error('Failed to fetch customer custom fields');
-    }
+    if (fieldsError) throw fieldsError;
 
-    return (data || []).map(item => ({
-      field_name: item.template_fields.field_name,
-      field_label: item.template_fields.field_label,
-      field_type: item.template_fields.field_type,
-      field_value: item.field_value,
-      is_required: item.template_fields.is_required,
-      field_options: item.template_fields.field_options
-    }));
-  }
-
-  static async updateCustomerCustomField(customerId: string, fieldId: string, value: string): Promise<void> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) throw new Error('User not authenticated');
-
-    const { error } = await supabase
-      .from('customer_custom_data')
-      .upsert({
-        customer_id: customerId,
-        field_id: fieldId,
-        field_value: value,
-        user_id: user.user.id
+    // Transform custom fields data
+    const customFields: CustomFieldValue[] = (customFieldsData || [])
+      .filter(item => item.template_fields)
+      .map(item => ({
+        field_name: item.template_fields.field_name,
+        field_label: item.template_fields.field_label,
+        field_type: item.template_fields.field_type,
+        field_value: item.field_value || '',
+        is_required: item.template_fields.is_required,
+        field_options: item.template_fields.field_options
+      }))
+      .sort((a, b) => {
+        const aOrder = customFieldsData?.find(d => d.template_fields?.field_name === a.field_name)?.template_fields?.display_order || 0;
+        const bOrder = customFieldsData?.find(d => d.template_fields?.field_name === b.field_name)?.template_fields?.display_order || 0;
+        return aOrder - bOrder;
       });
 
-    if (error) {
-      console.error('Error updating custom field:', error);
-      throw new Error('Failed to update custom field');
-    }
+    return {
+      ...customer,
+      custom_fields: customFields,
+      applied_templates: (customerTemplates || []).map(ct => ct.industry_templates).filter(Boolean)
+    };
   }
 
-  static async createTemplateField(templateId: string, fieldData: Omit<TemplateField, 'id' | 'template_id' | 'created_at'>): Promise<TemplateField> {
-    const { data, error } = await supabase
-      .from('template_fields')
-      .insert({
-        template_id: templateId,
-        ...fieldData
+  // Update custom field value
+  static async updateCustomFieldValue(customerId: string, fieldId: string, value: string, userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('customer_custom_data')
+      .update({ 
+        field_value: value,
+        updated_at: new Date().toISOString()
       })
-      .select()
-      .single();
+      .eq('customer_id', customerId)
+      .eq('field_id', fieldId)
+      .eq('user_id', userId);
 
-    if (error) {
-      console.error('Error creating template field:', error);
-      throw new Error('Failed to create template field');
-    }
-
-    return data;
+    if (error) throw error;
   }
 
-  static async updateTemplateField(fieldId: string, fieldData: Partial<TemplateField>): Promise<void> {
-    const { error } = await supabase
+  // Remove template from customer
+  static async removeTemplateFromCustomer(customerId: string, templateId: string, userId: string): Promise<void> {
+    // Get field IDs for this template
+    const { data: templateFields } = await supabase
       .from('template_fields')
-      .update(fieldData)
-      .eq('id', fieldId);
+      .select('id')
+      .eq('template_id', templateId);
 
-    if (error) {
-      console.error('Error updating template field:', error);
-      throw new Error('Failed to update template field');
+    if (templateFields && templateFields.length > 0) {
+      const fieldIds = templateFields.map(field => field.id);
+
+      // Remove custom data first
+      const { error: dataError } = await supabase
+        .from('customer_custom_data')
+        .delete()
+        .eq('customer_id', customerId)
+        .eq('user_id', userId)
+        .in('field_id', fieldIds);
+
+      if (dataError) throw dataError;
     }
-  }
 
-  static async deleteTemplateField(fieldId: string): Promise<void> {
-    const { error } = await supabase
-      .from('template_fields')
+    // Remove template association
+    const { error: templateError } = await supabase
+      .from('customer_templates')
       .delete()
-      .eq('id', fieldId);
+      .eq('customer_id', customerId)
+      .eq('template_id', templateId)
+      .eq('user_id', userId);
 
-    if (error) {
-      console.error('Error deleting template field:', error);
-      throw new Error('Failed to delete template field');
-    }
+    if (templateError) throw templateError;
   }
 }

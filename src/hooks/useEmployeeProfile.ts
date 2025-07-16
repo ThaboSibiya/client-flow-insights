@@ -3,61 +3,52 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
-interface EmployeeData {
-  id: string;
-  first_name: string;
-  last_name: string;
-  employee_number: string;
-  role: string;
-}
+// Check if user is a company owner first (has customers)
+const checkIsCompanyOwner = async (userId: string): Promise<boolean> => {
+  const { data } = await supabase
+    .from('customers')
+    .select('id')
+    .eq('user_id', userId)
+    .limit(1);
+  
+  return data && data.length > 0;
+};
 
-interface EmployeeProfileData {
-  employee: EmployeeData | null;
-  isCompanyOwner: boolean;
-}
+const fetchEmployeeProfile = async (userId: string) => {
+  if (!userId) return null;
+
+  // First check if user is company owner - if so, skip employee lookup
+  const isOwner = await checkIsCompanyOwner(userId);
+  if (isOwner) {
+    return { isCompanyOwner: true, employee: null };
+  }
+
+  // Look for employee by auth_user_id (not user_id)
+  const { data, error } = await supabase
+    .from('employees')
+    .select('id, role, first_name, last_name, employee_number')
+    .eq('auth_user_id', userId)
+    .maybeSingle(); // Use maybeSingle to avoid 406 errors
+
+  if (error) {
+    console.error('Error fetching employee profile:', error);
+    throw error;
+  }
+  
+  return { isCompanyOwner: false, employee: data };
+};
 
 export const useEmployeeProfile = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
-  return useQuery<EmployeeProfileData>({
-    queryKey: ['employee-profile', user?.id],
-    queryFn: async (): Promise<EmployeeProfileData> => {
-      if (!user?.id) {
-        return { employee: null, isCompanyOwner: false };
-      }
-
-      // Check if user is a company owner (has profile)
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError && profileError.code !== 'PGRST116') {
-        throw profileError;
-      }
-
-      // If user has a profile, they are a company owner
-      if (profile) {
-        return { employee: null, isCompanyOwner: true };
-      }
-
-      // Check if user is an employee
-      const { data: employee, error: employeeError } = await supabase
-        .from('employees')
-        .select('id, first_name, last_name, employee_number, role')
-        .eq('user_id', user.id)
-        .single();
-
-      if (employeeError && employeeError.code !== 'PGRST116') {
-        throw employeeError;
-      }
-
-      return {
-        employee: employee || null,
-        isCompanyOwner: false
-      };
+  return useQuery({
+    queryKey: ['employeeProfile', user?.id],
+    queryFn: () => {
+      if (!user?.id) return Promise.resolve(null);
+      return fetchEmployeeProfile(user.id);
     },
-    enabled: !!user?.id,
+    enabled: !authLoading && !!user?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1, // Reduce retries to avoid performance issues
   });
 };

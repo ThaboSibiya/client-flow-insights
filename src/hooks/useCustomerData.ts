@@ -1,4 +1,3 @@
-
 import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, CustomerStatus, CustomerTicket, TimeEntry, CustomerEquipment } from '@/types/customer';
@@ -147,7 +146,6 @@ export const useCustomerData = () => {
             activeTickets,
             ticketCount: activeTickets.length,
             lastTicketDate: activeTickets.length > 0 ? activeTickets[0].createdAt : undefined,
-            user_id: item.user_id
           };
           return customer;
         });

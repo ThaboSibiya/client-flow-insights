@@ -1,151 +1,144 @@
 
 import React, { useState } from 'react';
-import { Customer, CustomerStatus } from '@/types/customer';
-import { useCRM } from '@/context/CRMContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { Save, X } from 'lucide-react';
+import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
+import StatusSelector from '../StatusSelector';
+import { toast } from '@/hooks/use-toast';
 
 interface CustomerDetailsFormProps {
-  customer: Customer | null;
+  customer: Customer;
   onClose: () => void;
 }
 
 const CustomerDetailsForm = ({ customer, onClose }: CustomerDetailsFormProps) => {
   const { updateCustomer } = useCRM();
-  
-  const form = useForm<Partial<Customer>>({
-    defaultValues: customer || {},
+  const [formData, setFormData] = useState({
+    name: customer.name || '',
+    email: customer.email || '',
+    phone: customer.phone || '',
+    address: customer.address || '',
+    notes: customer.notes || '',
+    status: customer.status
   });
-  
-  const onSubmit = (data: Partial<Customer>) => {
-    if (customer) {
-      updateCustomer(customer.id, data);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleStatusChange = (status: CustomerStatus) => {
+    setFormData(prev => ({ ...prev, status }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    try {
+      await updateCustomer(customer.id, formData);
+      toast({
+        title: "Success",
+        description: "Customer updated successfully",
+      });
       onClose();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update customer",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Customer name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="Email address" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone</FormLabel>
-                <FormControl>
-                  <Input placeholder="Phone number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="existing">Existing</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="finalised">Finalised</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+    <div className="bg-gradient-to-br from-white to-quikle-crystal p-6 rounded-xl shadow-luxury">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-quikle-primary font-semibold">Name</Label>
+            <Input
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+              className="shadow-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-quikle-primary font-semibold">Email</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              className="shadow-sm"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="phone" className="text-quikle-primary font-semibold">Phone</Label>
+            <Input
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              className="shadow-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-quikle-primary font-semibold">Status</Label>
+            <StatusSelector
+              status={formData.status}
+              onChange={handleStatusChange}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="address" className="text-quikle-primary font-semibold">Address</Label>
+          <Input
+            id="address"
+            name="address"
+            value={formData.address}
+            onChange={handleInputChange}
+            className="shadow-sm"
           />
         </div>
-        
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Notes</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Additional notes about the customer" 
-                  className="min-h-[100px]" 
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onClose}>
-            <X className="mr-2 h-4 w-4" />
+
+        <div className="space-y-2">
+          <Label htmlFor="notes" className="text-quikle-primary font-semibold">Notes</Label>
+          <Textarea
+            id="notes"
+            name="notes"
+            value={formData.notes}
+            onChange={handleInputChange}
+            rows={3}
+            className="shadow-sm"
+          />
+        </div>
+
+        <div className="flex justify-end gap-3 pt-6 border-t border-quikle-silver/20">
+          <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
-          <Button type="submit">
-            <Save className="mr-2 h-4 w-4" />
-            Save Changes
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </form>
-    </Form>
+    </div>
   );
 };
 

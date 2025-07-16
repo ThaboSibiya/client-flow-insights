@@ -1,3 +1,4 @@
+
 export interface Customer {
   id: string;
   name: string;
@@ -17,7 +18,6 @@ export interface Customer {
   ticketCount?: number;
   lastTicketDate?: Date;
   assigned_to?: string;
-  user_id: string;
 }
 
 export type CustomerStatus = 'new' | 'existing' | 'pending' | 'finalised';

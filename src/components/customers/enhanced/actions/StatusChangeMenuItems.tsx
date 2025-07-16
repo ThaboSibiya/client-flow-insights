@@ -2,7 +2,7 @@
 import React from 'react';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Clock } from 'lucide-react';
-import { Customer, CustomerStatus } from '@/types/customer';
+import { Customer, CustomerStatus } from '@/context/CRMContext';
 
 interface StatusChangeMenuItemsProps {
   customer: Customer;

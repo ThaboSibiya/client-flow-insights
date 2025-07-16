@@ -29,7 +29,6 @@ describe('useCustomerExport', () => {
       updatedAt: new Date('2023-01-01'),
       activeTickets: [],
       ticketCount: 0,
-      user_id: 'user-1'
     },
   ];
 
