@@ -19,7 +19,7 @@ const ChurnRateAnalysis = () => {
       
       // Calculate customer counts for churn analysis
       const totalCustomers = customers.filter(customer => 
-        customer.createdAt <= date
+        new Date(customer.created_at) <= date
       ).length;
       
       // Simulate churn data based on customer lifecycle

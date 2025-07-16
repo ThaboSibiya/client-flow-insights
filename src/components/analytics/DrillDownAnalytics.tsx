@@ -43,8 +43,9 @@ const DrillDownAnalytics = () => {
       const monthName = date.toLocaleDateString('default', { month: 'short' });
       
       const count = customers.filter(customer => {
-        const customerMonth = customer.createdAt.getMonth();
-        const customerYear = customer.createdAt.getFullYear();
+        const customerDate = new Date(customer.created_at);
+        const customerMonth = customerDate.getMonth();
+        const customerYear = customerDate.getFullYear();
         return customer.status === status && 
                customerMonth === date.getMonth() && 
                customerYear === date.getFullYear();
@@ -67,11 +68,12 @@ const DrillDownAnalytics = () => {
     
     for (let day = 1; day <= Math.min(daysInMonth, 7); day++) {
       const count = customers.filter(customer => {
-        const customerDate = customer.createdAt.getDate();
-        const customerMonth = customer.createdAt.getMonth();
+        const customerDate = new Date(customer.created_at);
+        const customerDay = customerDate.getDate();
+        const customerMonth = customerDate.getMonth();
         return customer.status === status && 
                customerMonth === month && 
-               customerDate === day;
+               customerDay === day;
       }).length;
       
       dailyData.push({

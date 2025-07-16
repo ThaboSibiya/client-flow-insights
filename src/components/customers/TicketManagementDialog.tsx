@@ -1,24 +1,17 @@
-import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Plus, X } from 'lucide-react';
-import { Customer, CustomerTicket, TicketStatus } from '@/types/customer';
+
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Customer } from '@/context/CRMContext';
 import { Badge } from '@/components/ui/badge';
-import NewTicketForm from './tickets/NewTicketForm';
-import TicketsList from './tickets/TicketsList';
+import { Clock, User, AlertCircle } from 'lucide-react';
 
 interface TicketManagementDialogProps {
   customer: Customer | null;
   isOpen: boolean;
   onClose: () => void;
-  onCreateTicket: (customerId: string, ticket: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>) => void;
-  onUpdateTicketStatus: (ticketId: string, status: TicketStatus) => void;
-  onAddTimeEntry?: (ticketId: string, timeEntry: any) => void;
+  onCreateTicket: (customerId: string, ticketData: any) => void;
+  onUpdateTicketStatus: (ticketId: string, status: string) => void;
+  onAddTimeEntry: (ticketId: string, timeEntry: any) => void;
 }
 
 const TicketManagementDialog = ({ 
@@ -26,75 +19,56 @@ const TicketManagementDialog = ({
   isOpen, 
   onClose, 
   onCreateTicket, 
-  onUpdateTicketStatus,
+  onUpdateTicketStatus, 
   onAddTimeEntry 
 }: TicketManagementDialogProps) => {
-  const [showNewTicketForm, setShowNewTicketForm] = useState(false);
-
-  const handleCreateTicket = (ticketData: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>) => {
-    if (customer) {
-      onCreateTicket(customer.id, ticketData);
-      setShowNewTicketForm(false);
-    }
-  };
-
-  const getTotalTimeSpent = () => {
-    if (!customer?.activeTickets) return 0;
-    return customer.activeTickets.reduce((total, ticket) => total + (ticket.totalTimeSpent || 0), 0);
-  };
-
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
+  if (!customer) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()} modal={true}>
-      <DialogContent className="sm:max-w-[800px] bg-white border-0 shadow-xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader className="bg-gradient-to-r from-quikle-primary/10 to-quikle-accent/10 p-4 -m-6 mb-4 rounded-t-lg">
-          <DialogTitle className="text-xl font-semibold text-quikle-primary flex items-center gap-2">
-            Ticket Management - {customer?.name}
-            <Badge variant="outline">{customer?.ticketCount || 0} Total Tickets</Badge>
-            {getTotalTimeSpent() > 0 && (
-              <Badge variant="secondary">{formatTime(getTotalTimeSpent())} Total Time</Badge>
-            )}
-          </DialogTitle>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Ticket Management - {customer.name}</DialogTitle>
         </DialogHeader>
-
+        
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium">Active Tickets</h3>
-            <Button 
-              onClick={() => setShowNewTicketForm(!showNewTicketForm)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              New Ticket
-            </Button>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <User className="h-4 w-4" />
+            <span>{customer.email}</span>
           </div>
-
-          {showNewTicketForm && (
-            <NewTicketForm
-              onSubmit={handleCreateTicket}
-              onCancel={() => setShowNewTicketForm(false)}
-            />
-          )}
-
-          <TicketsList
-            tickets={customer?.activeTickets || []}
-            onUpdateTicketStatus={onUpdateTicketStatus}
-            onAddTimeEntry={onAddTimeEntry}
-            customerEmail={customer?.email}
-            customerName={customer?.name}
-            customerId={customer?.id}
-          />
-        </div>
-
-        <div className="flex justify-end mt-6">
-          <Button variant="outline" onClick={onClose}>
-            <X className="mr-2 h-4 w-4" />
-            Close
-          </Button>
+          
+          <div className="border rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="h-4 w-4" />
+              <h3 className="font-semibold">Active Tickets</h3>
+              <Badge variant="secondary">{customer.ticketCount || 0}</Badge>
+            </div>
+            
+            {customer.ticketCount === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No active tickets for this customer</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {customer.activeTickets?.map((ticket, index) => (
+                  <div key={index} className="border rounded p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium">{ticket.subject || 'No subject'}</h4>
+                        <p className="text-sm text-muted-foreground">{ticket.description}</p>
+                      </div>
+                      <Badge variant="outline">{ticket.status}</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <div className="text-sm text-muted-foreground">
+            <p>Ticket management functionality is not yet fully implemented.</p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

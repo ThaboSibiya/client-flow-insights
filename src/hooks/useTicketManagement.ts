@@ -1,80 +1,38 @@
 
 import { useState } from 'react';
-import { CustomerTicket, useCRM } from '@/context/CRMContext';
-import { TimeEntry, TicketStatus, TicketPriority } from '@/types/customer';
-import { toast } from '@/hooks/use-toast';
-import { useTicketRouting } from './useTicketRouting';
+import { useCRM } from '@/context/CRMContext';
+import { toast } from '@/components/ui/use-toast';
 
 export const useTicketManagement = () => {
   const { createTicket, updateTicketStatus, addTimeEntry } = useCRM();
-  const { autoAssignTicket } = useTicketRouting();
-  const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleCreateTicket = async (
-    customerId: string, 
-    ticketData: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'> & { category?: string }
-  ) => {
-    setIsCreating(true);
+  const handleCreateTicket = async (customerId: string, ticketData: any) => {
+    setIsLoading(true);
     try {
-      // Map TicketStatus to the status expected by createTicket
-      const mappedStatus = ticketData.status === 'resolved' ? 'closed' : ticketData.status === 'open' ? 'open' : ticketData.status === 'in-progress' ? 'in-progress' : 'open';
-      
-      // Map TicketPriority to the priority expected by createTicket (handle "urgent" -> "high")
-      const mappedPriority = ticketData.priority === 'urgent' ? 'high' : ticketData.priority === 'low' ? 'low' : ticketData.priority === 'medium' ? 'medium' : 'medium';
-      
-      // Extract assignedTo ID if it's a TeamMember object, otherwise use as string
-      const assignedToId = typeof ticketData.assignedTo === 'object' && ticketData.assignedTo 
-        ? ticketData.assignedTo.id 
-        : (ticketData.assignedTo as unknown as string | undefined);
-      
-      // Create the ticket with title (using subject as title)
-      await createTicket({
-        customerId,
-        title: ticketData.subject, // Add title property required by Ticket interface
-        description: ticketData.description,
-        status: mappedStatus as 'open' | 'in-progress' | 'closed',
-        priority: mappedPriority as 'low' | 'medium' | 'high',
-        assignedTo: assignedToId
-      });
-      
-      // Generate a temporary ticket ID for auto-assignment
-      const tempTicketId = `ticket-${Date.now()}`;
-      
-      // Auto-assign the ticket based on priority and category
-      try {
-        await autoAssignTicket(tempTicketId, ticketData.priority, ticketData.category);
-      } catch (error) {
-        console.error('Failed to auto-assign ticket:', error);
-        // Continue even if auto-assignment fails
-      }
-      
+      await createTicket({ ...ticketData, customerId });
       toast({
         title: "Success",
-        description: "Ticket created and automatically assigned",
+        description: "Ticket created successfully",
       });
-      return true;
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to create ticket",
         variant: "destructive",
       });
-      return false;
     } finally {
-      setIsCreating(false);
+      setIsLoading(false);
     }
   };
 
-  const handleUpdateTicketStatus = async (ticketId: string, status: TicketStatus) => {
-    setIsUpdating(true);
+  const handleUpdateTicketStatus = async (ticketId: string, status: string) => {
+    setIsLoading(true);
     try {
-      // Map TicketStatus to the status expected by updateTicketStatus
-      const mappedStatus = status === 'resolved' ? 'closed' : status === 'open' ? 'open' : status === 'in-progress' ? 'in-progress' : 'closed';
-      await updateTicketStatus(ticketId, mappedStatus as 'open' | 'in-progress' | 'closed');
+      await updateTicketStatus(ticketId, status);
       toast({
         title: "Success",
-        description: `Ticket status updated to ${status}`,
+        description: "Ticket status updated successfully",
       });
     } catch (error) {
       toast({
@@ -83,19 +41,14 @@ export const useTicketManagement = () => {
         variant: "destructive",
       });
     } finally {
-      setIsUpdating(false);
+      setIsLoading(false);
     }
   };
 
-  const handleAddTimeEntry = async (
-    ticketId: string,
-    timeEntryData: Omit<TimeEntry, 'id' | 'createdAt' | 'ticketId'>
-  ) => {
+  const handleAddTimeEntry = async (ticketId: string, timeEntry: any) => {
+    setIsLoading(true);
     try {
-      await addTimeEntry({
-        ...timeEntryData,
-        ticketId
-      });
+      await addTimeEntry({ ...timeEntry, ticketId });
       toast({
         title: "Success",
         description: "Time entry added successfully",
@@ -106,6 +59,8 @@ export const useTicketManagement = () => {
         description: "Failed to add time entry",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -113,7 +68,6 @@ export const useTicketManagement = () => {
     handleCreateTicket,
     handleUpdateTicketStatus,
     handleAddTimeEntry,
-    isCreating,
-    isUpdating,
+    isLoading,
   };
 };
