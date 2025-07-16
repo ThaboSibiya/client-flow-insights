@@ -1,29 +1,6 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-export interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  contact_person?: string;
-  company_address?: string;
-  status: 'new' | 'existing' | 'pending' | 'finalised';
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-  createdAt: Date;
-  updatedAt: Date;
-  ticketCount?: number;
-  activeTickets?: any[];
-  lastTicketDate?: Date;
-  equipment?: any[];
-  user_id: string;
-}
-
-export type CustomerStatus = 'new' | 'existing' | 'pending' | 'finalised';
+import { Customer, CustomerStatus } from '@/types/customer';
 
 interface CRMContextType {
   customers: Customer[];

@@ -4,28 +4,28 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCRM, CustomerStatus } from '@/context/CRMContext';
-import { toast } from '@/components/ui/use-toast';
-import { User, Mail, Phone, MapPin, FileText } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCRM } from '@/context/CRMContext';
+import { toast } from '@/hooks/use-toast';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface CustomerFormStepProps {
-  onNext: () => void;
+  onComplete: () => void;
   onBack: () => void;
+  industry?: string;
 }
 
-const CustomerFormStep = ({ onNext, onBack }: CustomerFormStepProps) => {
+const CustomerFormStep = ({ onComplete, onBack, industry }: CustomerFormStepProps) => {
   const { addCustomer } = useCRM();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     address: '',
-    contact_person: '',
-    company_address: '',
     notes: '',
-    status: 'new' as CustomerStatus
+    status: 'new' as const
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -35,15 +35,31 @@ const CustomerFormStep = ({ onNext, onBack }: CustomerFormStepProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.name || !formData.email) {
+      toast({
+        title: "Validation Error",
+        description: "Name and email are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
-      await addCustomer(formData);
+      await addCustomer({
+        ...formData,
+        activeTickets: [],
+        ticketCount: 0,
+      });
+      
       toast({
         title: "Success",
         description: "Customer added successfully",
       });
-      onNext();
+      
+      onComplete();
     } catch (error) {
       toast({
         title: "Error",
@@ -58,51 +74,43 @@ const CustomerFormStep = ({ onNext, onBack }: CustomerFormStepProps) => {
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <User className="h-5 w-5" />
-          Customer Information
-        </CardTitle>
+        <CardTitle>Add Your First Customer</CardTitle>
+        <CardDescription>
+          {industry ? `Set up your first ${industry.replace('_', ' ')} customer` : 'Let\'s get you started by adding your first customer'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Name *
-              </Label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="name">Customer Name *</Label>
               <Input
                 id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                required
                 placeholder="Enter customer name"
+                required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Email *
-              </Label>
+            
+            <div>
+              <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                required
                 placeholder="Enter email address"
+                required
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                Phone
-              </Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
                 name="phone"
@@ -111,64 +119,40 @@ const CustomerFormStep = ({ onNext, onBack }: CustomerFormStepProps) => {
                 placeholder="Enter phone number"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="contact_person">Contact Person</Label>
+            
+            <div>
+              <Label htmlFor="address">Address</Label>
               <Input
-                id="contact_person"
-                name="contact_person"
-                value={formData.contact_person}
+                id="address"
+                name="address"
+                value={formData.address}
                 onChange={handleInputChange}
-                placeholder="Enter contact person"
+                placeholder="Enter address"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="address" className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              Address
-            </Label>
-            <Input
-              id="address"
-              name="address"
-              value={formData.address}
-              onChange={handleInputChange}
-              placeholder="Enter customer address"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="company_address">Company Address</Label>
-            <Input
-              id="company_address"
-              name="company_address"
-              value={formData.company_address}
-              onChange={handleInputChange}
-              placeholder="Enter company address"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Notes
-            </Label>
+          <div>
+            <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
               name="notes"
               value={formData.notes}
               onChange={handleInputChange}
-              placeholder="Additional notes about the customer"
+              placeholder="Add any additional notes..."
               rows={3}
             />
           </div>
 
-          <div className="flex justify-between gap-4">
+          <div className="flex justify-between pt-4">
             <Button type="button" variant="outline" onClick={onBack}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
+            
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Adding Customer...' : 'Add Customer & Continue'}
+              {isSubmitting ? 'Adding...' : 'Add Customer'}
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </form>
