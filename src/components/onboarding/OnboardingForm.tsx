@@ -48,8 +48,15 @@ const OnboardingForm = () => {
     setIsSubmitting(true);
     
     try {
+      // Create customer data with required timestamp fields
+      const customerData = {
+        ...formData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
       await EnhancedCustomerService.createCustomerWithTemplate(
-        formData,
+        customerData,
         user.id,
         selectedTemplateId || undefined
       );
@@ -160,9 +167,9 @@ const OnboardingForm = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="new">New Customer</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="prospect">Prospect</SelectItem>
+                    <SelectItem value="existing">Existing</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="finalised">Finalised</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
