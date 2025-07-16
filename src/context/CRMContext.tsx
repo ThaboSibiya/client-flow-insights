@@ -1,6 +1,10 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, CustomerStatus } from '@/types/customer';
+
+// Export the types for use in other components
+export { Customer, CustomerStatus };
 
 interface CRMContextType {
   customers: Customer[];

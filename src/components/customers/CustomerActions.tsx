@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
+import { Customer, CustomerStatus } from '@/types/customer';
+import { useCRM } from '@/context/CRMContext';
 import CustomerDetailsDialog from './CustomerDetailsDialog';
 import TicketManagementDialog from './TicketManagementDialog';
 import { toast } from '@/hooks/use-toast';

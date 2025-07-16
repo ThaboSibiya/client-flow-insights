@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText } from 'lucide-react';
-import { Customer } from '@/context/CRMContext';
+import { Customer } from '@/types/customer';
 
 interface TicketIndicatorButtonProps {
     customer: Customer;

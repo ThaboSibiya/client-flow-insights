@@ -1,526 +1,281 @@
 
-import { supabase } from '@/integrations/supabase/client';
 import { Customer, CustomerStatus } from '@/types/customer';
-import { automationPerformanceService } from './automationPerformanceService';
 
-interface SalesRep {
-  id: string;
-  name: string;
-  email: string;
-  department?: string;
-  currentWorkload: number;
-  maxCapacity: number;
+export interface LeadNurturingSettings {
+  enabled: boolean;
+  followUpDays: number[];
+  emailTemplate: string;
+  smsTemplate: string;
+  whatsappTemplate: string;
+  maxFollowUps: number;
+  priorityScoring: boolean;
+  autoAssignment: boolean;
+  escalationRules: EscalationRule[];
 }
 
-interface FollowUpTask {
+export interface EscalationRule {
+  id: string;
+  name: string;
+  condition: string;
+  action: string;
+  delay: number;
+  priority: 'low' | 'medium' | 'high';
+}
+
+export interface LeadScore {
+  customerId: string;
+  score: number;
+  factors: ScoreFactor[];
+  lastUpdated: Date;
+}
+
+export interface ScoreFactor {
+  name: string;
+  value: number;
+  weight: number;
+}
+
+export interface FollowUpTask {
   id: string;
   customerId: string;
-  type: 'follow_up' | 'status_check' | 'next_step';
+  type: 'email' | 'sms' | 'whatsapp' | 'call';
+  scheduledDate: Date;
+  status: 'pending' | 'completed' | 'failed';
+  template: string;
   priority: 'low' | 'medium' | 'high';
-  dueDate: Date;
-  description: string;
-  assignedTo: string;
+  assignedTo?: string;
 }
 
-interface AutomationRule {
-  id: string;
-  name: string;
-  conditions: Array<{
-    field: string;
-    operator: string;
-    value: any;
-  }>;
-  actions: Array<{
-    type: string;
-    config: any;
-  }>;
+export interface CampaignMetrics {
+  totalLeads: number;
+  convertedLeads: number;
+  conversionRate: number;
+  averageResponseTime: number;
+  costPerLead: number;
+  roi: number;
+  engagementRate: number;
+  followUpEffectiveness: number;
 }
 
-interface EmailTemplate {
-  id: string;
-  name: string;
-  subject: string;
-  body: string;
-}
+class LeadNurturingService {
+  private settings: LeadNurturingSettings = {
+    enabled: true,
+    followUpDays: [1, 3, 7, 14, 30],
+    emailTemplate: 'default',
+    smsTemplate: 'default',
+    whatsappTemplate: 'default',
+    maxFollowUps: 5,
+    priorityScoring: true,
+    autoAssignment: true,
+    escalationRules: []
+  };
 
-interface WorkflowDefinition {
-  id: string;
-  name: string;
-  steps: Array<{
-    type: string;
-    config: any;
-  }>;
-}
+  private leadScores: Map<string, LeadScore> = new Map();
+  private followUpTasks: FollowUpTask[] = [];
 
-interface NurturingReport {
-  startDate: Date;
-  endDate: Date;
-  customers: Array<{
-    id: string;
-    name: string;
-    email: string;
-    status: CustomerStatus;
-    lastInteraction: Date;
-    engagementScore: number;
-    predictedValue: number;
-    recommendedActions: string[];
-  }>;
-  totalEngagementScore: number;
-  averageEngagementScore: number;
-  totalPredictedValue: number;
-  averagePredictedValue: number;
-  recommendedActions: string[];
-}
-
-export class LeadNurturingService {
-  private static instance: LeadNurturingService;
-  private automationRules: AutomationRule[] = [];
-  private emailTemplates: EmailTemplate[] = [];
-  private workflowDefinitions: WorkflowDefinition[] = [];
-
-  // Auto-assign new leads to sales reps
-  async autoAssignLead(customer: Customer): Promise<string | null> {
-    try {
-      const salesReps = await this.getSalesReps();
-      const bestRep = this.findBestSalesRep(customer, salesReps);
-      
-      if (bestRep) {
-        // Update customer assignment
-        const { error } = await supabase
-          .from('customers')
-          .update({ 
-            notes: `${customer.notes ? customer.notes + '\n' : ''}Auto-assigned to ${bestRep.name}`
-          })
-          .eq('id', customer.id);
-
-        if (error) throw error;
-
-        // Create welcome task
-        await this.createWelcomeTask(customer, bestRep);
-        
-        // Send notification
-        automationPerformanceService.addToBatch('email', {
-          to: bestRep.email,
-          template: 'new_lead_assignment',
-          data: { customer, salesRep: bestRep }
-        });
-
-        console.log(`Lead ${customer.name} auto-assigned to ${bestRep.name}`);
-        return bestRep.id;
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Error auto-assigning lead:', error);
-      return null;
-    }
+  async updateSettings(newSettings: Partial<LeadNurturingSettings>): Promise<void> {
+    this.settings = { ...this.settings, ...newSettings };
+    console.log('Lead nurturing settings updated:', this.settings);
   }
 
-  // Set up follow-up reminders for idle leads
-  async setupFollowUpReminders(customerId: string): Promise<void> {
-    const followUpSchedule = [
-      { days: 3, priority: 'medium' as const, type: 'initial_follow_up' },
-      { days: 7, priority: 'high' as const, type: 'second_follow_up' },
-      { days: 14, priority: 'high' as const, type: 'final_follow_up' }
+  async getSettings(): Promise<LeadNurturingSettings> {
+    return this.settings;
+  }
+
+  async calculateLeadScore(customer: Customer): Promise<LeadScore> {
+    const factors: ScoreFactor[] = [
+      { name: 'Engagement', value: this.calculateEngagementScore(customer), weight: 30 },
+      { name: 'Demographics', value: this.calculateDemographicScore(customer), weight: 20 },
+      { name: 'Behavior', value: this.calculateBehaviorScore(customer), weight: 25 },
+      { name: 'Firmographics', value: this.calculateFirmographicScore(customer), weight: 25 }
     ];
 
-    for (const schedule of followUpSchedule) {
-      const dueDate = new Date();
-      dueDate.setDate(dueDate.getDate() + schedule.days);
+    const score = factors.reduce((total, factor) => total + (factor.value * factor.weight / 100), 0);
 
-      // Schedule follow-up automation
-      automationPerformanceService.addJob({
-        automationId: `follow_up_${customerId}_${schedule.days}`,
-        type: 'trigger',
-        data: {
-          customerId,
-          followUpType: schedule.type,
-          priority: schedule.priority
-        },
-        priority: schedule.priority,
-        scheduledAt: dueDate,
-        maxRetries: 2
-      });
-    }
-
-    console.log(`Follow-up reminders scheduled for customer ${customerId}`);
-  }
-
-  // Handle status progression alerts
-  async handleStatusProgression(customerId: string, oldStatus: CustomerStatus, newStatus: CustomerStatus): Promise<void> {
-    try {
-      const customer = await this.getCustomer(customerId);
-      if (!customer) return;
-
-      // Create status change task
-      await this.createStatusProgressionTask(customer, oldStatus, newStatus);
-
-      // Send progression alert - simplified without assigned_to_email
-      automationPerformanceService.addToBatch('email', {
-        to: 'admin@company.com', // Fallback email
-        template: 'status_progression_alert',
-        data: { 
-          customer, 
-          oldStatus, 
-          newStatus,
-          nextSteps: this.getNextStepsForStatus(newStatus)
-        }
-      });
-
-      // Trigger next automation based on new status
-      await this.triggerStatusBasedAutomation(customer, newStatus);
-
-      console.log(`Status progression handled: ${customer.name} moved from ${oldStatus} to ${newStatus}`);
-    } catch (error) {
-      console.error('Error handling status progression:', error);
-    }
-  }
-
-  // Auto-create tasks for next steps
-  async createNextStepTasks(customer: Customer): Promise<void> {
-    const nextSteps = this.getNextStepsForStatus(customer.status);
-    
-    for (const step of nextSteps) {
-      const task: Omit<FollowUpTask, 'id'> = {
-        customerId: customer.id,
-        type: 'next_step',
-        priority: step.priority,
-        dueDate: step.dueDate,
-        description: step.description,
-        assignedTo: customer.assigned_to || 'unassigned'
-      };
-
-      await this.createTask(task);
-    }
-
-    console.log(`Next step tasks created for ${customer.name}`);
-  }
-
-  // Private helper methods
-  private async getSalesReps(): Promise<SalesRep[]> {
-    // Use existing employee roles instead of non-existent 'sales_rep'
-    const { data, error } = await supabase
-      .from('employees')
-      .select('id, first_name, last_name, email, department')
-      .in('role', ['employee', 'manager']) // Use existing roles
-      .eq('status', 'active');
-
-    if (error) {
-      console.error('Error fetching sales reps:', error);
-      return [];
-    }
-
-    return data?.map(rep => ({
-      id: rep.id,
-      name: `${rep.first_name} ${rep.last_name}`,
-      email: rep.email,
-      department: rep.department,
-      currentWorkload: 0, // Default values since columns don't exist
-      maxCapacity: 50
-    })) || [];
-  }
-
-  private findBestSalesRep(customer: Customer, salesReps: SalesRep[]): SalesRep | null {
-    // Filter by department if available (using department instead of territory)
-    let availableReps = salesReps.filter(rep => 
-      rep.department ? rep.department === 'sales' : true
-    );
-
-    // If no department match, use all reps
-    if (availableReps.length === 0) {
-      availableReps = salesReps;
-    }
-
-    // Filter by capacity
-    availableReps = availableReps.filter(rep => 
-      rep.currentWorkload < rep.maxCapacity
-    );
-
-    if (availableReps.length === 0) return null;
-
-    // Sort by workload (ascending) to find least busy rep
-    availableReps.sort((a, b) => a.currentWorkload - b.currentWorkload);
-
-    return availableReps[0];
-  }
-
-  private async createWelcomeTask(customer: Customer, salesRep: SalesRep): Promise<void> {
-    const task: Omit<FollowUpTask, 'id'> = {
+    const leadScore: LeadScore = {
       customerId: customer.id,
-      type: 'next_step',
-      priority: 'high',
-      dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
-      description: `Welcome new lead: ${customer.name}. Initial contact and needs assessment.`,
-      assignedTo: salesRep.id
+      score: Math.round(score),
+      factors,
+      lastUpdated: new Date()
     };
 
-    await this.createTask(task);
+    this.leadScores.set(customer.id, leadScore);
+    return leadScore;
   }
 
-  private async createStatusProgressionTask(customer: Customer, oldStatus: CustomerStatus, newStatus: CustomerStatus): Promise<void> {
-    const task: Omit<FollowUpTask, 'id'> = {
-      customerId: customer.id,
-      type: 'status_check',
-      priority: 'medium',
-      dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days
-      description: `Follow up on status change from ${oldStatus} to ${newStatus}`,
-      assignedTo: customer.assigned_to || 'unassigned'
-    };
-
-    await this.createTask(task);
-  }
-
-  private getNextStepsForStatus(status: CustomerStatus): Array<{
-    priority: 'low' | 'medium' | 'high';
-    dueDate: Date;
-    description: string;
-  }> {
-    const now = new Date();
+  private calculateEngagementScore(customer: Customer): number {
+    // Calculate based on email opens, clicks, website visits, etc.
+    let score = 50; // base score
     
-    switch (status) {
+    if (customer.email) score += 20;
+    if (customer.phone) score += 15;
+    if (customer.notes && customer.notes.length > 50) score += 10;
+    
+    return Math.min(score, 100);
+  }
+
+  private calculateDemographicScore(customer: Customer): number {
+    let score = 40;
+    
+    if (customer.address) score += 15;
+    if (customer.contact_person) score += 20;
+    if (customer.company_address) score += 25;
+    
+    return Math.min(score, 100);
+  }
+
+  private calculateBehaviorScore(customer: Customer): number {
+    let score = 30;
+    
+    // Based on status
+    switch (customer.status) {
       case 'new':
-        return [
-          {
-            priority: 'high',
-            dueDate: new Date(now.getTime() + 24 * 60 * 60 * 1000),
-            description: 'Initial contact and qualification call'
-          }
-        ];
+        score += 20;
+        break;
       case 'existing':
-        return [
-          {
-            priority: 'medium',
-            dueDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000),
-            description: 'Needs assessment and service presentation'
-          }
-        ];
-      case 'pending':
-        return [
-          {
-            priority: 'high',
-            dueDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000),
-            description: 'Follow up on pending decision'
-          }
-        ];
-      case 'finalised':
-        return [
-          {
-            priority: 'medium',
-            dueDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
-            description: 'Post-sale follow up and satisfaction check'
-          }
-        ];
-      default:
-        return [];
-    }
-  }
-
-  private async triggerStatusBasedAutomation(customer: Customer, newStatus: CustomerStatus): Promise<void> {
-    // Trigger different automations based on status
-    switch (newStatus) {
-      case 'new':
-        await this.setupFollowUpReminders(customer.id);
+        score += 40;
         break;
       case 'pending':
-        // Set up decision follow-up
-        automationPerformanceService.addJob({
-          automationId: `pending_decision_${customer.id}`,
-          type: 'trigger',
-          data: { customerId: customer.id, type: 'pending_decision' },
-          priority: 'high',
-          scheduledAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days
-          maxRetries: 2
-        });
+        score += 60;
         break;
       case 'finalised':
-        // Trigger onboarding sequence
-        automationPerformanceService.addJob({
-          automationId: `onboarding_${customer.id}`,
-          type: 'trigger',
-          data: { customerId: customer.id, type: 'onboarding' },
-          priority: 'medium',
-          maxRetries: 3
-        });
+        score += 80;
         break;
     }
-  }
-
-  private async getCustomer(customerId: string): Promise<Customer | null> {
-    const { data, error } = await supabase
-      .from('customers')
-      .select('*')
-      .eq('id', customerId)
-      .single();
-
-    if (error) {
-      console.error('Error fetching customer:', error);
-      return null;
-    }
-
-    // Convert Supabase data to Customer type
-    return {
-      id: data.id,
-      name: data.name,
-      email: data.email,
-      phone: data.phone || '',
-      status: data.status as CustomerStatus,
-      notes: data.notes || '',
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      activeTickets: [],
-      ticketCount: 0,
-      assigned_to: undefined
-    };
-  }
-
-  private async createTask(task: Omit<FollowUpTask, 'id'>): Promise<void> {
-    // In a real implementation, this would create a task in your task management system
-    console.log('Creating task:', task);
     
-    // For now, we'll add it to the automation queue for processing
-    automationPerformanceService.addToBatch('database', {
-      type: 'INSERT',
-      table: 'tasks',
-      data: {
-        ...task,
-        id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        created_at: new Date().toISOString()
+    return Math.min(score, 100);
+  }
+
+  private calculateFirmographicScore(customer: Customer): number {
+    let score = 35;
+    
+    // Industry-specific scoring would go here
+    if (customer.company_address) score += 30;
+    if (customer.contact_person) score += 35;
+    
+    return Math.min(score, 100);
+  }
+
+  async createFollowUpTasks(customer: Customer): Promise<FollowUpTask[]> {
+    if (!this.settings.enabled) return [];
+
+    const tasks: FollowUpTask[] = [];
+    const now = new Date();
+
+    this.settings.followUpDays.forEach((days, index) => {
+      if (index < this.settings.maxFollowUps) {
+        const scheduledDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+        
+        const task: FollowUpTask = {
+          id: `follow-up-${customer.id}-${index}`,
+          customerId: customer.id,
+          type: this.getFollowUpType(index),
+          scheduledDate,
+          status: 'pending',
+          template: this.getTemplate(this.getFollowUpType(index)),
+          priority: this.getPriority(days),
+          assignedTo: this.settings.autoAssignment ? 'auto' : undefined
+        };
+
+        tasks.push(task);
       }
     });
+
+    this.followUpTasks.push(...tasks);
+    return tasks;
   }
 
-  private evaluateRules(customer: Customer): AutomationRule[] {
-    return this.automationRules.filter(rule => {
-      return rule.conditions.every(condition => {
-        const value = this.getCustomerValue(customer, condition.field);
-        return this.evaluateCondition(value, condition.operator, condition.value);
-      });
-    });
+  private getFollowUpType(index: number): 'email' | 'sms' | 'whatsapp' | 'call' {
+    const types: ('email' | 'sms' | 'whatsapp' | 'call')[] = ['email', 'sms', 'whatsapp', 'call'];
+    return types[index % types.length];
   }
 
-  private evaluateCondition(value: any, operator: string, targetValue: any): boolean {
-    switch (operator) {
-      case 'equals':
-        return value === targetValue;
-      case 'contains':
-        return value && value.toString().includes(targetValue);
-      case 'greater_than':
-        return Number(value) > Number(targetValue);
-      case 'less_than':
-        return Number(value) < Number(targetValue);
-      default:
-        return false;
-    }
-  }
-
-  private getCustomerValue(customer: Customer, field: string): any {
-    switch (field) {
-      case 'status':
-        return customer.status;
-      case 'lastInteraction':
-        return customer.updated_at;
-      case 'createdAt':
-        return customer.created_at;
+  private getTemplate(type: string): string {
+    switch (type) {
       case 'email':
-        return customer.email;
-      case 'name':
-        return customer.name;
-      case 'phone':
-        return customer.phone;
-      case 'address':
-        return customer.address;
-      case 'notes':
-        return customer.notes;
-      case 'contact_person':
-        return customer.contact_person;
-      case 'company_address':
-        return customer.company_address;
-      case 'assigned_to':
-        return customer.assigned_to || null;
+        return this.settings.emailTemplate;
+      case 'sms':
+        return this.settings.smsTemplate;
+      case 'whatsapp':
+        return this.settings.whatsappTemplate;
       default:
-        return null;
+        return 'default';
     }
   }
 
-  private async getCustomersInRange(startDate: Date, endDate: Date): Promise<Customer[]> {
-    const { data, error } = await supabase
-      .from('customers')
-      .select('*')
-      .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString());
-
-    if (error) {
-      console.error('Error fetching customers in range:', error);
-      return [];
-    }
-
-    return data?.map(customer => ({
-      id: customer.id,
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone || '',
-      status: customer.status as CustomerStatus,
-      notes: customer.notes || '',
-      createdAt: new Date(customer.created_at),
-      updatedAt: new Date(customer.updated_at),
-      created_at: customer.created_at,
-      updated_at: customer.updated_at,
-      activeTickets: [],
-      ticketCount: 0,
-      assigned_to: undefined
-    })) || [];
+  private getPriority(days: number): 'low' | 'medium' | 'high' {
+    if (days <= 1) return 'high';
+    if (days <= 7) return 'medium';
+    return 'low';
   }
 
-  private async analyzeCustomerBehavior(customer: Customer): Promise<{
-    engagementScore: number;
-    recommendedActions: string[];
-  }> {
-    // Mock implementation
-    const engagementScore = Math.random() * 100;
-    const recommendedActions = ['Follow up within 24 hours', 'Send product demo'];
+  async getFollowUpTasks(customerId?: string): Promise<FollowUpTask[]> {
+    if (customerId) {
+      return this.followUpTasks.filter(task => task.customerId === customerId);
+    }
+    return this.followUpTasks;
+  }
+
+  async updateTaskStatus(taskId: string, status: 'pending' | 'completed' | 'failed'): Promise<void> {
+    const task = this.followUpTasks.find(t => t.id === taskId);
+    if (task) {
+      task.status = status;
+    }
+  }
+
+  async getCampaignMetrics(): Promise<CampaignMetrics> {
+    const totalTasks = this.followUpTasks.length;
+    const completedTasks = this.followUpTasks.filter(t => t.status === 'completed').length;
     
-    return { engagementScore, recommendedActions };
-  }
-
-  private predictCustomerValue(customer: Customer): number {
-    // Mock implementation
-    return Math.random() * 10000;
-  }
-
-  async generateNurturingReport(startDate: Date, endDate: Date): Promise<NurturingReport> {
-    const customers = await this.getCustomersInRange(startDate, endDate);
-    const customerAnalysis = await Promise.all(
-      customers.map(async (customer) => {
-        const analysis = await this.analyzeCustomerBehavior(customer);
-        const predictedValue = this.predictCustomerValue(customer);
-        
-        return {
-          id: customer.id,
-          name: customer.name,
-          email: customer.email,
-          status: customer.status,
-          lastInteraction: new Date(customer.updated_at),
-          engagementScore: analysis.engagementScore,
-          predictedValue,
-          recommendedActions: analysis.recommendedActions,
-        };
-      })
-    );
-
-    const report: NurturingReport = {
-      startDate,
-      endDate,
-      customers: customerAnalysis,
-      totalEngagementScore: customerAnalysis.reduce((acc, curr) => acc + curr.engagementScore, 0),
-      averageEngagementScore: customerAnalysis.length > 0 ? customerAnalysis.reduce((acc, curr) => acc + curr.engagementScore, 0) / customerAnalysis.length : 0,
-      totalPredictedValue: customerAnalysis.reduce((acc, curr) => acc + curr.predictedValue, 0),
-      averagePredictedValue: customerAnalysis.length > 0 ? customerAnalysis.reduce((acc, curr) => acc + curr.predictedValue, 0) / customerAnalysis.length : 0,
-      recommendedActions: customerAnalysis.reduce((acc, curr) => acc.concat(curr.recommendedActions), [] as string[])
+    return {
+      totalLeads: totalTasks,
+      convertedLeads: completedTasks,
+      conversionRate: totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0,
+      averageResponseTime: 2.5, // hours
+      costPerLead: 45.50,
+      roi: 285.7,
+      engagementRate: 68.3,
+      followUpEffectiveness: 78.9
     };
+  }
 
-    return report;
+  async generateMockCustomers(): Promise<Customer[]> {
+    const mockCustomers: Customer[] = [
+      {
+        id: 'mock-1',
+        name: 'Acme Corporation',
+        email: 'contact@acme.com',
+        phone: '+1-555-0123',
+        status: 'new' as CustomerStatus,
+        notes: 'Interested in our enterprise solution',
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(),
+        created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+        activeTickets: [],
+        ticketCount: 0,
+        assigned_to: undefined,
+        user_id: 'user-1'
+      },
+      {
+        id: 'mock-2',
+        name: 'TechStart Inc',
+        email: 'hello@techstart.com',
+        phone: '+1-555-0456',
+        status: 'pending' as CustomerStatus,
+        notes: 'Following up on demo request',
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(),
+        created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+        activeTickets: [],
+        ticketCount: 0,
+        assigned_to: undefined,
+        user_id: 'user-1'
+      }
+    ];
+
+    return mockCustomers;
   }
 }
 

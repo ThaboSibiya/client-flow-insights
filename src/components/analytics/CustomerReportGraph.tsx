@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Customer } from '@/context/CRMContext';
+import { Customer } from '@/types/customer';
 import { ChartPieIcon } from 'lucide-react';
 import CustomerChart from './CustomerChart';
 import CustomerMetricsSummary from './CustomerMetricsSummary';

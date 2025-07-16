@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
+import { Customer, CustomerStatus } from '@/types/customer';
+import { useCRM } from '@/context/CRMContext';
 import { 
   Dialog,
   DialogContent,

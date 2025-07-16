@@ -13,7 +13,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Trash2, AlertTriangle } from 'lucide-react';
-import { Customer, useCRM } from '@/context/CRMContext';
+import { Customer } from '@/types/customer';
+import { useCRM } from '@/context/CRMContext';
 import { useToast } from '@/components/ui/use-toast';
 
 interface DeleteCustomerDialogProps {

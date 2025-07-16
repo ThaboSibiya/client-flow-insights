@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Customer, CustomerStatus } from '@/context/CRMContext';
+import { Customer, CustomerStatus } from '@/types/customer';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,

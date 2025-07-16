@@ -15,7 +15,7 @@ const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({
   redirectTo = '/dashboard'
 }) => {
   const { loading: authLoading, user } = useAuth();
-  const { data: employee, isLoading: profileLoading } = useEmployeeProfile();
+  const { data: employeeProfile, isLoading: profileLoading } = useEmployeeProfile();
 
   if (authLoading || profileLoading) {
     return <LoadingSpinner />;
@@ -25,7 +25,8 @@ const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({
     return <Navigate to="/auth" replace />;
   }
   
-  if (employee?.role !== 'admin') {
+  // Check if user has employee data with admin role
+  if (employeeProfile?.employee?.role !== 'admin') {
     return <Navigate to={redirectTo} replace />;
   }
 

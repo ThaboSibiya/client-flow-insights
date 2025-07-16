@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { CustomerStatus } from '@/context/CRMContext';
+import { CustomerStatus } from '@/types/customer';
 
 interface CustomerStatusBadgeProps {
   status: CustomerStatus;

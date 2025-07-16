@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Customer } from '@/context/CRMContext';
+import { Customer } from '@/types/customer';
 import { Badge } from '@/components/ui/badge';
 import { Clock, User, AlertCircle } from 'lucide-react';
 

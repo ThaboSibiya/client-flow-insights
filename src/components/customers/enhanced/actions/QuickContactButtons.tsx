@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Mail, Phone, Loader2 } from 'lucide-react';
-import { Customer } from '@/context/CRMContext';
+import { Customer } from '@/types/customer';
 import { useVoiceCall } from '@/hooks/useVoiceCall';
 import { useToast } from '@/components/ui/use-toast';
 

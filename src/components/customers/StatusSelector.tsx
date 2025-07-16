@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CustomerStatus } from '@/context/CRMContext';
+import { CustomerStatus } from '@/types/customer';
 
 interface StatusSelectorProps {
   status: CustomerStatus;
