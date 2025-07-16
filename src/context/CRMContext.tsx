@@ -1,22 +1,16 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Customer, CustomerStatus } from '@/types/customer';
 
-// Export the types for use in other components
-export type { Customer, CustomerStatus };
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Customer, CustomerStatus } from '@/types/customer';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
 interface CRMContextType {
   customers: Customer[];
+  addCustomer: (customer: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'activeTickets' | 'ticketCount'>) => void;
+  updateCustomer: (id: string, updates: Partial<Customer>) => void;
+  deleteCustomer: (id: string) => void;
+  refreshCustomers: () => void;
   loading: boolean;
-  error: string | null;
-  refetch: () => void;
-  updateCustomerStatus: (customerId: string, status: CustomerStatus) => Promise<void>;
-  deleteCustomer: (customerId: string) => Promise<void>;
-  updateCustomer: (customerId: string, data: Partial<Customer>) => Promise<void>;
-  addCustomer: (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'created_at' | 'updated_at' | 'user_id'>) => Promise<void>;
-  createTicket: (ticketData: any) => Promise<void>;
-  updateTicketStatus: (ticketId: string, status: string) => Promise<void>;
-  addTimeEntry: (timeEntryData: any) => Promise<void>;
 }
 
 const CRMContext = createContext<CRMContextType | undefined>(undefined);
@@ -29,200 +23,130 @@ export const useCRM = () => {
   return context;
 };
 
-export const useCRMContext = () => {
-  const context = useContext(CRMContext);
-  if (!context) {
-    throw new Error('useCRMContext must be used within a CRMProvider');
-  }
-  return context;
-};
-
-export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const CRMProvider = ({ children }: { children: ReactNode }) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const fetchCustomers = async () => {
+    if (!user) return;
+
     try {
-      setLoading(true);
-      setError(null);
-      
       const { data, error } = await supabase
         .from('customers')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      const formattedCustomers: Customer[] = (data || []).map(item => ({
-        id: item.id,
-        name: item.name,
-        email: item.email,
-        phone: item.phone || '',
-        address: item.address || '',
-        contact_person: item.contact_person || '',
-        company_address: item.company_address || '',
-        status: item.status as CustomerStatus,
-        notes: item.notes || '',
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        createdAt: new Date(item.created_at),
-        updatedAt: new Date(item.updated_at),
-        ticketCount: 0,
+      const transformedCustomers: Customer[] = data.map((customer) => ({
+        ...customer,
+        createdAt: new Date(customer.created_at),
+        updatedAt: new Date(customer.updated_at),
         activeTickets: [],
-        equipment: [],
-        user_id: item.user_id
+        ticketCount: 0,
       }));
 
-      setCustomers(formattedCustomers);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      console.error('Error fetching customers:', err);
+      setCustomers(transformedCustomers);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateCustomerStatus = async (customerId: string, status: CustomerStatus) => {
+  useEffect(() => {
+    fetchCustomers();
+  }, [user]);
+
+  const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'activeTickets' | 'ticketCount'>) => {
+    if (!user) return;
+
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('customers')
-        .update({ status })
-        .eq('id', customerId);
+        .insert([{
+          ...customerData,
+          user_id: user.id,
+        }])
+        .select()
+        .single();
 
       if (error) throw error;
-      await fetchCustomers();
-    } catch (err) {
-      console.error('Error updating customer status:', err);
-      throw err;
+
+      const newCustomer: Customer = {
+        ...data,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at),
+        activeTickets: [],
+        ticketCount: 0,
+      };
+
+      setCustomers(prev => [newCustomer, ...prev]);
+    } catch (error) {
+      console.error('Error adding customer:', error);
     }
   };
 
-  const deleteCustomer = async (customerId: string) => {
+  const updateCustomer = async (id: string, updates: Partial<Customer>) => {
+    try {
+      const { data, error } = await supabase
+        .from('customers')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const updatedCustomer: Customer = {
+        ...data,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at),
+        activeTickets: [],
+        ticketCount: 0,
+      };
+
+      setCustomers(prev => prev.map(customer => 
+        customer.id === id ? updatedCustomer : customer
+      ));
+    } catch (error) {
+      console.error('Error updating customer:', error);
+    }
+  };
+
+  const deleteCustomer = async (id: string) => {
     try {
       const { error } = await supabase
         .from('customers')
         .delete()
-        .eq('id', customerId);
+        .eq('id', id);
 
       if (error) throw error;
-      await fetchCustomers();
-    } catch (err) {
-      console.error('Error deleting customer:', err);
-      throw err;
+
+      setCustomers(prev => prev.filter(customer => customer.id !== id));
+    } catch (error) {
+      console.error('Error deleting customer:', error);
     }
   };
 
-  const updateCustomer = async (customerId: string, data: Partial<Customer>) => {
-    try {
-      const { error } = await supabase
-        .from('customers')
-        .update(data)
-        .eq('id', customerId);
-
-      if (error) throw error;
-      await fetchCustomers();
-    } catch (err) {
-      console.error('Error updating customer:', err);
-      throw err;
-    }
-  };
-
-  const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'created_at' | 'updated_at' | 'user_id'>) => {
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('No authenticated user');
-
-      const { error } = await supabase
-        .from('customers')
-        .insert({
-          ...customerData,
-          user_id: user.user.id
-        });
-
-      if (error) throw error;
-      await fetchCustomers();
-    } catch (err) {
-      console.error('Error adding customer:', err);
-      throw err;
-    }
-  };
-
-  const createTicket = async (ticketData: any) => {
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('No authenticated user');
-
-      const { error } = await supabase
-        .from('tickets')
-        .insert({
-          ...ticketData,
-          user_id: user.user.id,
-          ticket_number: `TKT-${Date.now().toString().slice(-6)}`,
-          created_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
-    } catch (err) {
-      console.error('Error creating ticket:', err);
-      throw err;
-    }
-  };
-
-  const updateTicketStatus = async (ticketId: string, status: string) => {
-    try {
-      const { error } = await supabase
-        .from('tickets')
-        .update({ status })
-        .eq('id', ticketId);
-
-      if (error) throw error;
-    } catch (err) {
-      console.error('Error updating ticket status:', err);
-      throw err;
-    }
-  };
-
-  const addTimeEntry = async (timeEntryData: any) => {
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('No authenticated user');
-
-      // This would typically go to a time_entries table
-      console.log('Adding time entry:', timeEntryData);
-    } catch (err) {
-      console.error('Error adding time entry:', err);
-      throw err;
-    }
-  };
-
-  useEffect(() => {
+  const refreshCustomers = () => {
     fetchCustomers();
-  }, []);
-
-  const refetch = () => {
-    fetchCustomers();
-  };
-
-  const value = {
-    customers,
-    loading,
-    error,
-    refetch,
-    updateCustomerStatus,
-    deleteCustomer,
-    updateCustomer,
-    addCustomer,
-    createTicket,
-    updateTicketStatus,
-    addTimeEntry,
   };
 
   return (
-    <CRMContext.Provider value={value}>
+    <CRMContext.Provider value={{
+      customers,
+      addCustomer,
+      updateCustomer,
+      deleteCustomer,
+      refreshCustomers,
+      loading,
+    }}>
       {children}
     </CRMContext.Provider>
   );
 };
+
+export { Customer, CustomerStatus };
