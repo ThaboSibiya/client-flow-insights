@@ -49,6 +49,14 @@ const IndustryTemplateSelector: React.FC<IndustryTemplateSelectorProps> = ({
     return templates.find(template => template.id === selectedTemplateId);
   };
 
+  const handleValueChange = (value: string) => {
+    if (value === "none") {
+      onTemplateSelected(null);
+    } else {
+      onTemplateSelected(value);
+    }
+  };
+
   const selectedTemplate = getSelectedTemplate();
 
   if (loading) {
@@ -75,7 +83,7 @@ const IndustryTemplateSelector: React.FC<IndustryTemplateSelectorProps> = ({
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-quikle-charcoal">Industry Template</label>
-          <Select value={selectedTemplateId || ""} onValueChange={(value) => onTemplateSelected(value || null)}>
+          <Select value={selectedTemplateId || "none"} onValueChange={handleValueChange}>
             <SelectTrigger className="w-full h-14 border-quikle-silver/40 bg-gradient-to-r from-white to-quikle-crystal/50 hover:border-quikle-primary/40 transition-all duration-200">
               <div className="flex items-center gap-3 flex-1">
                 {selectedTemplate ? (
@@ -95,7 +103,7 @@ const IndustryTemplateSelector: React.FC<IndustryTemplateSelectorProps> = ({
               <ChevronDown className="h-4 w-4 text-quikle-slate/60" />
             </SelectTrigger>
             <SelectContent className="bg-white border-quikle-silver/30 shadow-luxury backdrop-blur-sm">
-              <SelectItem value="" className="h-12 focus:bg-quikle-crystal/50">
+              <SelectItem value="none" className="h-12 focus:bg-quikle-crystal/50">
                 <div className="flex items-center gap-3">
                   <div className="h-5 w-5 rounded border-2 border-dashed border-quikle-silver/60"></div>
                   <div>
