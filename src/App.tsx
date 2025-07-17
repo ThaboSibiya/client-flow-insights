@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './context/AuthContext';
 import { CRMProvider } from './context/CRMContext';
+import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import Onboarding from './pages/Onboarding';
@@ -32,22 +33,22 @@ function App() {
       <Router>
         <AuthProvider>
           <CRMProvider>
-            <div className="min-h-screen bg-gradient-to-br from-quikle-crystal via-quikle-platinum to-quikle-crystal">
-              <Toaster />
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/customers" element={<Customers />} />
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/customers/:customerId" element={<CustomerDetails />} />
-                <Route path="/quotes" element={<Quotes />} />
-                <Route path="/quotes/:quoteId" element={<QuoteDetails />} />
-                <Route path="/invoices" element={<Invoices />} />
-                <Route path="/form-builder" element={<FormBuilder />} />
-                <Route path="/customer-insights" element={<CustomerInsights />} />
-                <Route path="/template-management" element={<TemplateManagement />} />
-              </Routes>
-            </div>
+            <Toaster />
+            <Routes>
+              <Route path="/" element={<MainLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="customers" element={<Customers />} />
+                <Route path="onboarding" element={<Onboarding />} />
+                <Route path="customers/:customerId" element={<CustomerDetails />} />
+                <Route path="quotes" element={<Quotes />} />
+                <Route path="quotes/:quoteId" element={<QuoteDetails />} />
+                <Route path="invoices" element={<Invoices />} />
+                <Route path="form-builder" element={<FormBuilder />} />
+                <Route path="customer-insights" element={<CustomerInsights />} />
+                <Route path="template-management" element={<TemplateManagement />} />
+              </Route>
+            </Routes>
           </CRMProvider>
         </AuthProvider>
       </Router>
