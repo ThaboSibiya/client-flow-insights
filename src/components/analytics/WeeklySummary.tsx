@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Customer } from '@/types/customer';
+import { Customer } from '@/context/CRMContext';
 import { ChartBarIcon } from 'lucide-react';
 
 interface WeeklySummaryProps {
@@ -30,7 +30,7 @@ const WeeklySummary = ({ customers }: WeeklySummaryProps) => {
       
       const sales = customers.filter(c => 
         c.status === 'finalised' && 
-        new Date(c.updated_at).toDateString() === day.toDateString()
+        c.updatedAt.toDateString() === day.toDateString()
       ).length;
 
       // Estimate revenue (for visual purposes)

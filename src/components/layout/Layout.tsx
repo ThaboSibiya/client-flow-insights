@@ -12,13 +12,11 @@ const Layout = () => {
 
   if (isMobile) {
     return (
-      <div className="min-h-screen flex flex-col w-full quikle-gradient-bg safe-area-top safe-area-bottom">
+      <div className="min-h-screen flex flex-col w-full quikle-gradient-bg">
         <MobileNavigation />
         
-        <main className="flex-1 px-4 py-4 pb-20 quikle-gradient-bg overflow-x-hidden">
-          <div className="max-w-full">
-            <Outlet />
-          </div>
+        <main className="flex-1 p-4 pb-20 quikle-gradient-bg overflow-x-hidden">
+          <Outlet />
         </main>
         
         <HelpButton />
@@ -31,28 +29,22 @@ const Layout = () => {
       <div className="min-h-screen flex w-full quikle-gradient-bg">
         <AppSidebar />
         
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="bg-white/98 border-b border-quikle-silver/20 px-4 py-3 flex justify-between items-center shadow-sm backdrop-blur-lg flex-shrink-0">
+        <div className="flex-1 flex flex-col">
+          <header className="bg-white/98 border-b border-quikle-silver/20 px-4 py-3 flex justify-between items-center shadow-sm backdrop-blur-lg">
             <SidebarTrigger className="md:hidden" />
-            <div className="flex-1 flex justify-between items-center min-w-0">
-              <div className="flex items-center gap-3 min-w-0">
-                <img 
-                  src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" 
-                  alt="Quikle Logo" 
-                  className="h-8 w-8 flex-shrink-0" 
-                />
-                <div className="hidden sm:block min-w-0">
-                  <h1 className="text-lg font-bold text-quikle-primary truncate">QUIKLE</h1>
-                  <p className="text-xs text-quikle-neutral -mt-1 truncate">Innovation Suite</p>
+            <div className="flex-1 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <img src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" alt="Quikle Logo" className="h-8 w-8" />
+                <div className="hidden sm:block">
+                  <h1 className="text-lg font-bold text-quikle-primary">QUIKLE</h1>
+                  <p className="text-xs text-quikle-neutral -mt-1">Innovation Suite</p>
                 </div>
               </div>
             </div>
           </header>
           
-          <main className="flex-1 p-6 quikle-gradient-bg overflow-x-hidden min-w-0">
-            <div className="max-w-full">
-              <Outlet />
-            </div>
+          <main className="flex-1 p-6 quikle-gradient-bg">
+            <Outlet />
           </main>
         </div>
         

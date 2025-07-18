@@ -66,6 +66,7 @@ const ValidatedCustomerForm = ({ customer, onClose, onSuccess }: ValidatedCustom
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
+    // Validate field on change if it has been touched
     validateSingleField(name, value);
   };
 
@@ -82,6 +83,7 @@ const ValidatedCustomerForm = ({ customer, onClose, onSuccess }: ValidatedCustom
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Mark all fields as touched for validation display
     Object.keys(formData).forEach(field => markFieldTouched(field));
     
     if (!validateForm(formData)) {
@@ -98,31 +100,21 @@ const ValidatedCustomerForm = ({ customer, onClose, onSuccess }: ValidatedCustom
     try {
       if (isEditing && customer) {
         await updateCustomer(customer.id, formData);
-        const updatedCustomer = { 
-          ...customer, 
-          ...formData, 
-          updatedAt: new Date(),
-          updated_at: new Date().toISOString()
-        };
+        const updatedCustomer = { ...customer, ...formData, updatedAt: new Date() };
         toast({
           title: "Success",
           description: "Customer updated successfully",
         });
         onSuccess?.(updatedCustomer);
       } else {
-        const customerToAdd = {
+        await addCustomer(formData);
+        const newCustomer: Customer = {
           ...formData,
+          id: `temp-${Date.now()}`, // This will be replaced by the actual ID from the service
           activeTickets: [],
           ticketCount: 0,
-        };
-        await addCustomer(customerToAdd);
-        const newCustomer: Customer = {
-          ...customerToAdd,
-          id: `temp-${Date.now()}`,
           createdAt: new Date(),
           updatedAt: new Date(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
         };
         toast({
           title: "Success", 

@@ -14,7 +14,6 @@ export interface EmployeeFormData {
   status: EmployeeStatus;
   hire_date: string;
   salary: string;
-  photo_url?: string;
 }
 
 export interface EmployeeFormProps {

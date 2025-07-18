@@ -186,16 +186,10 @@ const Index = () => {
               <p className="text-quikle-slate mt-2">Experience enterprise-grade management tools designed for excellence.</p>
             </div>
             <Button 
-              onClick={() => {
-                if (!user) {
-                  navigate('/auth');
-                } else {
-                  navigate('/dashboard');
-                }
-              }} 
+              onClick={() => navigate('/dashboard')} 
               className="quikle-button-primary px-8 py-4 h-auto shadow-luxury hover:shadow-platinum text-lg font-medium"
             >
-              {!user ? 'Get Started' : 'Enter Dashboard'}
+              Begin Your Journey
             </Button>
           </div>
         </div>

@@ -57,11 +57,7 @@ const EmployeeForm = ({ employee, onSave, onCancel }: EmployeeFormProps) => {
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4 mt-6">
-            <EmployeeBasicInfo 
-              formData={formData} 
-              onInputChange={handleInputChange}
-              employeeId={employee?.id}
-            />
+            <EmployeeBasicInfo formData={formData} onInputChange={handleInputChange} />
           </TabsContent>
 
           <TabsContent value="role" className="space-y-4 mt-6">

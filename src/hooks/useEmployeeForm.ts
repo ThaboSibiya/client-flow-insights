@@ -17,8 +17,7 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void) => {
     role: 'employee' as EmployeeRole,
     status: 'active' as EmployeeStatus,
     hire_date: new Date().toISOString().split('T')[0],
-    salary: '',
-    photo_url: ''
+    salary: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -36,8 +35,7 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void) => {
         role: (employee.role as EmployeeRole) || 'employee',
         status: (employee.status as EmployeeStatus) || 'active',
         hire_date: employee.hire_date ? employee.hire_date.split('T')[0] : new Date().toISOString().split('T')[0],
-        salary: employee.salary || '',
-        photo_url: employee.photo_url || ''
+        salary: employee.salary || ''
       });
     }
   }, [employee]);

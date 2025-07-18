@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,49 +17,21 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState('login');
   const navigate = useNavigate();
 
-  // Function to check user profile and redirect appropriately
-  const checkUserProfileAndRedirect = async (userId: string) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('company, industry, onboarding_completed')
-        .eq('id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
-        // If there's an error fetching profile, send to company onboarding as safe default
-        navigate('/company-onboarding');
-        return;
-      }
-
-      // Check if user needs company onboarding
-      if (!profile || !profile.company || !profile.industry || !profile.onboarding_completed) {
-        navigate('/company-onboarding');
-      } else {
-        navigate('/dashboard');
-      }
-    } catch (error) {
-      console.error('Error in profile check:', error);
-      navigate('/company-onboarding');
-    }
-  };
-
   // Check for existing session
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        await checkUserProfileAndRedirect(data.session.user.id);
+        navigate('/dashboard');
       }
     };
     
     checkSession();
     
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        await checkUserProfileAndRedirect(session.user.id);
+        navigate('/dashboard');
       }
     });
 
@@ -70,14 +43,11 @@ const Auth = () => {
     setLoading(true);
     
     try {
-      // Set redirect to company onboarding for new user setup
-      const redirectUrl = `${window.location.origin}/company-onboarding`;
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl
+          emailRedirectTo: `${window.location.origin}/dashboard`
         }
       });
       
@@ -119,7 +89,7 @@ const Auth = () => {
       
       if (error) throw error;
       
-      // Profile check and redirection is handled by the auth state change listener
+      // Successfully signed in, navigation is handled by the auth state change listener
     } catch (error: any) {
       toast({
         title: "Error",

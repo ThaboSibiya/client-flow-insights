@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { useCustomerData } from '@/hooks/useCustomerData';
-import { useCustomerFilters } from '@/hooks/useCustomerFilters/index';
+import { useCustomerFilters } from '@/hooks/useCustomerFilters';
 import { useTableSelection } from '@/hooks/useTableSelection';
 import { useCustomerExport } from '@/hooks/useCustomerExport';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import DynamicCustomerTable from './DynamicCustomerTable';
+import CustomerTableContent from './CustomerTableContent';
 import CustomerTableFilters from './CustomerTableFilters';
 import QuickActionsBar from '../QuickActionsBar';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
@@ -16,7 +16,6 @@ const CustomerTableContainer = () => {
   const {
     customers,
     isLoading,
-    refreshCustomers,
   } = useCustomerData();
 
   const {
@@ -56,48 +55,13 @@ const CustomerTableContainer = () => {
     }
   }, [searchQuery, searchInput]);
 
-  // Effect to refresh data when component mounts or when coming from onboarding
-  React.useEffect(() => {
-    console.log('CustomerTableContainer mounted, current customers:', customers.length);
-    
-    // Check if we came from onboarding by looking at the URL or session storage
-    const justOnboarded = sessionStorage.getItem('justOnboarded');
-    
-    if (justOnboarded || (customers.length === 0 && !isLoading)) {
-      console.log('Triggering refresh - just onboarded or no customers');
-      refreshCustomers();
-      
-      // Clear the onboarding flag
-      if (justOnboarded) {
-        sessionStorage.removeItem('justOnboarded');
-      }
-    }
-  }, []);
-
-  // Listen for focus events to refresh data when user returns to tab
-  React.useEffect(() => {
-    const handleFocus = () => {
-      console.log('Window focused, refreshing customer data');
-      refreshCustomers();
-    };
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        console.log('Tab visible, refreshing customer data');
-        refreshCustomers();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [refreshCustomers]);
-
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [isRefreshing, setIsRefreshing] = React.useState(false); // For UI feedback on manual refresh
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCustomers = filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
 
   const {
     selectedItems: selectedCustomers,
@@ -106,7 +70,7 @@ const CustomerTableContainer = () => {
     handleSelectAll,
     handleSelectItem,
     clearSelection
-  } = useTableSelection(filteredCustomers);
+  } = useTableSelection(paginatedCustomers);
 
   const {
     handleExportCSV,
@@ -158,28 +122,33 @@ const CustomerTableContainer = () => {
         }
       },
       description: 'Clear selection'
-    },
-    {
-      key: 'r',
-      ctrlKey: true,
-      action: () => {
-        handleRefresh();
-      },
-      description: 'Refresh data'
     }
   ]);
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const handleSelectCustomer = (customerId: string, checked: boolean) => {
+    handleSelectItem(customerId, checked);
+  };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      console.log('Manual refresh triggered from table container');
-      await refreshCustomers();
+      // Data is real-time, so this is mostly for user feedback.
+      // A full implementation might expose a 'refetch' from useCustomerData.
+      await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
-        title: "Data refreshed",
-        description: "Customer data has been updated successfully.",
+        title: "Data is up-to-date",
+        description: "Customer data is being synchronized automatically.",
       });
     } catch (error) {
-      console.error('Refresh error:', error);
       toast({
         title: "Refresh failed",
         description: "An error occurred while trying to refresh.",
@@ -218,12 +187,20 @@ const CustomerTableContainer = () => {
         </ErrorBoundary>
         
         <ErrorBoundary>
-          <DynamicCustomerTable
-            customers={filteredCustomers}
-            onCustomerClick={(customer) => {
-              console.log('Customer clicked:', customer.name);
-              // Handle customer click - could open details dialog
-            }}
+          <CustomerTableContent
+            paginatedCustomers={paginatedCustomers}
+            selectedCustomers={selectedCustomers}
+            isAllSelected={isAllSelected}
+            isIndeterminate={isPartiallySelected}
+            onSelectAll={handleSelectAll}
+            onSelectCustomer={handleSelectCustomer}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            isLoading={isLoading || isRefreshing}
           />
         </ErrorBoundary>
       </div>

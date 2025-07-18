@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Plus, Mail, Edit, Trash2, UserCheck } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+
+import React from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Edit, Mail, Phone, Calendar, Building, Users } from "lucide-react";
+import InvitationSender from './InvitationSender';
 
 interface Employee {
   id: string;
@@ -21,6 +20,8 @@ interface Employee {
   status: string;
   hire_date: string;
   is_invited?: boolean;
+  invitation_sent_at?: string;
+  invitation_expires_at?: string;
   auth_user_id?: string;
   last_login_at?: string;
 }
@@ -28,180 +29,151 @@ interface Employee {
 interface EmployeeListProps {
   employees: Employee[];
   loading: boolean;
-  onAddEmployee: () => void;
   onEditEmployee: (employee: Employee) => void;
-  onInviteEmployee: (employee: Employee) => void;
   onInvitationSent?: () => void;
-  currentUserRole?: string;
 }
 
-const EmployeeList = ({ employees, loading, onAddEmployee, onEditEmployee, onInviteEmployee }: EmployeeListProps) => {
-  const { toast } = useToast();
-
-  const handleDeleteEmployee = async (employeeId: string) => {
-    if (!confirm('Are you sure you want to delete this employee?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('employees')
-        .delete()
-        .eq('id', employeeId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Employee deleted successfully",
-      });
-
-      // The parent component will handle refreshing the data
-    } catch (error) {
-      console.error('Error deleting employee:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete employee",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-  };
-
+const EmployeeList = ({ employees, loading, onEditEmployee, onInvitationSent }: EmployeeListProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'inactive': return 'bg-gray-100 text-gray-800';
-      case 'suspended': return 'bg-yellow-100 text-yellow-800';
-      case 'terminated': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active': return 'bg-green-50 text-quikle-success border border-quikle-success/20';
+      case 'inactive': return 'bg-quikle-platinum text-quikle-slate border border-quikle-silver';
+      case 'suspended': return 'bg-quikle-crystal text-quikle-accent border border-quikle-accent/30';
+      case 'terminated': return 'bg-red-50 text-quikle-danger border border-quikle-danger/20';
+      default: return 'bg-quikle-platinum text-quikle-slate border border-quikle-silver';
     }
   };
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-purple-100 text-purple-800';
-      case 'manager': return 'bg-blue-100 text-blue-800';
-      case 'supervisor': return 'bg-indigo-100 text-indigo-800';
-      case 'employee': return 'bg-green-100 text-green-800';
-      case 'intern': return 'bg-orange-100 text-orange-800';
-      case 'onsite_worker': return 'bg-cyan-100 text-cyan-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'admin': return 'bg-purple-50 text-quikle-purple border border-quikle-purple/20';
+      case 'manager': return 'bg-blue-50 text-quikle-info border border-quikle-info/20';
+      case 'supervisor': return 'bg-quikle-platinum text-quikle-secondary border border-quikle-silver';
+      case 'employee': return 'bg-green-50 text-quikle-success border border-quikle-success/20';
+      case 'intern': return 'bg-quikle-crystal text-quikle-slate border border-quikle-silver/80';
+      default: return 'bg-quikle-platinum text-quikle-slate border border-quikle-silver';
     }
   };
 
-  if (loading) {
+  const getAuthStatus = (employee: Employee) => {
+    if (employee.auth_user_id) {
+      return (
+        <Badge variant="secondary" className="text-green-600 border-green-200">
+          ✓ Registered
+        </Badge>
+      );
+    }
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <Badge variant="outline" className="text-gray-600">
+        ⏳ Pending Setup
+      </Badge>
+    );
+  };
+
+  if (loading) {
+    return <div className="text-center py-8 text-quikle-slate">Loading employees...</div>;
+  }
+
+  if (employees.length === 0) {
+    return (
+      <div className="text-center py-8 text-quikle-slate">
+        <Users className="h-12 w-12 mx-auto mb-4 text-quikle-silver" />
+        <p>No employees found</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Team Members</h2>
-          <p className="text-muted-foreground">Manage your organization's employees</p>
-        </div>
-        <Button onClick={onAddEmployee} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Employee
-        </Button>
-      </div>
-
-      {employees.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <UserCheck className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No employees yet</h3>
-            <p className="text-muted-foreground text-center mb-4">
-              Start building your team by adding your first employee
-            </p>
-            <Button onClick={onAddEmployee} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add First Employee
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {employees.map((employee) => (
-            <Card key={employee.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-center space-x-3">
-                  <Avatar>
-                    <AvatarFallback className="bg-primary/10">
-                      {getInitials(employee.first_name, employee.last_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold truncate">
-                      {employee.first_name} {employee.last_name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {employee.title}
-                    </p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  <Badge className={getRoleColor(employee.role)}>
-                    {employee.role}
-                  </Badge>
+    <div className="grid gap-4">
+      {employees.map((employee) => (
+        <Card key={employee.id} className="hover:shadow-md transition-shadow">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2 flex-wrap">
+                  <h3 className="text-lg font-semibold text-quikle-charcoal">
+                    {employee.first_name} {employee.last_name}
+                  </h3>
                   <Badge className={getStatusColor(employee.status)}>
                     {employee.status}
                   </Badge>
+                  <Badge className={getRoleColor(employee.role)}>
+                    {employee.role}
+                  </Badge>
+                  {getAuthStatus(employee)}
                 </div>
                 
-                <div className="space-y-1 text-sm">
-                  <p><span className="font-medium">ID:</span> {employee.employee_number}</p>
-                  <p><span className="font-medium">Email:</span> {employee.email}</p>
-                  {employee.department && (
-                    <p><span className="font-medium">Department:</span> {employee.department}</p>
-                  )}
-                  {employee.phone && (
-                    <p><span className="font-medium">Phone:</span> {employee.phone}</p>
-                  )}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-quikle-slate">
+                      <Building className="h-4 w-4" />
+                      <span className="font-medium">#{employee.employee_number}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-quikle-slate">
+                      <Mail className="h-4 w-4" />
+                      <span>{employee.email}</span>
+                    </div>
+                    {employee.phone && (
+                      <div className="flex items-center gap-2 text-sm text-quikle-slate">
+                        <Phone className="h-4 w-4" />
+                        <span>{employee.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="text-sm">
+                      <span className="font-medium text-quikle-charcoal">Title: </span>
+                      <span className="text-quikle-slate">{employee.title}</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-medium text-quikle-charcoal">Designation: </span>
+                      <span className="text-quikle-slate">{employee.designation}</span>
+                    </div>
+                    {employee.department && (
+                      <div className="text-sm">
+                        <span className="font-medium text-quikle-charcoal">Department: </span>
+                        <span className="text-quikle-slate">{employee.department}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-quikle-slate">
+                      <Calendar className="h-4 w-4" />
+                      <span>Hired: {new Date(employee.hire_date).toLocaleDateString()}</span>
+                    </div>
+                    {employee.last_login_at && (
+                      <div className="text-sm text-quikle-slate">
+                        Last login: {new Date(employee.last_login_at).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex gap-2 pt-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => onEditEmployee(employee)}
-                    className="flex-1"
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                  {!employee.is_invited && (
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => onInviteEmployee(employee)}
-                    >
-                      <Mail className="h-3 w-3 mr-1" />
-                      Invite
-                    </Button>
-                  )}
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleDeleteEmployee(employee.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                {/* Invitation Management */}
+                <div className="mt-4 pt-4 border-t border-quikle-silver/30">
+                  <InvitationSender
+                    employee={employee}
+                    companyName="Your Company" // This should come from company settings
+                    onInvitationSent={onInvitationSent || (() => {})}
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEditEmployee(employee)}
+                className="border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };

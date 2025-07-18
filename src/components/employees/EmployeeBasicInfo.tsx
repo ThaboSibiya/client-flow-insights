@@ -4,37 +4,19 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmployeeFormData } from './types';
-import EmployeePhotoUpload from './EmployeePhotoUpload';
 
 interface EmployeeBasicInfoProps {
   formData: EmployeeFormData;
   onInputChange: (field: string, value: string) => void;
-  employeeId?: string;
 }
 
-const EmployeeBasicInfo = ({ formData, onInputChange, employeeId }: EmployeeBasicInfoProps) => {
-  const handlePhotoUpdate = (photoUrl: string) => {
-    onInputChange('photo_url', photoUrl);
-  };
-
+const EmployeeBasicInfo = ({ formData, onInputChange }: EmployeeBasicInfoProps) => {
   return (
     <Card className="bg-white/95 border border-quikle-silver/30 shadow-platinum hover:shadow-luxury transition-all duration-300">
       <CardHeader className="border-b border-quikle-silver/20">
         <CardTitle className="text-quikle-primary">Personal Information</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 p-6">
-        {/* Photo Upload Section */}
-        <div className="flex justify-center mb-6">
-          <EmployeePhotoUpload
-            employeeId={employeeId}
-            currentPhotoUrl={formData.photo_url}
-            firstName={formData.first_name}
-            lastName={formData.last_name}
-            onPhotoUpdate={handlePhotoUpdate}
-            size="lg"
-          />
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="first_name" className="text-quikle-charcoal font-medium">

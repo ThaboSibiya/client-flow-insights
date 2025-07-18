@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CustomerStatus } from '@/types/customer';
+import { CustomerStatus } from '@/context/CRMContext';
 import { 
   Select, 
   SelectContent, 

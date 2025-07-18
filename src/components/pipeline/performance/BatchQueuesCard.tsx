@@ -2,42 +2,45 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Layers } from "lucide-react";
 
 interface BatchQueuesCardProps {
-  batchQueueSizes: Record<string, number>;
+  batchQueueSizes: { [key: string]: number };
 }
 
 const BatchQueuesCard = ({ batchQueueSizes }: BatchQueuesCardProps) => {
-  const maxQueueSize = 20; // Define max queue size for progress calculation
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Layers className="h-5 w-5" />
-          Batch Queue Status
-        </CardTitle>
+        <CardTitle>Batch Queues</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {Object.entries(batchQueueSizes).map(([queueName, size]) => (
-            <div key={queueName} className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium capitalize">
-                  {queueName.replace('-', ' ')}
-                </span>
-                <Badge variant={size > 10 ? 'destructive' : 'secondary'}>
-                  {size} items
-                </Badge>
+        <div className="space-y-3">
+          {Object.entries(batchQueueSizes).map(([type, count]) => {
+            const queueCount = Number(count);
+            return (
+              <div key={type} className="flex items-center justify-between p-2 border rounded">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{type}</Badge>
+                  <span className="text-sm text-muted-foreground">
+                    {queueCount} operations queued
+                  </span>
+                </div>
+                <div className="text-sm font-medium">
+                  {queueCount > 0 ? (
+                    <span className="text-orange-500">Processing...</span>
+                  ) : (
+                    <span className="text-green-500">Idle</span>
+                  )}
+                </div>
               </div>
-              <Progress 
-                value={(size / maxQueueSize) * 100} 
-                className="h-2"
-              />
+            );
+          })}
+          
+          {Object.keys(batchQueueSizes).length === 0 && (
+            <div className="text-center py-4 text-muted-foreground">
+              No batch operations in queue
             </div>
-          ))}
+          )}
         </div>
       </CardContent>
     </Card>

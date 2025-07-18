@@ -1,285 +1,154 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Play, Pause, Edit, Trash2, Zap, Clock, Target, TrendingUp } from "lucide-react";
 import AutomationHeader from './automation/AutomationHeader';
-import PerformanceMonitor from './PerformanceMonitor';
+import AutomationTabs from './automation/AutomationTabs';
+import AutomationPermissions from './automation/permissions/AutomationPermissions';
+import AutomationAuditLog from './automation/audit/AutomationAuditLog';
+import AutomationErrorBoundary from './automation/error-handling/AutomationErrorBoundary';
+import MobileAutomationView from './automation/mobile/MobileAutomationView';
+import BulkOperationsManager from './automation/bulk/BulkOperationsManager';
+import AdvancedConditionalBuilder from './automation/conditional/AdvancedConditionalBuilder';
+import TimeBasedTriggerManager from './automation/scheduling/TimeBasedTriggerManager';
+import { automationAuditService } from '@/services/automationAuditService';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Automation {
   id: string;
   name: string;
-  type: 'customer' | 'ticket';
   trigger: string;
-  conditions: string[];
   actions: string[];
   isActive: boolean;
-  executionCount: number;
-  successRate: number;
-  lastRun: string;
+  type: 'customer' | 'ticket';
+  triggerType?: 'simple' | 'advanced' | 'time' | 'webhook';
+  lastTriggered?: string;
+  triggerCount?: number;
 }
 
 const AutomationManager = () => {
   const [automations, setAutomations] = useState<Automation[]>([
     {
       id: '1',
-      name: 'Auto-progress qualified customers',
-      type: 'customer',
-      trigger: 'Time-based (7 days)',
-      conditions: ['Status = qualified', 'No recent activity'],
-      actions: ['Move to next stage', 'Send follow-up email'],
+      name: 'Welcome New Customers',
+      trigger: 'Customer moves to "New Leads"',
+      actions: ['Send welcome email', 'Assign to sales rep'],
       isActive: true,
-      executionCount: 156,
-      successRate: 94.2,
-      lastRun: '2 hours ago'
+      type: 'customer',
+      triggerType: 'simple',
+      lastTriggered: '2024-06-14T10:30:00Z',
+      triggerCount: 45
     },
     {
       id: '2',
-      name: 'Escalate high-priority tickets',
-      type: 'ticket',
-      trigger: 'Condition-based',
-      conditions: ['Priority = urgent', 'Time in stage > 2 hours'],
-      actions: ['Assign to manager', 'Send notification'],
+      name: 'High Priority Ticket Alert',
+      trigger: 'Ticket priority set to "Urgent"',
+      actions: ['Send SMS notification', 'Assign to manager'],
       isActive: true,
-      executionCount: 43,
-      successRate: 100,
-      lastRun: '15 minutes ago'
+      type: 'ticket',
+      triggerType: 'simple',
+      lastTriggered: '2024-06-14T09:15:00Z',
+      triggerCount: 12
     },
     {
       id: '3',
-      name: 'Customer follow-up sequence',
-      type: 'customer',
-      trigger: 'Action-based',
-      conditions: ['New customer added', 'Status = new'],
-      actions: ['Send welcome email', 'Schedule call', 'Add to nurture sequence'],
+      name: 'Follow-up Reminder',
+      trigger: 'Customer in "Contacted" for 3 days',
+      actions: ['Create follow-up task', 'Send reminder email'],
       isActive: false,
-      executionCount: 89,
-      successRate: 87.6,
-      lastRun: '1 day ago'
+      type: 'customer',
+      triggerType: 'time',
+      triggerCount: 0
+    },
+    {
+      id: '4',
+      name: 'Zapier Integration Trigger',
+      trigger: 'External webhook received',
+      actions: ['Update customer status', 'Send notification'],
+      isActive: true,
+      type: 'customer',
+      triggerType: 'webhook',
+      lastTriggered: '2024-06-14T08:45:00Z',
+      triggerCount: 78
     }
   ]);
 
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
-  const [editingAutomation, setEditingAutomation] = useState<Automation | null>(null);
+  const [activeTab, setActiveTab] = useState('automations');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAutomationId, setSelectedAutomationId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
-  const toggleAutomation = (id: string) => {
-    setAutomations(prev => prev.map(auto => 
-      auto.id === id ? { ...auto, isActive: !auto.isActive } : auto
-    ));
+  const toggleAutomation = async (id: string) => {
+    const automation = automations.find(a => a.id === id);
+    if (!automation) return;
+
+    const newStatus = !automation.isActive;
+    
+    setAutomations(prev => 
+      prev.map(auto => 
+        auto.id === id ? { ...auto, isActive: newStatus } : auto
+      )
+    );
+
+    // Log the automation status change
+    try {
+      await automationAuditService.logAutomationAction(
+        id,
+        'updated',
+        {
+          field: 'status',
+          oldValue: automation.isActive,
+          newValue: newStatus,
+          automationName: automation.name
+        }
+      );
+    } catch (error) {
+      console.error('Failed to log automation action:', error);
+    }
   };
 
-  const deleteAutomation = (id: string) => {
-    setAutomations(prev => prev.filter(auto => auto.id !== id));
+  const handleAutomationError = (error: Error, errorInfo: any) => {
+    console.error('Automation Manager Error:', { error, errorInfo });
   };
 
-  const editAutomation = (automation: Automation) => {
-    setEditingAutomation(automation);
-    setIsBuilderOpen(true);
-  };
-
-  const handleBuilderClose = () => {
-    setIsBuilderOpen(false);
-    setEditingAutomation(null);
-  };
-
-  const handleCreateNew = () => {
-    setEditingAutomation(null);
-    setIsBuilderOpen(true);
-  };
+  // Show mobile-optimized view on mobile devices
+  if (isMobile && activeTab === 'automations') {
+    return (
+      <AutomationErrorBoundary onError={handleAutomationError}>
+        <div className="space-y-6">
+          <AutomationHeader 
+            isBuilderOpen={isBuilderOpen}
+            onBuilderOpenChange={setIsBuilderOpen}
+          />
+          <MobileAutomationView 
+            automations={automations}
+            onToggleAutomation={toggleAutomation}
+          />
+        </div>
+      </AutomationErrorBoundary>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <AutomationHeader 
-        isBuilderOpen={isBuilderOpen}
-        onBuilderOpenChange={setIsBuilderOpen}
-      />
+    <AutomationErrorBoundary onError={handleAutomationError}>
+      <div className="space-y-6">
+        <AutomationHeader 
+          isBuilderOpen={isBuilderOpen}
+          onBuilderOpenChange={setIsBuilderOpen}
+        />
 
-      <Tabs defaultValue="automations" className="w-full">
-        <TabsList>
-          <TabsTrigger value="automations">Automations</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="automations" className="space-y-4">
-          {/* Automation Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Automations</CardTitle>
-                <Zap className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {automations.filter(a => a.isActive).length}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  of {automations.length} total
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Executions</CardTitle>
-                <Play className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {automations.reduce((sum, a) => sum + a.executionCount, 0)}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Last 30 days
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {automations.length > 0 
-                    ? (automations.reduce((sum, a) => sum + a.successRate, 0) / automations.length).toFixed(1)
-                    : 0}%
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Average across all automations
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Time Saved</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">47h</div>
-                <p className="text-xs text-muted-foreground">
-                  This month
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Automation List */}
-          <div className="space-y-4">
-            {automations.map((automation) => (
-              <Card key={automation.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        checked={automation.isActive}
-                        onCheckedChange={() => toggleAutomation(automation.id)}
-                      />
-                      <div>
-                        <CardTitle className="text-lg">{automation.name}</CardTitle>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline">
-                            {automation.type === 'customer' ? 'Customer' : 'Ticket'}
-                          </Badge>
-                          <Badge variant={automation.isActive ? 'default' : 'secondary'}>
-                            {automation.isActive ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => editAutomation(automation)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deleteAutomation(automation.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                      <h4 className="text-sm font-medium mb-2">Trigger</h4>
-                      <p className="text-sm text-muted-foreground">{automation.trigger}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium mb-2">Conditions</h4>
-                      <div className="space-y-1">
-                        {automation.conditions.map((condition, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {condition}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium mb-2">Actions</h4>
-                      <div className="space-y-1">
-                        {automation.actions.map((action, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {action}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium mb-2">Performance</h4>
-                      <div className="space-y-1">
-                        <p className="text-sm">Executions: {automation.executionCount}</p>
-                        <p className="text-sm">Success: {automation.successRate}%</p>
-                        <p className="text-xs text-muted-foreground">Last run: {automation.lastRun}</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="performance">
-          <PerformanceMonitor />
-        </TabsContent>
-
-        <TabsContent value="analytics">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Automation Trends</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Execution trends and performance metrics over time will be displayed here.
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Pipeline Impact</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  How automations are affecting your pipeline conversion rates and efficiency.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
+        {/* Use the single AutomationTabs component with proper event handling */}
+        <AutomationTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          automations={automations}
+          onToggleAutomation={toggleAutomation}
+          onCreateNew={() => setIsBuilderOpen(true)}
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+        />
+      </div>
+    </AutomationErrorBoundary>
   );
 };
 

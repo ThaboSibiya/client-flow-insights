@@ -19,16 +19,22 @@ export const useMessagesOptimized = (conversationId: string) => {
   } = useMessageDataOptimized(conversationId);
   const { sendingMessage, sendMessage } = useMessageSender(conversationId);
 
+  // Set up real-time subscription with optimization
   useRealtimeMessagesOptimized(conversationId, setMessages);
 
-  // Removed artificial 100ms delay - load immediately
+  // Optimized initial load with delay
   useEffect(() => {
     if (conversationId) {
-      loadConversation();
-      loadMessages();
+      const timer = setTimeout(() => {
+        loadConversation();
+        loadMessages();
+      }, 100); // Small delay to prevent blocking
+      
+      return () => clearTimeout(timer);
     }
   }, [conversationId, loadConversation, loadMessages]);
 
+  // Memoize return object to prevent unnecessary re-renders
   return useMemo(() => ({
     conversation,
     messages,

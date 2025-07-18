@@ -18,8 +18,8 @@ export const useConversationsOptimized = () => {
     searchQuery: '',
   });
 
-  // Reduced debounce from 300ms to 150ms for faster response
-  const debouncedSearch = useDebounce(filters.searchQuery, 150);
+  // Debounce search to prevent excessive API calls
+  const debouncedSearch = useDebounce(filters.searchQuery, 300);
 
   const loadConversations = useCallback(async (reset = false) => {
     if (!user) return;
@@ -33,7 +33,7 @@ export const useConversationsOptimized = () => {
 
     try {
       const result = await loadConversationsPaginated({
-        pageSize: 10,
+        pageSize: 10, // Reduced from 20 for faster initial load
         cursor: reset ? undefined : nextCursor,
         filters: {
           type: filters.type,
@@ -52,6 +52,7 @@ export const useConversationsOptimized = () => {
       setHasMore(result.hasMore);
       setNextCursor(result.nextCursor);
 
+      // Calculate unread count more efficiently
       const unread = result.conversations.reduce((count, conv) => {
         return count + (conv.unread_count || 0);
       }, 0);
@@ -70,6 +71,7 @@ export const useConversationsOptimized = () => {
     }
   }, [user, filters.type, debouncedSearch, nextCursor]);
 
+  // Memoized filter and load functions
   const updateFilter = useCallback((key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   }, []);
@@ -84,10 +86,14 @@ export const useConversationsOptimized = () => {
     loadConversations(true);
   }, [loadConversations]);
 
-  // Removed artificial 50ms delay - load immediately
+  // Initial load with delay to prevent blocking
   useEffect(() => {
     if (user) {
-      loadConversations(true);
+      // Small delay to allow UI to render first
+      const timer = setTimeout(() => {
+        loadConversations(true);
+      }, 50);
+      return () => clearTimeout(timer);
     }
   }, [user, filters.type, debouncedSearch]);
 

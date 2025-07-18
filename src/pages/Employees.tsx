@@ -1,28 +1,20 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Users, Network, Layers } from "lucide-react";
+import { Plus, Search, Users } from "lucide-react";
 import EmployeeList from '../components/employees/EmployeeList';
 import EmployeeForm from '../components/employees/EmployeeForm';
 import EmployeeAccessChecker from '../components/employees/EmployeeAccessChecker';
-import OrgChart from '../components/employees/OrgChart';
-import TeamHierarchy from '../components/employees/TeamHierarchy';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useEmployeeData } from '../hooks/useEmployeeData';
-import { toast } from '@/hooks/use-toast';
-import ResponsiveEmployeeManager from '../components/employees/ResponsiveEmployeeManager';
-import MobileEmployeeForm from '../components/employees/mobile/MobileEmployeeForm';
-import { useMobileDetection } from '@/hooks/useMobileDetection';
 
 const Employees = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [activeTab, setActiveTab] = useState('list');
   const { employees, loading, refetch } = useEmployeeData();
-  const { shouldUseMobileView } = useMobileDetection();
 
   const handleAddEmployee = () => {
     setSelectedEmployee(null);
@@ -42,26 +34,6 @@ const Employees = () => {
 
   const handleInvitationSent = () => {
     refetch(); // Refresh the employee list to show updated invitation status
-  };
-
-  const handleUpdateHierarchy = async (employeeId: string, newManagerId: string | null) => {
-    try {
-      // Here you would implement the API call to update the employee's manager
-      console.log('Update hierarchy:', { employeeId, newManagerId });
-      
-      toast({
-        title: "Success",
-        description: "Employee hierarchy updated successfully",
-      });
-      
-      refetch();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update employee hierarchy",
-        variant: "destructive"
-      });
-    }
   };
 
   const filteredEmployees = employees.filter(employee =>
@@ -88,106 +60,47 @@ const Employees = () => {
           </Button>
         </div>
 
-        {shouldUseMobileView ? (
-          // Mobile View - Simple layout
-          <ResponsiveEmployeeManager
-            employees={filteredEmployees}
-            loading={loading}
-            onEditEmployee={handleEditEmployee}
-            onInvitationSent={handleInvitationSent}
-            onAddEmployee={handleAddEmployee}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-          />
-        ) : (
-          // Desktop View - Tabs layout
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="list" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Employee List
-              </TabsTrigger>
-              <TabsTrigger value="org-chart" className="flex items-center gap-2">
-                <Network className="h-4 w-4" />
-                Org Chart
-              </TabsTrigger>
-              <TabsTrigger value="hierarchy" className="flex items-center gap-2">
-                <Layers className="h-4 w-4" />
-                Team Hierarchy
-              </TabsTrigger>
-            </TabsList>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-quikle-charcoal">
+              <Users className="h-5 w-5 text-quikle-primary" />
+              Employee Directory
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-quikle-slate h-4 w-4" />
+                <Input
+                  placeholder="Search employees..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 border-quikle-silver"
+                />
+              </div>
+            </div>
 
-            <TabsContent value="list" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-quikle-charcoal">
-                    <Users className="h-5 w-5 text-quikle-primary" />
-                    Employee Directory
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-quikle-slate h-4 w-4" />
-                      <Input
-                        placeholder="Search employees..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 border-quikle-silver"
-                      />
-                    </div>
-                  </div>
-
-                  <ResponsiveEmployeeManager
-                    employees={filteredEmployees}
-                    loading={loading}
-                    onEditEmployee={handleEditEmployee}
-                    onInvitationSent={handleInvitationSent}
-                    onAddEmployee={handleAddEmployee}
-                    searchTerm={searchTerm}
-                    onSearchChange={setSearchTerm}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="org-chart" className="space-y-6">
-              <OrgChart 
-                employees={employees}
-                onUpdateHierarchy={handleUpdateHierarchy}
-                onEditEmployee={handleEditEmployee}
-              />
-            </TabsContent>
-
-            <TabsContent value="hierarchy" className="space-y-6">
-              <TeamHierarchy 
-                employees={employees}
-                onEmployeeSelect={handleEditEmployee}
-              />
-            </TabsContent>
-          </Tabs>
-        )}
+            <EmployeeList 
+              employees={filteredEmployees}
+              loading={loading}
+              onEditEmployee={handleEditEmployee}
+              onInvitationSent={handleInvitationSent}
+            />
+          </CardContent>
+        </Card>
 
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogContent className={`${shouldUseMobileView ? 'max-w-sm h-full max-h-none m-0 rounded-none' : 'max-w-4xl max-h-[90vh] overflow-y-auto'}`}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-quikle-charcoal">
                 {selectedEmployee ? 'Edit Employee' : 'Add New Employee'}
               </DialogTitle>
             </DialogHeader>
-            {shouldUseMobileView ? (
-              <MobileEmployeeForm
-                employee={selectedEmployee}
-                onSave={handleFormClose}
-                onCancel={handleFormClose}
-              />
-            ) : (
-              <EmployeeForm
-                employee={selectedEmployee}
-                onSave={handleFormClose}
-                onCancel={handleFormClose}
-              />
-            )}
+            <EmployeeForm
+              employee={selectedEmployee}
+              onSave={handleFormClose}
+              onCancel={handleFormClose}
+            />
           </DialogContent>
         </Dialog>
       </div>

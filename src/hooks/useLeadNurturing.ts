@@ -1,81 +1,98 @@
 
-import { useState } from 'react';
-import { Customer } from '@/types/customer';
+import { useCallback } from 'react';
+import { leadNurturingService } from '@/services/leadNurturingService';
+import { Customer, CustomerStatus } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
 
 export const useLeadNurturing = () => {
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const autoAssignLead = async (customer: Customer) => {
-    setIsProcessing(true);
+  const autoAssignLead = useCallback(async (customer: Customer) => {
     try {
-      // Mock auto-assignment logic
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const assignedTo = await leadNurturingService.autoAssignLead(customer);
       
-      toast({
-        title: "Success",
-        description: `Lead ${customer.name} has been auto-assigned`,
-      });
+      if (assignedTo) {
+        toast({
+          title: "Lead Assigned",
+          description: `${customer.name} has been automatically assigned to a sales representative.`,
+        });
+        return assignedTo;
+      } else {
+        toast({
+          title: "Assignment Failed", 
+          description: "No available sales representatives found for assignment.",
+          variant: "destructive"
+        });
+        return null;
+      }
     } catch (error) {
+      console.error('Error in auto-assign lead:', error);
       toast({
         title: "Error",
-        description: "Failed to auto-assign lead",
-        variant: "destructive",
+        description: "Failed to auto-assign lead. Please try again.",
+        variant: "destructive"
       });
-      throw error;
-    } finally {
-      setIsProcessing(false);
+      return null;
     }
-  };
+  }, []);
 
-  const setupFollowUpReminders = async (customerId: string) => {
-    setIsProcessing(true);
+  const setupFollowUpReminders = useCallback(async (customerId: string) => {
     try {
-      // Mock follow-up setup logic
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await leadNurturingService.setupFollowUpReminders(customerId);
       toast({
-        title: "Success",
-        description: "Follow-up reminders have been scheduled",
+        title: "Follow-up Scheduled",
+        description: "Automatic follow-up reminders have been set up.",
       });
     } catch (error) {
+      console.error('Error setting up follow-up reminders:', error);
       toast({
         title: "Error",
-        description: "Failed to setup follow-up reminders",
-        variant: "destructive",
+        description: "Failed to schedule follow-up reminders.",
+        variant: "destructive"
       });
-      throw error;
-    } finally {
-      setIsProcessing(false);
     }
-  };
+  }, []);
 
-  const createNextStepTasks = async (customer: Customer) => {
-    setIsProcessing(true);
+  const handleStatusProgression = useCallback(async (
+    customerId: string, 
+    oldStatus: CustomerStatus, 
+    newStatus: CustomerStatus
+  ) => {
     try {
-      // Mock task creation logic
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await leadNurturingService.handleStatusProgression(customerId, oldStatus, newStatus);
       toast({
-        title: "Success",
-        description: `Next step tasks created for ${customer.name}`,
+        title: "Status Updated",
+        description: `Customer status changed to ${newStatus}. Next steps have been scheduled.`,
       });
     } catch (error) {
+      console.error('Error handling status progression:', error);
       toast({
         title: "Error",
-        description: "Failed to create next step tasks",
-        variant: "destructive",
+        description: "Failed to process status change automation.",
+        variant: "destructive"
       });
-      throw error;
-    } finally {
-      setIsProcessing(false);
     }
-  };
+  }, []);
+
+  const createNextStepTasks = useCallback(async (customer: Customer) => {
+    try {
+      await leadNurturingService.createNextStepTasks(customer);
+      toast({
+        title: "Tasks Created",
+        description: `Next step tasks have been created for ${customer.name}.`,
+      });
+    } catch (error) {
+      console.error('Error creating next step tasks:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create next step tasks.",
+        variant: "destructive"
+      });
+    }
+  }, []);
 
   return {
     autoAssignLead,
     setupFollowUpReminders,
-    createNextStepTasks,
-    isProcessing,
+    handleStatusProgression,
+    createNextStepTasks
   };
 };

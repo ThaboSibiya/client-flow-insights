@@ -1,69 +1,63 @@
 
 import { useState, useEffect } from 'react';
-
-interface AutomationStats {
-  totalExecutions: number;
-  successfulExecutions: number;
-  failedExecutions: number;
-  averageExecutionTime: number;
-  queueSize: number;
-  activeAutomations: number;
-  batchQueueSizes: Record<string, number>;
-  cacheSize: number;
-  systemHealth: 'healthy' | 'warning' | 'critical';
-}
+import { automationPerformanceService } from '@/services/automationPerformanceService';
 
 export const useAutomationPerformance = () => {
-  const [stats, setStats] = useState<AutomationStats>({
-    totalExecutions: 1247,
-    successfulExecutions: 1186,
-    failedExecutions: 61,
-    averageExecutionTime: 2.3,
-    queueSize: 12,
-    activeAutomations: 8,
-    batchQueueSizes: {
-      'customer-progression': 5,
-      'ticket-escalation': 3,
-      'email-automation': 7,
-      'notification-queue': 15
-    },
-    cacheSize: 2048,
-    systemHealth: 'healthy'
+  const [stats, setStats] = useState({
+    totalJobs: 0,
+    runningJobs: 0,
+    pendingJobs: 0,
+    failedJobs: 0,
+    cacheSize: 0,
+    batchQueueSizes: {}
   });
-
   const [isLoading, setIsLoading] = useState(false);
 
-  const refreshStats = async () => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Update with mock data
-    setStats(prev => ({
-      ...prev,
-      totalExecutions: prev.totalExecutions + Math.floor(Math.random() * 10),
-      queueSize: Math.floor(Math.random() * 20),
-      averageExecutionTime: +(Math.random() * 5).toFixed(1)
-    }));
-    
-    setIsLoading(false);
-  };
-
-  const clearCache = async () => {
-    setStats(prev => ({ ...prev, cacheSize: 0 }));
-    console.log('Cache cleared');
+  const refreshStats = () => {
+    const currentStats = automationPerformanceService.getQueueStats();
+    setStats(currentStats);
   };
 
   useEffect(() => {
-    // Set up periodic refresh
-    const interval = setInterval(refreshStats, 30000); // 30 seconds
+    refreshStats();
+    const interval = setInterval(refreshStats, 2000); // Update every 2 seconds
+    
     return () => clearInterval(interval);
   }, []);
+
+  const executeAutomation = async (automationId: string, triggerData: any, priority: 'low' | 'medium' | 'high' = 'medium') => {
+    setIsLoading(true);
+    
+    try {
+      const jobId = automationPerformanceService.addJob({
+        automationId,
+        type: 'trigger',
+        data: triggerData,
+        priority,
+        maxRetries: 3
+      });
+      
+      console.log(`Automation ${automationId} queued with job ID: ${jobId}`);
+      refreshStats();
+      return jobId;
+    } catch (error) {
+      console.error('Failed to execute automation:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const clearCache = (pattern?: string) => {
+    automationPerformanceService.clearCache(pattern);
+    refreshStats();
+  };
 
   return {
     stats,
     isLoading,
-    refreshStats,
-    clearCache
+    executeAutomation,
+    clearCache,
+    refreshStats
   };
 };

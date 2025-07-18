@@ -1,265 +1,93 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useAutomationSettings } from '@/hooks/useAutomationSettings';
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { 
-  Mail, 
-  MessageSquare, 
-  Clock, 
-  Zap,
-  Settings,
-  Bell,
-  Calendar
-} from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
+import { Form } from '@/components/ui/form';
+import { AutomationSettingsSkeleton } from './automation/AutomationSettingsSkeleton';
+import { EmailAutomationSettings } from './automation/EmailAutomationSettings';
+import { WhatsAppAutomationSettings } from './automation/WhatsAppAutomationSettings';
+import { FollowUpAutomationSettings } from './automation/FollowUpAutomationSettings';
+import { GeneralAutomationSettings } from './automation/GeneralAutomationSettings';
+
+
+const automationSettingsSchema = z.object({
+  email_auto_send: z.boolean().default(false),
+  email_template: z.string().default('default'),
+  email_subject: z.string().optional().nullable(),
+  email_message: z.string().optional().nullable(),
+  whatsapp_enabled: z.boolean().default(false),
+  whatsapp_template: z.string().optional().nullable(),
+  follow_up_enabled: z.boolean().default(false),
+  first_follow_up_days: z.coerce.number().int().min(1).default(3),
+  second_follow_up_days: z.coerce.number().int().min(1).default(7),
+  final_follow_up_days: z.coerce.number().int().min(1).default(14),
+  reminder_template: z.string().optional().nullable(),
+  auto_create_invoice_from_quote: z.boolean().default(false),
+  send_on_create: z.boolean().default(false),
+  mark_overdue_after_days: z.coerce.number().int().min(1).default(30),
+});
+
+type AutomationSettingsFormValues = z.infer<typeof automationSettingsSchema>;
 
 const AutomationSettings = () => {
-  const [settings, setSettings] = useState({
-    emailAutoSend: false,
-    followUpEnabled: true,
-    whatsappEnabled: false,
-    autoCreateInvoice: false,
-    sendOnCreate: false,
-    firstFollowUpDays: 3,
-    secondFollowUpDays: 7,
-    finalFollowUpDays: 14,
-    markOverdueDays: 30,
-    emailTemplate: 'professional',
-    emailSubject: 'Your Quote/Invoice from {{company}}',
-    emailMessage: 'Thank you for your interest. Please find your {{type}} attached.'
+  const { settings, updateSettings, isLoading, isUpdating } = useAutomationSettings();
+
+  const form = useForm<AutomationSettingsFormValues>({
+    resolver: zodResolver(automationSettingsSchema),
+    defaultValues: {
+      email_auto_send: false,
+      email_template: 'default',
+      email_subject: 'Your Quote/Invoice from [Company Name]',
+      email_message: `Hi [Customer Name],\n\nPlease find your quote/invoice attached.\n\nThank you for your business!\n\nBest regards,\n[Your Name]`,
+      whatsapp_enabled: false,
+      whatsapp_template: 'Hi [Customer Name], your quote/invoice is ready. Please check your email for details.',
+      follow_up_enabled: false,
+      first_follow_up_days: 3,
+      second_follow_up_days: 7,
+      final_follow_up_days: 14,
+      reminder_template: `Hi [Customer Name],\n\nThis is a friendly reminder about your pending quote/invoice.\n\nPlease let us know if you have any questions.\n\nBest regards,\n[Your Name]`,
+      auto_create_invoice_from_quote: false,
+      send_on_create: false,
+      mark_overdue_after_days: 30,
+    },
   });
 
-  const handleToggle = (key: string, value: boolean) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-  };
+  useEffect(() => {
+    if (settings) {
+      form.reset(settings);
+    }
+  }, [settings, form]);
 
-  const handleInputChange = (key: string, value: string | number) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+  const onSubmit = async (data: AutomationSettingsFormValues) => {
+    await updateSettings(data);
   };
-
-  const handleSave = () => {
-    toast({
-      title: "Settings Saved",
-      description: "Your automation settings have been updated successfully.",
-    });
-  };
+  
+  if (isLoading) {
+    return <AutomationSettingsSkeleton />;
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Email Automation */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Email Automation
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="email-auto-send">Auto-send emails</Label>
-              <p className="text-sm text-quikle-slate">Automatically send quotes/invoices via email</p>
-            </div>
-            <Switch
-              id="email-auto-send"
-              checked={settings.emailAutoSend}
-              onCheckedChange={(checked) => handleToggle('emailAutoSend', checked)}
-            />
-          </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-quikle-charcoal">Automation Settings</h2>
+          <Button type="submit" disabled={isUpdating} className="bg-quikle-primary hover:bg-quikle-secondary text-white">
+            {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isUpdating ? 'Saving...' : 'Save Settings'}
+          </Button>
+        </div>
 
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="send-on-create">Send immediately on creation</Label>
-              <p className="text-sm text-quikle-slate">Send document as soon as it's created</p>
-            </div>
-            <Switch
-              id="send-on-create"
-              checked={settings.sendOnCreate}
-              onCheckedChange={(checked) => handleToggle('sendOnCreate', checked)}
-            />
-          </div>
-
-          <Separator />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="email-template">Email Template</Label>
-              <Select value={settings.emailTemplate} onValueChange={(value) => handleInputChange('emailTemplate', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="professional">Professional</SelectItem>
-                  <SelectItem value="friendly">Friendly</SelectItem>
-                  <SelectItem value="formal">Formal</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="email-subject">Email Subject</Label>
-              <Input
-                id="email-subject"
-                value={settings.emailSubject}
-                onChange={(e) => handleInputChange('emailSubject', e.target.value)}
-                placeholder="Email subject line"
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="email-message">Email Message</Label>
-            <Textarea
-              id="email-message"
-              value={settings.emailMessage}
-              onChange={(e) => handleInputChange('emailMessage', e.target.value)}
-              placeholder="Email message body"
-              rows={4}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Follow-up Automation */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Follow-up Automation
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="follow-up-enabled">Enable automatic follow-ups</Label>
-              <p className="text-sm text-quikle-slate">Send follow-up reminders automatically</p>
-            </div>
-            <Switch
-              id="follow-up-enabled"
-              checked={settings.followUpEnabled}
-              onCheckedChange={(checked) => handleToggle('followUpEnabled', checked)}
-            />
-          </div>
-
-          {settings.followUpEnabled && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <Label htmlFor="first-followup">First Follow-up (days)</Label>
-                <Input
-                  id="first-followup"
-                  type="number"
-                  value={settings.firstFollowUpDays}
-                  onChange={(e) => handleInputChange('firstFollowUpDays', parseInt(e.target.value))}
-                  min="1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="second-followup">Second Follow-up (days)</Label>
-                <Input
-                  id="second-followup"
-                  type="number"
-                  value={settings.secondFollowUpDays}
-                  onChange={(e) => handleInputChange('secondFollowUpDays', parseInt(e.target.value))}
-                  min="1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="final-followup">Final Follow-up (days)</Label>
-                <Input
-                  id="final-followup"
-                  type="number"
-                  value={settings.finalFollowUpDays}
-                  onChange={(e) => handleInputChange('finalFollowUpDays', parseInt(e.target.value))}
-                  min="1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="mark-overdue">Mark Overdue (days)</Label>
-                <Input
-                  id="mark-overdue"
-                  type="number"
-                  value={settings.markOverdueDays}
-                  onChange={(e) => handleInputChange('markOverdueDays', parseInt(e.target.value))}
-                  min="1"
-                />
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* WhatsApp Integration */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            WhatsApp Integration
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="whatsapp-enabled">Enable WhatsApp notifications</Label>
-              <p className="text-sm text-quikle-slate">Send quotes/invoices via WhatsApp</p>
-            </div>
-            <Switch
-              id="whatsapp-enabled"
-              checked={settings.whatsappEnabled}
-              onCheckedChange={(checked) => handleToggle('whatsappEnabled', checked)}
-            />
-          </div>
-
-          {settings.whatsappEnabled && (
-            <div className="p-4 bg-quikle-crystal rounded-lg">
-              <p className="text-sm text-quikle-slate">
-                WhatsApp integration requires API setup. Contact support for configuration assistance.
-              </p>
-              <Button variant="outline" size="sm" className="mt-2">
-                Configure WhatsApp API
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Smart Features */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            Smart Features
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="auto-create-invoice">Auto-create invoice from accepted quotes</Label>
-              <p className="text-sm text-quikle-slate">Automatically convert accepted quotes to invoices</p>
-            </div>
-            <Switch
-              id="auto-create-invoice"
-              checked={settings.autoCreateInvoice}
-              onCheckedChange={(checked) => handleToggle('autoCreateInvoice', checked)}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Save Settings */}
-      <div className="flex justify-end">
-        <Button onClick={handleSave} className="bg-quikle-primary hover:bg-quikle-secondary">
-          <Settings className="h-4 w-4 mr-2" />
-          Save Automation Settings
-        </Button>
-      </div>
-    </div>
+        <EmailAutomationSettings />
+        <WhatsAppAutomationSettings />
+        <FollowUpAutomationSettings />
+        <GeneralAutomationSettings />
+        
+      </form>
+    </Form>
   );
 };
 

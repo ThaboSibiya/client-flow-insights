@@ -5,16 +5,11 @@ import { toast } from '@/hooks/use-toast';
 
 export const useConversationData = (conversationId: string) => {
   const [conversation, setConversation] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
 
   const loadConversation = useCallback(async () => {
-    if (!conversationId) {
-      setLoading(false);
-      return;
-    }
+    if (!conversationId) return;
 
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
@@ -27,17 +22,14 @@ export const useConversationData = (conversationId: string) => {
       console.error('Error loading conversation:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load conversation',
+        description: 'Failed to load conversation details.',
         variant: 'destructive',
       });
-    } finally {
-      setLoading(false);
     }
   }, [conversationId]);
 
   return {
     conversation,
-    loading,
     loadConversation,
   };
 };

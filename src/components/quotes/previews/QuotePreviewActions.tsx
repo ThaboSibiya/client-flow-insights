@@ -19,7 +19,7 @@ export const QuotePreviewActions = ({ quote }: QuotePreviewActionsProps) => {
     generatePDF(quote, {
       includeBranding: true,
       template: 'professional',
-      watermark: 'false'
+      watermark: false
     });
   };
 
@@ -42,8 +42,6 @@ export const QuotePreviewActions = ({ quote }: QuotePreviewActionsProps) => {
       description: `${quote.type === 'quote' ? 'Quote' : 'Invoice'} has been sent via WhatsApp`
     });
   };
-
-  const isEmailDisabled = isSending || !quote || quote.status === 'sent' || quote.status === 'paid' || !quote.customer_email;
 
   return (
     <div className="flex justify-between items-center">
@@ -71,7 +69,7 @@ export const QuotePreviewActions = ({ quote }: QuotePreviewActionsProps) => {
         <Button 
           onClick={handleSendEmail}
           className="flex items-center gap-2 bg-quikle-primary hover:bg-quikle-secondary text-white"
-          disabled={isEmailDisabled}
+          disabled={isSending || !quote || quote.status === 'sent' || quote.status === 'paid' || !quote.customer_email}
         >
           {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           {isSending ? 'Sending...' : 'Email'}

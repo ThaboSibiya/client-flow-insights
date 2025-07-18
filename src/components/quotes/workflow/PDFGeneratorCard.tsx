@@ -15,27 +15,24 @@ interface PDFGeneratorCardProps {
 }
 
 const PDFGeneratorCard = ({ quote }: PDFGeneratorCardProps) => {
-  const { generatePDF, isGenerating } = usePDFGeneration();
+  const { generatePDF, downloadHTML, isGenerating } = usePDFGeneration();
   const [includeBranding, setIncludeBranding] = useState(true);
   const [template, setTemplate] = useState('professional');
   const [watermark, setWatermark] = useState(false);
 
   const handleGeneratePDF = () => {
     generatePDF(quote, {
-      format: 'A4',
-      orientation: 'portrait',
-      includeAttachments: false,
-      watermark: watermark ? 'DRAFT' : undefined
+      includeBranding,
+      template: template as any,
+      watermark
     });
   };
 
   const handlePreviewPDF = () => {
-    // Generate a preview version
-    generatePDF(quote, {
-      format: 'A4',
-      orientation: 'portrait',
-      includeAttachments: false,
-      watermark: watermark ? 'PREVIEW' : undefined
+    downloadHTML(quote, {
+      includeBranding,
+      template: template as any,
+      watermark
     });
   };
 
@@ -122,7 +119,7 @@ const PDFGeneratorCard = ({ quote }: PDFGeneratorCardProps) => {
             disabled={isGenerating}
           >
             <Eye className="h-4 w-4 mr-2" />
-            Preview
+            Preview HTML
           </Button>
         </div>
       </CardContent>

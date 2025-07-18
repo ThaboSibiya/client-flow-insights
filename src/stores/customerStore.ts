@@ -24,26 +24,15 @@ interface CustomerState {
   clearOptimisticUpdates: () => void;
 }
 
-export const useCustomerStore = create<CustomerState>()((set, get) => ({
+export const useCustomerStore = create<CustomerState>((set, get) => ({
   customers: [],
   isLoading: false,
   error: null,
   optimisticUpdates: {},
 
-  setCustomers: (customers) => {
-    console.log('Setting customers in store:', customers.length);
-    set({ customers, error: null });
-  },
-
-  setLoading: (isLoading) => {
-    console.log('Setting loading state:', isLoading);
-    set({ isLoading });
-  },
-
-  setError: (error) => {
-    console.log('Setting error:', error);
-    set({ error });
-  },
+  setCustomers: (customers) => set({ customers }),
+  setLoading: (isLoading) => set({ isLoading }),
+  setError: (error) => set({ error }),
 
   optimisticUpdateCustomer: (id, updates) => {
     const { customers, optimisticUpdates } = get();
@@ -77,7 +66,6 @@ export const useCustomerStore = create<CustomerState>()((set, get) => ({
 
   optimisticAddCustomer: (customer) => {
     const { customers } = get();
-    console.log('Optimistically adding customer:', customer.name);
     set({
       customers: [customer, ...customers],
       optimisticUpdates: {

@@ -53,34 +53,6 @@ export const useCustomerActions = () => {
     }
   };
 
-  const handleCreateTicket = (customerId: string, ticketData: any) => {
-    const transformedTicket = {
-      customerId,
-      assignedTo: ticketData.assignedTo,
-      status: ticketData.status,
-      priority: ticketData.priority,
-      title: ticketData.subject || ticketData.title,
-      description: ticketData.description,
-    };
-    createTicket(transformedTicket);
-  };
-
-  const handleAddTimeEntry = (ticketId: string, timeEntry: any) => {
-    const transformedEntry = {
-      ticketId,
-      employeeId: timeEntry.userId || timeEntry.employeeId,
-      userName: timeEntry.userName,
-      description: timeEntry.description,
-      hours: Math.floor(timeEntry.duration / 60) || timeEntry.hours,
-      duration: timeEntry.duration,
-      date: timeEntry.date || new Date(),
-      startTime: timeEntry.startTime,
-      endTime: timeEntry.endTime,
-      userId: timeEntry.userId,
-    };
-    addTimeEntry(transformedEntry);
-  };
-
   const CustomerDialogs = () => (
     <>
       <CustomerDetailsDialog 
@@ -100,9 +72,9 @@ export const useCustomerActions = () => {
           setIsTicketDialogOpen(false);
           setSelectedCustomer(null);
         }}
-        onCreateTicket={handleCreateTicket}
+        onCreateTicket={createTicket}
         onUpdateTicketStatus={updateTicketStatus}
-        onAddTimeEntry={handleAddTimeEntry}
+        onAddTimeEntry={addTimeEntry}
       />
     </>
   );

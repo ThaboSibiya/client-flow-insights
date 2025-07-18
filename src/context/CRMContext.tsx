@@ -1,208 +1,187 @@
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useCustomerData } from '@/hooks/useCustomerData';
+import { useCustomerStore } from '@/stores/customerStore';
+import { useTicketStore } from '@/stores/ticketStore';
+import { useOptimisticUpdates } from '@/hooks/useOptimisticUpdates';
+import { 
+  addCustomer as addCustomerService,
+  updateCustomerStatus as updateCustomerStatusService,
+  updateCustomer as updateCustomerService,
+  deleteCustomer as deleteCustomerService
+} from '@/services/customerService';
 import { useAuth } from './AuthContext';
-import type { Customer, CustomerStatus, CustomerTicket, TimeEntry } from '@/types/customer';
-
-export type { Customer, CustomerStatus, CustomerTicket, TimeEntry };
-
-export interface Ticket {
-  id: string;
-  title: string;
-  description: string;
-  status: 'open' | 'in-progress' | 'closed';
-  priority: 'low' | 'medium' | 'high';
-  customerId: string;
-  assignedTo?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface CRMContextType {
-  customers: Customer[];
-  loading: boolean;
-  error: string | null;
-  refreshCustomers: () => Promise<void>;
-  addCustomer: (customer: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateCustomer: (id: string, customer: Partial<Customer>) => Promise<void>;
-  deleteCustomer: (id: string) => Promise<void>;
-  updateCustomerStatus: (id: string, status: CustomerStatus) => Promise<void>;
-  createTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateTicketStatus: (ticketId: string, status: Ticket['status']) => Promise<void>;
-  addTimeEntry: (entry: Omit<TimeEntry, 'id' | 'createdAt'>) => Promise<void>;
-}
+import { Customer, CustomerStatus, CustomerTicket, TicketStatus, CRMContextType, TimeEntry } from '@/types/customer';
 
 const CRMContext = createContext<CRMContextType | undefined>(undefined);
 
-export const useCRMContext = () => {
-  const context = useContext(CRMContext);
-  if (!context) {
-    throw new Error('useCRMContext must be used within a CRMProvider');
-  }
-  return context;
-};
-
-export const useCRM = useCRMContext;
-
-export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export const CRMProvider = ({ children }: { children: ReactNode }) => {
+  useCustomerData(); // This hook now manages data fetching and updates the customer store.
+  const customerStore = useCustomerStore();
+  const ticketStore = useTicketStore();
+  const { updateCustomerOptimistically, deleteCustomerOptimistically, addCustomerOptimistically, updateTicketOptimistically } = useOptimisticUpdates();
   const { user } = useAuth();
 
-  const refreshCustomers = async () => {
+  const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'activeTickets' | 'ticketCount'>) => {
     if (!user) return;
     
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const { data, error } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+    const tempId = `temp-${Date.now()}`;
+    const newCustomer: Customer = {
+      ...customerData,
+      id: tempId,
+      activeTickets: [],
+      ticketCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
-      if (error) throw error;
-      
-      const transformedCustomers: Customer[] = (data || []).map(customer => ({
-        ...customer,
-        createdAt: new Date(customer.created_at),
-        updatedAt: new Date(customer.updated_at),
-        status: customer.status as CustomerStatus,
+    await addCustomerOptimistically(newCustomer, async () => {
+      const actualCustomer = await addCustomerService({
+        ...customerData,
         activeTickets: [],
         ticketCount: 0
-      }));
+      }, user.id);
       
-      setCustomers(transformedCustomers);
-    } catch (err) {
-      console.error('Error fetching customers:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch customers');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addCustomer = async (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'createdAt' | 'updatedAt'>) => {
-    if (!user) throw new Error('User not authenticated');
-
-    try {
-      const { data, error } = await supabase
-        .from('customers')
-        .insert([{ ...customerData, user_id: user.id }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      const transformedCustomer: Customer = {
-        ...data,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at),
-        status: data.status as CustomerStatus,
-        activeTickets: [],
-        ticketCount: 0
-      };
-      
-      setCustomers(prev => [transformedCustomer, ...prev]);
-    } catch (err) {
-      console.error('Error adding customer:', err);
-      throw err;
-    }
-  };
-
-  const updateCustomer = async (id: string, customerData: Partial<Customer>) => {
-    if (!user) throw new Error('User not authenticated');
-
-    try {
-      const { data, error } = await supabase
-        .from('customers')
-        .update(customerData)
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      const transformedCustomer: Customer = {
-        ...data,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at),
-        status: data.status as CustomerStatus,
-        activeTickets: [],
-        ticketCount: 0
-      };
-      
-      setCustomers(prev => prev.map(customer => 
-        customer.id === id ? { ...customer, ...transformedCustomer } : customer
-      ));
-    } catch (err) {
-      console.error('Error updating customer:', err);
-      throw err;
-    }
-  };
-
-  const deleteCustomer = async (id: string) => {
-    if (!user) throw new Error('User not authenticated');
-
-    try {
-      const { error } = await supabase
-        .from('customers')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-      
-      setCustomers(prev => prev.filter(customer => customer.id !== id));
-    } catch (err) {
-      console.error('Error deleting customer:', err);
-      throw err;
-    }
+      if (actualCustomer) {
+        // After successful creation, update the store with the actual customer data from the server
+        const currentCustomers = customerStore.customers;
+        customerStore.setCustomers([actualCustomer, ...currentCustomers.filter(c => c.id !== tempId)]);
+      }
+    });
   };
 
   const updateCustomerStatus = async (id: string, status: CustomerStatus) => {
-    await updateCustomer(id, { status });
+    if (!user) return;
+    
+    await updateCustomerOptimistically(id, { status }, async () => {
+      await updateCustomerStatusService(id, status, user.id);
+    });
   };
 
-  const createTicket = async (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>) => {
-    console.log('Creating ticket:', ticket);
+  const updateCustomer = async (id: string, customerData: Partial<Customer>) => {
+    if (!user) return;
+    
+    await updateCustomerOptimistically(id, customerData, async () => {
+      await updateCustomerService(id, customerData, user.id);
+    });
   };
 
-  const updateTicketStatus = async (ticketId: string, status: Ticket['status']) => {
-    console.log('Updating ticket status:', ticketId, status);
+  const deleteCustomer = async (id: string) => {
+    if (!user) return;
+    
+    await deleteCustomerOptimistically(id, async () => {
+      await deleteCustomerService(id, user.id);
+    });
   };
 
-  const addTimeEntry = async (entry: Omit<TimeEntry, 'id' | 'createdAt'>) => {
-    console.log('Adding time entry:', entry);
+  const createTicket = async (customerId: string, ticketData: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>) => {
+    if (!user) return;
+    
+    const ticketNumber = `TKT-${Date.now().toString().slice(-6)}`;
+    const newTicket: CustomerTicket = {
+      id: `ticket-${Date.now()}`,
+      ticketNumber,
+      ...ticketData,
+      timeEntries: [],
+      totalTimeSpent: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Apply optimistic update to both stores
+    ticketStore.optimisticAddTicket(customerId, newTicket);
+    customerStore.optimisticUpdateCustomer(customerId, {
+      activeTickets: [...(customerStore.customers.find(c => c.id === customerId)?.activeTickets || []), newTicket],
+      ticketCount: (customerStore.customers.find(c => c.id === customerId)?.ticketCount || 0) + 1,
+      lastTicketDate: new Date()
+    });
+
+    // Note: In a real app, you'd make a server call here
   };
 
-  useEffect(() => {
-    if (user) {
-      refreshCustomers();
-    }
-  }, [user]);
+  const updateTicketStatus = async (ticketId: string, status: TicketStatus) => {
+    if (!user) return;
+    
+    await updateTicketOptimistically(ticketId, { status, updatedAt: new Date() }, async () => {
+      // Note: In a real app, you'd make a server call here
+      console.log(`Updating ticket ${ticketId} status to ${status}`);
+    });
 
-  const value: CRMContextType = {
-    customers,
-    loading,
-    error,
-    refreshCustomers,
-    addCustomer,
-    updateCustomer,
-    deleteCustomer,
-    updateCustomerStatus,
-    createTicket,
-    updateTicketStatus,
-    addTimeEntry,
+    // Also update in customer store
+    customerStore.setCustomers(
+      customerStore.customers.map(customer => ({
+        ...customer,
+        activeTickets: (customer.activeTickets || []).map(ticket =>
+          ticket.id === ticketId 
+            ? { ...ticket, status, updatedAt: new Date() }
+            : ticket
+        )
+      }))
+    );
+  };
+
+  const addTimeEntry = async (ticketId: string, timeEntryData: Omit<TimeEntry, 'id' | 'ticketId' | 'createdAt'>) => {
+    if (!user) return;
+
+    const newTimeEntry: TimeEntry = {
+      id: `time-${Date.now()}`,
+      ticketId,
+      ...timeEntryData,
+      createdAt: new Date(),
+    };
+
+    const updates = {
+      timeEntries: [...(customerStore.customers
+        .flatMap(c => c.activeTickets || [])
+        .find(t => t.id === ticketId)?.timeEntries || []), newTimeEntry],
+      totalTimeSpent: (customerStore.customers
+        .flatMap(c => c.activeTickets || [])
+        .find(t => t.id === ticketId)?.totalTimeSpent || 0) + newTimeEntry.duration,
+      updatedAt: new Date()
+    };
+
+    await updateTicketOptimistically(ticketId, updates, async () => {
+      // Note: In a real app, you'd make a server call here
+      console.log(`Adding time entry to ticket ${ticketId}`);
+    });
+
+    // Also update in customer store
+    customerStore.setCustomers(
+      customerStore.customers.map(customer => ({
+        ...customer,
+        activeTickets: (customer.activeTickets || []).map(ticket =>
+          ticket.id === ticketId 
+            ? { ...ticket, ...updates }
+            : ticket
+        )
+      }))
+    );
   };
 
   return (
-    <CRMContext.Provider value={value}>
+    <CRMContext.Provider
+      value={{
+        customers: customerStore.customers,
+        addCustomer,
+        updateCustomerStatus,
+        updateCustomer,
+        deleteCustomer,
+        createTicket,
+        updateTicketStatus,
+        addTimeEntry,
+      }}
+    >
       {children}
     </CRMContext.Provider>
   );
 };
 
-export default CRMContext;
+export const useCRM = () => {
+  const context = useContext(CRMContext);
+  if (context === undefined) {
+    throw new Error('useCRM must be used within a CRMProvider');
+  }
+  return context;
+};
+
+// Re-export types for easier imports elsewhere
+export type { Customer, CustomerStatus, CustomerTicket, TicketStatus };

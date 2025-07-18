@@ -41,6 +41,7 @@ const TimeTracker = ({ timeEntries, totalTimeSpent, onAddTimeEntry }: TimeTracke
     setIsTracking(true);
     setCurrentDuration(0);
     
+    // Update duration every minute
     const interval = setInterval(() => {
       if (currentStartTime) {
         const elapsed = Math.floor((new Date().getTime() - currentStartTime.getTime()) / 60000);
@@ -48,6 +49,7 @@ const TimeTracker = ({ timeEntries, totalTimeSpent, onAddTimeEntry }: TimeTracke
       }
     }, 60000);
 
+    // Store interval ID for cleanup
     (window as any).timeTrackingInterval = interval;
   };
 
@@ -57,13 +59,10 @@ const TimeTracker = ({ timeEntries, totalTimeSpent, onAddTimeEntry }: TimeTracke
       const duration = Math.floor((endTime.getTime() - currentStartTime.getTime()) / 60000);
       
       onAddTimeEntry({
-        employeeId: 'current-user',
-        userId: 'current-user',
-        userName: 'Current User',
+        userId: 'current-user', // This would come from auth context
+        userName: 'Current User', // This would come from auth context
         description: trackingDescription || 'Time tracked',
-        hours: Math.floor(duration / 60) || 1,
-        duration: duration || 1,
-        date: new Date(),
+        duration: duration || 1, // Minimum 1 minute
         startTime: currentStartTime,
         endTime,
       });
@@ -73,6 +72,7 @@ const TimeTracker = ({ timeEntries, totalTimeSpent, onAddTimeEntry }: TimeTracke
       setCurrentDuration(0);
       setTrackingDescription('');
       
+      // Clear interval
       if ((window as any).timeTrackingInterval) {
         clearInterval((window as any).timeTrackingInterval);
       }
@@ -86,13 +86,10 @@ const TimeTracker = ({ timeEntries, totalTimeSpent, onAddTimeEntry }: TimeTracke
       const startTime = new Date(now.getTime() - duration * 60000);
       
       onAddTimeEntry({
-        employeeId: 'current-user',
         userId: 'current-user',
         userName: 'Current User',
         description: manualDescription,
-        hours: Math.floor(duration / 60) || 1,
         duration,
-        date: now,
         startTime,
         endTime: now,
       });
@@ -203,7 +200,7 @@ const TimeTracker = ({ timeEntries, totalTimeSpent, onAddTimeEntry }: TimeTracke
                   </Badge>
                 </div>
                 <div className="text-gray-500 mt-1">
-                  {entry.userName} • {entry.date.toLocaleDateString()}
+                  {entry.userName} • {entry.startTime.toLocaleDateString()}
                 </div>
               </div>
             ))}

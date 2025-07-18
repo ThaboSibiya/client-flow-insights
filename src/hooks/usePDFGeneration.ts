@@ -1,58 +1,55 @@
 
 import { useState } from 'react';
 import { QuoteInvoice } from '@/types/quote';
+import { pdfGenerationService, PDFGenerationOptions } from '@/services/pdfGenerationService';
 import { toast } from '@/hooks/use-toast';
-
-export interface PDFOptions {
-  format?: 'A4' | 'Letter';
-  orientation?: 'portrait' | 'landscape';
-  includeAttachments?: boolean;
-  watermark?: string;
-  includeBranding?: boolean;
-  template?: 'professional' | 'modern' | 'classic' | 'minimal';
-}
 
 export const usePDFGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const generatePDF = async (quote: QuoteInvoice, options: PDFOptions = {}) => {
+  const generatePDF = async (quote: QuoteInvoice, options?: PDFGenerationOptions) => {
     setIsGenerating(true);
     try {
-      // Mock PDF generation - in a real app, this would call a service
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Create a mock PDF blob
-      const pdfContent = `PDF for ${quote.type} ${quote.number}`;
-      const blob = new Blob([pdfContent], { type: 'application/pdf' });
-      
-      // Create download link
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${quote.number}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
+      await pdfGenerationService.generatePDF(quote, options);
       toast({
-        title: "Success",
-        description: `PDF generated for ${quote.type} ${quote.number}`,
+        title: "PDF Generated",
+        description: "Your PDF has been generated and is ready for printing or saving.",
       });
     } catch (error) {
+      console.error('PDF generation failed:', error);
       toast({
-        title: "Error",
-        description: "Failed to generate PDF",
+        title: "PDF Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate PDF. Please try again.",
         variant: "destructive",
       });
-      throw error;
     } finally {
       setIsGenerating(false);
     }
   };
 
+  const downloadHTML = (quote: QuoteInvoice, options?: PDFGenerationOptions) => {
+    try {
+      pdfGenerationService.downloadHTML(quote, options || {
+        includeBranding: true,
+        template: 'professional',
+        watermark: false
+      });
+      toast({
+        title: "HTML Downloaded",
+        description: "HTML version downloaded for preview.",
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Failed to download HTML version.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return {
     generatePDF,
-    isGenerating,
+    downloadHTML,
+    isGenerating
   };
 };

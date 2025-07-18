@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Zap } from "lucide-react";
 
 interface AutomationBasicInfoProps {
   automationName: string;
@@ -26,23 +26,27 @@ const AutomationBasicInfo = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Basic Information</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Zap className="h-5 w-5 text-quikle-accent" />
+          Basic Information
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label htmlFor="automation-name">Automation Name</Label>
+          <Label htmlFor="automationName">Automation Name</Label>
           <Input
-            id="automation-name"
+            id="automationName"
             value={automationName}
             onChange={(e) => setAutomationName(e.target.value)}
-            placeholder="Enter automation name..."
+            placeholder="Enter a descriptive name..."
+            className="mt-1"
           />
         </div>
 
         <div>
-          <Label>Automation Type</Label>
-          <Select value={automationType} onValueChange={setAutomationType}>
-            <SelectTrigger>
+          <Label>Pipeline Type</Label>
+          <Select value={automationType} onValueChange={(value: 'customer' | 'ticket') => setAutomationType(value)}>
+            <SelectTrigger className="mt-1">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -54,16 +58,25 @@ const AutomationBasicInfo = ({
 
         <div>
           <Label>Trigger Complexity</Label>
-          <RadioGroup value={triggerType} onValueChange={setTriggerType} className="mt-2">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="simple" id="simple" />
-              <Label htmlFor="simple">Simple Trigger</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="advanced" id="advanced" />
-              <Label htmlFor="advanced">Advanced Conditions</Label>
-            </div>
-          </RadioGroup>
+          <Select value={triggerType} onValueChange={(value: 'simple' | 'advanced') => setTriggerType(value)}>
+            <SelectTrigger className="mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="simple">
+                <div>
+                  <div className="font-medium">Simple Trigger</div>
+                  <div className="text-xs text-muted-foreground">Single condition, easy setup</div>
+                </div>
+              </SelectItem>
+              <SelectItem value="advanced">
+                <div>
+                  <div className="font-medium">Advanced Trigger</div>
+                  <div className="text-xs text-muted-foreground">Multiple conditions, complex logic</div>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </CardContent>
     </Card>

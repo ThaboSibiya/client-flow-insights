@@ -11,8 +11,7 @@ import {
   UserPlus,
   UserCog,
   ShieldCheck,
-  Bot,
-  Settings
+  Bot
 } from 'lucide-react';
 import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import UserProfile from '@/components/auth/UserProfile';
@@ -30,7 +29,6 @@ const Sidebar = () => {
     { path: '/quotes', icon: FileText, label: 'Quotes & Invoices' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/onboarding', icon: UserPlus, label: 'Onboarding' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
   if (employee?.role === 'admin') {

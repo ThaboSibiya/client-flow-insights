@@ -1,184 +1,356 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   TrendingUp, 
   DollarSign, 
-  Target, 
-  Clock,
-  BarChart3,
-  PieChart,
+  AlertTriangle, 
+  Clock, 
+  Target,
   ArrowUpRight,
-  ArrowDownRight
+  Mail,
+  Calendar,
+  Loader2
 } from "lucide-react";
+import { useRevenueOptimization } from '@/hooks/useRevenueOptimization';
+import { PaymentReminderConfig } from '@/services/revenueOptimizationService';
 
 const RevenueOptimizationDashboard = () => {
-  const revenueMetrics = [
-    {
-      title: "Total Revenue",
-      value: "$45,280",
-      change: "+12%",
-      trend: "up",
-      icon: DollarSign
-    },
-    {
-      title: "Conversion Rate",
-      value: "68%",
-      change: "+5%",
-      trend: "up",
-      icon: Target
-    },
-    {
-      title: "Avg. Quote Value",
-      value: "$2,150",
-      change: "-3%",
-      trend: "down",
-      icon: BarChart3
-    },
-    {
-      title: "Response Time",
-      value: "2.3 days",
-      change: "-15%",
-      trend: "up",
-      icon: Clock
-    }
-  ];
+  const {
+    isProcessing,
+    isLoading,
+    upsellOpportunities,
+    revenueMetrics,
+    processOverdueInvoices,
+    generatePaymentReminders,
+    loadUpsellOpportunities,
+  } = useRevenueOptimization();
 
-  const optimizationSuggestions = [
-    {
-      title: "Increase Quote Follow-ups",
-      description: "42% of your quotes haven't received a follow-up after 7 days",
-      impact: "High",
-      effort: "Low"
-    },
-    {
-      title: "Optimize Pricing Strategy",
-      description: "Your quotes are 15% below market average",
-      impact: "High",
-      effort: "Medium"
-    },
-    {
-      title: "Faster Response Times",
-      description: "Reduce quote creation time by using templates",
-      impact: "Medium",
-      effort: "Low"
-    },
-    {
-      title: "Payment Terms Optimization",
-      description: "Consider offering early payment discounts",
-      impact: "Medium",
-      effort: "Low"
+  const reminderConfig: PaymentReminderConfig = useMemo(() => ({
+    enabled: true,
+    reminderDays: [3, 7, 14],
+    template: 'Friendly payment reminder',
+    escalateToFinance: true,
+  }), []);
+
+  const handleProcessOverdue = async () => {
+    await processOverdueInvoices();
+  };
+
+  const handleGenerateReminders = async () => {
+    await generatePaymentReminders(reminderConfig);
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-800 border-red-300';
+      case 'medium': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'low': return 'bg-blue-100 text-blue-800 border-blue-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
-  ];
+  };
+
+  // Loading skeleton for metrics
+  const MetricsSkeleton = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {[...Array(4)].map((_, i) => (
+        <Card key={i}>
+          <CardContent className="p-4">
+            <Skeleton className="h-4 w-24 mb-2" />
+            <Skeleton className="h-8 w-20" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <MetricsSkeleton />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-48" />
+          <Skeleton className="h-48" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Revenue Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {revenueMetrics.map((metric, index) => (
-          <Card key={index}>
-            <CardContent className="p-6">
+      {/* Revenue Metrics Overview */}
+      {revenueMetrics && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-quikle-slate">{metric.title}</p>
-                  <p className="text-2xl font-bold text-quikle-charcoal">{metric.value}</p>
-                  <div className="flex items-center mt-1">
-                    {metric.trend === 'up' ? (
-                      <ArrowUpRight className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <ArrowDownRight className="h-4 w-4 text-red-500" />
-                    )}
-                    <span className={`text-sm ml-1 ${
-                      metric.trend === 'up' ? 'text-green-500' : 'text-red-500'
-                    }`}>
-                      {metric.change}
-                    </span>
-                  </div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    R{revenueMetrics.totalRevenue.toFixed(2)}
+                  </p>
                 </div>
-                <div className="bg-quikle-crystal p-3 rounded-full">
-                  <metric.icon className="h-6 w-6 text-quikle-primary" />
-                </div>
+                <DollarSign className="h-8 w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
 
-      {/* Revenue Chart Placeholder */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Revenue Trends
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80 bg-gradient-to-br from-quikle-crystal to-quikle-platinum rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <PieChart className="h-16 w-16 text-quikle-primary mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-quikle-charcoal mb-2">Revenue Analytics</h3>
-              <p className="text-quikle-slate">Interactive charts and analytics will be displayed here</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Pending Revenue</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    R{revenueMetrics.pendingRevenue.toFixed(2)}
+                  </p>
+                </div>
+                <Clock className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Optimization Suggestions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Revenue Optimization Suggestions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {optimizationSuggestions.map((suggestion, index) => (
-              <div key={index} className="border border-quikle-silver/20 rounded-lg p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-quikle-charcoal mb-2">{suggestion.title}</h4>
-                    <p className="text-sm text-quikle-slate mb-3">{suggestion.description}</p>
-                    <div className="flex gap-2">
-                      <Badge variant={suggestion.impact === 'High' ? 'default' : 'secondary'}>
-                        {suggestion.impact} Impact
-                      </Badge>
-                      <Badge variant="outline">
-                        {suggestion.effort} Effort
-                      </Badge>
-                    </div>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Overdue Amount</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    R{revenueMetrics.overdueAmount.toFixed(2)}
+                  </p>
+                </div>
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Collection Rate</p>
+                  <p className="text-2xl font-bold text-purple-600">
+                    {revenueMetrics.paymentCollectionRate.toFixed(1)}%
+                  </p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <Tabs defaultValue="automation" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="automation">Automation</TabsTrigger>
+          <TabsTrigger value="upselling">Upselling</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="automation" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Payment Reminders */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Payment Reminders
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Reminder Schedule (Days Before Due)</label>
+                  <div className="flex gap-2">
+                    {reminderConfig.reminderDays.map((day, index) => (
+                      <Badge key={index} variant="outline">{day} days</Badge>
+                    ))}
                   </div>
-                  <Button size="sm" className="ml-4">
-                    Implement
+                </div>
+                <Button 
+                  onClick={handleGenerateReminders}
+                  disabled={isProcessing}
+                  className="w-full"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Generate Reminders
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Overdue Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  Overdue Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {revenueMetrics && (
+                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <p className="text-2xl font-bold text-red-600">{revenueMetrics.overdueInvoices}</p>
+                    <p className="text-sm text-red-600">Overdue Invoices</p>
+                  </div>
+                )}
+                <Button 
+                  onClick={handleProcessOverdue}
+                  disabled={isProcessing}
+                  variant="destructive"
+                  className="w-full"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      Process Overdue Invoices
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="upselling" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Upselling Opportunities
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {upsellOpportunities.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No upselling opportunities identified at this time.</p>
+                  <Button 
+                    onClick={loadUpsellOpportunities}
+                    variant="outline"
+                    className="mt-4"
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : null}
+                    Refresh Opportunities
                   </Button>
                 </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ) : (
+                <div className="space-y-4">
+                  {upsellOpportunities.map((opportunity) => (
+                    <div key={opportunity.id} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge className={getPriorityColor(opportunity.priority)}>
+                              {opportunity.priority.toUpperCase()}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">
+                              {opportunity.trigger.replace('_', ' ').toUpperCase()}
+                            </span>
+                          </div>
+                          <h4 className="font-semibold mb-1">{opportunity.recommendation}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Potential Value: R{opportunity.potentialValue.toFixed(2)}
+                          </p>
+                        </div>
+                        <Button size="sm" variant="outline">
+                          <ArrowUpRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Revenue Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button className="h-20 flex-col">
-              <Target className="h-6 w-6 mb-2" />
-              Set Revenue Goals
-            </Button>
-            <Button variant="outline" className="h-20 flex-col">
-              <BarChart3 className="h-6 w-6 mb-2" />
-              Analyze Pricing
-            </Button>
-            <Button variant="outline" className="h-20 flex-col">
-              <TrendingUp className="h-6 w-6 mb-2" />
-              Export Report
-            </Button>
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Quote Performance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {revenueMetrics ? (
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span>Total Quotes:</span>
+                      <span className="font-semibold">{revenueMetrics.totalQuotes}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Accepted Quotes:</span>
+                      <span className="font-semibold">{revenueMetrics.acceptedQuotes}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Acceptance Rate:</span>
+                      <span className="font-semibold text-green-600">
+                        {revenueMetrics.quoteAcceptanceRate.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-full" />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Invoice Performance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {revenueMetrics ? (
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span>Total Invoices:</span>
+                      <span className="font-semibold">{revenueMetrics.totalInvoices}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Paid Invoices:</span>
+                      <span className="font-semibold">{revenueMetrics.paidInvoices}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Collection Rate:</span>
+                      <span className="font-semibold text-green-600">
+                        {revenueMetrics.paymentCollectionRate.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-full" />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
