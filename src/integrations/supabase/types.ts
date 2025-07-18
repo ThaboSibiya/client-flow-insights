@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       automation_permissions: {
@@ -198,8 +203,148 @@ export type Database = {
           },
         ]
       }
+      customer_custom_data: {
+        Row: {
+          created_at: string | null
+          customer_id: string | null
+          field_id: string | null
+          field_value: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id?: string | null
+          field_id?: string | null
+          field_value?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string | null
+          field_id?: string | null
+          field_value?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_custom_data_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_custom_data_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "template_fields"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_equipment: {
+        Row: {
+          brand: string | null
+          created_at: string
+          customer_id: string
+          equipment_type: string
+          id: string
+          model: string | null
+          notes: string | null
+          purchase_date: string | null
+          serial_number: string | null
+          updated_at: string
+          user_id: string
+          warranty_expiry: string | null
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          customer_id: string
+          equipment_type?: string
+          id?: string
+          model?: string | null
+          notes?: string | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          updated_at?: string
+          user_id: string
+          warranty_expiry?: string | null
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          customer_id?: string
+          equipment_type?: string
+          id?: string
+          model?: string | null
+          notes?: string | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          updated_at?: string
+          user_id?: string
+          warranty_expiry?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_customer_equipment_customer"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_templates: {
+        Row: {
+          applied_at: string | null
+          customer_id: string | null
+          id: string
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          customer_id?: string | null
+          id?: string
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          customer_id?: string | null
+          id?: string
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_templates_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "industry_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
+          address: string | null
+          company_address: string | null
+          contact_person: string | null
           created_at: string
           email: string
           id: string
@@ -211,6 +356,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          address?: string | null
+          company_address?: string | null
+          contact_person?: string | null
           created_at?: string
           email: string
           id?: string
@@ -222,6 +370,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          address?: string | null
+          company_address?: string | null
+          contact_person?: string | null
           created_at?: string
           email?: string
           id?: string
@@ -693,6 +844,66 @@ export type Database = {
         }
         Relationships: []
       }
+      industry_customer_templates: {
+        Row: {
+          created_at: string
+          field_definitions: Json
+          id: string
+          industry: string
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          field_definitions: Json
+          id?: string
+          industry: string
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          field_definitions?: Json
+          id?: string
+          industry?: string
+          template_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      industry_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          industry: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          industry: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          industry?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          version?: number | null
+        }
+        Relationships: []
+      }
       job_completions: {
         Row: {
           after_status: string | null
@@ -923,6 +1134,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          business_type: string | null
           company: string | null
           company_address: string | null
           company_email: string | null
@@ -930,15 +1142,19 @@ export type Database = {
           company_phone: string | null
           created_at: string
           email: string | null
+          employee_count: number | null
           first_name: string | null
           id: string
+          industry: string | null
           last_name: string | null
+          onboarding_completed: boolean | null
           phone: string | null
           role: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          business_type?: string | null
           company?: string | null
           company_address?: string | null
           company_email?: string | null
@@ -946,15 +1162,19 @@ export type Database = {
           company_phone?: string | null
           created_at?: string
           email?: string | null
+          employee_count?: number | null
           first_name?: string | null
           id: string
+          industry?: string | null
           last_name?: string | null
+          onboarding_completed?: boolean | null
           phone?: string | null
           role?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          business_type?: string | null
           company?: string | null
           company_address?: string | null
           company_email?: string | null
@@ -962,9 +1182,12 @@ export type Database = {
           company_phone?: string | null
           created_at?: string
           email?: string | null
+          employee_count?: number | null
           first_name?: string | null
           id?: string
+          industry?: string | null
           last_name?: string | null
+          onboarding_completed?: boolean | null
           phone?: string | null
           role?: string | null
           updated_at?: string
@@ -1126,6 +1349,50 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_fields: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          field_label: string
+          field_name: string
+          field_options: Json | null
+          field_type: string
+          id: string
+          is_required: boolean | null
+          template_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          field_label: string
+          field_name: string
+          field_options?: Json | null
+          field_type: string
+          id?: string
+          is_required?: boolean | null
+          template_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          field_label?: string
+          field_name?: string
+          field_options?: Json | null
+          field_type?: string
+          id?: string
+          is_required?: boolean | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_fields_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "industry_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -1436,21 +1703,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -1468,14 +1739,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -1491,14 +1764,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -1514,14 +1789,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -1529,14 +1806,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
