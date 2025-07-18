@@ -1,43 +1,59 @@
 
 import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import MainLayout from './components/layout/MainLayout';
+import Dashboard from './pages/Dashboard';
+import Customers from './pages/Customers';
+import Conversations from './pages/Conversations';
+import Onboarding from './pages/Onboarding';
+import CustomerDetails from './pages/CustomerDetails';
+import Quotes from './pages/Quotes';
+import QuoteDetails from './pages/QuoteDetails';
+import Invoices from './pages/Invoices';
+import FormBuilder from './pages/FormBuilder';
+import CustomerInsights from './pages/Customer Insights';
+import TemplateManagement from './pages/TemplateManagement';
+import Settings from './pages/Settings';
+
+// Minimal providers to prevent context errors
+const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  return <div>{children}</div>;
+};
+
+const CRMProvider = ({ children }: { children: React.ReactNode }) => {
+  return <div>{children}</div>;
+};
 
 function App() {
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">CRM Dashboard</h1>
-      <div className="space-y-4">
-        <div className="p-4 bg-gray-100 rounded">
-          <h2 className="text-xl font-semibold">Dashboard</h2>
-          <p>Welcome to your CRM system</p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 bg-blue-100 rounded cursor-pointer hover:bg-blue-200">
-            <h3 className="font-medium">Customers</h3>
-          </div>
-          <div className="p-4 bg-green-100 rounded cursor-pointer hover:bg-green-200">
-            <h3 className="font-medium">Conversations</h3>
-          </div>
-          <div className="p-4 bg-yellow-100 rounded cursor-pointer hover:bg-yellow-200">
-            <h3 className="font-medium">Employees</h3>
-          </div>
-          <div className="p-4 bg-purple-100 rounded cursor-pointer hover:bg-purple-200">
-            <h3 className="font-medium">Pipeline</h3>
-          </div>
-          <div className="p-4 bg-red-100 rounded cursor-pointer hover:bg-red-200">
-            <h3 className="font-medium">Quotes</h3>
-          </div>
-          <div className="p-4 bg-indigo-100 rounded cursor-pointer hover:bg-indigo-200">
-            <h3 className="font-medium">Analytics</h3>
-          </div>
-          <div className="p-4 bg-pink-100 rounded cursor-pointer hover:bg-pink-200">
-            <h3 className="font-medium">Onboarding</h3>
-          </div>
-          <div className="p-4 bg-gray-100 rounded cursor-pointer hover:bg-gray-200">
-            <h3 className="font-medium">Settings</h3>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Router>
+      <AuthProvider>
+        <CRMProvider>
+          <Toaster />
+          <Routes>
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="customers" element={<Customers />} />
+              <Route path="conversations" element={<Conversations />} />
+              <Route path="employees" element={<div>Employees Page - Coming Soon</div>} />
+              <Route path="pipeline" element={<div>Pipeline Page - Coming Soon</div>} />
+              <Route path="quotes" element={<Quotes />} />
+              <Route path="analytics" element={<div>Analytics Page - Coming Soon</div>} />
+              <Route path="onboarding" element={<Onboarding />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="customers/:customerId" element={<CustomerDetails />} />
+              <Route path="quotes/:quoteId" element={<QuoteDetails />} />
+              <Route path="invoices" element={<Invoices />} />
+              <Route path="form-builder" element={<FormBuilder />} />
+              <Route path="customer-insights" element={<CustomerInsights />} />
+              <Route path="template-management" element={<TemplateManagement />} />
+            </Route>
+          </Routes>
+        </CRMProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
