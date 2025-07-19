@@ -94,7 +94,7 @@ const OnboardingForm = () => {
 
     try {
       // First add the customer
-      const newCustomer = await addCustomer({
+      await addCustomer({
         name: values.name,
         email: values.email,
         phone: values.phone,
@@ -103,7 +103,7 @@ const OnboardingForm = () => {
       });
 
       // If a template is selected and we have custom data, save it
-      if (selectedTemplate && newCustomer) {
+      if (selectedTemplate) {
         // We need to get the customer ID from the response
         // Since addCustomer doesn't return the ID, we'll need to find it
         // For now, let's assume we can use a temporary approach

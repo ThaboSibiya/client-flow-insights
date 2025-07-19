@@ -15,7 +15,7 @@ export interface TemplateField {
   template_id: string;
   field_name: string;
   field_label: string;
-  field_type: 'text' | 'email' | 'phone' | 'number' | 'date' | 'select' | 'textarea' | 'checkbox';
+  field_type: string; // Changed from union type to string to match Supabase
   field_options: {
     options?: string[];
     placeholder?: string;
