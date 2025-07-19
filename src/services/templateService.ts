@@ -24,7 +24,12 @@ export const templateService = {
       .order('display_order');
 
     if (error) throw error;
-    return data || [];
+    
+    // Transform the data to match our TemplateField interface
+    return (data || []).map(field => ({
+      ...field,
+      field_options: field.field_options as TemplateField['field_options']
+    }));
   },
 
   // Apply a template to a customer
