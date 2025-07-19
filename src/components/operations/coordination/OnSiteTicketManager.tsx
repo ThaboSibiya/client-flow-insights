@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Ticket, User, Clock, Search, CheckCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
+import CustomerContextCard from '../../customers/tickets/CustomerContextCard';
 
 interface OnSiteTicket {
   id: string;
@@ -17,6 +17,9 @@ interface OnSiteTicket {
   status: string;
   priority: string;
   customer_name: string;
+  customer_id: string;
+  customer_email?: string;
+  customer_phone?: string;
   assigned_to_name: string;
   created_at: string;
 }
@@ -50,7 +53,7 @@ const OnSiteTicketManager = () => {
 
       if (!employee) return;
 
-      // Get tickets for the company (assigned to current user or open)
+      // Get tickets with customer information for the company
       const { data, error } = await supabase
         .from('tickets')
         .select(`
@@ -61,7 +64,13 @@ const OnSiteTicketManager = () => {
           priority,
           created_at,
           assigned_to_name,
-          customers!inner(name)
+          customer_id,
+          customers!inner(
+            id,
+            name,
+            email,
+            phone
+          )
         `)
         .eq('user_id', employee.company_owner_id)
         .in('status', ['open', 'in-progress'])
@@ -76,6 +85,9 @@ const OnSiteTicketManager = () => {
         status: ticket.status,
         priority: ticket.priority,
         customer_name: ticket.customers?.name || 'Unknown',
+        customer_id: ticket.customer_id,
+        customer_email: ticket.customers?.email,
+        customer_phone: ticket.customers?.phone,
         assigned_to_name: ticket.assigned_to_name || 'Unassigned',
         created_at: ticket.created_at
       }));
@@ -284,76 +296,91 @@ const OnSiteTicketManager = () => {
       </Card>
 
       {selectedTicket && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5" />
-              Update Ticket Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium">{selectedTicket.ticket_number}</h4>
-              <p className="text-sm text-gray-600 mt-1">{selectedTicket.subject}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-sm">Customer:</span>
-                <span className="font-medium">{selectedTicket.customer_name}</span>
-              </div>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Customer Context */}
+          <div className="lg:col-span-1">
+            <CustomerContextCard
+              customerId={selectedTicket.customer_id}
+              customerName={selectedTicket.customer_name}
+              customerEmail={selectedTicket.customer_email}
+              customerPhone={selectedTicket.customer_phone}
+            />
+          </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">New Status</label>
-              <Select value={newStatus} onValueChange={setNewStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select new status..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="resolved">Resolved</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Ticket Update Form */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5" />
+                  Update Ticket Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium">{selectedTicket.ticket_number}</h4>
+                  <p className="text-sm text-gray-600 mt-1">{selectedTicket.subject}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-sm">Customer:</span>
+                    <span className="font-medium">{selectedTicket.customer_name}</span>
+                  </div>
+                </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Notes (Optional)</label>
-              <Textarea
-                placeholder="Add notes about the work completed..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-              />
-            </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">New Status</label>
+                  <Select value={newStatus} onValueChange={setNewStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select new status..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="in-progress">In Progress</SelectItem>
+                      <SelectItem value="resolved">Resolved</SelectItem>
+                      <SelectItem value="closed">Closed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {location && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <MapPin className="h-4 w-4" />
-                <span>Location captured</span>
-              </div>
-            )}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Notes (Optional)</label>
+                  <Textarea
+                    placeholder="Add notes about the work completed..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={3}
+                  />
+                </div>
 
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSelectedTicket(null);
-                  setNewStatus('');
-                  setNotes('');
-                }}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleUpdateTicketStatus}
-                disabled={!newStatus}
-                className="flex-1"
-              >
-                Update Status
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                {location && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <MapPin className="h-4 w-4" />
+                    <span>Location captured</span>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedTicket(null);
+                      setNewStatus('');
+                      setNotes('');
+                    }}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleUpdateTicketStatus}
+                    disabled={!newStatus}
+                    className="flex-1"
+                  >
+                    Update Status
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,13 +10,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CustomerTicket, TicketStatus } from '@/types/customer';
-import { User, Clock, AlertTriangle, AlertCircle, Timer, ChevronDown, ChevronUp, History, Star, ArrowUp } from 'lucide-react';
+import { User, Clock, AlertTriangle, AlertCircle, Timer, ChevronDown, ChevronUp, History, Star, ArrowUp, FileText } from 'lucide-react';
 import TimeTracker from './TimeTracker';
 import TicketAttachments from './TicketAttachments';
 import TicketComments from './TicketComments';
 import TicketHistory, { TicketHistoryItem } from './TicketHistory';
 import SatisfactionRating from './SatisfactionRating';
 import SLAStatus from '../../tickets/SLAStatus';
+import CustomDataDisplay from '../CustomDataDisplay';
 import { sendTicketNotification } from '@/services/ticketNotificationService';
 import { useTicketRouting } from '@/hooks/useTicketRouting';
 
@@ -203,8 +203,12 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
         {isExpanded && (
           <div className="border-t pt-4">
             <Tabs defaultValue="comments" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="comments">Comments</TabsTrigger>
+                <TabsTrigger value="customer-data">
+                  <FileText className="h-4 w-4 mr-1" />
+                  Customer Data
+                </TabsTrigger>
                 <TabsTrigger value="sla">SLA Status</TabsTrigger>
                 <TabsTrigger value="history">
                   <History className="h-4 w-4 mr-1" />
@@ -220,6 +224,17 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
                   customerEmail={customerEmail}
                   customerName={customerName}
                 />
+              </TabsContent>
+
+              <TabsContent value="customer-data" className="mt-4">
+                {customerId ? (
+                  <CustomDataDisplay customerId={customerId} />
+                ) : (
+                  <div className="text-center py-6">
+                    <FileText className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                    <p className="text-gray-500">No customer data available</p>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="sla" className="mt-4">

@@ -1,16 +1,28 @@
 
 import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, AlertCircle, CheckCircle } from "lucide-react";
+import { Clock, AlertCircle, CheckCircle, FileText } from "lucide-react";
 import { OnSiteTicket } from '../types';
+import CustomerContextCard from '../../tickets/CustomerContextCard';
 
 interface TicketsTabProps {
   tickets: OnSiteTicket[];
   loading: boolean;
+  customerId?: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
 }
 
-export const TicketsTab = ({ tickets, loading }: TicketsTabProps) => {
+export const TicketsTab = ({ 
+  tickets, 
+  loading, 
+  customerId,
+  customerName,
+  customerEmail,
+  customerPhone
+}: TicketsTabProps) => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'bg-red-100 text-red-800 border-red-300';
@@ -48,42 +60,54 @@ export const TicketsTab = ({ tickets, loading }: TicketsTabProps) => {
     );
   }
 
-  if (tickets.length === 0) {
-    return (
-      <div className="text-center py-6">
-        <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-2" />
-        <p className="text-gray-500">No pending tickets for this customer</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-3 max-h-60 overflow-y-auto">
-      {tickets.map((ticket) => (
-        <Card key={ticket.id} className="border-l-4 border-l-blue-500">
-          <CardContent className="p-3">
-            <div className="flex justify-between items-start mb-2">
-              <div className="flex-1">
-                <h4 className="font-medium text-sm text-gray-900">{ticket.ticket_number}</h4>
-                <p className="text-sm text-gray-600 mt-1">{ticket.subject}</p>
-              </div>
-              <div className="flex gap-1 ml-2">
-                <Badge className={getPriorityColor(ticket.priority)} variant="outline">
-                  {ticket.priority === 'urgent' && <AlertCircle className="h-3 w-3 mr-1" />}
-                  {ticket.priority}
-                </Badge>
-                <Badge className={getStatusColor(ticket.status)} variant="outline">
-                  {ticket.status}
-                </Badge>
-              </div>
-            </div>
-            <div className="flex items-center text-xs text-gray-500">
-              <Clock className="h-3 w-3 mr-1" />
-              <span>Created {formatDate(ticket.created_at)}</span>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="space-y-4">
+      {/* Customer Context Card */}
+      {customerId && customerName && (
+        <CustomerContextCard
+          customerId={customerId}
+          customerName={customerName}
+          customerEmail={customerEmail}
+          customerPhone={customerPhone}
+          compact={true}
+        />
+      )}
+
+      {/* Tickets List */}
+      {tickets.length === 0 ? (
+        <div className="text-center py-6">
+          <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-2" />
+          <p className="text-gray-500">No pending tickets for this customer</p>
+        </div>
+      ) : (
+        <div className="space-y-3 max-h-60 overflow-y-auto">
+          {tickets.map((ticket) => (
+            <Card key={ticket.id} className="border-l-4 border-l-blue-500">
+              <CardContent className="p-3">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-sm text-gray-900">{ticket.ticket_number}</h4>
+                    <p className="text-sm text-gray-600 mt-1">{ticket.subject}</p>
+                  </div>
+                  <div className="flex gap-1 ml-2">
+                    <Badge className={getPriorityColor(ticket.priority)} variant="outline">
+                      {ticket.priority === 'urgent' && <AlertCircle className="h-3 w-3 mr-1" />}
+                      {ticket.priority}
+                    </Badge>
+                    <Badge className={getStatusColor(ticket.status)} variant="outline">
+                      {ticket.status}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="flex items-center text-xs text-gray-500">
+                  <Clock className="h-3 w-3 mr-1" />
+                  <span>Created {formatDate(ticket.created_at)}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
