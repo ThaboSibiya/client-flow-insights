@@ -62,7 +62,7 @@ const CustomDataDisplay = ({ customerId }: CustomDataDisplayProps) => {
 
   return (
     <div className="space-y-6">
-      {appliedTemplates.map((template) => {
+      {appliedTemplates.map((template, templateIndex) => {
         const templateFieldsForTemplate = templateFields.filter(f => f.template_id === template.id);
         
         if (templateFieldsForTemplate.length === 0) return null;
@@ -87,7 +87,7 @@ const CustomDataDisplay = ({ customerId }: CustomDataDisplayProps) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {templateFieldsForTemplate
                   .sort((a, b) => a.display_order - b.display_order)
-                  .map((field, index) => {
+                  .map((field) => {
                     const value = getFieldValue(field.id);
                     const formattedValue = formatFieldValue(field, value);
                     const isEmpty = !value || value.trim() === '';
@@ -117,7 +117,7 @@ const CustomDataDisplay = ({ customerId }: CustomDataDisplayProps) => {
                   })}
               </div>
               
-              {index < appliedTemplates.length - 1 && (
+              {templateIndex < appliedTemplates.length - 1 && (
                 <Separator className="mt-6" />
               )}
             </CardContent>
