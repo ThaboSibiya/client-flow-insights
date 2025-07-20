@@ -37,6 +37,7 @@ export const useCustomTemplates = () => {
     const loadFields = async () => {
       if (!selectedTemplate) {
         setTemplateFields([]);
+        setCustomFieldValues({});
         return;
       }
 
@@ -86,34 +87,10 @@ export const useCustomTemplates = () => {
     return true;
   };
 
-  const saveCustomData = async (customerId: string, userId: string): Promise<void> => {
-    if (!selectedTemplate) return;
-
-    try {
-      // Apply template to customer
-      await templateService.applyTemplateToCustomer(customerId, selectedTemplate.id, userId);
-
-      // Save all custom field data
-      const savePromises = Object.entries(customFieldValues)
-        .filter(([_, value]) => value.trim()) // Only save non-empty values
-        .map(([fieldId, value]) => 
-          templateService.saveCustomFieldData(customerId, fieldId, value, userId)
-        );
-
-      await Promise.all(savePromises);
-
-      toast({
-        title: "Success",
-        description: `${selectedTemplate.name} template applied successfully`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: `Failed to save custom data: ${error.message}`,
-        variant: "destructive",
-      });
-      throw error;
-    }
+  const resetTemplate = () => {
+    setSelectedTemplate(null);
+    setTemplateFields([]);
+    setCustomFieldValues({});
   };
 
   return {
@@ -124,7 +101,7 @@ export const useCustomTemplates = () => {
     customFieldValues,
     updateCustomFieldValue,
     validateRequiredFields,
-    saveCustomData,
+    resetTemplate,
     loading
   };
 };

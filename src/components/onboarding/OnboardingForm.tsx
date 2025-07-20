@@ -29,6 +29,7 @@ import { useNavigate } from 'react-router-dom';
 import TemplateSelector from '@/components/templates/TemplateSelector';
 import CustomFieldRenderer from '@/components/templates/CustomFieldRenderer';
 import { useCustomTemplates } from '@/hooks/useCustomTemplates';
+import { addCustomer as addCustomerService } from '@/services/customerService';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -47,7 +48,6 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const OnboardingForm = () => {
-  const { addCustomer } = useCRM();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,7 +60,6 @@ const OnboardingForm = () => {
     customFieldValues,
     updateCustomFieldValue,
     validateRequiredFields,
-    saveCustomData,
     loading: templatesLoading
   } = useCustomTemplates();
 
@@ -93,37 +92,58 @@ const OnboardingForm = () => {
     setIsSubmitting(true);
 
     try {
-      // First add the customer
-      await addCustomer({
+      // First create the customer and get the actual customer ID
+      const newCustomer = await addCustomerService({
         name: values.name,
         email: values.email,
         phone: values.phone,
         status: values.status as CustomerStatus,
         notes: values.notes || '',
-      });
+        activeTickets: [],
+        ticketCount: 0
+      }, user.id);
 
-      // If a template is selected and we have custom data, save it
-      if (selectedTemplate) {
-        // We need to get the customer ID from the response
-        // Since addCustomer doesn't return the ID, we'll need to find it
-        // For now, let's assume we can use a temporary approach
-        const tempCustomerId = `temp-${Date.now()}`;
-        await saveCustomData(tempCustomerId, user.id);
+      if (!newCustomer) {
+        throw new Error('Failed to create customer');
+      }
+
+      // If a template is selected and we have custom data, save it with the real customer ID
+      if (selectedTemplate && Object.keys(customFieldValues).length > 0) {
+        const { templateService } = await import('@/services/templateService');
+        
+        // Apply template to customer
+        await templateService.applyTemplateToCustomer(newCustomer.id, selectedTemplate.id, user.id);
+
+        // Save all custom field data with non-empty values
+        const savePromises = Object.entries(customFieldValues)
+          .filter(([_, value]) => value.trim()) // Only save non-empty values
+          .map(([fieldId, value]) => 
+            templateService.saveCustomFieldData(newCustomer.id, fieldId, value, user.id)
+          );
+
+        await Promise.all(savePromises);
+
+        toast({
+          title: "Success",
+          description: `${values.name} has been successfully onboarded with ${selectedTemplate.name} template.`,
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `${values.name} has been successfully onboarded.`,
+        });
       }
       
+      // Reset form and template selection
       form.reset();
       setSelectedTemplate(null);
       
-      toast({
-        title: "Success",
-        description: `${values.name} has been successfully onboarded${selectedTemplate ? ` with ${selectedTemplate.name} template` : ''}.`,
-      });
-      
-      // Optionally redirect to customers page after successful submission
+      // Redirect to customers page after successful submission
       setTimeout(() => {
         navigate('/customers');
       }, 1500);
     } catch (error: any) {
+      console.error('Onboarding error:', error);
       toast({
         title: "Error",
         description: `Failed to add customer: ${error.message}`,
