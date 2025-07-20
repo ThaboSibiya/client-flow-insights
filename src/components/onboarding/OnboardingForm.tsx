@@ -27,7 +27,6 @@ import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import TemplateSelector from '@/components/templates/TemplateSelector';
-import CustomFieldRenderer from '@/components/templates/CustomFieldRenderer';
 import { useCustomTemplates } from '@/hooks/useCustomTemplates';
 import { addCustomer as addCustomerService } from '@/services/customerService';
 import { ArrowDown, Sparkles } from 'lucide-react';
@@ -158,12 +157,14 @@ const OnboardingForm = () => {
 
   return (
     <div className="space-y-6">
-      {/* Template Selection with Real-time Preview */}
+      {/* Template Selection with Popup Preview */}
       <TemplateSelector
         templates={templates}
         selectedTemplate={selectedTemplate}
         onSelectTemplate={setSelectedTemplate}
         templateFields={templateFields}
+        customFieldValues={customFieldValues}
+        onFieldValueChange={updateCustomFieldValue}
         fieldsLoading={templatesLoading}
         loading={templatesLoading}
       />
@@ -187,7 +188,7 @@ const OnboardingForm = () => {
           </CardTitle>
           {selectedTemplate && (
             <p className="text-sm text-quikle-slate">
-              Using <span className="font-medium text-quikle-primary">{selectedTemplate.name}</span> template
+              Using <span className="font-medium text-quikle-primary">{selectedTemplate.name}</span> template - use the Preview & Edit button above to manage template fields
             </p>
           )}
         </CardHeader>
@@ -262,39 +263,6 @@ const OnboardingForm = () => {
                   )}
                 />
               </div>
-
-              {/* Custom Template Fields with Visual Feedback */}
-              {selectedTemplate && templateFields.length > 0 && (
-                <div className="space-y-6 animate-fade-in">
-                  <div className="border-t border-quikle-silver/20 pt-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="p-2 bg-gradient-to-r from-quikle-primary/10 to-quikle-secondary/10 rounded-lg">
-                        {/* Template icon based on industry */}
-                        <Sparkles className="h-4 w-4 text-quikle-primary" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-quikle-charcoal">
-                          {selectedTemplate.name} Information
-                        </h3>
-                        <p className="text-sm text-quikle-slate">
-                          Complete these fields to fully utilize your template
-                        </p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {templateFields.map((field) => (
-                        <div key={field.id} className="transition-all duration-200 hover:scale-[1.01]">
-                          <CustomFieldRenderer
-                            field={field}
-                            value={customFieldValues[field.id] || ''}
-                            onChange={(value) => updateCustomFieldValue(field.id, value)}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
               
               <FormField
                 control={form.control}
