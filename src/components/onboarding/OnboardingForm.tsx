@@ -30,6 +30,7 @@ import TemplateSelector from '@/components/templates/TemplateSelector';
 import CustomFieldRenderer from '@/components/templates/CustomFieldRenderer';
 import { useCustomTemplates } from '@/hooks/useCustomTemplates';
 import { addCustomer as addCustomerService } from '@/services/customerService';
+import { ArrowDown, Sparkles } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -60,6 +61,7 @@ const OnboardingForm = () => {
     customFieldValues,
     updateCustomFieldValue,
     validateRequiredFields,
+    resetTemplate,
     loading: templatesLoading
   } = useCustomTemplates();
 
@@ -136,7 +138,7 @@ const OnboardingForm = () => {
       
       // Reset form and template selection
       form.reset();
-      setSelectedTemplate(null);
+      resetTemplate();
       
       // Redirect to customers page after successful submission
       setTimeout(() => {
@@ -156,13 +158,26 @@ const OnboardingForm = () => {
 
   return (
     <div className="space-y-6">
-      {/* Template Selection */}
+      {/* Template Selection with Real-time Preview */}
       <TemplateSelector
         templates={templates}
         selectedTemplate={selectedTemplate}
         onSelectTemplate={setSelectedTemplate}
+        templateFields={templateFields}
+        fieldsLoading={templatesLoading}
         loading={templatesLoading}
       />
+
+      {/* Visual Flow Indicator */}
+      {selectedTemplate && (
+        <div className="flex items-center justify-center animate-bounce">
+          <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-quikle-primary/10 to-quikle-secondary/10 rounded-full border border-quikle-primary/20">
+            <Sparkles className="h-4 w-4 text-quikle-primary" />
+            <span className="text-sm font-medium text-quikle-primary">Ready to add customer information</span>
+            <ArrowDown className="h-4 w-4 text-quikle-primary" />
+          </div>
+        </div>
+      )}
 
       {/* Customer Form */}
       <Card className="bg-gradient-to-br from-white via-quikle-crystal to-quikle-platinum border-quikle-silver/30 shadow-luxury">
@@ -170,6 +185,11 @@ const OnboardingForm = () => {
           <CardTitle className="bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">
             Customer Information
           </CardTitle>
+          {selectedTemplate && (
+            <p className="text-sm text-quikle-slate">
+              Using <span className="font-medium text-quikle-primary">{selectedTemplate.name}</span> template
+            </p>
+          )}
         </CardHeader>
         <CardContent className="pt-6">
           <Form {...form}>
@@ -243,21 +263,33 @@ const OnboardingForm = () => {
                 />
               </div>
 
-              {/* Custom Template Fields */}
+              {/* Custom Template Fields with Visual Feedback */}
               {selectedTemplate && templateFields.length > 0 && (
-                <div className="space-y-6">
+                <div className="space-y-6 animate-fade-in">
                   <div className="border-t border-quikle-silver/20 pt-6">
-                    <h3 className="text-lg font-semibold text-quikle-charcoal mb-4">
-                      {selectedTemplate.name} Information
-                    </h3>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-gradient-to-r from-quikle-primary/10 to-quikle-secondary/10 rounded-lg">
+                        {/* Template icon based on industry */}
+                        <Sparkles className="h-4 w-4 text-quikle-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-quikle-charcoal">
+                          {selectedTemplate.name} Information
+                        </h3>
+                        <p className="text-sm text-quikle-slate">
+                          Complete these fields to fully utilize your template
+                        </p>
+                      </div>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {templateFields.map((field) => (
-                        <CustomFieldRenderer
-                          key={field.id}
-                          field={field}
-                          value={customFieldValues[field.id] || ''}
-                          onChange={(value) => updateCustomFieldValue(field.id, value)}
-                        />
+                        <div key={field.id} className="transition-all duration-200 hover:scale-[1.01]">
+                          <CustomFieldRenderer
+                            field={field}
+                            value={customFieldValues[field.id] || ''}
+                            onChange={(value) => updateCustomFieldValue(field.id, value)}
+                          />
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -284,10 +316,22 @@ const OnboardingForm = () => {
               
               <Button 
                 type="submit" 
-                className="bg-gradient-to-r from-quikle-primary to-quikle-secondary hover:shadow-luxury"
+                className="bg-gradient-to-r from-quikle-primary to-quikle-secondary hover:shadow-luxury transform hover:scale-[1.02] transition-all duration-200"
                 disabled={isSubmitting}
+                size="lg"
               >
-                {isSubmitting ? 'Adding Customer...' : 'Add Customer'}
+                {isSubmitting ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Adding Customer...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Add Customer
+                    {selectedTemplate && <span>with {selectedTemplate.name}</span>}
+                  </div>
+                )}
               </Button>
             </form>
           </Form>
