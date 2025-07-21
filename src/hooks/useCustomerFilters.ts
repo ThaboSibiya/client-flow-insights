@@ -74,7 +74,6 @@ export const useCustomerFilters = (customers: Customer[]) => {
         customer.address,
         customer.notes,
         customer.contact_person,
-        customer.company_address,
         customer.status,
         customer.territory,
         customer.assigned_to_email
