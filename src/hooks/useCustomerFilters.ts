@@ -73,7 +73,6 @@ export const useCustomerFilters = (customers: Customer[]) => {
         customer.phone,
         customer.address,
         customer.notes,
-        customer.contact_person,
         customer.status,
         customer.territory,
         customer.assigned_to_email
