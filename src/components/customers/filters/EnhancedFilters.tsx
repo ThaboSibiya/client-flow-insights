@@ -77,10 +77,10 @@ const EnhancedFilters = ({
         {/* Basic Filters Row */}
         <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-1">
-            {/* Search */}
+            {/* Enhanced Search */}
             <div className="relative min-w-[300px]">
               <Input
-                placeholder="Search customers by name, email, or phone..."
+                placeholder="Search customers, tickets, notes, contacts, equipment..."
                 value={searchQuery}
                 onChange={(e) => onSearchQueryChange(e.target.value)}
                 className="pl-9 bg-white border-quikle-silver/50 shadow-sm hover:shadow focus:shadow-md transition-all focus:border-quikle-primary/50 text-quikle-charcoal"

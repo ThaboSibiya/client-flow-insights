@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useCallback } from 'react';
 import { Customer } from '@/types/customer';
 import { useDebounce } from './useDebounce';
@@ -60,16 +59,68 @@ export const useCustomerFilters = (customers: Customer[]) => {
   // Debounce search query to reduce unnecessary filtering
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
+  // Enhanced search function that searches across all customer data
+  const searchFunction = useMemo(() => {
+    return (customer: Customer, query: string) => {
+      if (!query) return true;
+      
+      const searchLower = query.toLowerCase();
+      
+      // Basic customer information
+      const basicMatch = [
+        customer.name,
+        customer.email,
+        customer.phone,
+        customer.address,
+        customer.notes,
+        customer.contact_person,
+        customer.company_address,
+        customer.status,
+        customer.territory,
+        customer.assigned_to_email
+      ].some(field => 
+        field && field.toLowerCase().includes(searchLower)
+      );
+      
+      if (basicMatch) return true;
+      
+      // Search in active tickets
+      const ticketMatch = customer.activeTickets?.some(ticket => 
+        [
+          ticket.ticketNumber,
+          ticket.subject,
+          ticket.description,
+          ticket.status,
+          ticket.priority,
+          ticket.assignedTo?.name,
+          ticket.assignedTo?.email
+        ].some(field => 
+          field && field.toLowerCase().includes(searchLower)
+        )
+      );
+      
+      if (ticketMatch) return true;
+      
+      // Search in time entries within tickets
+      const timeEntryMatch = customer.activeTickets?.some(ticket =>
+        ticket.timeEntries?.some(entry =>
+          [
+            entry.userName,
+            entry.description
+          ].some(field => 
+            field && field.toLowerCase().includes(searchLower)
+          )
+        )
+      );
+      
+      return timeEntryMatch || false;
+    };
+  }, []);
+
   // Memoize filter functions for better performance
   const filterFunctions = useMemo(() => ({
     status: (customer: Customer) => statusFilter === 'all' || customer.status === statusFilter,
-    search: (customer: Customer) => {
-      if (!debouncedSearchQuery) return true;
-      const query = debouncedSearchQuery.toLowerCase();
-      return customer.name.toLowerCase().includes(query) ||
-             customer.email.toLowerCase().includes(query) ||
-             customer.phone.toLowerCase().includes(query);
-    },
+    search: (customer: Customer) => searchFunction(customer, debouncedSearchQuery),
     dateRange: (customer: Customer) => {
       if (!dateRange.start && !dateRange.end) return true;
       if (dateRange.start && customer.createdAt < dateRange.start) return false;
@@ -90,7 +141,7 @@ export const useCustomerFilters = (customers: Customer[]) => {
           return true;
       }
     }
-  }), [statusFilter, debouncedSearchQuery, dateRange, ticketFilter]);
+  }), [statusFilter, debouncedSearchQuery, dateRange, ticketFilter, searchFunction]);
 
   // Memoize sort function
   const sortFunction = useMemo(() => {
