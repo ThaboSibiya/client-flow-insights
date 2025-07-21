@@ -32,7 +32,7 @@ const CustomerTableRow = ({
   onManageTickets,
   rowIndex
 }: CustomerTableRowProps) => {
-  const { appliedTemplates, loading } = useCustomerCustomData(customer.id);
+  const { customData, templateFields, appliedTemplates, loading } = useCustomerCustomData(customer.id);
   
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -41,6 +41,37 @@ const CustomerTableRow = ({
       day: 'numeric',
     }).format(date);
   };
+
+  // Get key template data for inline display
+  const getKeyTemplateData = () => {
+    if (loading || !templateFields.length || !customData.length) return [];
+    
+    // Get the first 2-3 most important filled fields
+    const keyData = templateFields
+      .filter(field => {
+        const data = customData.find(cd => cd.field_id === field.id);
+        return data && data.field_value && data.field_value.trim();
+      })
+      .sort((a, b) => {
+        // Prioritize required fields and display order
+        if (a.is_required && !b.is_required) return -1;
+        if (!a.is_required && b.is_required) return 1;
+        return a.display_order - b.display_order;
+      })
+      .slice(0, 3)
+      .map(field => {
+        const data = customData.find(cd => cd.field_id === field.id);
+        return {
+          label: field.field_label,
+          value: data?.field_value || '',
+          isRequired: field.is_required
+        };
+      });
+    
+    return keyData;
+  };
+
+  const keyTemplateData = getKeyTemplateData();
 
   return (
     <TableRow className={`hover:bg-quikle-crystal/30 transition-colors ${isSelected ? 'bg-quikle-primary/10' : ''}`}>
@@ -52,27 +83,44 @@ const CustomerTableRow = ({
       </TableCell>
       <TableCell className="font-medium text-quikle-charcoal">
         <div className="flex items-center gap-2">
-          <span>{customer.name}</span>
-          {!loading && appliedTemplates.length > 0 && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Badge variant="secondary" className="bg-quikle-primary/10 text-quikle-primary text-xs px-1.5 py-0.5">
-                    <FileText className="h-3 w-3 mr-1" />
-                    {appliedTemplates.length}
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="text-xs">
-                    <p className="font-medium mb-1">Applied Templates:</p>
-                    {appliedTemplates.map(template => (
-                      <p key={template.id}>{template.name} ({template.industry})</p>
-                    ))}
+          <div>
+            <div className="flex items-center gap-2">
+              <span>{customer.name}</span>
+              {!loading && appliedTemplates.length > 0 && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Badge variant="secondary" className="bg-quikle-primary/10 text-quikle-primary text-xs px-1.5 py-0.5">
+                        <FileText className="h-3 w-3 mr-1" />
+                        {appliedTemplates.length}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="text-xs">
+                        <p className="font-medium mb-1">Applied Templates:</p>
+                        {appliedTemplates.map(template => (
+                          <p key={template.id}>{template.name} ({template.industry})</p>
+                        ))}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+            {/* Display key template data inline */}
+            {keyTemplateData.length > 0 && (
+              <div className="mt-1 space-y-1">
+                {keyTemplateData.map((data, index) => (
+                  <div key={index} className="text-xs text-quikle-slate">
+                    <span className={`font-medium ${data.isRequired ? 'text-quikle-primary' : ''}`}>
+                      {data.label}:
+                    </span>
+                    <span className="ml-1">{data.value}</span>
                   </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </TableCell>
       <TableCell className="text-quikle-slate">{customer.email}</TableCell>

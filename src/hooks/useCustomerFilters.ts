@@ -1,262 +1,129 @@
-import { useState, useMemo, useCallback } from 'react';
-import { Customer } from '@/types/customer';
-import { useDebounce } from './useDebounce';
-import { getDateRange } from '@/utils/dateUtils';
 
-export interface FilterPreset {
-  id: string;
-  name: string;
-  filters: {
-    status: string;
-    ticketFilter: string;
-    dateRange: { start: Date | null; end: Date | null };
-    searchQuery: string;
-  };
+import { useState, useMemo } from 'react';
+import { Customer } from '@/types/customer';
+
+export interface FilterState {
+  search: string;
+  status: string;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
 }
 
-const DEFAULT_PRESETS: FilterPreset[] = [
-  {
-    id: 'new-customers',
-    name: 'New Customers',
-    filters: {
-      status: 'new',
-      ticketFilter: 'all',
-      dateRange: { start: null, end: null },
-      searchQuery: '',
-    },
-  },
-  {
-    id: 'urgent-tickets',
-    name: 'Urgent Tickets',
-    filters: {
-      status: 'all',
-      ticketFilter: 'urgent-tickets',
-      dateRange: { start: null, end: null },
-      searchQuery: '',
-    },
-  },
-  {
-    id: 'recent-customers',
-    name: 'Last 7 Days',
-    filters: {
-      status: 'all',
-      ticketFilter: 'all',
-      dateRange: getDateRange('week'),
-      searchQuery: '',
-    },
-  },
-];
-
 export const useCustomerFilters = (customers: Customer[]) => {
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [ticketFilter, setTicketFilter] = useState<string>('all');
-  const [dateRange, setDateRange] = useState<{start: Date | null, end: Date | null}>({start: null, end: null});
-  const [savedPresets, setSavedPresets] = useState<FilterPreset[]>(DEFAULT_PRESETS);
-  const [sortBy, setSortBy] = useState<string>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [filters, setFilters] = useState<FilterState>({
+    search: '',
+    status: 'all',
+    sortBy: 'name',
+    sortOrder: 'asc'
+  });
 
-  // Debounce search query to reduce unnecessary filtering
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const filteredAndSortedCustomers = useMemo(() => {
+    let filtered = customers;
 
-  // Enhanced search function that searches across all customer data
-  const searchFunction = useMemo(() => {
-    return (customer: Customer, query: string) => {
-      if (!query) return true;
-      
-      const searchLower = query.toLowerCase();
-      
-      // Basic customer information
-      const basicMatch = [
-        customer.name,
-        customer.email,
-        customer.phone,
-        customer.address,
-        customer.notes,
-        customer.status,
-        customer.territory,
-        customer.assigned_to_email
-      ].some(field => 
-        field && field.toLowerCase().includes(searchLower)
-      );
-      
-      if (basicMatch) return true;
-      
-      // Search in active tickets
-      const ticketMatch = customer.activeTickets?.some(ticket => 
-        [
+    // Apply search filter - now includes template data search
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      filtered = customers.filter(customer => {
+        // Basic customer info search
+        const basicSearch = [
+          customer.name,
+          customer.email,
+          customer.phone,
+          customer.address,
+          customer.notes,
+          customer.status,
+          customer.territory,
+          customer.assigned_to_email
+        ].some(field => 
+          field?.toLowerCase().includes(searchTerm)
+        );
+
+        // Ticket-related search
+        const ticketSearch = customer.activeTickets?.some(ticket => [
           ticket.ticketNumber,
           ticket.subject,
           ticket.description,
-          ticket.status,
           ticket.priority,
+          ticket.status,
           ticket.assignedTo?.name,
-          ticket.assignedTo?.email
+          ticket.assignedTo?.email,
+          // Search in time entries
+          ...ticket.timeEntries.map(entry => [
+            entry.description,
+            entry.userName
+          ]).flat()
         ].some(field => 
-          field && field.toLowerCase().includes(searchLower)
-        )
-      );
-      
-      if (ticketMatch) return true;
-      
-      // Search in time entries within tickets
-      const timeEntryMatch = customer.activeTickets?.some(ticket =>
-        ticket.timeEntries?.some(entry =>
-          [
-            entry.userName,
-            entry.description
-          ].some(field => 
-            field && field.toLowerCase().includes(searchLower)
-          )
-        )
-      );
-      
-      return timeEntryMatch || false;
-    };
-  }, []);
+          field?.toLowerCase().includes(searchTerm)
+        )) || false;
 
-  // Memoize filter functions for better performance
-  const filterFunctions = useMemo(() => ({
-    status: (customer: Customer) => statusFilter === 'all' || customer.status === statusFilter,
-    search: (customer: Customer) => searchFunction(customer, debouncedSearchQuery),
-    dateRange: (customer: Customer) => {
-      if (!dateRange.start && !dateRange.end) return true;
-      if (dateRange.start && customer.createdAt < dateRange.start) return false;
-      if (dateRange.end && customer.createdAt > dateRange.end) return false;
-      return true;
-    },
-    ticket: (customer: Customer) => {
-      switch (ticketFilter) {
-        case 'with-tickets':
-          return customer.ticketCount > 0;
-        case 'no-tickets':
-          return customer.ticketCount === 0;
-        case 'urgent-tickets':
-          return customer.activeTickets?.some(t => t.priority === 'urgent' && t.status !== 'closed') || false;
-        case 'open-tickets':
-          return customer.activeTickets?.some(t => t.status === 'open' || t.status === 'in-progress') || false;
-        default:
-          return true;
-      }
+        return basicSearch || ticketSearch;
+      });
     }
-  }), [statusFilter, debouncedSearchQuery, dateRange, ticketFilter, searchFunction]);
 
-  // Memoize sort function
-  const sortFunction = useMemo(() => {
-    return (a: Customer, b: Customer) => {
+    // Apply status filter
+    if (filters.status !== 'all') {
+      filtered = filtered.filter(customer => customer.status === filters.status);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
       let aValue: any;
       let bValue: any;
 
-      switch (sortBy) {
+      switch (filters.sortBy) {
         case 'name':
-          aValue = a.name.toLowerCase();
-          bValue = b.name.toLowerCase();
+          aValue = a.name;
+          bValue = b.name;
+          break;
+        case 'email':
+          aValue = a.email;
+          bValue = b.email;
           break;
         case 'status':
           aValue = a.status;
           bValue = b.status;
           break;
         case 'createdAt':
-          aValue = a.createdAt;
-          bValue = b.createdAt;
+          aValue = new Date(a.createdAt);
+          bValue = new Date(b.createdAt);
+          break;
+        case 'ticketCount':
+          aValue = a.ticketCount || 0;
+          bValue = b.ticketCount || 0;
           break;
         default:
-          aValue = a.name.toLowerCase();
-          bValue = b.name.toLowerCase();
+          aValue = a.name;
+          bValue = b.name;
       }
 
-      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      if (aValue < bValue) return filters.sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return filters.sortOrder === 'asc' ? 1 : -1;
       return 0;
-    };
-  }, [sortBy, sortOrder]);
+    });
 
-  // Memoized filtered and sorted customers
-  const filteredCustomers = useMemo(() => {
-    const filtered = customers.filter(customer => 
-      filterFunctions.status(customer) &&
-      filterFunctions.search(customer) &&
-      filterFunctions.dateRange(customer) &&
-      filterFunctions.ticket(customer)
-    );
+    return filtered;
+  }, [customers, filters]);
 
-    return filtered.sort(sortFunction);
-  }, [customers, filterFunctions, sortFunction]);
+  const updateFilter = (key: keyof FilterState, value: string | 'asc' | 'desc') => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
 
-  const applyPreset = useCallback((presetId: string) => {
-    const preset = savedPresets.find(p => p.id === presetId);
-    if (preset) {
-      setStatusFilter(preset.filters.status);
-      setSearchQuery(preset.filters.searchQuery);
-      setTicketFilter(preset.filters.ticketFilter);
-      setDateRange(preset.filters.dateRange);
-    }
-  }, [savedPresets]);
-
-  const saveCurrentAsPreset = useCallback((name: string) => {
-    const newPreset: FilterPreset = {
-      id: `custom-${Date.now()}`,
-      name,
-      filters: {
-        status: statusFilter,
-        ticketFilter,
-        dateRange,
-        searchQuery,
-      },
-    };
-    setSavedPresets(prev => [...prev, newPreset]);
-  }, [statusFilter, ticketFilter, dateRange, searchQuery]);
-
-  const handleQuickDateRange = useCallback((range: string) => {
-    const newRange = getDateRange(range);
-    setDateRange(newRange);
-  }, []);
-
-  const resetFilters = useCallback(() => {
-    setStatusFilter('all');
-    setSearchQuery('');
-    setTicketFilter('all');
-    setDateRange({ start: null, end: null });
-    setSortBy('name');
-    setSortOrder('asc');
-  }, []);
-
-  // Memoize active filters calculation
-  const activeFilters = useMemo(() => {
-    const filters = [];
-    if (statusFilter !== 'all') filters.push(`Status: ${statusFilter}`);
-    if (searchQuery) filters.push(`Search: ${searchQuery}`);
-    if (ticketFilter !== 'all') filters.push(`Tickets: ${ticketFilter}`);
-    if (dateRange.start || dateRange.end) filters.push('Date range');
-    return filters;
-  }, [statusFilter, searchQuery, ticketFilter, dateRange]);
+  const resetFilters = () => {
+    setFilters({
+      search: '',
+      status: 'all',
+      sortBy: 'name',
+      sortOrder: 'asc'
+    });
+  };
 
   return {
-    statusFilter,
-    setStatusFilter,
-    searchQuery,
-    setSearchQuery,
-    ticketFilter,
-    setTicketFilter,
-    ticketCountFilter: ticketFilter,
-    setTicketCountFilter: setTicketFilter,
-    dateRange,
-    setDateRange,
-    sortBy,
-    setSortBy,
-    sortOrder,
-    setSortOrder,
-    resetFilters,
-    activeFilters,
-    filteredCustomers,
-    savedPresets,
-    applyPreset,
-    loadFilterPreset: applyPreset,
-    saveCurrentAsPreset,
-    saveFilterPreset: saveCurrentAsPreset,
-    deleteFilterPreset: (presetId: string) => {
-      setSavedPresets(prev => prev.filter(p => p.id !== presetId));
-    },
-    getQuickDateRange: handleQuickDateRange,
+    filters,
+    filteredAndSortedCustomers,
+    updateFilter,
+    resetFilters
   };
 };
