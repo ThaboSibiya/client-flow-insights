@@ -34,7 +34,7 @@ export const useCustomerFilters = (customers: Customer[]) => {
   const filteredAndSortedCustomers = useMemo(() => {
     let filtered = customers;
 
-    // Apply search filter - now includes template data search
+    // Apply search filter - basic customer info search only
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       filtered = customers.filter(customer => {
@@ -46,7 +46,6 @@ export const useCustomerFilters = (customers: Customer[]) => {
           customer.address,
           customer.notes,
           customer.status,
-          customer.territory,
           customer.assigned_to_email
         ].some(field => 
           field?.toLowerCase().includes(searchTerm)
@@ -70,14 +69,7 @@ export const useCustomerFilters = (customers: Customer[]) => {
           field?.toLowerCase().includes(searchTerm)
         )) || false;
 
-        // Template data search
-        const templateSearch = customer.templateData?.some(template =>
-          Object.values(template.fieldValues || {}).some(value =>
-            String(value).toLowerCase().includes(searchTerm)
-          )
-        ) || false;
-
-        return basicSearch || ticketSearch || templateSearch;
+        return basicSearch || ticketSearch;
       });
     }
 
