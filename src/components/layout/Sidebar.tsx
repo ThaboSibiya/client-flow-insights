@@ -36,37 +36,49 @@ const Sidebar = () => {
   }
 
   return (
-    <div className="w-64 bg-white border-r border-quikle-silver min-h-screen flex flex-col">
+    <div className="w-64 bg-gradient-to-b from-white to-quikle-crystal/30 border-r border-quikle-silver/30 min-h-screen flex flex-col backdrop-blur-sm">
       <div className="flex-1">
-        <div className="p-6 flex items-center gap-3">
+        {/* Premium Logo Section */}
+        <div className="p-6 flex items-center gap-3 border-b border-quikle-silver/20 bg-white/50">
           <img src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" alt="Quikle Logo" className="h-10 w-10" />
-          <h1 className="text-2xl font-bold text-quikle-primary">Quikle</h1>
+          <div>
+            <h1 className="text-2xl font-bold luxury-text">Quikle</h1>
+            <p className="text-xs text-quikle-slate -mt-1">Premium Suite</p>
+          </div>
         </div>
         
-        <nav className="mt-6">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-quikle-crystal",
-                  isActive 
-                    ? "bg-quikle-crystal text-quikle-primary border-r-2 border-quikle-primary" 
-                    : "text-quikle-charcoal"
-                )}
-              >
-                <Icon className="mr-3 h-5 w-5" />
-                {item.label}
-              </Link>
-            );
-          })}
+        {/* Navigation Menu */}
+        <nav className="mt-6 px-3">
+          <div className="space-y-1">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+              
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    "flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group",
+                    isActive 
+                      ? "bg-gradient-to-r from-quikle-primary/10 to-quikle-secondary/10 text-quikle-primary border-r-2 border-quikle-primary shadow-sm" 
+                      : "text-quikle-charcoal hover:bg-quikle-crystal/50 hover:text-quikle-primary"
+                  )}
+                >
+                  <Icon className={cn(
+                    "mr-3 h-4 w-4 transition-colors",
+                    isActive ? "text-quikle-primary" : "text-quikle-slate group-hover:text-quikle-primary"
+                  )} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
         </nav>
       </div>
-      <div className="p-4">
+      
+      {/* Enhanced User Profile Section */}
+      <div className="mt-auto">
         <UserProfile />
       </div>
     </div>
