@@ -3,6 +3,13 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { IndustryTemplate, TemplateField } from '@/types/templates';
 import { Building2, Printer, Shield, Home, Car, Monitor, Eye } from 'lucide-react';
 import TemplatePreviewDialog from './TemplatePreviewDialog';
@@ -21,17 +28,17 @@ interface TemplateSelectorProps {
 const getTemplateIcon = (industry: string) => {
   switch (industry) {
     case 'printer_services':
-      return <Printer className="h-5 w-5" />;
+      return <Printer className="h-4 w-4" />;
     case 'insurance':
-      return <Shield className="h-5 w-5" />;
+      return <Shield className="h-4 w-4" />;
     case 'real_estate':
-      return <Home className="h-5 w-5" />;
+      return <Home className="h-4 w-4" />;
     case 'automotive':
-      return <Car className="h-5 w-5" />;
+      return <Car className="h-4 w-4" />;
     case 'it_services':
-      return <Monitor className="h-5 w-5" />;
+      return <Monitor className="h-4 w-4" />;
     default:
-      return <Building2 className="h-5 w-5" />;
+      return <Building2 className="h-4 w-4" />;
   }
 };
 
@@ -45,6 +52,15 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   fieldsLoading = false,
   loading = false
 }) => {
+  const handleTemplateChange = (value: string) => {
+    if (value === 'none') {
+      onSelectTemplate(null);
+    } else {
+      const template = templates.find(t => t.id === value);
+      onSelectTemplate(template || null);
+    }
+  };
+
   if (loading) {
     return (
       <Card className="bg-gradient-to-br from-white via-quikle-crystal to-quikle-platinum border-quikle-silver/30 shadow-luxury">
@@ -73,76 +89,80 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <Button
-            variant={selectedTemplate === null ? "default" : "outline"}
-            className={`h-auto p-4 justify-start transition-all duration-200 ${
-              selectedTemplate === null 
-                ? "bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white shadow-md" 
-                : "border-quikle-silver/50 hover:border-quikle-primary/30 hover:bg-quikle-crystal/30"
-            }`}
-            onClick={() => onSelectTemplate(null)}
+        <div className="flex items-center gap-2">
+          <Select
+            value={selectedTemplate?.id || 'none'}
+            onValueChange={handleTemplateChange}
           >
-            <Building2 className="h-5 w-5 mr-3" />
-            <div className="text-left">
-              <div className="font-medium">No Template</div>
-              <div className="text-xs opacity-75">Use basic customer fields only</div>
-            </div>
-          </Button>
-
-          {templates.map((template) => (
-            <Button
-              key={template.id}
-              variant={selectedTemplate?.id === template.id ? "default" : "outline"}
-              className={`h-auto p-4 justify-start transition-all duration-200 transform hover:scale-[1.02] ${
-                selectedTemplate?.id === template.id 
-                  ? "bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white shadow-md" 
-                  : "border-quikle-silver/50 hover:border-quikle-primary/30 hover:bg-quikle-crystal/30"
-              }`}
-              onClick={() => onSelectTemplate(template)}
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder="Select an industry template">
+                {selectedTemplate ? (
+                  <div className="flex items-center gap-2">
+                    {getTemplateIcon(selectedTemplate.industry)}
+                    <span>{selectedTemplate.name}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    <span>No Template</span>
+                  </div>
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  <div>
+                    <div className="font-medium">No Template</div>
+                    <div className="text-xs text-quikle-slate">Use basic customer fields only</div>
+                  </div>
+                </div>
+              </SelectItem>
+              {templates.map((template) => (
+                <SelectItem key={template.id} value={template.id}>
+                  <div className="flex items-center gap-2">
+                    {getTemplateIcon(template.industry)}
+                    <div>
+                      <div className="font-medium">{template.name}</div>
+                      <div className="text-xs text-quikle-slate">{template.description}</div>
+                    </div>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          {selectedTemplate && (
+            <TemplatePreviewDialog
+              template={selectedTemplate}
+              fields={templateFields}
+              customFieldValues={customFieldValues}
+              onFieldValueChange={onFieldValueChange}
+              loading={fieldsLoading}
             >
-              <div className="mr-3">
-                {getTemplateIcon(template.industry)}
-              </div>
-              <div className="text-left flex-1">
-                <div className="font-medium">{template.name}</div>
-                <div className="text-xs opacity-75">{template.description}</div>
-              </div>
-              {selectedTemplate?.id === template.id && (
-                <Eye className="h-4 w-4 ml-2 animate-pulse" />
-              )}
-            </Button>
-          ))}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 px-3 text-quikle-primary hover:bg-quikle-primary/10 border-quikle-primary/30"
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                Preview & Edit
+              </Button>
+            </TemplatePreviewDialog>
+          )}
         </div>
 
         {selectedTemplate && (
-          <div className="mt-4 p-4 bg-gradient-to-r from-quikle-crystal/50 to-quikle-platinum/50 rounded-lg border border-quikle-primary/20 animate-fade-in">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="bg-quikle-primary/10 text-quikle-primary">
-                  Selected
-                </Badge>
-                <span className="text-sm font-medium">{selectedTemplate.name}</span>
-              </div>
-              <TemplatePreviewDialog
-                template={selectedTemplate}
-                fields={templateFields}
-                customFieldValues={customFieldValues}
-                onFieldValueChange={onFieldValueChange}
-                loading={fieldsLoading}
-              >
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-auto p-2 text-quikle-primary hover:bg-quikle-primary/10 border-quikle-primary/30"
-                >
-                  <Eye className="h-4 w-4 mr-1" />
-                  Preview & Edit
-                </Button>
-              </TemplatePreviewDialog>
+          <div className="p-4 bg-gradient-to-r from-quikle-crystal/50 to-quikle-platinum/50 rounded-lg border border-quikle-primary/20 animate-fade-in">
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="secondary" className="bg-quikle-primary/10 text-quikle-primary">
+                Selected
+              </Badge>
+              <span className="text-sm font-medium">{selectedTemplate.name}</span>
             </div>
-            <p className="text-xs text-quikle-slate">{selectedTemplate.description}</p>
-            <div className="flex gap-2 mt-2">
+            <p className="text-xs text-quikle-slate mb-2">{selectedTemplate.description}</p>
+            <div className="flex gap-2">
               <Badge variant="secondary" className="bg-blue-50 text-blue-600 text-xs">
                 {templateFields.filter(f => f.is_required).length} required
               </Badge>
