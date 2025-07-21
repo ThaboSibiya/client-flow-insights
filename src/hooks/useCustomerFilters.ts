@@ -9,6 +9,12 @@ export interface FilterState {
   sortOrder: 'asc' | 'desc';
 }
 
+export interface FilterPreset {
+  id: string;
+  name: string;
+  filters: any;
+}
+
 export const useCustomerFilters = (customers: Customer[]) => {
   const [filters, setFilters] = useState<FilterState>({
     search: '',
@@ -16,6 +22,14 @@ export const useCustomerFilters = (customers: Customer[]) => {
     sortBy: 'name',
     sortOrder: 'asc'
   });
+
+  const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({
+    start: null,
+    end: null
+  });
+
+  const [ticketCountFilter, setTicketCountFilter] = useState<string>('all');
+  const [savedPresets] = useState<FilterPreset[]>([]);
 
   const filteredAndSortedCustomers = useMemo(() => {
     let filtered = customers;
@@ -56,13 +70,49 @@ export const useCustomerFilters = (customers: Customer[]) => {
           field?.toLowerCase().includes(searchTerm)
         )) || false;
 
-        return basicSearch || ticketSearch;
+        // Template data search
+        const templateSearch = customer.templateData?.some(template =>
+          Object.values(template.fieldValues || {}).some(value =>
+            String(value).toLowerCase().includes(searchTerm)
+          )
+        ) || false;
+
+        return basicSearch || ticketSearch || templateSearch;
       });
     }
 
     // Apply status filter
     if (filters.status !== 'all') {
       filtered = filtered.filter(customer => customer.status === filters.status);
+    }
+
+    // Apply date range filter
+    if (dateRange.start || dateRange.end) {
+      filtered = filtered.filter(customer => {
+        const createdAt = new Date(customer.createdAt);
+        if (dateRange.start && createdAt < dateRange.start) return false;
+        if (dateRange.end && createdAt > dateRange.end) return false;
+        return true;
+      });
+    }
+
+    // Apply ticket count filter
+    if (ticketCountFilter !== 'all') {
+      filtered = filtered.filter(customer => {
+        const ticketCount = customer.ticketCount || 0;
+        switch (ticketCountFilter) {
+          case 'with-tickets':
+            return ticketCount > 0;
+          case 'no-tickets':
+            return ticketCount === 0;
+          case 'urgent-tickets':
+            return customer.activeTickets?.some(ticket => ticket.priority === 'urgent') || false;
+          case 'open-tickets':
+            return customer.activeTickets?.some(ticket => ticket.status === 'open') || false;
+          default:
+            return true;
+        }
+      });
     }
 
     // Apply sorting
@@ -102,7 +152,7 @@ export const useCustomerFilters = (customers: Customer[]) => {
     });
 
     return filtered;
-  }, [customers, filters]);
+  }, [customers, filters, dateRange, ticketCountFilter]);
 
   const updateFilter = (key: keyof FilterState, value: string | 'asc' | 'desc') => {
     setFilters(prev => ({
@@ -118,11 +168,68 @@ export const useCustomerFilters = (customers: Customer[]) => {
       sortBy: 'name',
       sortOrder: 'asc'
     });
+    setDateRange({ start: null, end: null });
+    setTicketCountFilter('all');
+  };
+
+  const applyPreset = (preset: FilterPreset) => {
+    // Implementation for applying presets
+    console.log('Applying preset:', preset);
+  };
+
+  const saveCurrentAsPreset = (name: string) => {
+    // Implementation for saving current filters as preset
+    console.log('Saving preset:', name);
+  };
+
+  const getQuickDateRange = (range: string) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    switch (range) {
+      case 'today':
+        setDateRange({ start: today, end: now });
+        break;
+      case 'week':
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        setDateRange({ start: weekAgo, end: now });
+        break;
+      case 'month':
+        const monthAgo = new Date(today);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        setDateRange({ start: monthAgo, end: now });
+        break;
+      case 'quarter':
+        const quarterAgo = new Date(today);
+        quarterAgo.setMonth(quarterAgo.getMonth() - 3);
+        setDateRange({ start: quarterAgo, end: now });
+        break;
+      default:
+        break;
+    }
   };
 
   return {
     filters,
     filteredAndSortedCustomers,
+    filteredCustomers: filteredAndSortedCustomers, // Alias for backward compatibility
+    searchQuery: filters.search,
+    setSearchQuery: (query: string) => updateFilter('search', query),
+    statusFilter: filters.status,
+    setStatusFilter: (status: string) => updateFilter('status', status),
+    dateRange,
+    setDateRange,
+    ticketCountFilter,
+    setTicketCountFilter,
+    sortBy: filters.sortBy,
+    setSortBy: (sortBy: string) => updateFilter('sortBy', sortBy),
+    sortOrder: filters.sortOrder,
+    setSortOrder: (sortOrder: 'asc' | 'desc') => updateFilter('sortOrder', sortOrder),
+    savedPresets,
+    applyPreset,
+    saveCurrentAsPreset,
+    getQuickDateRange,
     updateFilter,
     resetFilters
   };
