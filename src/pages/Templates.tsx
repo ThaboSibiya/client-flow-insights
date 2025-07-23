@@ -43,15 +43,19 @@ const Templates = () => {
         </TabsList>
 
         <TabsContent value="industry" className="space-y-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-xl font-semibold">Available Industry Templates</h2>
               <p className="text-sm text-muted-foreground">
                 Pre-built templates for common industries or create your own
               </p>
             </div>
-            <Button onClick={() => setShowCustomBuilder(true)} className="bg-quikle-primary hover:bg-quikle-primary/90">
-              <Plus className="w-4 h-4 mr-2" />
+            <Button 
+              onClick={() => setShowCustomBuilder(true)} 
+              className="bg-quikle-primary hover:bg-quikle-primary/90 flex items-center gap-2"
+              size="default"
+            >
+              <Plus className="w-4 h-4" />
               Create Custom Template
             </Button>
           </div>
