@@ -92,16 +92,19 @@ const TicketResolutionMetrics = ({ metrics, isLoading }: TicketResolutionMetrics
           <CardContent>
             <div className="text-2xl font-bold">
               {metrics.resolutionTrend.length > 1 ? (
-                metrics.resolutionTrend[metrics.resolutionTrend.length - 1].averageTime > 
+                metrics.resolutionTrend[metrics.resolutionTrend.length - 1].averageTime < 
                 metrics.resolutionTrend[metrics.resolutionTrend.length - 2].averageTime ? (
-                  <Badge variant="destructive">↗ Slower</Badge>
+                  <Badge variant="outline" className="text-green-600">Improving</Badge>
                 ) : (
-                  <Badge variant="default">↘ Faster</Badge>
+                  <Badge variant="outline" className="text-orange-600">Declining</Badge>
                 )
               ) : (
-                <Badge variant="secondary">No Trend</Badge>
+                <Badge variant="outline" className="text-gray-600">No Trend</Badge>
               )}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Based on recent data
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -113,13 +116,13 @@ const TicketResolutionMetrics = ({ metrics, isLoading }: TicketResolutionMetrics
             <CardDescription>Average time to resolve tickets by priority level</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={200}>
               <BarChart data={priorityData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="priority" />
                 <YAxis tickFormatter={(value) => formatTime(value)} />
-                <Tooltip formatter={(value) => [formatTime(value as number), 'Resolution Time']} />
-                <Bar dataKey="time" fill="#1E40AF" />
+                <Tooltip formatter={(value: number) => formatTime(value)} />
+                <Bar dataKey="time" fill="#0369A1" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -127,20 +130,17 @@ const TicketResolutionMetrics = ({ metrics, isLoading }: TicketResolutionMetrics
 
         <Card>
           <CardHeader>
-            <CardTitle>Resolution Time Trend</CardTitle>
-            <CardDescription>Daily average resolution times over time</CardDescription>
+            <CardTitle>Resolution Trend</CardTitle>
+            <CardDescription>Average resolution time over time</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={200}>
               <LineChart data={metrics.resolutionTrend}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tickFormatter={(date) => new Date(date).toLocaleDateString()} />
+                <XAxis dataKey="date" />
                 <YAxis tickFormatter={(value) => formatTime(value)} />
-                <Tooltip 
-                  formatter={(value) => [formatTime(value as number), 'Average Time']}
-                  labelFormatter={(date) => new Date(date).toLocaleDateString()}
-                />
-                <Line type="monotone" dataKey="averageTime" stroke="#1E40AF" strokeWidth={2} />
+                <Tooltip formatter={(value: number) => formatTime(value)} />
+                <Line type="monotone" dataKey="averageTime" stroke="#0369A1" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>

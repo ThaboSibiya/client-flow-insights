@@ -3,11 +3,9 @@ import { useState } from 'react';
 import { CustomerTicket, TicketStatus, useCRM } from '@/context/CRMContext';
 import { TimeEntry } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
-import { useTicketRouting } from './useTicketRouting';
 
 export const useTicketManagement = () => {
   const { createTicket, updateTicketStatus, addTimeEntry } = useCRM();
-  const { autoAssignTicket } = useTicketRouting();
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -17,26 +15,16 @@ export const useTicketManagement = () => {
   ) => {
     setIsCreating(true);
     try {
-      // Create the ticket first
+      // Create the ticket
       await createTicket(customerId, ticketData);
-      
-      // Generate a temporary ticket ID for auto-assignment
-      const tempTicketId = `ticket-${Date.now()}`;
-      
-      // Auto-assign the ticket based on priority and category
-      try {
-        await autoAssignTicket(tempTicketId, ticketData.priority, ticketData.category);
-      } catch (error) {
-        console.error('Failed to auto-assign ticket:', error);
-        // Continue even if auto-assignment fails
-      }
       
       toast({
         title: "Success",
-        description: "Ticket created and automatically assigned",
+        description: "Ticket created successfully",
       });
       return true;
     } catch (error) {
+      console.error('Error creating ticket:', error);
       toast({
         title: "Error",
         description: "Failed to create ticket",
@@ -57,6 +45,7 @@ export const useTicketManagement = () => {
         description: `Ticket status updated to ${status}`,
       });
     } catch (error) {
+      console.error('Error updating ticket status:', error);
       toast({
         title: "Error",
         description: "Failed to update ticket status",
@@ -78,6 +67,7 @@ export const useTicketManagement = () => {
         description: "Time entry added successfully",
       });
     } catch (error) {
+      console.error('Error adding time entry:', error);
       toast({
         title: "Error",
         description: "Failed to add time entry",
