@@ -85,6 +85,28 @@ const CustomerTableContent = ({
       <ArrowUpDown className="h-4 w-4 text-blue-600 rotate-180" />;
   };
 
+  // Custom checkbox component to handle indeterminate state
+  const SelectAllCheckbox = () => {
+    const checkboxRef = React.useRef<HTMLButtonElement>(null);
+    
+    React.useEffect(() => {
+      if (checkboxRef.current) {
+        const checkboxElement = checkboxRef.current.querySelector('input[type="checkbox"]') as HTMLInputElement;
+        if (checkboxElement) {
+          checkboxElement.indeterminate = isIndeterminate;
+        }
+      }
+    }, [isIndeterminate]);
+
+    return (
+      <Checkbox
+        ref={checkboxRef}
+        checked={isAllSelected}
+        onCheckedChange={onSelectAll}
+      />
+    );
+  };
+
   if (isLoading) {
     return <CustomerTableSkeleton />;
   }
@@ -97,13 +119,7 @@ const CustomerTableContent = ({
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="w-12 px-4 py-3">
-                  <Checkbox
-                    checked={isAllSelected}
-                    ref={(el) => {
-                      if (el) el.indeterminate = isIndeterminate;
-                    }}
-                    onCheckedChange={onSelectAll}
-                  />
+                  <SelectAllCheckbox />
                 </th>
                 <th className="text-left px-4 py-3 font-medium text-gray-900">
                   <Button
