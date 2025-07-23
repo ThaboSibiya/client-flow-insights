@@ -3,13 +3,23 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCustomTemplates } from '@/hooks/useCustomTemplates';
 import CustomTemplateManager from '@/components/templates/CustomTemplateManager';
+import TemplateBuilder from '@/components/templates/builder/TemplateBuilder';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Palette, Building } from "lucide-react";
+import { Plus, Palette, Building, Eye } from "lucide-react";
 
 const Templates = () => {
   const { templates: industryTemplates, loading } = useCustomTemplates();
+  const [showCustomBuilder, setShowCustomBuilder] = useState(false);
+
+  if (showCustomBuilder) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <TemplateBuilder onBack={() => setShowCustomBuilder(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -33,14 +43,21 @@ const Templates = () => {
         </TabsList>
 
         <TabsContent value="industry" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Available Industry Templates</CardTitle>
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold">Available Industry Templates</h2>
               <p className="text-sm text-muted-foreground">
-                Pre-built templates for common industries
+                Pre-built templates for common industries or create your own
               </p>
-            </CardHeader>
-            <CardContent>
+            </div>
+            <Button onClick={() => setShowCustomBuilder(true)} className="bg-quikle-primary hover:bg-quikle-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Custom Template
+            </Button>
+          </div>
+
+          <Card>
+            <CardContent className="pt-6">
               {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[...Array(6)].map((_, i) => (
@@ -63,6 +80,7 @@ const Templates = () => {
                         {template.description}
                       </p>
                       <Button variant="outline" size="sm" className="w-full">
+                        <Eye className="w-4 h-4 mr-2" />
                         View Template
                       </Button>
                     </div>
