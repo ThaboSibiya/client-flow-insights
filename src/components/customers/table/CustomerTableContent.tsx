@@ -1,12 +1,27 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { Customer } from '@/types/customer';
-import { useCustomerActions } from '../actions/CustomerActions';
-import { Skeleton } from '@/components/ui/skeleton';
-import CustomerTableHeader from './CustomerTableHeader';
-import CustomerTableRow from './CustomerTableRow';
-import CustomerPagination from './CustomerPagination';
-import EnhancedMobileCustomerCard from './EnhancedMobileCustomerCard';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { 
+  ArrowUpDown, 
+  ChevronLeft, 
+  ChevronRight, 
+  Eye, 
+  Ticket, 
+  MoreHorizontal,
+  Edit,
+  Trash2
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useCustomerActions, CustomerActionDialogs } from '../actions/CustomerActions';
+import CustomerTableSkeleton from './CustomerTableSkeleton';
 
 interface CustomerTableContentProps {
   paginatedCustomers: Customer[];
@@ -21,7 +36,7 @@ interface CustomerTableContentProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  isLoading?: boolean;
+  isLoading: boolean;
 }
 
 const CustomerTableContent = ({
@@ -37,159 +52,218 @@ const CustomerTableContent = ({
   currentPage,
   totalPages,
   onPageChange,
-  isLoading = false,
+  isLoading,
 }: CustomerTableContentProps) => {
-  const isMobile = useIsMobile();
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
-
   const {
     handleStatusChange,
     handleDeleteCustomer,
     handleOpenCustomerDetails,
     handleManageTickets,
-    CustomerDialogs,
+    handleCreateTicket,
+    handleUpdateTicketStatus,
+    handleAddTimeEntry,
+    selectedCustomer,
+    isFormOpen,
+    isTicketDialogOpen,
+    closeDetailsDialog,
+    closeTicketDialog,
   } = useCustomerActions();
 
-  // Skeleton loading state
-  const TableSkeleton = () => (
-    <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-      <div className="p-4 border-b bg-gray-50">
-        <Skeleton className="h-6 w-32" />
-      </div>
-      <div className="divide-y divide-gray-200">
-        {Array(5).fill(0).map((_, index) => (
-          <div key={index} className="p-4 animate-pulse">
-            <div className="flex items-center space-x-4">
-              <Skeleton className="h-4 w-4" />
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-4 w-48" />
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-6 w-20" />
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-8 w-8" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'active': return 'default';
+      case 'inactive': return 'secondary';
+      case 'pending': return 'outline';
+      default: return 'secondary';
+    }
+  };
+
+  const getSortIcon = (field: string) => {
+    if (sortBy !== field) return <ArrowUpDown className="h-4 w-4" />;
+    return sortOrder === 'asc' ? 
+      <ArrowUpDown className="h-4 w-4 text-blue-600" /> : 
+      <ArrowUpDown className="h-4 w-4 text-blue-600 rotate-180" />;
+  };
 
   if (isLoading) {
-    return <TableSkeleton />;
-  }
-
-  if (isMobile) {
-    return (
-      <div className="space-y-4">
-        {/* Pull to refresh indicator */}
-        <div className="text-center py-2 text-xs text-quikle-slate">
-          Pull down to refresh
-        </div>
-        
-        <div 
-          className="space-y-4"
-          role="list"
-          aria-label="Customer list"
-        >
-          {paginatedCustomers.map((customer) => (
-            <EnhancedMobileCustomerCard
-              key={customer.id}
-              customer={customer}
-              isSelected={selectedCustomers.has(customer.id)}
-              onSelect={(checked) => onSelectCustomer(customer.id, checked)}
-              onStatusChange={handleStatusChange}
-              onEdit={handleOpenCustomerDetails}
-              onDelete={handleDeleteCustomer}
-              onManageTickets={handleManageTickets}
-              isExpanded={expandedCard === customer.id}
-              onToggleExpanded={() => setExpandedCard(
-                expandedCard === customer.id ? null : customer.id
-              )}
-            />
-          ))}
-        </div>
-
-        {paginatedCustomers.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            <div className="animate-fade-in">
-              <p className="text-lg font-medium">No customers found</p>
-              <p className="text-sm">Try adjusting your search criteria</p>
-            </div>
-          </div>
-        )}
-
-        <CustomerPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={onPageChange}
-        />
-
-        <CustomerDialogs />
-      </div>
-    );
+    return <CustomerTableSkeleton />;
   }
 
   return (
-    <div className="space-y-6">
-      <div 
-        className="bg-white rounded-lg shadow-sm border overflow-hidden transition-shadow duration-200 hover:shadow-md"
-        role="region"
-        aria-label="Customer data table"
-      >
+    <>
+      <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table 
-            className="w-full"
-            role="table"
-            aria-label="Customer information table"
-          >
-            <CustomerTableHeader
-              isAllSelected={isAllSelected}
-              isIndeterminate={isIndeterminate}
-              onSelectAll={onSelectAll}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSort={onSort}
-            />
-            <tbody 
-              className="divide-y divide-gray-200"
-              role="rowgroup"
-            >
-              {paginatedCustomers.map((customer, index) => (
-                <CustomerTableRow
-                  key={customer.id}
-                  customer={customer}
-                  isSelected={selectedCustomers.has(customer.id)}
-                  onSelect={(customerId, checked) => onSelectCustomer(customerId, checked)}
-                  onStatusChange={handleStatusChange}
-                  onEdit={handleOpenCustomerDetails}
-                  onDelete={handleDeleteCustomer}
-                  onManageTickets={handleManageTickets}
-                  rowIndex={index}
-                />
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="w-12 px-4 py-3">
+                  <Checkbox
+                    checked={isAllSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = isIndeterminate;
+                    }}
+                    onCheckedChange={onSelectAll}
+                  />
+                </th>
+                <th className="text-left px-4 py-3 font-medium text-gray-900">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSort('name')}
+                    className="h-auto p-0 hover:bg-transparent"
+                  >
+                    Name {getSortIcon('name')}
+                  </Button>
+                </th>
+                <th className="text-left px-4 py-3 font-medium text-gray-900">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSort('email')}
+                    className="h-auto p-0 hover:bg-transparent"
+                  >
+                    Email {getSortIcon('email')}
+                  </Button>
+                </th>
+                <th className="text-left px-4 py-3 font-medium text-gray-900">Phone</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-900">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSort('status')}
+                    className="h-auto p-0 hover:bg-transparent"
+                  >
+                    Status {getSortIcon('status')}
+                  </Button>
+                </th>
+                <th className="text-left px-4 py-3 font-medium text-gray-900">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSort('ticketCount')}
+                    className="h-auto p-0 hover:bg-transparent"
+                  >
+                    Tickets {getSortIcon('ticketCount')}
+                  </Button>
+                </th>
+                <th className="text-left px-4 py-3 font-medium text-gray-900">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSort('createdAt')}
+                    className="h-auto p-0 hover:bg-transparent"
+                  >
+                    Created {getSortIcon('createdAt')}
+                  </Button>
+                </th>
+                <th className="w-16 px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {paginatedCustomers.map((customer) => (
+                <tr key={customer.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <Checkbox
+                      checked={selectedCustomers.has(customer.id)}
+                      onCheckedChange={(checked) => 
+                        onSelectCustomer(customer.id, checked as boolean)
+                      }
+                    />
+                  </td>
+                  <td className="px-4 py-3 font-medium text-gray-900">
+                    {customer.name}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">{customer.email}</td>
+                  <td className="px-4 py-3 text-gray-600">{customer.phone}</td>
+                  <td className="px-4 py-3">
+                    <Badge variant={getStatusBadgeVariant(customer.status)}>
+                      {customer.status}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {customer.ticketCount || 0}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {new Date(customer.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleOpenCustomerDetails(customer)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleOpenCustomerDetails(customer)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleManageTickets(customer)}>
+                          <Ticket className="mr-2 h-4 w-4" />
+                          Manage Tickets
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteCustomer(customer.id)}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        {paginatedCustomers.length === 0 && (
-          <div className="text-center py-12 text-gray-500" role="status">
-            <div className="animate-fade-in">
-              <p className="text-lg font-medium">No customers found</p>
-              <p className="text-sm">Try adjusting your search criteria</p>
-            </div>
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50">
+          <div className="text-sm text-gray-700">
+            Showing {((currentPage - 1) * 10) + 1} to {Math.min(currentPage * 10, paginatedCustomers.length)} of {paginatedCustomers.length} results
           </div>
-        )}
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            <span className="text-sm text-gray-700">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </div>
 
-      <CustomerPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
+      <CustomerActionDialogs
+        selectedCustomer={selectedCustomer}
+        isFormOpen={isFormOpen}
+        isTicketDialogOpen={isTicketDialogOpen}
+        onCloseDetailsDialog={closeDetailsDialog}
+        onCloseTicketDialog={closeTicketDialog}
+        onCreateTicket={handleCreateTicket}
+        onUpdateTicketStatus={handleUpdateTicketStatus}
+        onAddTimeEntry={handleAddTimeEntry}
       />
-
-      <CustomerDialogs />
-    </div>
+    </>
   );
 };
 

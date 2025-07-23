@@ -36,16 +36,60 @@ export const useCustomerActions = () => {
     setIsTicketDialogOpen(true);
   };
 
-  const CustomerDialogs = () => (
+  const closeDetailsDialog = () => {
+    setIsFormOpen(false);
+    setSelectedCustomer(null);
+    setActiveDialogTab('details');
+  };
+
+  const closeTicketDialog = () => {
+    setIsTicketDialogOpen(false);
+    setSelectedCustomer(null);
+  };
+
+  return {
+    handleStatusChange,
+    handleDeleteCustomer,
+    handleOpenCustomerDetails,
+    handleManageTickets,
+    handleCreateTicket,
+    handleUpdateTicketStatus,
+    handleAddTimeEntry,
+    selectedCustomer,
+    isFormOpen,
+    isTicketDialogOpen,
+    activeDialogTab,
+    closeDetailsDialog,
+    closeTicketDialog,
+  };
+};
+
+// Separate component for dialogs
+export const CustomerActionDialogs: React.FC<{
+  selectedCustomer: Customer | null;
+  isFormOpen: boolean;
+  isTicketDialogOpen: boolean;
+  onCloseDetailsDialog: () => void;
+  onCloseTicketDialog: () => void;
+  onCreateTicket: (customerId: string, ticket: any) => void;
+  onUpdateTicketStatus: (ticketId: string, status: any) => void;
+  onAddTimeEntry?: (ticketId: string, timeEntry: any) => void;
+}> = ({
+  selectedCustomer,
+  isFormOpen,
+  isTicketDialogOpen,
+  onCloseDetailsDialog,
+  onCloseTicketDialog,
+  onCreateTicket,
+  onUpdateTicketStatus,
+  onAddTimeEntry,
+}) => {
+  return (
     <>
       <CustomerDetailsDialog 
         customer={selectedCustomer} 
         isOpen={isFormOpen} 
-        onClose={() => {
-          setIsFormOpen(false);
-          setSelectedCustomer(null);
-          setActiveDialogTab('details');
-        }} 
+        onClose={onCloseDetailsDialog} 
       />
 
       <Suspense fallback={null}>
@@ -53,24 +97,13 @@ export const useCustomerActions = () => {
           <TicketManagementDialog 
             customer={selectedCustomer}
             isOpen={isTicketDialogOpen}
-            onClose={() => {
-              setIsTicketDialogOpen(false);
-              setSelectedCustomer(null);
-            }}
-            onCreateTicket={handleCreateTicket}
-            onUpdateTicketStatus={handleUpdateTicketStatus}
-            onAddTimeEntry={handleAddTimeEntry}
+            onClose={onCloseTicketDialog}
+            onCreateTicket={onCreateTicket}
+            onUpdateTicketStatus={onUpdateTicketStatus}
+            onAddTimeEntry={onAddTimeEntry}
           />
         )}
       </Suspense>
     </>
   );
-
-  return {
-    handleStatusChange,
-    handleDeleteCustomer,
-    handleOpenCustomerDetails,
-    handleManageTickets,
-    CustomerDialogs,
-  };
 };
