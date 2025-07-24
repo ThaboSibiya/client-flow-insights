@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Trash2, Sync, TestTube } from 'lucide-react';
+import { Settings, Trash2, RefreshCw, TestTube, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import { EmailConfiguration, EmailProvider } from '@/types/email-integration';
 import { emailIntegrationService } from '@/services/emailIntegrationService';
@@ -149,7 +149,7 @@ const EmailConfigurationList = ({
                   onClick={() => syncConfiguration(config)}
                   disabled={!config.isEnabled}
                 >
-                  <Sync className="h-4 w-4 mr-2" />
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   Sync
                 </Button>
                 <Button variant="outline" size="sm">

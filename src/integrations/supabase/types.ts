@@ -426,6 +426,36 @@ export type Database = {
           },
         ]
       }
+      email_integrations: {
+        Row: {
+          created_at: string
+          id: string
+          is_enabled: boolean
+          provider_id: string
+          settings: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          provider_id: string
+          settings?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          provider_id?: string
+          settings?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       employee_attendance: {
         Row: {
           check_in_time: string | null

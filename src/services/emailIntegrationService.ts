@@ -53,6 +53,7 @@ export class EmailIntegrationService {
         provider_id: config.providerId,
         is_enabled: config.isEnabled,
         settings: config.settings,
+        user_id: (await supabase.auth.getUser()).data.user?.id,
         updated_at: new Date().toISOString()
       });
 
@@ -137,13 +138,15 @@ export class EmailIntegrationService {
       .single();
 
     if (!existingCustomer) {
+      const { data: user } = await supabase.auth.getUser();
+      
       const { error } = await supabase
         .from('customers')
         .insert({
           name: sender.name || sender.email,
           email: sender.email,
           status: 'new',
-          source: 'email'
+          user_id: user.user?.id
         });
 
       if (error) {

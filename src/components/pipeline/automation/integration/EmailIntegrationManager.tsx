@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Mail, Plus, Settings, TestTube, Sync } from 'lucide-react';
+import { Mail, Plus, Settings, TestTube, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { emailIntegrationService } from '@/services/emailIntegrationService';
 import { EmailProvider, EmailConfiguration } from '@/types/email-integration';
@@ -94,7 +94,7 @@ const EmailIntegrationManager = () => {
               {stats.enabled}/{stats.total} Active
             </Badge>
             <Button onClick={syncAllEmails} variant="outline" size="sm">
-              <Sync className="h-4 w-4 mr-2" />
+              <RefreshCw className="h-4 w-4 mr-2" />
               Sync All
             </Button>
           </div>
