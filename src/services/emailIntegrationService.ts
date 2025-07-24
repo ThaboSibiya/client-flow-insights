@@ -46,6 +46,8 @@ export class EmailIntegrationService {
   }
 
   async saveEmailConfiguration(config: EmailConfiguration): Promise<void> {
+    const { data: user } = await supabase.auth.getUser();
+    
     const { error } = await supabase
       .from('email_integrations')
       .upsert({
@@ -53,7 +55,7 @@ export class EmailIntegrationService {
         provider_id: config.providerId,
         is_enabled: config.isEnabled,
         settings: config.settings,
-        user_id: (await supabase.auth.getUser()).data.user?.id,
+        user_id: user.user?.id,
         updated_at: new Date().toISOString()
       });
 
@@ -76,7 +78,7 @@ export class EmailIntegrationService {
       id: row.id,
       providerId: row.provider_id,
       isEnabled: row.is_enabled,
-      settings: row.settings
+      settings: row.settings as EmailConfiguration['settings']
     })) || [];
   }
 
@@ -117,7 +119,6 @@ export class EmailIntegrationService {
       priority: config.settings.defaultTicketPriority,
       customer_email: email.from.email,
       customer_name: email.from.name || email.from.email,
-      source: 'email',
       email_thread_id: email.threadId,
       original_email_id: email.id
     };
