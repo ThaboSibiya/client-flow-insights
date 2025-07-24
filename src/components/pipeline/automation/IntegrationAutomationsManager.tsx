@@ -3,18 +3,20 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Database, Calendar, Mail, Building } from 'lucide-react';
+import { Database, Calendar, Mail, Building, Inbox } from 'lucide-react';
 import CRMSyncSettings from './integration/CRMSyncSettings';
 import AccountingSyncSettings from './integration/AccountingSyncSettings';
 import CalendarSyncSettings from './integration/CalendarSyncSettings';
 import EmailPlatformSettings from './integration/EmailPlatformSettings';
+import EmailIntegrationManager from './integration/EmailIntegrationManager';
 
 const IntegrationAutomationsManager = () => {
   const [activeIntegrations, setActiveIntegrations] = useState({
     crm: { enabled: false, platform: '', lastSync: null },
     accounting: { enabled: false, platform: '', lastSync: null },
     calendar: { enabled: false, platforms: [], lastSync: null },
-    email: { enabled: false, platform: '', lastSync: null }
+    email: { enabled: false, platform: '', lastSync: null },
+    emailIntegration: { enabled: false, providers: 0, lastSync: null }
   });
 
   const updateIntegrationStatus = (type: string, updates: any) => {
@@ -43,11 +45,14 @@ const IntegrationAutomationsManager = () => {
             <Badge variant={activeIntegrations.accounting.enabled ? "default" : "secondary"}>
               Accounting {activeIntegrations.accounting.enabled ? 'ON' : 'OFF'}
             </Badge>
+            <Badge variant={activeIntegrations.emailIntegration.enabled ? "default" : "secondary"}>
+              Email {activeIntegrations.emailIntegration.enabled ? 'ON' : 'OFF'}
+            </Badge>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -103,10 +108,24 @@ const IntegrationAutomationsManager = () => {
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Inbox className="h-8 w-8 text-indigo-600" />
+              <div>
+                <div className="text-2xl font-bold">
+                  {activeIntegrations.emailIntegration.providers || 0}
+                </div>
+                <div className="text-sm text-muted-foreground">Email Providers</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="crm" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="crm" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
             CRM Sync
@@ -122,6 +141,10 @@ const IntegrationAutomationsManager = () => {
           <TabsTrigger value="email" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
             Email Platform
+          </TabsTrigger>
+          <TabsTrigger value="email-integration" className="flex items-center gap-2">
+            <Inbox className="h-4 w-4" />
+            Email Integration
           </TabsTrigger>
         </TabsList>
 
@@ -151,6 +174,10 @@ const IntegrationAutomationsManager = () => {
             settings={activeIntegrations.email}
             onUpdateSettings={(updates) => updateIntegrationStatus('email', updates)}
           />
+        </TabsContent>
+
+        <TabsContent value="email-integration">
+          <EmailIntegrationManager />
         </TabsContent>
       </Tabs>
     </div>
