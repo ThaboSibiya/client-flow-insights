@@ -8,9 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Mail, Plus, Settings, TestTube, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { emailIntegrationService } from '@/services/emailIntegrationService';
+import { emailSyncService } from '@/services/emailSyncService';
 import { EmailProvider, EmailConfiguration } from '@/types/email-integration';
 import EmailProviderSetup from './EmailProviderSetup';
 import EmailConfigurationList from './EmailConfigurationList';
+import EmailSyncStatus from '@/components/email/EmailSyncStatus';
 
 const EmailIntegrationManager = () => {
   const [providers, setProviders] = useState<EmailProvider[]>([]);
@@ -49,11 +51,7 @@ const EmailIntegrationManager = () => {
     }
 
     try {
-      await Promise.all(
-        enabledConfigs.map(config => 
-          emailIntegrationService.syncEmails(config.id)
-        )
-      );
+      await emailSyncService.syncAllProviders();
       toast.success('Email sync completed');
     } catch (error) {
       toast.error('Email sync failed');
@@ -76,6 +74,7 @@ const EmailIntegrationManager = () => {
   }
 
   const stats = getProviderStats();
+  const enabledConfigurations = configurations.filter(config => config.isEnabled);
 
   return (
     <div className="space-y-6">
@@ -100,6 +99,23 @@ const EmailIntegrationManager = () => {
           </div>
         </div>
       </div>
+
+      {/* Sync Status Grid */}
+      {enabledConfigurations.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {enabledConfigurations.map((config) => {
+            const provider = providers.find(p => p.id === config.providerId);
+            return (
+              <EmailSyncStatus
+                key={config.id}
+                providerId={config.providerId}
+                providerName={provider?.name || config.providerId}
+                onSyncComplete={loadData}
+              />
+            );
+          })}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {providers.map((provider) => {

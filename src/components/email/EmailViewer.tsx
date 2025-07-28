@@ -3,14 +3,15 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Download, Eye } from 'lucide-react';
+import { Paperclip, Download, Eye, Reply, ReplyAll, Forward } from 'lucide-react';
 import { Email } from '@/services/emailService';
 
 interface EmailViewerProps {
   email: Email;
+  onReply?: (type: 'reply' | 'reply-all' | 'forward') => void;
 }
 
-const EmailViewer = ({ email }: EmailViewerProps) => {
+const EmailViewer = ({ email, onReply }: EmailViewerProps) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
@@ -59,8 +60,39 @@ const EmailViewer = ({ email }: EmailViewerProps) => {
             </div>
           </div>
           
-          <div className="text-sm text-gray-500">
-            {formatDate(email.message_date)}
+          <div className="flex items-center gap-2">
+            <div className="text-sm text-gray-500">
+              {formatDate(email.message_date)}
+            </div>
+            
+            {onReply && (
+              <div className="flex gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => onReply('reply')}
+                  title="Reply"
+                >
+                  <Reply className="h-3 w-3" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => onReply('reply-all')}
+                  title="Reply All"
+                >
+                  <ReplyAll className="h-3 w-3" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => onReply('forward')}
+                  title="Forward"
+                >
+                  <Forward className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 

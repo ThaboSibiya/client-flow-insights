@@ -15,12 +15,15 @@ import {
   Reply,
   Forward,
   MoreVertical,
-  Paperclip
+  Paperclip,
+  ReplyAll
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { emailService, EmailThread, Email } from '@/services/emailService';
+import { emailSyncService } from '@/services/emailSyncService';
 import EmailCompose from './EmailCompose';
 import EmailViewer from './EmailViewer';
+import EmailReplyComposer from './EmailReplyComposer';
 
 const EmailInbox = () => {
   const [threads, setThreads] = useState<EmailThread[]>([]);
@@ -30,6 +33,8 @@ const EmailInbox = () => {
   const [syncing, setSyncing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showCompose, setShowCompose] = useState(false);
+  const [replyingToEmail, setReplyingToEmail] = useState<Email | null>(null);
+  const [replyType, setReplyType] = useState<'reply' | 'reply-all' | 'forward'>('reply');
 
   useEffect(() => {
     loadThreads();
@@ -70,8 +75,7 @@ const EmailInbox = () => {
   const handleSync = async () => {
     try {
       setSyncing(true);
-      // Sync all configured email providers
-      await emailService.syncEmails('all');
+      await emailSyncService.syncAllProviders();
       await loadThreads();
       toast.success('Emails synced successfully');
     } catch (error) {
@@ -80,6 +84,11 @@ const EmailInbox = () => {
     } finally {
       setSyncing(false);
     }
+  };
+
+  const handleReply = (email: Email, type: 'reply' | 'reply-all' | 'forward' = 'reply') => {
+    setReplyingToEmail(email);
+    setReplyType(type);
   };
 
   const handleSearch = async () => {
@@ -206,11 +215,27 @@ const EmailInbox = () => {
                   {selectedThread.subject}
                 </h2>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => emails.length > 0 && handleReply(emails[emails.length - 1], 'reply')}
+                  >
                     <Reply className="h-4 w-4 mr-2" />
                     Reply
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => emails.length > 0 && handleReply(emails[emails.length - 1], 'reply-all')}
+                  >
+                    <ReplyAll className="h-4 w-4 mr-2" />
+                    Reply All
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => emails.length > 0 && handleReply(emails[emails.length - 1], 'forward')}
+                  >
                     <Forward className="h-4 w-4 mr-2" />
                     Forward
                   </Button>
@@ -229,7 +254,10 @@ const EmailInbox = () => {
               <div className="space-y-4">
                 {emails.map((email, index) => (
                   <div key={email.id}>
-                    <EmailViewer email={email} />
+                    <EmailViewer 
+                      email={email} 
+                      onReply={(type) => handleReply(email, type)}
+                    />
                     {index < emails.length - 1 && <Separator className="my-4" />}
                   </div>
                 ))}
@@ -254,6 +282,20 @@ const EmailInbox = () => {
             setShowCompose(false);
             loadThreads();
             toast.success('Email sent successfully');
+          }}
+        />
+      )}
+
+      {/* Reply Modal */}
+      {replyingToEmail && (
+        <EmailReplyComposer
+          email={replyingToEmail}
+          replyType={replyType}
+          onClose={() => setReplyingToEmail(null)}
+          onSent={() => {
+            setReplyingToEmail(null);
+            loadThreads();
+            loadThreadEmails(selectedThread!);
           }}
         />
       )}
