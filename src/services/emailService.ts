@@ -67,7 +67,17 @@ export class EmailService {
       throw new Error(`Failed to fetch email threads: ${error.message}`);
     }
 
-    return data || [];
+    return data?.map(thread => ({
+      id: thread.id,
+      thread_id: thread.thread_id,
+      subject: thread.subject,
+      participants: Array.isArray(thread.participants) ? thread.participants : [],
+      last_message_at: thread.last_message_at,
+      message_count: thread.message_count,
+      unread_count: thread.unread_count,
+      labels: Array.isArray(thread.labels) ? thread.labels : [],
+      provider_id: thread.provider_id
+    })) || [];
   }
 
   async getEmailsByThread(threadId: string): Promise<Email[]> {
@@ -85,8 +95,34 @@ export class EmailService {
     }
 
     return emails?.map(email => ({
-      ...email,
-      attachments: email.email_attachments || []
+      id: email.id,
+      thread_id: email.thread_id,
+      provider_message_id: email.provider_message_id,
+      provider_id: email.provider_id,
+      subject: email.subject,
+      from_email: email.from_email,
+      from_name: email.from_name,
+      to_emails: Array.isArray(email.to_emails) ? email.to_emails : [],
+      cc_emails: Array.isArray(email.cc_emails) ? email.cc_emails : [],
+      bcc_emails: Array.isArray(email.bcc_emails) ? email.bcc_emails : [],
+      reply_to: email.reply_to,
+      body_text: email.body_text,
+      body_html: email.body_html,
+      is_read: email.is_read,
+      is_sent: email.is_sent,
+      is_draft: email.is_draft,
+      importance: email.importance || 'normal',
+      labels: Array.isArray(email.labels) ? email.labels : [],
+      message_date: email.message_date,
+      attachments: email.email_attachments?.map((attachment: any) => ({
+        id: attachment.id,
+        filename: attachment.filename,
+        content_type: attachment.content_type,
+        size_bytes: attachment.size_bytes,
+        attachment_id: attachment.attachment_id,
+        file_path: attachment.file_path,
+        is_downloaded: attachment.is_downloaded
+      })) || []
     })) || [];
   }
 
@@ -184,8 +220,34 @@ export class EmailService {
     }
 
     return data?.map(email => ({
-      ...email,
-      attachments: email.email_attachments || []
+      id: email.id,
+      thread_id: email.thread_id,
+      provider_message_id: email.provider_message_id,
+      provider_id: email.provider_id,
+      subject: email.subject,
+      from_email: email.from_email,
+      from_name: email.from_name,
+      to_emails: Array.isArray(email.to_emails) ? email.to_emails : [],
+      cc_emails: Array.isArray(email.cc_emails) ? email.cc_emails : [],
+      bcc_emails: Array.isArray(email.bcc_emails) ? email.bcc_emails : [],
+      reply_to: email.reply_to,
+      body_text: email.body_text,
+      body_html: email.body_html,
+      is_read: email.is_read,
+      is_sent: email.is_sent,
+      is_draft: email.is_draft,
+      importance: email.importance || 'normal',
+      labels: Array.isArray(email.labels) ? email.labels : [],
+      message_date: email.message_date,
+      attachments: email.email_attachments?.map((attachment: any) => ({
+        id: attachment.id,
+        filename: attachment.filename,
+        content_type: attachment.content_type,
+        size_bytes: attachment.size_bytes,
+        attachment_id: attachment.attachment_id,
+        file_path: attachment.file_path,
+        is_downloaded: attachment.is_downloaded
+      })) || []
     })) || [];
   }
 }
