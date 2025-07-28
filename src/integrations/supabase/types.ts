@@ -385,6 +385,53 @@ export type Database = {
         }
         Relationships: []
       }
+      email_attachments: {
+        Row: {
+          attachment_id: string | null
+          content_type: string
+          created_at: string
+          email_id: string
+          file_path: string | null
+          filename: string
+          id: string
+          is_downloaded: boolean
+          size_bytes: number
+          user_id: string
+        }
+        Insert: {
+          attachment_id?: string | null
+          content_type: string
+          created_at?: string
+          email_id: string
+          file_path?: string | null
+          filename: string
+          id?: string
+          is_downloaded?: boolean
+          size_bytes: number
+          user_id: string
+        }
+        Update: {
+          attachment_id?: string | null
+          content_type?: string
+          created_at?: string
+          email_id?: string
+          file_path?: string | null
+          filename?: string
+          id?: string
+          is_downloaded?: boolean
+          size_bytes?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_attachments_email_id_fkey"
+            columns: ["email_id"]
+            isOneToOne: false
+            referencedRelation: "emails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_history: {
         Row: {
           attachments: string[] | null
@@ -455,6 +502,173 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      email_sync_status: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          last_sync_at: string | null
+          last_sync_token: string | null
+          provider_id: string
+          sync_status: string
+          total_emails_synced: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_sync_at?: string | null
+          last_sync_token?: string | null
+          provider_id: string
+          sync_status?: string
+          total_emails_synced?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_sync_at?: string | null
+          last_sync_token?: string | null
+          provider_id?: string
+          sync_status?: string
+          total_emails_synced?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      email_threads: {
+        Row: {
+          created_at: string
+          id: string
+          labels: Json | null
+          last_message_at: string
+          message_count: number
+          participants: Json
+          provider_id: string
+          subject: string
+          thread_id: string
+          unread_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          labels?: Json | null
+          last_message_at: string
+          message_count?: number
+          participants?: Json
+          provider_id: string
+          subject: string
+          thread_id: string
+          unread_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          labels?: Json | null
+          last_message_at?: string
+          message_count?: number
+          participants?: Json
+          provider_id?: string
+          subject?: string
+          thread_id?: string
+          unread_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      emails: {
+        Row: {
+          bcc_emails: Json | null
+          body_html: string | null
+          body_text: string | null
+          cc_emails: Json | null
+          created_at: string
+          from_email: string
+          from_name: string | null
+          id: string
+          importance: string | null
+          is_draft: boolean
+          is_read: boolean
+          is_sent: boolean
+          labels: Json | null
+          message_date: string
+          provider_id: string
+          provider_message_id: string
+          reply_to: string | null
+          subject: string
+          thread_id: string
+          to_emails: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bcc_emails?: Json | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: Json | null
+          created_at?: string
+          from_email: string
+          from_name?: string | null
+          id?: string
+          importance?: string | null
+          is_draft?: boolean
+          is_read?: boolean
+          is_sent?: boolean
+          labels?: Json | null
+          message_date: string
+          provider_id: string
+          provider_message_id: string
+          reply_to?: string | null
+          subject: string
+          thread_id: string
+          to_emails: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bcc_emails?: Json | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: Json | null
+          created_at?: string
+          from_email?: string
+          from_name?: string | null
+          id?: string
+          importance?: string | null
+          is_draft?: boolean
+          is_read?: boolean
+          is_sent?: boolean
+          labels?: Json | null
+          message_date?: string
+          provider_id?: string
+          provider_message_id?: string
+          reply_to?: string | null
+          subject?: string
+          thread_id?: string
+          to_emails?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emails_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "email_threads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       employee_attendance: {
         Row: {

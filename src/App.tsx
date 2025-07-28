@@ -24,6 +24,7 @@ import Documentation from "./pages/Documentation";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Conversations from "./pages/Conversations";
 import AuditLog from "./pages/AuditLog";
+import EmailIntegration from "./pages/EmailIntegration";
 import AdminProtectedRoute from "./components/auth/AdminProtectedRoute";
 
 const queryClient = new QueryClient({
@@ -70,6 +71,11 @@ const App = () => (
                       <Route path="conversations" element={
                         <ErrorBoundary>
                           <Conversations />
+                        </ErrorBoundary>
+                      } />
+                      <Route path="email" element={
+                        <ErrorBoundary>
+                          <EmailIntegration />
                         </ErrorBoundary>
                       } />
                       <Route path="onboarding" element={
