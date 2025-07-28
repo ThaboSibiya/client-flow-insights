@@ -158,7 +158,10 @@ export class EmailSyncService {
       )
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    // Return a synchronous cleanup function
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }
 }
 
