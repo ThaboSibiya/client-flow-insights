@@ -46,6 +46,14 @@ export interface EmailAttachment {
   is_downloaded: boolean;
 }
 
+// Helper function to safely convert Json to string array
+const jsonToStringArray = (json: any): string[] => {
+  if (Array.isArray(json)) {
+    return json.filter(item => typeof item === 'string');
+  }
+  return [];
+};
+
 export class EmailService {
   private static instance: EmailService;
 
@@ -71,11 +79,11 @@ export class EmailService {
       id: thread.id,
       thread_id: thread.thread_id,
       subject: thread.subject,
-      participants: Array.isArray(thread.participants) ? thread.participants : [],
+      participants: jsonToStringArray(thread.participants),
       last_message_at: thread.last_message_at,
       message_count: thread.message_count,
       unread_count: thread.unread_count,
-      labels: Array.isArray(thread.labels) ? thread.labels : [],
+      labels: jsonToStringArray(thread.labels),
       provider_id: thread.provider_id
     })) || [];
   }
@@ -102,9 +110,9 @@ export class EmailService {
       subject: email.subject,
       from_email: email.from_email,
       from_name: email.from_name,
-      to_emails: Array.isArray(email.to_emails) ? email.to_emails : [],
-      cc_emails: Array.isArray(email.cc_emails) ? email.cc_emails : [],
-      bcc_emails: Array.isArray(email.bcc_emails) ? email.bcc_emails : [],
+      to_emails: jsonToStringArray(email.to_emails),
+      cc_emails: jsonToStringArray(email.cc_emails),
+      bcc_emails: jsonToStringArray(email.bcc_emails),
       reply_to: email.reply_to,
       body_text: email.body_text,
       body_html: email.body_html,
@@ -112,7 +120,7 @@ export class EmailService {
       is_sent: email.is_sent,
       is_draft: email.is_draft,
       importance: email.importance || 'normal',
-      labels: Array.isArray(email.labels) ? email.labels : [],
+      labels: jsonToStringArray(email.labels),
       message_date: email.message_date,
       attachments: email.email_attachments?.map((attachment: any) => ({
         id: attachment.id,
@@ -227,9 +235,9 @@ export class EmailService {
       subject: email.subject,
       from_email: email.from_email,
       from_name: email.from_name,
-      to_emails: Array.isArray(email.to_emails) ? email.to_emails : [],
-      cc_emails: Array.isArray(email.cc_emails) ? email.cc_emails : [],
-      bcc_emails: Array.isArray(email.bcc_emails) ? email.bcc_emails : [],
+      to_emails: jsonToStringArray(email.to_emails),
+      cc_emails: jsonToStringArray(email.cc_emails),
+      bcc_emails: jsonToStringArray(email.bcc_emails),
       reply_to: email.reply_to,
       body_text: email.body_text,
       body_html: email.body_html,
@@ -237,7 +245,7 @@ export class EmailService {
       is_sent: email.is_sent,
       is_draft: email.is_draft,
       importance: email.importance || 'normal',
-      labels: Array.isArray(email.labels) ? email.labels : [],
+      labels: jsonToStringArray(email.labels),
       message_date: email.message_date,
       attachments: email.email_attachments?.map((attachment: any) => ({
         id: attachment.id,
