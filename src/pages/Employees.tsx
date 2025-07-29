@@ -3,9 +3,11 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Users } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Search, Users, Sitemap, List } from "lucide-react";
 import EmployeeList from '../components/employees/EmployeeList';
 import EmployeeForm from '../components/employees/EmployeeForm';
+import EmployeeHierarchy from '../components/employees/EmployeeHierarchy';
 import EmployeeAccessChecker from '../components/employees/EmployeeAccessChecker';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useEmployeeData } from '../hooks/useEmployeeData';
@@ -14,6 +16,7 @@ const Employees = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [activeTab, setActiveTab] = useState('list');
   const { employees, loading, refetch } = useEmployeeData();
 
   const handleAddEmployee = () => {
@@ -68,24 +71,49 @@ const Employees = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-quikle-slate h-4 w-4" />
-                <Input
-                  placeholder="Search employees..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 border-quikle-silver"
-                />
-              </div>
-            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-quikle-crystal border border-quikle-silver/30">
+                <TabsTrigger 
+                  value="list" 
+                  className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-quikle-primary data-[state=active]:shadow-sm"
+                >
+                  <List className="h-4 w-4" />
+                  Employee List
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="hierarchy" 
+                  className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-quikle-primary data-[state=active]:shadow-sm"
+                >
+                  <Sitemap className="h-4 w-4" />
+                  Organization Chart
+                </TabsTrigger>
+              </TabsList>
 
-            <EmployeeList 
-              employees={filteredEmployees}
-              loading={loading}
-              onEditEmployee={handleEditEmployee}
-              onInvitationSent={handleInvitationSent}
-            />
+              <TabsContent value="list" className="space-y-4 mt-6">
+                <div className="flex items-center gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-quikle-slate h-4 w-4" />
+                    <Input
+                      placeholder="Search employees..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 border-quikle-silver"
+                    />
+                  </div>
+                </div>
+
+                <EmployeeList 
+                  employees={filteredEmployees}
+                  loading={loading}
+                  onEditEmployee={handleEditEmployee}
+                  onInvitationSent={handleInvitationSent}
+                />
+              </TabsContent>
+
+              <TabsContent value="hierarchy" className="mt-6">
+                <EmployeeHierarchy employees={employees} />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
