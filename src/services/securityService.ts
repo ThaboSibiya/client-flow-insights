@@ -37,22 +37,40 @@ export const hasValidPrivileges = async (requiredPrivilege: string): Promise<boo
       return false;
     }
 
-    // Use RPC function for secure privilege checking
-    const { data, error } = await supabase.rpc('check_user_privilege', {
-      privilege_name: requiredPrivilege
-    });
+    // Get employee record and check privilege directly from database
+    const { data: employee } = await supabase
+      .from('employees')
+      .select('id')
+      .eq('auth_user_id', user.id)
+      .single();
 
-    if (error) {
+    if (!employee) {
       await logSecureSecurityEvent({
         action: 'privilege_check_failed',
         resource_type: 'employee_privileges', 
+        success: false,
+        error_message: 'Employee record not found'
+      });
+      return false;
+    }
+
+    const { data: privileges, error } = await supabase
+      .from('employee_privileges')
+      .select(requiredPrivilege)
+      .eq('employee_id', employee.id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      await logSecureSecurityEvent({
+        action: 'privilege_check_failed',
+        resource_type: 'employee_privileges',
         success: false,
         error_message: error.message
       });
       return false;
     }
 
-    const hasPrivilege = data === true;
+    const hasPrivilege = privileges?.[requiredPrivilege] === true;
 
     if (!hasPrivilege) {
       await logSecureSecurityEvent({
