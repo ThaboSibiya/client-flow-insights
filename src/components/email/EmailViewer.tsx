@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Paperclip, Download, Eye, Reply, ReplyAll, Forward } from 'lucide-react';
 import { Email } from '@/services/emailService';
+import { sanitizeHtmlContent } from '@/utils/securityUtils';
 
 interface EmailViewerProps {
   email: Email;
@@ -22,6 +23,25 @@ const EmailViewer = ({ email, onReply }: EmailViewerProps) => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Safely render HTML content with sanitization
+  const renderEmailContent = () => {
+    if (email.body_html) {
+      const sanitizedHtml = sanitizeHtmlContent(email.body_html);
+      return (
+        <div 
+          dangerouslySetInnerHTML={{ __html: sanitizedHtml }} 
+          className="email-content prose prose-sm max-w-none"
+        />
+      );
+    } else {
+      return (
+        <div className="whitespace-pre-wrap">
+          {email.body_text || 'No content available'}
+        </div>
+      );
+    }
   };
 
   return (
@@ -128,16 +148,7 @@ const EmailViewer = ({ email, onReply }: EmailViewerProps) => {
         )}
 
         <div className="prose prose-sm max-w-none">
-          {email.body_html ? (
-            <div 
-              dangerouslySetInnerHTML={{ __html: email.body_html }} 
-              className="email-content"
-            />
-          ) : (
-            <div className="whitespace-pre-wrap">
-              {email.body_text || 'No content available'}
-            </div>
-          )}
+          {renderEmailContent()}
         </div>
       </CardContent>
     </Card>

@@ -1,4 +1,7 @@
+
 import { supabase } from '@/integrations/supabase/client';
+import { logSecureSecurityEvent } from './secureSecurityService';
+import { validateEmail, validatePhone, sanitizeInput } from '@/utils/securityUtils';
 
 export interface SecurityAuditEvent {
   action: string;
@@ -8,79 +11,62 @@ export interface SecurityAuditEvent {
   error_message?: string;
 }
 
+// Legacy function - use logSecureSecurityEvent instead
 export const logSecurityEvent = async (event: SecurityAuditEvent) => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // For now, we'll use console.log since the audit table creation failed
-    // This will be stored in the browser console and server logs
-    console.log('Security Event:', {
-      user_id: user.id,
-      timestamp: new Date().toISOString(),
-      ...event
-    });
-
-    // We could also store in localStorage for client-side audit trail
-    const auditLogs = JSON.parse(localStorage.getItem('security_audit_logs') || '[]');
-    auditLogs.push({
-      user_id: user.id,
-      timestamp: new Date().toISOString(),
-      ...event
-    });
-    
-    // Keep only last 1000 entries
-    if (auditLogs.length > 1000) {
-      auditLogs.splice(0, auditLogs.length - 1000);
-    }
-    
-    localStorage.setItem('security_audit_logs', JSON.stringify(auditLogs));
-  } catch (error) {
-    console.error('Failed to log security event:', error);
-  }
+  console.warn('Using deprecated logSecurityEvent - please use logSecureSecurityEvent instead');
+  await logSecureSecurityEvent({
+    ...event,
+    success: event.success ?? true
+  });
 };
 
-export const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-  return emailRegex.test(email);
-};
+// Export security utilities
+export { validateEmail, validatePhone, sanitizeInput };
 
-export const validatePhone = (phone: string): boolean => {
-  if (!phone || phone.trim() === '') return true; // Allow empty phone
-  const phoneRegex = /^[\+]?[\d\s\-\(\)]{10,15}$/;
-  return phoneRegex.test(phone);
-};
-
-export const sanitizeInput = (input: string, maxLength: number = 1000): string => {
-  if (!input) return '';
-  return input.trim().substring(0, maxLength);
-};
-
+// Enhanced privilege checking with security logging
 export const hasValidPrivileges = async (requiredPrivilege: string): Promise<boolean> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
+    if (!user) {
+      await logSecureSecurityEvent({
+        action: 'privilege_check_unauthorized',
+        resource_type: 'employee_privileges',
+        success: false,
+        error_message: 'No authenticated user'
+      });
+      return false;
+    }
 
-    const { data: employee } = await supabase
-      .from('employees')
-      .select('id')
-      .eq('user_id', user.id)
-      .single();
+    // Use RPC function for secure privilege checking
+    const { data, error } = await supabase.rpc('check_user_privilege', {
+      privilege_name: requiredPrivilege
+    });
 
-    if (!employee) return false;
+    if (error) {
+      await logSecureSecurityEvent({
+        action: 'privilege_check_failed',
+        resource_type: 'employee_privileges', 
+        success: false,
+        error_message: error.message
+      });
+      return false;
+    }
 
-    const { data: privileges } = await supabase
-      .from('employee_privileges')
-      .select('*')
-      .eq('employee_id', employee.id)
-      .single();
+    const hasPrivilege = data === true;
 
-    if (!privileges) return false;
+    if (!hasPrivilege) {
+      await logSecureSecurityEvent({
+        action: 'privilege_denied',
+        resource_type: 'employee_privileges',
+        success: false,
+        metadata: { requested_privilege: requiredPrivilege }
+      });
+    }
 
-    return privileges[requiredPrivilege] === true;
+    return hasPrivilege;
   } catch (error) {
-    await logSecurityEvent({
-      action: 'privilege_check_failed',
+    await logSecureSecurityEvent({
+      action: 'privilege_check_error',
       resource_type: 'employee_privileges',
       success: false,
       error_message: error instanceof Error ? error.message : 'Unknown error'
