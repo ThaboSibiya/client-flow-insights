@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users } from "lucide-react";
 
-interface Employee {
+interface Employee extends Record<string, unknown> {
   id: string;
   first_name: string;
   last_name: string;

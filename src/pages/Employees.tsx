@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Users, Sitemap, List } from "lucide-react";
+import { Plus, Search, Users, Network, List } from "lucide-react";
 import EmployeeList from '../components/employees/EmployeeList';
 import EmployeeForm from '../components/employees/EmployeeForm';
 import EmployeeHierarchy from '../components/employees/EmployeeHierarchy';
@@ -84,7 +83,7 @@ const Employees = () => {
                   value="hierarchy" 
                   className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-quikle-primary data-[state=active]:shadow-sm"
                 >
-                  <Sitemap className="h-4 w-4" />
+                  <Network className="h-4 w-4" />
                   Organization Chart
                 </TabsTrigger>
               </TabsList>
