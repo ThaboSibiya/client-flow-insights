@@ -38,20 +38,20 @@ export const useEmployeeAuth = () => {
     try {
       if (!user) return;
 
-      // First check if user is a company owner (has customers)
-      const { data: customerData } = await supabase
+      // First, quickly check if user is a company owner by checking if they have customers
+      const { data: customerData, error: customerError } = await supabase
         .from('customers')
         .select('id')
         .eq('user_id', user.id)
         .limit(1);
 
-      if (customerData && customerData.length > 0) {
+      if (!customerError && customerData && customerData.length > 0) {
         setIsCompanyOwner(true);
         setLoading(false);
         return;
       }
 
-      // Check if user is an employee
+      // Only if not a company owner, check for employee profile
       const { data: employee, error } = await supabase
         .from('employees')
         .select('*')
@@ -60,8 +60,7 @@ export const useEmployeeAuth = () => {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // User exists but is not an employee - might be company owner without employees
-          console.log('User is not registered as an employee');
+          // User exists but is not an employee and has no customers - might be a new user
           setEmployeeProfile(null);
         } else {
           console.error('Error fetching employee profile:', error);
@@ -69,7 +68,7 @@ export const useEmployeeAuth = () => {
       } else {
         setEmployeeProfile(employee);
         
-        // Update last login time
+        // Update last login time for employees
         await supabase
           .from('employees')
           .update({ last_login_at: new Date().toISOString() })

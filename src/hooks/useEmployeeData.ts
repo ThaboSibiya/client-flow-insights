@@ -2,16 +2,32 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
 export const useEmployeeData = () => {
+  const { user } = useAuth();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchEmployees = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setEmployees([]);
+        setLoading(false);
+        return;
+      }
+
+      // Quick check if user is a company owner before fetching employees
+      const { data: customerCheck } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      if (!customerCheck || customerCheck.length === 0) {
+        // User is not a company owner, no employees to fetch
+        setEmployees([]);
+        setLoading(false);
         return;
       }
 
@@ -53,7 +69,7 @@ export const useEmployeeData = () => {
 
   useEffect(() => {
     fetchEmployees();
-  }, []);
+  }, [user]);
 
   const refetch = () => {
     setLoading(true);

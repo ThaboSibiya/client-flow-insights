@@ -1,47 +1,50 @@
 
 import React from 'react';
-import { useEmployeePrivileges } from '@/hooks/useEmployeePrivileges';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, AlertTriangle } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
+import { useEmployeeAuth } from '@/hooks/useEmployeeAuth';
+import { useSecurePrivileges } from '@/hooks/useSecurePrivileges';
+import LoadingSpinner from '@/components/auth/LoadingSpinner';
 
 interface EmployeeAccessCheckerProps {
   children: React.ReactNode;
-  requiredPrivilege?: string;
-  fallback?: React.ReactNode;
+  requiredPrivilege?: keyof import('@/types/enhancedSecurity').EnhancedEmployeePrivileges;
+  redirectTo?: string;
 }
 
-const EmployeeAccessChecker = ({ 
-  children, 
-  requiredPrivilege, 
-  fallback 
-}: EmployeeAccessCheckerProps) => {
-  const { privileges, loading, hasPrivilege } = useEmployeePrivileges();
+const EmployeeAccessChecker: React.FC<EmployeeAccessCheckerProps> = ({
+  children,
+  requiredPrivilege,
+  redirectTo = '/dashboard'
+}) => {
+  const { isCompanyOwner, employeeProfile, loading: authLoading } = useEmployeeAuth();
+  const { hasPrivilege, loading: privilegesLoading } = useSecurePrivileges();
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-4">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-quikle-primary"></div>
-      </div>
-    );
+  // Show loading only while authentication is being determined
+  if (authLoading) {
+    return <LoadingSpinner />;
   }
 
-  // If no specific privilege is required, show content
-  if (!requiredPrivilege) {
+  // Company owners have full access to employee management
+  if (isCompanyOwner) {
     return <>{children}</>;
   }
 
-  // Check if user has the required privilege
-  const hasAccess = hasPrivilege(requiredPrivilege as any);
+  // If user is not a company owner and has no employee profile, redirect
+  if (!employeeProfile) {
+    return <Navigate to={redirectTo} replace />;
+  }
 
-  if (!hasAccess) {
-    return fallback || (
-      <Alert className="border-yellow-200 bg-yellow-50">
-        <AlertTriangle className="h-4 w-4 text-yellow-600" />
-        <AlertDescription className="text-yellow-800">
-          You don't have permission to access this feature. Please contact your administrator.
-        </AlertDescription>
-      </Alert>
-    );
+  // For employees, check specific privileges only if required
+  if (requiredPrivilege) {
+    // Show loading while checking privileges for employees
+    if (privilegesLoading) {
+      return <LoadingSpinner />;
+    }
+
+    // Check if employee has the required privilege
+    if (!hasPrivilege(requiredPrivilege)) {
+      return <Navigate to={redirectTo} replace />;
+    }
   }
 
   return <>{children}</>;
