@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { IndustryTemplate, TemplateField } from '@/types/templates';
-import { Building2, Printer, Shield, Home, Car, Monitor, Eye } from 'lucide-react';
+import { Building2, Printer, Shield, Home, Car, Monitor, Eye, Loader2 } from 'lucide-react';
 import TemplatePreviewDialog from './TemplatePreviewDialog';
 
 interface TemplateSelectorProps {
@@ -28,6 +28,7 @@ interface TemplateSelectorProps {
 const getTemplateIcon = (industry: string) => {
   switch (industry) {
     case 'printer_services':
+    case 'printer_service':
       return <Printer className="h-4 w-4" />;
     case 'insurance':
       return <Shield className="h-4 w-4" />;
@@ -61,23 +62,6 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     }
   };
 
-  if (loading) {
-    return (
-      <Card className="bg-gradient-to-br from-white via-quikle-crystal to-quikle-platinum border-quikle-silver/30 shadow-luxury">
-        <CardHeader>
-          <CardTitle className="bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">
-            Loading Templates...
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-quikle-primary"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className="bg-gradient-to-br from-white via-quikle-crystal to-quikle-platinum border-quikle-silver/30 shadow-luxury">
       <CardHeader>
@@ -93,10 +77,16 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           <Select
             value={selectedTemplate?.id || 'none'}
             onValueChange={handleTemplateChange}
+            disabled={loading}
           >
             <SelectTrigger className="flex-1">
-              <SelectValue placeholder="Select an industry template">
-                {selectedTemplate ? (
+              <SelectValue placeholder={loading ? "Loading templates..." : "Select an industry template"}>
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Loading...</span>
+                  </div>
+                ) : selectedTemplate ? (
                   <div className="flex items-center gap-2">
                     {getTemplateIcon(selectedTemplate.industry)}
                     <span>{selectedTemplate.name}</span>
@@ -133,7 +123,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             </SelectContent>
           </Select>
           
-          {selectedTemplate && (
+          {selectedTemplate && !fieldsLoading && (
             <TemplatePreviewDialog
               template={selectedTemplate}
               fields={templateFields}
@@ -151,9 +141,21 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               </Button>
             </TemplatePreviewDialog>
           )}
+
+          {selectedTemplate && fieldsLoading && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled
+              className="h-10 px-3"
+            >
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              Loading...
+            </Button>
+          )}
         </div>
 
-        {selectedTemplate && (
+        {selectedTemplate && !fieldsLoading && (
           <div className="p-4 bg-gradient-to-r from-quikle-crystal/50 to-quikle-platinum/50 rounded-lg border border-quikle-primary/20 animate-fade-in">
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="secondary" className="bg-quikle-primary/10 text-quikle-primary">
@@ -169,6 +171,15 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               <Badge variant="secondary" className="bg-green-50 text-green-600 text-xs">
                 {templateFields.filter(f => !f.is_required).length} optional
               </Badge>
+            </div>
+          </div>
+        )}
+
+        {selectedTemplate && fieldsLoading && (
+          <div className="p-4 bg-gradient-to-r from-quikle-crystal/50 to-quikle-platinum/50 rounded-lg border border-quikle-primary/20">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-quikle-primary" />
+              <span className="text-sm text-quikle-slate">Loading template fields...</span>
             </div>
           </div>
         )}

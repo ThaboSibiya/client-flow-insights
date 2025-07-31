@@ -10,8 +10,9 @@ export const useCustomTemplates = () => {
   const [templateFields, setTemplateFields] = useState<TemplateField[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [fieldsLoading, setFieldsLoading] = useState(false);
 
-  // Load available templates
+  // Load available templates immediately on mount
   useEffect(() => {
     const loadTemplates = async () => {
       try {
@@ -19,6 +20,7 @@ export const useCustomTemplates = () => {
         const data = await templateService.getIndustryTemplates();
         setTemplates(data);
       } catch (error: any) {
+        console.error('Failed to load templates:', error);
         toast({
           title: "Error",
           description: `Failed to load templates: ${error.message}`,
@@ -32,7 +34,7 @@ export const useCustomTemplates = () => {
     loadTemplates();
   }, []);
 
-  // Load fields when template is selected
+  // Load fields when template is selected (separate loading state)
   useEffect(() => {
     const loadFields = async () => {
       if (!selectedTemplate) {
@@ -42,9 +44,10 @@ export const useCustomTemplates = () => {
       }
 
       try {
-        setLoading(true);
+        setFieldsLoading(true);
         const fields = await templateService.getTemplateFields(selectedTemplate.id);
         setTemplateFields(fields);
+        
         // Initialize custom field values
         const initialValues: Record<string, string> = {};
         fields.forEach(field => {
@@ -52,13 +55,14 @@ export const useCustomTemplates = () => {
         });
         setCustomFieldValues(initialValues);
       } catch (error: any) {
+        console.error('Failed to load template fields:', error);
         toast({
           title: "Error",
           description: `Failed to load template fields: ${error.message}`,
           variant: "destructive",
         });
       } finally {
-        setLoading(false);
+        setFieldsLoading(false);
       }
     };
 
@@ -102,6 +106,7 @@ export const useCustomTemplates = () => {
     updateCustomFieldValue,
     validateRequiredFields,
     resetTemplate,
-    loading
+    loading,
+    fieldsLoading
   };
 };

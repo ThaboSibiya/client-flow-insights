@@ -61,7 +61,8 @@ const OnboardingForm = () => {
     updateCustomFieldValue,
     validateRequiredFields,
     resetTemplate,
-    loading: templatesLoading
+    loading: templatesLoading,
+    fieldsLoading
   } = useCustomTemplates();
 
   const form = useForm<FormValues>({
@@ -165,12 +166,12 @@ const OnboardingForm = () => {
         templateFields={templateFields}
         customFieldValues={customFieldValues}
         onFieldValueChange={updateCustomFieldValue}
-        fieldsLoading={templatesLoading}
+        fieldsLoading={fieldsLoading}
         loading={templatesLoading}
       />
 
       {/* Visual Flow Indicator */}
-      {selectedTemplate && (
+      {selectedTemplate && !fieldsLoading && (
         <div className="flex items-center justify-center animate-bounce">
           <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-quikle-primary/10 to-quikle-secondary/10 rounded-full border border-quikle-primary/20">
             <Sparkles className="h-4 w-4 text-quikle-primary" />
