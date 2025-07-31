@@ -1,195 +1,266 @@
 
-import React, { useMemo } from 'react';
-import {
-  ReactFlow,
+import React, { useState, useMemo } from 'react';
+import ReactFlow, {
   Node,
   Edge,
-  Controls,
   Background,
+  Controls,
+  MiniMap,
   useNodesState,
   useEdgesState,
+  Position,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Users } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 interface Employee extends Record<string, unknown> {
   id: string;
   first_name: string;
   last_name: string;
-  designation: string;
-  title: string;
-  department?: string;
+  email: string;
   role: string;
+  department: string;
+  avatar_url?: string;
   manager_id?: string;
-  employee_number: string;
 }
 
-interface EmployeeHierarchyProps {
-  employees: Employee[];
-}
-
-// Custom node component for employee cards
 const EmployeeNode = ({ data }: { data: Employee }) => {
+  const initials = `${data.first_name.charAt(0)}${data.last_name.charAt(0)}`;
+  
   const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800 border-red-200';
-      case 'manager': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'supervisor': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    switch (role.toLowerCase()) {
+      case 'ceo':
+      case 'director':
+        return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'manager':
+        return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'team lead':
+        return 'bg-green-100 text-green-800 border-green-300';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
 
   return (
-    <Card className="w-64 bg-white shadow-md hover:shadow-lg transition-shadow border border-quikle-silver/30">
-      <CardContent className="p-4">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 bg-quikle-primary/10 rounded-full flex items-center justify-center mx-auto">
-            <span className="text-quikle-primary font-semibold text-lg">
-              {data.first_name.charAt(0)}{data.last_name.charAt(0)}
-            </span>
-          </div>
-          <div>
-            <h3 className="font-semibold text-quikle-charcoal">
-              {data.first_name} {data.last_name}
-            </h3>
-            <p className="text-sm text-quikle-slate">{data.designation}</p>
-            <p className="text-xs text-quikle-slate">{data.title}</p>
-            {data.department && (
-              <p className="text-xs text-quikle-slate mt-1">{data.department}</p>
-            )}
-          </div>
-          <div className="flex justify-center">
-            <Badge className={`text-xs ${getRoleColor(data.role)}`}>
-              {data.role}
-            </Badge>
-          </div>
-          <p className="text-xs text-quikle-slate">{data.employee_number}</p>
-        </div>
+    <Card className="min-w-[200px] shadow-lg hover:shadow-xl transition-shadow bg-white border-2">
+      <CardContent className="p-4 text-center">
+        <Avatar className="w-12 h-12 mx-auto mb-2">
+          <AvatarImage src={data.avatar_url} alt={`${data.first_name} ${data.last_name}`} />
+          <AvatarFallback className="bg-quikle-primary text-white">{initials}</AvatarFallback>
+        </Avatar>
+        <h3 className="font-semibold text-quikle-charcoal">
+          {data.first_name} {data.last_name}
+        </h3>
+        <p className="text-sm text-quikle-slate mb-2">{data.email}</p>
+        <Badge className={`text-xs ${getRoleColor(data.role)}`}>
+          {data.role}
+        </Badge>
+        <p className="text-xs text-quikle-neutral mt-1">{data.department}</p>
       </CardContent>
     </Card>
   );
 };
 
 const nodeTypes = {
-  employee: EmployeeNode,
+  employeeNode: EmployeeNode,
 };
 
-const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({ employees }) => {
-  const { nodes, edges } = useMemo(() => {
-    // Create nodes for each employee
-    const nodeMap = new Map<string, Node>();
-    const edgeList: Edge[] = [];
+export default function EmployeeHierarchy() {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Mock employee data with proper structure
+  const mockEmployees: Employee[] = [
+    {
+      id: '1',
+      first_name: 'John',
+      last_name: 'Smith',
+      email: 'john.smith@company.com',
+      role: 'CEO',
+      department: 'Executive',
+      manager_id: undefined,
+    },
+    {
+      id: '2',
+      first_name: 'Sarah',
+      last_name: 'Johnson',
+      email: 'sarah.johnson@company.com',
+      role: 'Director',
+      department: 'Operations',
+      manager_id: '1',
+    },
+    {
+      id: '3',
+      first_name: 'Mike',
+      last_name: 'Davis',
+      email: 'mike.davis@company.com',
+      role: 'Director',
+      department: 'Sales',
+      manager_id: '1',
+    },
+    {
+      id: '4',
+      first_name: 'Emily',
+      last_name: 'Wilson',
+      email: 'emily.wilson@company.com',
+      role: 'Manager',
+      department: 'Operations',
+      manager_id: '2',
+    },
+    {
+      id: '5',
+      first_name: 'David',
+      last_name: 'Brown',
+      email: 'david.brown@company.com',
+      role: 'Manager',
+      department: 'Sales',
+      manager_id: '3',
+    },
+    {
+      id: '6',
+      first_name: 'Lisa',
+      last_name: 'Anderson',
+      email: 'lisa.anderson@company.com',
+      role: 'Team Lead',
+      department: 'Operations',
+      manager_id: '4',
+    },
+    {
+      id: '7',
+      first_name: 'Tom',
+      last_name: 'Wilson',
+      email: 'tom.wilson@company.com',
+      role: 'Employee',
+      department: 'Sales',
+      manager_id: '5',
+    },
+    {
+      id: '8',
+      first_name: 'Anna',
+      last_name: 'Taylor',
+      email: 'anna.taylor@company.com',
+      role: 'Employee',
+      department: 'Operations',
+      manager_id: '6',
+    },
+  ];
+
+  // Filter employees based on search term
+  const filteredEmployees = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return mockEmployees;
+    }
     
-    // Find root employees (those without managers or with invalid manager_id)
-    const rootEmployees = employees.filter(emp => 
-      !emp.manager_id || !employees.find(e => e.id === emp.manager_id)
+    const searchLower = searchTerm.toLowerCase();
+    return mockEmployees.filter(employee => 
+      employee.first_name.toLowerCase().includes(searchLower) ||
+      employee.last_name.toLowerCase().includes(searchLower) ||
+      employee.email.toLowerCase().includes(searchLower) ||
+      employee.role.toLowerCase().includes(searchLower) ||
+      employee.department.toLowerCase().includes(searchLower)
     );
+  }, [searchTerm, mockEmployees]);
+
+  // Generate nodes and edges based on filtered employees
+  const { nodes, edges } = useMemo(() => {
+    const nodes: Node[] = [];
+    const edges: Edge[] = [];
     
-    // Calculate positions using a hierarchical layout
-    const levelHeight = 200;
-    const nodeWidth = 280;
-    let currentLevel = 0;
-    
-    const processedEmployees = new Set<string>();
-    const levelEmployees: Employee[][] = [];
-    
-    // Build hierarchy levels
-    const buildLevels = (employeeList: Employee[], level: number) => {
-      if (employeeList.length === 0) return;
-      
-      if (!levelEmployees[level]) {
-        levelEmployees[level] = [];
+    // Create a map of employee levels for positioning
+    const employeeLevels: { [key: string]: number } = {};
+    const getEmployeeLevel = (employee: Employee): number => {
+      if (employeeLevels[employee.id] !== undefined) {
+        return employeeLevels[employee.id];
       }
       
-      employeeList.forEach(emp => {
-        if (!processedEmployees.has(emp.id)) {
-          levelEmployees[level].push(emp);
-          processedEmployees.add(emp.id);
+      if (!employee.manager_id) {
+        employeeLevels[employee.id] = 0;
+        return 0;
+      }
+      
+      const manager = filteredEmployees.find(emp => emp.id === employee.manager_id);
+      if (!manager) {
+        employeeLevels[employee.id] = 0;
+        return 0;
+      }
+      
+      const level = getEmployeeLevel(manager) + 1;
+      employeeLevels[employee.id] = level;
+      return level;
+    };
+
+    // Group employees by level
+    const levelGroups: { [key: number]: Employee[] } = {};
+    filteredEmployees.forEach(employee => {
+      const level = getEmployeeLevel(employee);
+      if (!levelGroups[level]) {
+        levelGroups[level] = [];
+      }
+      levelGroups[level].push(employee);
+    });
+
+    // Create nodes with proper positioning
+    Object.entries(levelGroups).forEach(([level, employees]) => {
+      const levelNum = parseInt(level);
+      employees.forEach((employee, index) => {
+        const totalInLevel = employees.length;
+        const xOffset = (index - (totalInLevel - 1) / 2) * 300;
+        
+        nodes.push({
+          id: employee.id,
+          type: 'employeeNode',
+          position: { x: xOffset, y: levelNum * 200 },
+          data: employee,
+          sourcePosition: Position.Bottom,
+          targetPosition: Position.Top,
+        });
+
+        // Create edges to managers
+        if (employee.manager_id && filteredEmployees.some(emp => emp.id === employee.manager_id)) {
+          edges.push({
+            id: `edge-${employee.manager_id}-${employee.id}`,
+            source: employee.manager_id,
+            target: employee.id,
+            type: 'smoothstep',
+            style: { stroke: '#6366f1', strokeWidth: 2 },
+          });
         }
       });
-      
-      // Find direct reports for current level employees
-      const nextLevelEmployees: Employee[] = [];
-      employeeList.forEach(emp => {
-        const directReports = employees.filter(e => e.manager_id === emp.id);
-        nextLevelEmployees.push(...directReports);
-      });
-      
-      if (nextLevelEmployees.length > 0) {
-        buildLevels(nextLevelEmployees, level + 1);
-      }
-    };
-    
-    buildLevels(rootEmployees, 0);
-    
-    // Create nodes with calculated positions
-    levelEmployees.forEach((levelEmps, level) => {
-      levelEmps.forEach((emp, index) => {
-        const totalAtLevel = levelEmps.length;
-        const xPosition = (index - (totalAtLevel - 1) / 2) * nodeWidth;
-        const yPosition = level * levelHeight;
-        
-        nodeMap.set(emp.id, {
-          id: emp.id,
-          type: 'employee',
-          position: { x: xPosition, y: yPosition },
-          data: emp,
-          draggable: true,
-        });
-      });
     });
-    
-    // Create edges for manager-employee relationships
-    employees.forEach(emp => {
-      if (emp.manager_id && nodeMap.has(emp.manager_id) && nodeMap.has(emp.id)) {
-        edgeList.push({
-          id: `${emp.manager_id}-${emp.id}`,
-          source: emp.manager_id,
-          target: emp.id,
-          type: 'smoothstep',
-          style: {
-            stroke: '#6366F1',
-            strokeWidth: 2,
-          },
-          markerEnd: {
-            type: 'arrowclosed' as any,
-            color: '#6366F1',
-          },
-        });
-      }
-    });
-    
-    return {
-      nodes: Array.from(nodeMap.values()),
-      edges: edgeList,
-    };
-  }, [employees]);
+
+    return { nodes, edges };
+  }, [filteredEmployees]);
 
   const [flowNodes, , onNodesChange] = useNodesState(nodes);
   const [flowEdges, , onEdgesChange] = useEdgesState(edges);
 
-  if (employees.length === 0) {
-    return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <Users className="h-12 w-12 mx-auto text-quikle-slate/50 mb-4" />
-          <p className="text-quikle-slate">No employees found to display hierarchy</p>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Update nodes when filtered data changes
+  React.useEffect(() => {
+    onNodesChange([{ type: 'reset', items: nodes }]);
+  }, [nodes, onNodesChange]);
+
+  React.useEffect(() => {
+    onEdgesChange([{ type: 'reset', items: edges }]);
+  }, [edges, onEdgesChange]);
 
   return (
-    <Card className="h-[600px]">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-quikle-charcoal">
-          <Users className="h-5 w-5 text-quikle-primary" />
-          Organization Hierarchy
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0 h-[500px]">
+    <div className="h-full space-y-4">
+      {/* Search Input */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-quikle-slate" />
+        <Input
+          placeholder="Search employees..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10 border-quikle-silver focus:border-quikle-primary"
+        />
+      </div>
+
+      {/* Organization Chart */}
+      <div className="h-[600px] border border-quikle-silver rounded-lg bg-quikle-crystal">
         <ReactFlow
           nodes={flowNodes}
           edges={flowEdges}
@@ -197,29 +268,26 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({ employees }) => {
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
           fitView
-          fitViewOptions={{
-            padding: 0.2,
-            includeHiddenNodes: false,
-          }}
-          style={{ backgroundColor: '#f8fafc' }}
-          className="bg-quikle-crystal/20"
+          minZoom={0.5}
+          maxZoom={1.5}
+          defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         >
-          <Controls 
-            className="bg-white border border-quikle-silver/30 shadow-sm"
-            showZoom={true}
-            showFitView={true}
-            showInteractive={true}
-          />
-          <Background 
-            color="#e2e8f0" 
-            gap={16} 
-            size={1}
-            style={{ backgroundColor: '#f8fafc' }}
+          <Background color="#f1f5f9" gap={20} />
+          <Controls className="bg-white border-quikle-silver" />
+          <MiniMap 
+            nodeColor={(node) => '#6366f1'}
+            className="bg-white border border-quikle-silver"
           />
         </ReactFlow>
-      </CardContent>
-    </Card>
-  );
-};
+      </div>
 
-export default EmployeeHierarchy;
+      {/* Results Summary */}
+      {searchTerm && (
+        <div className="text-sm text-quikle-slate">
+          Showing {filteredEmployees.length} employee{filteredEmployees.length !== 1 ? 's' : ''} 
+          {searchTerm && ` matching "${searchTerm}"`}
+        </div>
+      )}
+    </div>
+  );
+}
