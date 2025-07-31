@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
-import ReactFlow, {
+import {
+  ReactFlow,
   Node,
   Edge,
   Background,
@@ -234,17 +235,17 @@ export default function EmployeeHierarchy() {
     return { nodes, edges };
   }, [filteredEmployees]);
 
-  const [flowNodes, , onNodesChange] = useNodesState(nodes);
-  const [flowEdges, , onEdgesChange] = useEdgesState(edges);
+  const [flowNodes, setNodes, onNodesChange] = useNodesState(nodes);
+  const [flowEdges, setEdges, onEdgesChange] = useEdgesState(edges);
 
   // Update nodes when filtered data changes
   React.useEffect(() => {
-    onNodesChange([{ type: 'reset', items: nodes }]);
-  }, [nodes, onNodesChange]);
+    setNodes(nodes);
+  }, [nodes, setNodes]);
 
   React.useEffect(() => {
-    onEdgesChange([{ type: 'reset', items: edges }]);
-  }, [edges, onEdgesChange]);
+    setEdges(edges);
+  }, [edges, setEdges]);
 
   return (
     <div className="h-full space-y-4">

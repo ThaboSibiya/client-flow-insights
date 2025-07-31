@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -110,7 +111,7 @@ const Employees = () => {
               </TabsContent>
 
               <TabsContent value="hierarchy" className="mt-6">
-                <EmployeeHierarchy employees={employees} />
+                <EmployeeHierarchy />
               </TabsContent>
             </Tabs>
           </CardContent>
