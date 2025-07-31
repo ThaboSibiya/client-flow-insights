@@ -10,7 +10,6 @@ import CustomerTableFilters from './CustomerTableFilters';
 import QuickActionsBar from '../QuickActionsBar';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 import { toast } from '@/hooks/use-toast';
-import { useDebounce } from '@/hooks/useDebounce';
 
 const CustomerTableContainer = () => {
   const {
@@ -38,25 +37,8 @@ const CustomerTableContainer = () => {
     getQuickDateRange
   } = useCustomerFilters(customers);
 
-  // State for the search input, which updates instantly
-  const [searchInput, setSearchInput] = React.useState(searchQuery);
-  // Debounced version of the search input, which is used for filtering
-  const debouncedSearchQuery = useDebounce(searchInput, 300);
-
-  // Effect to apply the debounced search query to the filters
-  React.useEffect(() => {
-    setSearchQuery(debouncedSearchQuery);
-  }, [debouncedSearchQuery, setSearchQuery]);
-
-  // Effect to sync the search input if the query changes from elsewhere (e.g., presets)
-  React.useEffect(() => {
-    if (searchQuery !== searchInput) {
-      setSearchInput(searchQuery);
-    }
-  }, [searchQuery, searchInput]);
-
   const [currentPage, setCurrentPage] = React.useState(1);
-  const [isRefreshing, setIsRefreshing] = React.useState(false); // For UI feedback on manual refresh
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
   const itemsPerPage = 10;
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
   
@@ -141,8 +123,6 @@ const CustomerTableContainer = () => {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      // Data is real-time, so this is mostly for user feedback.
-      // A full implementation might expose a 'refetch' from useCustomerData.
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
         title: "Data is up-to-date",
@@ -171,8 +151,8 @@ const CustomerTableContainer = () => {
         
         <ErrorBoundary>
           <CustomerTableFilters
-            searchQuery={searchInput}
-            onSearchQueryChange={setSearchInput}
+            searchQuery={searchQuery}
+            onSearchQueryChange={setSearchQuery}
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
             dateRange={dateRange}
