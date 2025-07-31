@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Printer, Wrench, Calendar, X, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { Customer, CustomerTicket } from '@/types/customer';
+import { Customer } from '@/types/customer';
 import { supabase } from '@/integrations/supabase/client';
 import { useTicketManagement } from '@/hooks/useTicketManagement';
 
@@ -76,7 +76,21 @@ const PrinterManagementDialog = ({ customer, isOpen, onClose }: PrinterManagemen
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPrinters(data || []);
+      
+      // Map database data to match PrinterEquipment interface, adding default status if missing
+      const mappedPrinters = (data || []).map(item => ({
+        id: item.id,
+        brand: item.brand || '',
+        model: item.model || '',
+        serial_number: item.serial_number || '',
+        purchase_date: item.purchase_date || '',
+        warranty_expiry: item.warranty_expiry || '',
+        technical_issues: item.technical_issues || '',
+        notes: item.notes || '',
+        status: (item.status as 'active' | 'maintenance' | 'retired') || 'active'
+      }));
+      
+      setPrinters(mappedPrinters);
     } catch (error) {
       console.error('Error loading printers:', error);
       toast({
@@ -105,7 +119,7 @@ const PrinterManagementDialog = ({ customer, isOpen, onClose }: PrinterManagemen
     try {
       const printerData = {
         customer_id: customer.id,
-        user_id: customer.user_id || '',
+        user_id: customer.user_id || '', // Use user_id from customer
         equipment_type: 'printer',
         ...newPrinter
       };
@@ -182,6 +196,8 @@ const PrinterManagementDialog = ({ customer, isOpen, onClose }: PrinterManagemen
       description: `Service request for ${printer.brand} ${printer.model} (S/N: ${printer.serial_number})\n\nTechnical Issues: ${printer.technical_issues || 'General maintenance'}`,
       priority: 'medium' as const,
       status: 'open' as const,
+      timeEntries: [],
+      totalTimeSpent: 0,
       category: 'printer_service'
     };
 
