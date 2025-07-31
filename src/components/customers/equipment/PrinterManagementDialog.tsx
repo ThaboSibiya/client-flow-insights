@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -77,7 +76,7 @@ const PrinterManagementDialog = ({ customer, isOpen, onClose }: PrinterManagemen
 
       if (error) throw error;
       
-      // Map database data to match PrinterEquipment interface, adding default status if missing
+      // Map database data to match PrinterEquipment interface
       const mappedPrinters = (data || []).map(item => ({
         id: item.id,
         brand: item.brand || '',
@@ -117,9 +116,15 @@ const PrinterManagementDialog = ({ customer, isOpen, onClose }: PrinterManagemen
 
     setLoading(true);
     try {
+      // Get the current user to use as user_id
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
       const printerData = {
         customer_id: customer.id,
-        user_id: customer.user_id || '', // Use user_id from customer
+        user_id: user.id,
         equipment_type: 'printer',
         ...newPrinter
       };

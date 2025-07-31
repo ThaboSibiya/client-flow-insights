@@ -259,6 +259,8 @@ export type Database = {
           notes: string | null
           purchase_date: string | null
           serial_number: string | null
+          status: string | null
+          technical_issues: string | null
           updated_at: string
           user_id: string
           warranty_expiry: string | null
@@ -273,6 +275,8 @@ export type Database = {
           notes?: string | null
           purchase_date?: string | null
           serial_number?: string | null
+          status?: string | null
+          technical_issues?: string | null
           updated_at?: string
           user_id: string
           warranty_expiry?: string | null
@@ -287,6 +291,8 @@ export type Database = {
           notes?: string | null
           purchase_date?: string | null
           serial_number?: string | null
+          status?: string | null
+          technical_issues?: string | null
           updated_at?: string
           user_id?: string
           warranty_expiry?: string | null
