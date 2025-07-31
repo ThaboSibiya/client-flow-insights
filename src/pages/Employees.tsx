@@ -5,19 +5,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Search, Users, Network, List } from "lucide-react";
-import EmployeeList from '../components/employees/EmployeeList';
+import OptimizedEmployeeList from '../components/employees/OptimizedEmployeeList';
 import EmployeeForm from '../components/employees/EmployeeForm';
 import EmployeeHierarchy from '../components/employees/EmployeeHierarchy';
 import EmployeeAccessChecker from '../components/employees/EmployeeAccessChecker';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useEmployeeData } from '../hooks/useEmployeeData';
+import { useOptimizedEmployeeData } from '../hooks/useOptimizedEmployeeData';
 
 const Employees = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [activeTab, setActiveTab] = useState('list');
-  const { employees, loading, refetch } = useEmployeeData();
+  const { employees, loading, isCompanyOwner, refetch } = useOptimizedEmployeeData();
+
+  // Early return if user is not a company owner
+  if (!loading && !isCompanyOwner) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Users className="h-12 w-12 mx-auto mb-4 text-quikle-silver" />
+          <h2 className="text-xl font-semibold text-quikle-charcoal mb-2">Access Restricted</h2>
+          <p className="text-quikle-slate">You don't have permission to manage employees.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleAddEmployee = () => {
     setSelectedEmployee(null);
@@ -36,15 +49,18 @@ const Employees = () => {
   };
 
   const handleInvitationSent = () => {
-    refetch(); // Refresh the employee list to show updated invitation status
+    refetch();
   };
 
-  const filteredEmployees = employees.filter(employee =>
-    employee.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.designation.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Optimized filtering - only filter when search term exists
+  const filteredEmployees = searchTerm.trim() 
+    ? employees.filter(employee =>
+        employee.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.designation.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : employees;
 
   return (
     <EmployeeAccessChecker requiredPrivilege="can_manage_employees">
@@ -102,7 +118,7 @@ const Employees = () => {
                   </div>
                 </div>
 
-                <EmployeeList 
+                <OptimizedEmployeeList 
                   employees={filteredEmployees}
                   loading={loading}
                   onEditEmployee={handleEditEmployee}
