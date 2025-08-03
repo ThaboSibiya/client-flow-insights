@@ -1,12 +1,20 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { Customer } from '@/types/customer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
-import StatusSelector from '../StatusSelector';
-import { toast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useForm } from 'react-hook-form';
+import { useCRM } from '@/context/CRMContext';
+import { Save } from 'lucide-react';
 
 interface CustomerDetailsFormProps {
   customer: Customer;
@@ -15,129 +23,121 @@ interface CustomerDetailsFormProps {
 
 const CustomerDetailsForm = ({ customer, onClose }: CustomerDetailsFormProps) => {
   const { updateCustomer } = useCRM();
-  const [formData, setFormData] = useState({
-    name: customer.name || '',
-    email: customer.email || '',
-    phone: customer.phone || '',
-    address: customer.address || '',
-    notes: customer.notes || '',
-    status: customer.status
+  
+  const form = useForm({
+    defaultValues: {
+      name: customer.name || '',
+      email: customer.email || '',
+      phone: customer.phone || '',
+      status: customer.status || 'new',
+      notes: customer.notes || '',
+      address: customer.address || '',
+    },
   });
-
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleStatusChange = (status: CustomerStatus) => {
-    setFormData(prev => ({ ...prev, status }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      await updateCustomer(customer.id, formData);
-      toast({
-        title: "Success",
-        description: "Customer updated successfully",
-      });
-      onClose();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update customer",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  
+  const onSubmit = (data: any) => {
+    updateCustomer(customer.id, data);
+    onClose();
   };
 
   return (
-    <div className="bg-gradient-to-br from-white to-quikle-crystal p-6 rounded-xl shadow-luxury">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-2 gap-6">
+    <div className="space-y-6">
+      <div className="bg-gradient-to-br from-quikle-crystal to-white rounded-lg p-6 border border-quikle-silver/20">
+        <h3 className="text-lg font-semibold text-quikle-charcoal mb-4 flex items-center gap-2">
+          Personal Information
+        </h3>
+        
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-quikle-charcoal font-medium">Full Name</Label>
+              <Input
+                id="name"
+                {...form.register('name')}
+                placeholder="Customer full name"
+                className="border-quikle-silver/50 focus:border-quikle-primary"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-quikle-charcoal font-medium">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                {...form.register('email')}
+                placeholder="customer@example.com"
+                className="border-quikle-silver/50 focus:border-quikle-primary"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-quikle-charcoal font-medium">Phone Number</Label>
+              <Input
+                id="phone"
+                {...form.register('phone')}
+                placeholder="+1 (555) 123-4567"
+                className="border-quikle-silver/50 focus:border-quikle-primary"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="status" className="text-quikle-charcoal font-medium">Customer Status</Label>
+              <Select 
+                onValueChange={(value) => form.setValue('status', value)}
+                defaultValue={customer.status}
+              >
+                <SelectTrigger className="border-quikle-silver/50 focus:border-quikle-primary">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new" className="text-quikle-info">New Customer</SelectItem>
+                  <SelectItem value="existing" className="text-quikle-success">Existing Customer</SelectItem>
+                  <SelectItem value="pending" className="text-quikle-accent">Pending Policy</SelectItem>
+                  <SelectItem value="finalised" className="text-quikle-purple">Finalised Sale</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-quikle-primary font-semibold">Name</Label>
+            <Label htmlFor="address" className="text-quikle-charcoal font-medium">Address</Label>
             <Input
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-              className="shadow-sm"
+              id="address"
+              {...form.register('address')}
+              placeholder="Full address"
+              className="border-quikle-silver/50 focus:border-quikle-primary"
             />
           </div>
+          
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-quikle-primary font-semibold">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              className="shadow-sm"
+            <Label htmlFor="notes" className="text-quikle-charcoal font-medium">Notes</Label>
+            <Textarea
+              id="notes"
+              {...form.register('notes')}
+              placeholder="Additional notes about the customer"
+              className="min-h-[100px] border-quikle-silver/50 focus:border-quikle-primary"
             />
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="phone" className="text-quikle-primary font-semibold">Phone</Label>
-            <Input
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              className="shadow-sm"
-            />
+          
+          <div className="flex justify-end gap-3 pt-4 border-t border-quikle-silver/20">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="border-quikle-silver/50 text-quikle-charcoal hover:bg-quikle-crystal"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white hover:shadow-md"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              Save Changes
+            </Button>
           </div>
-          <div className="space-y-2">
-            <Label className="text-quikle-primary font-semibold">Status</Label>
-            <StatusSelector
-              status={formData.status}
-              onChange={handleStatusChange}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="address" className="text-quikle-primary font-semibold">Address</Label>
-          <Input
-            id="address"
-            name="address"
-            value={formData.address}
-            onChange={handleInputChange}
-            className="shadow-sm"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="notes" className="text-quikle-primary font-semibold">Notes</Label>
-          <Textarea
-            id="notes"
-            name="notes"
-            value={formData.notes}
-            onChange={handleInputChange}
-            rows={3}
-            className="shadow-sm"
-          />
-        </div>
-
-        <div className="flex justify-end gap-3 pt-6 border-t border-quikle-silver/20">
-          <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };

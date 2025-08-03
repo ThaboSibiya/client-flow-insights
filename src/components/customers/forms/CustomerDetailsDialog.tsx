@@ -8,11 +8,10 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Customer } from '@/types/customer';
 import CustomerDetailsForm from './CustomerDetailsForm';
 import CustomDataDisplay from '../CustomDataDisplay';
-import PrinterManagementDialog from '../equipment/PrinterManagementDialog';
+import EquipmentDisplay from '../equipment/EquipmentDisplay';
 import { FileText, User, AlertCircle, CheckCircle, Printer } from 'lucide-react';
 import { useCustomerCustomData } from '@/hooks/useCustomerCustomData';
 
@@ -24,7 +23,6 @@ interface CustomerDetailsDialogProps {
 
 const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDialogProps) => {
   const [activeTab, setActiveTab] = useState('details');
-  const [showPrinterDialog, setShowPrinterDialog] = useState(false);
   const { appliedTemplates, templateFields, customData, loading } = useCustomerCustomData(customer?.id || '');
 
   // Calculate completion stats for the tab indicator
@@ -41,140 +39,81 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
   const hasIncompleteRequired = requiredFields.length > completedRequiredFields.length;
 
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-[900px] max-h-[90vh] bg-gradient-to-br from-white via-quikle-crystal to-quikle-platinum border-quikle-silver/30 shadow-luxury">
-          <DialogHeader className="border-b border-quikle-silver/20 pb-4">
-            <DialogTitle className="text-2xl bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">
-              {customer ? `${customer.name}` : 'Customer Details'}
-            </DialogTitle>
-            {customer && !loading && appliedTemplates.length > 0 && (
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-sm text-quikle-slate">Applied Templates:</span>
-                {appliedTemplates.map(template => (
-                  <Badge key={template.id} variant="secondary" className="bg-quikle-primary/10 text-quikle-primary text-xs">
-                    {template.industry}
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </DialogHeader>
-          
-          {customer && (
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
-                <TabsTrigger 
-                  value="details" 
-                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
-                >
-                  <User className="h-4 w-4" />
-                  Customer Details
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="custom-data" 
-                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
-                >
-                  <FileText className="h-4 w-4" />
-                  Custom Information
-                  {!loading && appliedTemplates.length > 0 && (
-                    <>
-                      <Badge variant="secondary" className="bg-white/20 text-white text-xs ml-1">
-                        {appliedTemplates.length}
-                      </Badge>
-                      {hasIncompleteRequired && (
-                        <AlertCircle className="h-3 w-3 text-amber-300" />
-                      )}
-                      {!hasIncompleteRequired && requiredFields.length > 0 && (
-                        <CheckCircle className="h-3 w-3 text-green-300" />
-                      )}
-                    </>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="equipment" 
-                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
-                >
-                  <Printer className="h-4 w-4" />
-                  Equipment
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="details" className="mt-6 max-h-[60vh] overflow-y-auto">
-                <CustomerDetailsForm 
-                  customer={customer}
-                  onClose={onClose}
-                />
-              </TabsContent>
-              
-              <TabsContent value="custom-data" className="mt-6 max-h-[60vh] overflow-y-auto">
-                {!loading && appliedTemplates.length === 0 && (
-                  <div className="text-center py-8">
-                    <FileText className="h-16 w-16 text-quikle-neutral/30 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-quikle-charcoal mb-2">No Custom Templates Applied</h3>
-                    <p className="text-quikle-slate mb-4">This customer doesn't have any industry-specific templates applied yet.</p>
-                    <p className="text-sm text-quikle-slate">Templates can be applied during the onboarding process or by editing the customer's profile.</p>
-                  </div>
-                )}
-                {appliedTemplates.length > 0 && (
-                  <div className="space-y-4">
-                    {hasIncompleteRequired && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                        <div className="flex items-center gap-2 text-amber-800">
-                          <AlertCircle className="h-4 w-4" />
-                          <span className="font-medium">Incomplete Required Fields</span>
-                        </div>
-                        <p className="text-sm text-amber-700 mt-1">
-                          Some required fields are missing information. Please complete them for better service delivery.
-                        </p>
-                      </div>
-                    )}
-                    <CustomDataDisplay customerId={customer.id} />
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="equipment" className="mt-6 max-h-[60vh] overflow-y-auto">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="text-lg font-medium text-quikle-charcoal">Equipment Management</h3>
-                      <p className="text-sm text-quikle-slate">Manage printers and equipment for this customer</p>
-                    </div>
-                    <Button 
-                      onClick={() => setShowPrinterDialog(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <Printer className="h-4 w-4" />
-                      Manage Printers
-                    </Button>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-quikle-crystal to-white rounded-lg p-6 text-center">
-                    <Printer className="h-12 w-12 text-quikle-primary mx-auto mb-3" />
-                    <h4 className="font-medium text-quikle-charcoal mb-2">Printer Service Management</h4>
-                    <p className="text-sm text-quikle-slate mb-4">
-                      Add and manage multiple printers for {customer.name}. Each printer can have its own service tickets and maintenance history.
-                    </p>
-                    <Button 
-                      onClick={() => setShowPrinterDialog(true)}
-                      variant="outline"
-                    >
-                      Open Printer Manager
-                    </Button>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[1000px] max-h-[90vh] bg-gradient-to-br from-white via-quikle-crystal to-quikle-platinum border-quikle-silver/30 shadow-luxury">
+        <DialogHeader className="border-b border-quikle-silver/20 pb-4">
+          <DialogTitle className="text-2xl bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">
+            {customer ? `${customer.name}` : 'Customer Details'}
+          </DialogTitle>
+          {customer && !loading && appliedTemplates.length > 0 && (
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-sm text-quikle-slate">Applied Templates:</span>
+              {appliedTemplates.map(template => (
+                <Badge key={template.id} variant="secondary" className="bg-quikle-primary/10 text-quikle-primary text-xs">
+                  {template.industry}
+                </Badge>
+              ))}
+            </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      <PrinterManagementDialog
-        customer={customer}
-        isOpen={showPrinterDialog}
-        onClose={() => setShowPrinterDialog(false)}
-      />
-    </>
+        </DialogHeader>
+        
+        {customer && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
+              <TabsTrigger 
+                value="details" 
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
+              >
+                <User className="h-4 w-4" />
+                Personal Details
+              </TabsTrigger>
+              <TabsTrigger 
+                value="custom-data" 
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
+              >
+                <FileText className="h-4 w-4" />
+                Business Information
+                {!loading && appliedTemplates.length > 0 && (
+                  <>
+                    <Badge variant="secondary" className="bg-white/20 text-white text-xs ml-1">
+                      {appliedTemplates.length}
+                    </Badge>
+                    {hasIncompleteRequired && (
+                      <AlertCircle className="h-3 w-3 text-amber-300" />
+                    )}
+                    {!hasIncompleteRequired && requiredFields.length > 0 && (
+                      <CheckCircle className="h-3 w-3 text-green-300" />
+                    )}
+                  </>
+                )}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="equipment" 
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
+              >
+                <Printer className="h-4 w-4" />
+                Equipment
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="details" className="mt-6 max-h-[65vh] overflow-y-auto">
+              <CustomerDetailsForm 
+                customer={customer}
+                onClose={onClose}
+              />
+            </TabsContent>
+            
+            <TabsContent value="custom-data" className="mt-6 max-h-[65vh] overflow-y-auto">
+              <CustomDataDisplay customerId={customer.id} />
+            </TabsContent>
+            
+            <TabsContent value="equipment" className="mt-6 max-h-[65vh] overflow-y-auto">
+              <EquipmentDisplay customerId={customer.id} />
+            </TabsContent>
+          </Tabs>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 };
 
