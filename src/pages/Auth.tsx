@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
-import { Mail, Lock, UserPlus, LogIn } from 'lucide-react';
+import { Mail, Lock, UserPlus, LogIn, RefreshCw } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -100,6 +100,34 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for the password reset link",
+      });
+      
+      setActiveTab('login');
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send reset email",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-quikle-platinum">
       <div className="w-full max-w-md space-y-8">
@@ -115,9 +143,10 @@ const Auth = () => {
           </CardHeader>
           
           <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
+              <TabsTrigger value="forgot">Reset</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login">
@@ -156,7 +185,7 @@ const Auth = () => {
                   </div>
                 </CardContent>
                 
-                <CardFooter>
+                <CardFooter className="flex flex-col space-y-2">
                   <Button 
                     type="submit" 
                     className="w-full quikle-button-primary"
@@ -164,6 +193,14 @@ const Auth = () => {
                   >
                     <LogIn className="mr-2 h-4 w-4" />
                     {loading ? 'Signing in...' : 'Sign In'}
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setActiveTab('forgot')}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    Forgot your password?
                   </Button>
                 </CardFooter>
               </form>
@@ -214,6 +251,50 @@ const Auth = () => {
                   >
                     <UserPlus className="mr-2 h-4 w-4" />
                     {loading ? 'Creating account...' : 'Create Account'}
+                  </Button>
+                </CardFooter>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="forgot">
+              <form onSubmit={handleForgotPassword}>
+                <CardContent className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="forgot-email"
+                        type="email"
+                        placeholder="name@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="pl-10"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Enter your email address and we'll send you a link to reset your password
+                    </p>
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="flex flex-col space-y-2">
+                  <Button 
+                    type="submit" 
+                    className="w-full quikle-button-primary"
+                    disabled={loading}
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    {loading ? 'Sending reset link...' : 'Send Reset Link'}
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setActiveTab('login')}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    Back to login
                   </Button>
                 </CardFooter>
               </form>
