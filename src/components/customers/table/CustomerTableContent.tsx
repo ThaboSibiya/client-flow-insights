@@ -3,9 +3,7 @@ import React from 'react';
 import { Customer } from '@/types/customer';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { 
-  ArrowUpDown, 
   ChevronLeft, 
   ChevronRight, 
   Eye, 
@@ -20,7 +18,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Table, TableBody, TableHeader } from '@/components/ui/table';
 import { useCustomerActions, CustomerActionDialogs } from '../actions/CustomerActions';
+import { useDynamicTableColumns } from '@/hooks/useDynamicTableColumns';
+import DynamicTableHeader from './DynamicTableHeader';
+import DynamicTableCell from './DynamicTableCell';
 import CustomerTableSkeleton from './CustomerTableSkeleton';
 
 interface CustomerTableContentProps {
@@ -69,43 +71,25 @@ const CustomerTableContent = ({
     closeTicketDialog,
   } = useCustomerActions();
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'active': return 'default';
-      case 'inactive': return 'secondary';
-      case 'pending': return 'outline';
-      default: return 'secondary';
-    }
-  };
-
-  const getSortIcon = (field: string) => {
-    if (sortBy !== field) return <ArrowUpDown className="h-4 w-4" />;
-    return sortOrder === 'asc' ? 
-      <ArrowUpDown className="h-4 w-4 text-blue-600" /> : 
-      <ArrowUpDown className="h-4 w-4 text-blue-600 rotate-180" />;
-  };
-
-  // Custom checkbox component to handle indeterminate state
-  const SelectAllCheckbox = () => {
-    const checkboxRef = React.useRef<HTMLButtonElement>(null);
+  const { columns, getColumnValue, getVisibleColumns } = useDynamicTableColumns(paginatedCustomers);
+  
+  // Detect screen size (simplified)
+  const [screenSize, setScreenSize] = React.useState<'mobile' | 'tablet' | 'desktop'>('desktop');
+  
+  React.useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 768) setScreenSize('mobile');
+      else if (width < 1024) setScreenSize('tablet');
+      else setScreenSize('desktop');
+    };
     
-    React.useEffect(() => {
-      if (checkboxRef.current) {
-        const checkboxElement = checkboxRef.current.querySelector('input[type="checkbox"]') as HTMLInputElement;
-        if (checkboxElement) {
-          checkboxElement.indeterminate = isIndeterminate;
-        }
-      }
-    }, [isIndeterminate]);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-    return (
-      <Checkbox
-        ref={checkboxRef}
-        checked={isAllSelected}
-        onCheckedChange={onSelectAll}
-      />
-    );
-  };
+  const visibleColumns = getVisibleColumns(screenSize);
 
   if (isLoading) {
     return <CustomerTableSkeleton />;
@@ -113,118 +97,67 @@ const CustomerTableContent = ({
 
   return (
     <>
-      <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg border border-quikle-silver/30 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="w-12 px-4 py-3">
-                  <SelectAllCheckbox />
-                </th>
-                <th className="text-left px-4 py-3 font-medium text-gray-900">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onSort('name')}
-                    className="h-auto p-0 hover:bg-transparent"
-                  >
-                    Name {getSortIcon('name')}
-                  </Button>
-                </th>
-                <th className="text-left px-4 py-3 font-medium text-gray-900">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onSort('email')}
-                    className="h-auto p-0 hover:bg-transparent"
-                  >
-                    Email {getSortIcon('email')}
-                  </Button>
-                </th>
-                <th className="text-left px-4 py-3 font-medium text-gray-900">Phone</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-900">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onSort('status')}
-                    className="h-auto p-0 hover:bg-transparent"
-                  >
-                    Status {getSortIcon('status')}
-                  </Button>
-                </th>
-                <th className="text-left px-4 py-3 font-medium text-gray-900">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onSort('ticketCount')}
-                    className="h-auto p-0 hover:bg-transparent"
-                  >
-                    Tickets {getSortIcon('ticketCount')}
-                  </Button>
-                </th>
-                <th className="text-left px-4 py-3 font-medium text-gray-900">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onSort('createdAt')}
-                    className="h-auto p-0 hover:bg-transparent"
-                  >
-                    Created {getSortIcon('createdAt')}
-                  </Button>
-                </th>
-                <th className="w-16 px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
+          <Table>
+            <TableHeader>
+              <DynamicTableHeader
+                columns={visibleColumns}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSort={onSort}
+                isAllSelected={isAllSelected}
+                onSelectAll={onSelectAll}
+                screenSize={screenSize}
+              />
+            </TableHeader>
+            <TableBody>
               {paginatedCustomers.map((customer) => (
-                <tr key={customer.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
+                <tr key={customer.id} className="border-b border-quikle-silver/20 hover:bg-quikle-crystal/20 transition-colors">
+                  <td className="px-4 py-3 w-12">
                     <Checkbox
                       checked={selectedCustomers.has(customer.id)}
                       onCheckedChange={(checked) => 
                         onSelectCustomer(customer.id, checked as boolean)
                       }
+                      className="border-quikle-silver data-[state=checked]:bg-quikle-primary"
                     />
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    {customer.name}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{customer.email}</td>
-                  <td className="px-4 py-3 text-gray-600">{customer.phone}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant={getStatusBadgeVariant(customer.status)}>
-                      {customer.status}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {customer.ticketCount || 0}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {new Date(customer.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
+                  
+                  {visibleColumns.map((column) => (
+                    <DynamicTableCell
+                      key={column.key}
+                      customer={customer}
+                      columnKey={column.key}
+                      columnType={column.type}
+                      value={getColumnValue(customer, column.key)}
+                      onStatusChange={handleStatusChange}
+                    />
+                  ))}
+                  
+                  <td className="px-4 py-3 w-16">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-quikle-crystal">
+                          <MoreHorizontal className="h-4 w-4 text-quikle-slate" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className="bg-white border-quikle-silver/30 shadow-lg">
                         <DropdownMenuItem onClick={() => handleOpenCustomerDetails(customer)}>
-                          <Eye className="mr-2 h-4 w-4" />
+                          <Eye className="mr-2 h-4 w-4 text-quikle-primary" />
                           View Details
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleOpenCustomerDetails(customer)}>
-                          <Edit className="mr-2 h-4 w-4" />
+                          <Edit className="mr-2 h-4 w-4 text-quikle-secondary" />
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleManageTickets(customer)}>
-                          <Ticket className="mr-2 h-4 w-4" />
+                          <Ticket className="mr-2 h-4 w-4 text-quikle-accent" />
                           Manage Tickets
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleDeleteCustomer(customer.id)}
-                          className="text-red-600"
+                          className="text-red-600 hover:bg-red-50"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
@@ -234,13 +167,13 @@ const CustomerTableContent = ({
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50">
-          <div className="text-sm text-gray-700">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-quikle-silver/30 bg-quikle-crystal/20">
+          <div className="text-sm text-quikle-slate">
             Showing {((currentPage - 1) * 10) + 1} to {Math.min(currentPage * 10, paginatedCustomers.length)} of {paginatedCustomers.length} results
           </div>
           <div className="flex items-center space-x-2">
@@ -249,11 +182,12 @@ const CustomerTableContent = ({
               size="sm"
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
+              className="border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal"
             >
               <ChevronLeft className="h-4 w-4" />
               Previous
             </Button>
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-quikle-charcoal font-medium">
               Page {currentPage} of {totalPages}
             </span>
             <Button
@@ -261,6 +195,7 @@ const CustomerTableContent = ({
               size="sm"
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
+              className="border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal"
             >
               Next
               <ChevronRight className="h-4 w-4" />
