@@ -26,14 +26,14 @@ export const useDynamicTableColumns = (customers: Customer[], customerId?: strin
   const sampleCustomerId = customerId || customers[0]?.id || '';
   const { templateFields, customData, equipmentData } = useCustomerCustomData(sampleCustomerId);
 
-  const availableColumns = useMemo(() => {
-    const columns: TableColumn[] = [...CORE_COLUMNS];
+  const columns = useMemo(() => {
+    const allColumns: TableColumn[] = [...CORE_COLUMNS];
 
     // Add template-based columns for personal/business information
     templateFields
       .filter(field => field.category !== 'equipment')
       .forEach((field, index) => {
-        columns.push({
+        allColumns.push({
           key: `custom_${field.field_name}`,
           label: field.field_label,
           type: 'custom',
@@ -45,7 +45,7 @@ export const useDynamicTableColumns = (customers: Customer[], customerId?: strin
 
     // Add equipment summary columns for equipment-related templates
     if (equipmentData.length > 0) {
-      columns.push(
+      allColumns.push(
         {
           key: 'equipment_count',
           label: 'Equipment Count',
@@ -65,8 +65,22 @@ export const useDynamicTableColumns = (customers: Customer[], customerId?: strin
       );
     }
 
-    return columns.sort((a, b) => a.priority - b.priority);
+    return allColumns.sort((a, b) => a.priority - b.priority);
   }, [templateFields, equipmentData]);
+
+  const getVisibleColumns = (screenSize: 'mobile' | 'tablet' | 'desktop') => {
+    switch (screenSize) {
+      case 'mobile':
+        // Show only the most essential columns on mobile
+        return columns.filter(col => col.isRequired || col.priority <= 3).slice(0, 3);
+      case 'tablet':
+        // Show core and important custom columns on tablet
+        return columns.filter(col => col.priority <= 7);
+      default:
+        // Show all columns on desktop
+        return columns;
+    }
+  };
 
   const getColumnValue = (customer: Customer, columnKey: string) => {
     // Handle core columns
@@ -95,8 +109,9 @@ export const useDynamicTableColumns = (customers: Customer[], customerId?: strin
   };
 
   return {
-    availableColumns,
+    columns,
     getColumnValue,
+    getVisibleColumns,
     hasTemplateFields: templateFields.length > 0,
     hasEquipmentData: equipmentData.length > 0
   };
