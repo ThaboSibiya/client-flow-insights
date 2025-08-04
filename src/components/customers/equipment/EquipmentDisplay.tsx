@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -184,6 +183,63 @@ const EquipmentDisplay = ({ customerId }: EquipmentDisplayProps) => {
       case 'broken': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const renderEquipmentSummary = () => {
+    if (equipment.length === 0) return null;
+
+    const equipmentSummary = equipment.reduce((acc, item) => {
+      const key = `${item.brand} ${item.equipment_type}`;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return (
+      <Card className="bg-gradient-to-r from-quikle-primary/5 to-quikle-secondary/5 border-quikle-primary/20 mb-6">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg text-quikle-charcoal flex items-center gap-2">
+            <Printer className="h-5 w-5 text-quikle-primary" />
+            Equipment Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-quikle-primary">{equipment.length}</div>
+              <div className="text-sm text-quikle-slate">Total Equipment</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {equipment.filter(e => e.status === 'active').length}
+              </div>
+              <div className="text-sm text-quikle-slate">Active</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-600">
+                {equipment.filter(e => e.status === 'maintenance').length}
+              </div>
+              <div className="text-sm text-quikle-slate">Maintenance</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">
+                {equipment.filter(e => e.status === 'broken').length}
+              </div>
+              <div className="text-sm text-quikle-slate">Issues</div>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-quikle-silver/20">
+            <h4 className="font-medium text-quikle-charcoal mb-2">Equipment Types:</h4>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(equipmentSummary).map(([type, count]) => (
+                <Badge key={type} variant="outline" className="text-xs">
+                  {type} ({count})
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
 
   const renderEquipmentForm = (item?: Equipment, isEditing = false) => (
@@ -378,7 +434,9 @@ const EquipmentDisplay = ({ customerId }: EquipmentDisplayProps) => {
             <Printer className="h-5 w-5 text-quikle-primary" />
             Equipment Management
           </h3>
-          <p className="text-sm text-quikle-slate">Manage printers and equipment for this customer</p>
+          <p className="text-sm text-quikle-slate">
+            Manage all equipment for this customer - each piece of equipment is linked to the company information
+          </p>
         </div>
         <Button
           onClick={() => setShowAddForm(true)}
@@ -390,6 +448,8 @@ const EquipmentDisplay = ({ customerId }: EquipmentDisplayProps) => {
         </Button>
       </div>
 
+      {equipment.length > 0 && renderEquipmentSummary()}
+
       {showAddForm && renderEquipmentForm()}
 
       <div className="space-y-4">
@@ -399,7 +459,8 @@ const EquipmentDisplay = ({ customerId }: EquipmentDisplayProps) => {
               <Printer className="h-16 w-16 text-quikle-neutral/30 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-quikle-charcoal mb-2">No Equipment Added</h3>
               <p className="text-quikle-slate mb-4">
-                No equipment has been registered for this customer yet.
+                No equipment has been registered for this customer yet. Add equipment to track printers, 
+                copiers, and other devices linked to this company.
               </p>
               <Button
                 onClick={() => setShowAddForm(true)}
@@ -411,102 +472,108 @@ const EquipmentDisplay = ({ customerId }: EquipmentDisplayProps) => {
             </CardContent>
           </Card>
         ) : (
-          equipment.map(item => (
-            <Card key={item.id} className="bg-gradient-to-br from-white to-quikle-crystal/30 border-quikle-silver/20">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                    <Printer className="h-8 w-8 text-quikle-primary" />
-                    <div>
-                      <CardTitle className="text-lg text-quikle-charcoal">
-                        {item.brand} {item.model}
-                      </CardTitle>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge className={`text-xs ${getStatusColor(item.status)}`}>
-                          {getStatusIcon(item.status)}
-                          <span className="ml-1 capitalize">{item.status}</span>
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {item.equipment_type}
-                        </Badge>
+          <div className="space-y-4">
+            <h4 className="text-md font-medium text-quikle-charcoal flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Equipment Details ({equipment.length} items)
+            </h4>
+            {equipment.map(item => (
+              <Card key={item.id} className="bg-gradient-to-br from-white to-quikle-crystal/30 border-quikle-silver/20">
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <Printer className="h-8 w-8 text-quikle-primary" />
+                      <div>
+                        <CardTitle className="text-lg text-quikle-charcoal">
+                          {item.brand} {item.model}
+                        </CardTitle>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge className={`text-xs ${getStatusColor(item.status)}`}>
+                            {getStatusIcon(item.status)}
+                            <span className="ml-1 capitalize">{item.status}</span>
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            {item.equipment_type}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingId(editingId === item.id ? null : item.id)}
-                    >
-                      <Edit3 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(item.id)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              {editingId === item.id ? (
-                <CardContent>
-                  {renderEquipmentForm(item, true)}
-                </CardContent>
-              ) : (
-                <CardContent className="pt-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium text-quikle-slate">Serial Number:</span>
-                      <p className="text-quikle-charcoal">{item.serial_number || 'Not provided'}</p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingId(editingId === item.id ? null : item.id)}
+                      >
+                        <Edit3 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(item.id)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    {item.purchase_date && (
+                  </div>
+                </CardHeader>
+                
+                {editingId === item.id ? (
+                  <CardContent>
+                    {renderEquipmentForm(item, true)}
+                  </CardContent>
+                ) : (
+                  <CardContent className="pt-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <span className="font-medium text-quikle-slate flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          Purchase Date:
+                        <span className="font-medium text-quikle-slate">Serial Number:</span>
+                        <p className="text-quikle-charcoal">{item.serial_number || 'Not provided'}</p>
+                      </div>
+                      {item.purchase_date && (
+                        <div>
+                          <span className="font-medium text-quikle-slate flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            Purchase Date:
+                          </span>
+                          <p className="text-quikle-charcoal">
+                            {new Date(item.purchase_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      )}
+                      {item.warranty_expiry && (
+                        <div>
+                          <span className="font-medium text-quikle-slate flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            Warranty Expires:
+                          </span>
+                          <p className="text-quikle-charcoal">
+                            {new Date(item.warranty_expiry).toLocaleDateString()}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {item.technical_issues && (
+                      <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                        <span className="font-medium text-amber-800 flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4" />
+                          Technical Issues:
                         </span>
-                        <p className="text-quikle-charcoal">
-                          {new Date(item.purchase_date).toLocaleDateString()}
-                        </p>
+                        <p className="text-amber-700 mt-1">{item.technical_issues}</p>
                       </div>
                     )}
-                    {item.warranty_expiry && (
-                      <div>
-                        <span className="font-medium text-quikle-slate flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          Warranty Expires:
-                        </span>
-                        <p className="text-quikle-charcoal">
-                          {new Date(item.warranty_expiry).toLocaleDateString()}
-                        </p>
+                    
+                    {item.notes && (
+                      <div className="mt-4">
+                        <span className="font-medium text-quikle-slate">Notes:</span>
+                        <p className="text-quikle-charcoal mt-1">{item.notes}</p>
                       </div>
                     )}
-                  </div>
-                  
-                  {item.technical_issues && (
-                    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
-                      <span className="font-medium text-amber-800 flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4" />
-                        Technical Issues:
-                      </span>
-                      <p className="text-amber-700 mt-1">{item.technical_issues}</p>
-                    </div>
-                  )}
-                  
-                  {item.notes && (
-                    <div className="mt-4">
-                      <span className="font-medium text-quikle-slate">Notes:</span>
-                      <p className="text-quikle-charcoal mt-1">{item.notes}</p>
-                    </div>
-                  )}
-                </CardContent>
-              )}
-            </Card>
-          ))
+                  </CardContent>
+                )}
+              </Card>
+            ))}
+          </div>
         )}
       </div>
     </div>

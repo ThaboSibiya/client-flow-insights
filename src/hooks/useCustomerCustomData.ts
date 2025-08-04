@@ -1,65 +1,224 @@
 
 import { useState, useEffect } from 'react';
-import { templateService } from '@/services/templateService';
-import { CustomerCustomData, TemplateField, IndustryTemplate } from '@/types/templates';
-import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
-export const useCustomerCustomData = (customerId: string | null) => {
-  const [customData, setCustomData] = useState<CustomerCustomData[]>([]);
+interface AppliedTemplate {
+  id: string;
+  name: string;
+  industry: string;
+}
+
+interface TemplateField {
+  id: string;
+  field_name: string;
+  field_label: string;
+  field_type: string;
+  field_options?: any;
+  is_required: boolean;
+  display_order: number;
+  category?: 'personal' | 'equipment' | 'business';
+}
+
+interface CustomData {
+  id: string;
+  field_id: string;
+  field_value: string;
+  customer_id: string;
+  template_field?: TemplateField;
+}
+
+interface Equipment {
+  id: string;
+  equipment_type: string;
+  brand: string;
+  model: string;
+  serial_number: string;
+  status: string;
+  technical_issues?: string;
+  notes?: string;
+}
+
+export const useCustomerCustomData = (customerId: string) => {
+  const [appliedTemplates, setAppliedTemplates] = useState<AppliedTemplate[]>([]);
   const [templateFields, setTemplateFields] = useState<TemplateField[]>([]);
-  const [appliedTemplates, setAppliedTemplates] = useState<IndustryTemplate[]>([]);
+  const [customData, setCustomData] = useState<CustomData[]>([]);
+  const [equipmentData, setEquipmentData] = useState<Equipment[]>([]);
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
-    const fetchCustomData = async () => {
-      if (!customerId) {
-        setCustomData([]);
-        setTemplateFields([]);
-        setAppliedTemplates([]);
-        return;
-      }
+    if (customerId && user) {
+      loadCustomerData();
+    }
+  }, [customerId, user]);
 
-      setLoading(true);
-      try {
-        // Fetch custom data for the customer
-        const data = await templateService.getCustomerCustomData(customerId);
-        setCustomData(data);
+  const loadCustomerData = async () => {
+    setLoading(true);
+    try {
+      // Load applied templates
+      const { data: templates, error: templatesError } = await supabase
+        .from('customer_templates')
+        .select(`
+          template_id,
+          industry_templates (
+            id,
+            name,
+            industry
+          )
+        `)
+        .eq('customer_id', customerId)
+        .eq('user_id', user!.id);
 
-        // Get applied templates
-        const customerTemplates = await templateService.getCustomerTemplates(customerId);
-        
-        // Fetch template details and fields
-        const templates = await templateService.getIndustryTemplates();
-        const appliedTemplateIds = customerTemplates.map(ct => ct.template_id);
-        const appliedTemplateDetails = templates.filter(t => appliedTemplateIds.includes(t.id));
-        setAppliedTemplates(appliedTemplateDetails);
+      if (templatesError) throw templatesError;
 
-        // Fetch all fields for applied templates
-        const allFields: TemplateField[] = [];
-        for (const template of appliedTemplateDetails) {
-          const fields = await templateService.getTemplateFields(template.id);
-          allFields.push(...fields);
-        }
-        setTemplateFields(allFields);
+      const appliedTemplatesList = (templates || [])
+        .filter(t => t.industry_templates)
+        .map(t => ({
+          id: t.industry_templates.id,
+          name: t.industry_templates.name,
+          industry: t.industry_templates.industry
+        }));
 
-      } catch (error: any) {
-        toast({
-          title: "Error",
-          description: `Failed to load custom data: ${error.message}`,
-          variant: "destructive",
+      setAppliedTemplates(appliedTemplatesList);
+
+      // Load template fields for applied templates
+      if (appliedTemplatesList.length > 0) {
+        const templateIds = appliedTemplatesList.map(t => t.id);
+        const { data: fields, error: fieldsError } = await supabase
+          .from('template_fields')
+          .select('*')
+          .in('template_id', templateIds)
+          .order('display_order');
+
+        if (fieldsError) throw fieldsError;
+
+        // Categorize fields based on template type and field names
+        const categorizedFields = (fields || []).map(field => {
+          let category: 'personal' | 'equipment' | 'business' = 'business';
+          
+          // Determine category based on field names for Printer Service Company
+          const fieldName = field.field_name.toLowerCase();
+          const isPersonalField = [
+            'company_name', 'contact_person', 'phone', 'email', 
+            'address', 'city', 'postal_code'
+          ].some(name => fieldName.includes(name));
+          
+          const isEquipmentField = [
+            'brand', 'model', 'serial', 'printer_type', 
+            'fault_details', 'maintenance'
+          ].some(name => fieldName.includes(name));
+
+          if (isPersonalField) {
+            category = 'personal';
+          } else if (isEquipmentField) {
+            category = 'equipment';
+          }
+
+          return {
+            ...field,
+            category
+          };
         });
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchCustomData();
-  }, [customerId]);
+        setTemplateFields(categorizedFields);
+
+        // Load custom data for non-equipment fields
+        const nonEquipmentFieldIds = categorizedFields
+          .filter(f => f.category !== 'equipment')
+          .map(f => f.id);
+
+        if (nonEquipmentFieldIds.length > 0) {
+          const { data: customDataResult, error: customDataError } = await supabase
+            .from('customer_custom_data')
+            .select('*')
+            .eq('customer_id', customerId)
+            .eq('user_id', user!.id)
+            .in('field_id', nonEquipmentFieldIds);
+
+          if (customDataError) throw customDataError;
+
+          const enrichedCustomData = (customDataResult || []).map(item => ({
+            ...item,
+            template_field: categorizedFields.find(field => field.id === item.field_id)
+          }));
+
+          setCustomData(enrichedCustomData);
+        }
+      }
+
+      // Load equipment data separately
+      const { data: equipment, error: equipmentError } = await supabase
+        .from('customer_equipment')
+        .select('*')
+        .eq('customer_id', customerId)
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false });
+
+      if (equipmentError) throw equipmentError;
+      setEquipmentData(equipment || []);
+
+    } catch (error) {
+      console.error('Error loading customer data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveCustomData = async (fieldId: string, value: string) => {
+    if (!user) return false;
+
+    try {
+      const existingData = customData.find(item => item.field_id === fieldId);
+
+      if (existingData) {
+        const { error } = await supabase
+          .from('customer_custom_data')
+          .update({ field_value: value, updated_at: new Date().toISOString() })
+          .eq('id', existingData.id);
+
+        if (error) throw error;
+
+        setCustomData(prev => prev.map(item =>
+          item.id === existingData.id
+            ? { ...item, field_value: value }
+            : item
+        ));
+      } else {
+        const { data: newData, error } = await supabase
+          .from('customer_custom_data')
+          .insert({
+            customer_id: customerId,
+            user_id: user.id,
+            field_id: fieldId,
+            field_value: value
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        const templateField = templateFields.find(f => f.id === fieldId);
+        setCustomData(prev => [...prev, {
+          ...newData,
+          template_field: templateField
+        }]);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error saving custom data:', error);
+      return false;
+    }
+  };
 
   return {
-    customData,
-    templateFields,
     appliedTemplates,
-    loading
+    templateFields,
+    customData,
+    equipmentData,
+    loading,
+    saveCustomData,
+    refreshData: loadCustomerData
   };
 };

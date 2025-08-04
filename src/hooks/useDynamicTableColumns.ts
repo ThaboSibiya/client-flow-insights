@@ -1,95 +1,103 @@
 
 import { useMemo } from 'react';
-import { useCustomerCustomData } from './useCustomerCustomData';
 import { Customer } from '@/types/customer';
+import { useCustomerCustomData } from './useCustomerCustomData';
 
-interface TableColumn {
+export interface TableColumn {
   key: string;
   label: string;
-  type: 'text' | 'email' | 'phone' | 'date' | 'select' | 'number' | 'custom';
-  sortable: boolean;
+  type: 'text' | 'status' | 'date' | 'custom';
+  category: 'core' | 'personal' | 'business' | 'equipment';
+  priority: number; // Lower number = higher priority
   width?: string;
-  priority: 'high' | 'medium' | 'low'; // for responsive hiding
+  isRequired?: boolean;
 }
 
-const DEFAULT_COLUMNS: TableColumn[] = [
-  { key: 'name', label: 'Name', type: 'text', sortable: true, priority: 'high' },
-  { key: 'email', label: 'Email', type: 'email', sortable: true, priority: 'high' },
-  { key: 'phone', label: 'Phone', type: 'phone', sortable: false, priority: 'medium' },
-  { key: 'status', label: 'Status', type: 'select', sortable: true, priority: 'high' },
+const CORE_COLUMNS: TableColumn[] = [
+  { key: 'name', label: 'Customer Name', type: 'text', category: 'core', priority: 1, isRequired: true },
+  { key: 'email', label: 'Email', type: 'text', category: 'core', priority: 2, isRequired: true },
+  { key: 'status', label: 'Status', type: 'status', category: 'core', priority: 3, isRequired: true },
+  { key: 'phone', label: 'Phone', type: 'text', category: 'core', priority: 4 },
+  { key: 'createdAt', label: 'Created', type: 'date', category: 'core', priority: 10 }
 ];
 
-export const useDynamicTableColumns = (customers: Customer[], selectedIndustries: string[] = []) => {
-  // Get custom data from the first few customers to determine available fields
-  const sampleCustomerIds = customers.slice(0, 5).map(c => c.id);
-  
-  const dynamicColumns = useMemo(() => {
-    const columns = [...DEFAULT_COLUMNS];
-    
-    // Analyze custom fields across customers to determine common fields
-    const customFieldsMap = new Map<string, { label: string; type: string; count: number; required: boolean }>();
-    
-    customers.forEach(customer => {
-      // For now, we'll use a placeholder for custom data analysis
-      // In a real implementation, this would analyze the customer's applied templates
-      // and their custom field data to determine which fields to show
-    });
-    
-    // Add tickets column
-    columns.push({
-      key: 'tickets',
-      label: 'Tickets',
-      type: 'custom',
-      sortable: true,
-      priority: 'medium'
-    });
-    
-    // Add created date
-    columns.push({
-      key: 'createdAt',
-      label: 'Created',
-      type: 'date',
-      sortable: true,
-      priority: 'low'
-    });
-    
-    return columns;
-  }, [customers, selectedIndustries]);
-  
+export const useDynamicTableColumns = (customers: Customer[], customerId?: string) => {
+  // Use the first customer's data to determine available template fields
+  const sampleCustomerId = customerId || customers[0]?.id || '';
+  const { templateFields, customData, equipmentData } = useCustomerCustomData(sampleCustomerId);
+
+  const availableColumns = useMemo(() => {
+    const columns: TableColumn[] = [...CORE_COLUMNS];
+
+    // Add template-based columns for personal/business information
+    templateFields
+      .filter(field => field.category !== 'equipment')
+      .forEach((field, index) => {
+        columns.push({
+          key: `custom_${field.field_name}`,
+          label: field.field_label,
+          type: 'custom',
+          category: field.category as 'personal' | 'business',
+          priority: field.category === 'personal' ? 5 + index : 7 + index,
+          isRequired: field.is_required
+        });
+      });
+
+    // Add equipment summary columns for equipment-related templates
+    if (equipmentData.length > 0) {
+      columns.push(
+        {
+          key: 'equipment_count',
+          label: 'Equipment Count',
+          type: 'text',
+          category: 'equipment',
+          priority: 8,
+          width: '120px'
+        },
+        {
+          key: 'primary_equipment',
+          label: 'Primary Equipment',
+          type: 'text',
+          category: 'equipment',
+          priority: 9,
+          width: '200px'
+        }
+      );
+    }
+
+    return columns.sort((a, b) => a.priority - b.priority);
+  }, [templateFields, equipmentData]);
+
   const getColumnValue = (customer: Customer, columnKey: string) => {
-    switch (columnKey) {
-      case 'name':
-        return customer.name;
-      case 'email':
-        return customer.email;
-      case 'phone':
-        return customer.phone;
-      case 'status':
-        return customer.status;
-      case 'tickets':
-        return customer.ticketCount || 0;
-      case 'createdAt':
-        return customer.createdAt;
-      default:
-        // For custom fields, we'd look up the value in customer custom data
-        return null;
+    // Handle core columns
+    if (columnKey in customer) {
+      return customer[columnKey as keyof Customer];
     }
-  };
-  
-  const getVisibleColumns = (screenSize: 'mobile' | 'tablet' | 'desktop' = 'desktop') => {
-    switch (screenSize) {
-      case 'mobile':
-        return dynamicColumns.filter(col => col.priority === 'high').slice(0, 2);
-      case 'tablet':
-        return dynamicColumns.filter(col => col.priority !== 'low');
-      default:
-        return dynamicColumns;
+
+    // Handle custom fields
+    if (columnKey.startsWith('custom_')) {
+      const fieldName = columnKey.replace('custom_', '');
+      // This would need to be enriched with actual custom data per customer
+      return 'Custom data'; // Placeholder - would need per-customer data
     }
+
+    // Handle equipment columns
+    if (columnKey === 'equipment_count') {
+      return equipmentData.length;
+    }
+
+    if (columnKey === 'primary_equipment') {
+      const primary = equipmentData[0];
+      return primary ? `${primary.brand} ${primary.model}` : 'No equipment';
+    }
+
+    return '';
   };
-  
+
   return {
-    columns: dynamicColumns,
+    availableColumns,
     getColumnValue,
-    getVisibleColumns
+    hasTemplateFields: templateFields.length > 0,
+    hasEquipmentData: equipmentData.length > 0
   };
 };

@@ -1,92 +1,192 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Building, MapPin, Phone, Mail, Edit3, Save } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  Building2, 
+  User, 
+  Edit3, 
+  Save, 
+  X, 
+  AlertCircle,
+  CheckCircle,
+  Phone,
+  Mail,
+  MapPin
+} from 'lucide-react';
 import { useCustomerCustomData } from '@/hooks/useCustomerCustomData';
-import { useState } from 'react';
+import { toast } from '@/hooks/use-toast';
 
 interface CustomDataDisplayProps {
   customerId: string;
 }
 
 const CustomDataDisplay = ({ customerId }: CustomDataDisplayProps) => {
-  const { customData, templateFields, appliedTemplates, loading } = useCustomerCustomData(customerId);
-  const [editMode, setEditMode] = useState(false);
-  const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const { 
+    appliedTemplates, 
+    templateFields, 
+    customData, 
+    loading, 
+    saveCustomData,
+    refreshData 
+  } = useCustomerCustomData(customerId);
+  
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const getFieldValue = (fieldId: string): string => {
     const data = customData.find(cd => cd.field_id === fieldId);
     return data?.field_value || '';
   };
 
-  const handleEdit = () => {
-    const values: Record<string, string> = {};
-    templateFields.forEach(field => {
-      values[field.id] = getFieldValue(field.id);
-    });
-    setEditValues(values);
-    setEditMode(true);
+  const handleStartEdit = (fieldId: string, currentValue: string) => {
+    setEditingField(fieldId);
+    setEditValue(currentValue);
   };
 
-  const handleSave = () => {
-    // In a real implementation, save the changes to the backend
-    setEditMode(false);
+  const handleSave = async (fieldId: string) => {
+    setSaving(true);
+    try {
+      const success = await saveCustomData(fieldId, editValue);
+      if (success) {
+        setEditingField(null);
+        setEditValue('');
+        toast({
+          title: "Success",
+          description: "Field updated successfully",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save field",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const formatFieldValue = (field: any, value: string): string => {
-    if (!value) return 'Not provided';
-    
+  const handleCancel = () => {
+    setEditingField(null);
+    setEditValue('');
+  };
+
+  const renderFieldInput = (field: any) => {
+    const isEditing = editingField === field.id;
+    const currentValue = isEditing ? editValue : getFieldValue(field.id);
+
+    if (!isEditing) {
+      return (
+        <div className="flex items-center justify-between group">
+          <span className="text-quikle-charcoal">
+            {currentValue || <em className="text-quikle-slate">Not provided</em>}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleStartEdit(field.id, currentValue)}
+            className="opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Edit3 className="h-3 w-3" />
+          </Button>
+        </div>
+      );
+    }
+
+    const commonProps = {
+      value: editValue,
+      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => 
+        setEditValue(e.target.value),
+      className: "border-quikle-silver/50 focus:border-quikle-primary"
+    };
+
+    let input;
     switch (field.field_type) {
-      case 'date':
-        try {
-          return new Date(value).toLocaleDateString();
-        } catch {
-          return value;
-        }
-      case 'email':
-        return value;
-      case 'phone':
-        return value;
-      case 'currency':
-        return new Intl.NumberFormat('en-US', { 
-          style: 'currency', 
-          currency: 'USD' 
-        }).format(parseFloat(value) || 0);
+      case 'textarea':
+        input = <Textarea {...commonProps} rows={3} />;
+        break;
+      case 'select':
+        input = (
+          <Select value={editValue} onValueChange={setEditValue}>
+            <SelectTrigger className="border-quikle-silver/50 focus:border-quikle-primary">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(field.field_options?.options || []).map((option: string) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+        break;
       default:
-        return value;
+        input = <Input {...commonProps} type={field.field_type === 'email' ? 'email' : 'text'} />;
     }
+
+    return (
+      <div className="space-y-2">
+        {input}
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCancel}
+            disabled={saving}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => handleSave(field.id)}
+            disabled={saving}
+            className="bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white"
+          >
+            <Save className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+    );
   };
 
-  const getFieldIcon = (fieldType: string) => {
-    switch (fieldType) {
-      case 'email': return <Mail className="h-4 w-4 text-quikle-primary" />;
-      case 'phone': return <Phone className="h-4 w-4 text-quikle-primary" />;
-      case 'address': return <MapPin className="h-4 w-4 text-quikle-primary" />;
-      default: return <Building className="h-4 w-4 text-quikle-primary" />;
-    }
+  const getFieldIcon = (fieldName: string) => {
+    const name = fieldName.toLowerCase();
+    if (name.includes('phone')) return <Phone className="h-4 w-4" />;
+    if (name.includes('email')) return <Mail className="h-4 w-4" />;
+    if (name.includes('address') || name.includes('location')) return <MapPin className="h-4 w-4" />;
+    if (name.includes('company') || name.includes('business')) return <Building2 className="h-4 w-4" />;
+    return <User className="h-4 w-4" />;
   };
 
-  // Group fields by category
-  const businessFields = templateFields.filter(field => 
-    ['company_name', 'business_type', 'industry', 'tax_id', 'registration_number'].includes(field.field_name)
-  );
-  
-  const contactFields = templateFields.filter(field =>
-    ['address', 'city', 'state', 'zip_code', 'country', 'secondary_phone', 'website'].includes(field.field_name)
-  );
-  
-  const otherFields = templateFields.filter(field =>
-    !businessFields.includes(field) && !contactFields.includes(field)
-  );
+  // Separate fields by category
+  const personalFields = templateFields.filter(field => field.category === 'personal');
+  const businessFields = templateFields.filter(field => field.category === 'business');
+
+  // Calculate completion stats
+  const requiredPersonalFields = personalFields.filter(field => field.is_required);
+  const completedPersonalFields = requiredPersonalFields.filter(field => {
+    const value = getFieldValue(field.id);
+    return value && value.trim() !== '';
+  });
+
+  const requiredBusinessFields = businessFields.filter(field => field.is_required);
+  const completedBusinessFields = requiredBusinessFields.filter(field => {
+    const value = getFieldValue(field.id);
+    return value && value.trim() !== '';
+  });
 
   if (loading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map(i => (
+        {[1, 2].map(i => (
           <Card key={i} className="animate-pulse">
             <CardHeader>
               <div className="h-4 bg-quikle-silver/30 rounded w-1/3"></div>
@@ -103,135 +203,130 @@ const CustomDataDisplay = ({ customerId }: CustomDataDisplayProps) => {
     );
   }
 
-  const renderFieldSection = (fields: any[], title: string, icon: React.ReactNode) => {
-    if (fields.length === 0) return null;
-
+  if (appliedTemplates.length === 0) {
     return (
-      <Card className="bg-gradient-to-br from-white to-quikle-crystal/30 border-quikle-silver/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2 text-quikle-charcoal">
-            {icon}
-            {title}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {fields.map(field => {
-              const value = getFieldValue(field.id);
-              const formattedValue = formatFieldValue(field, value);
-              
-              return (
-                <div key={field.id} className="space-y-2">
-                  <Label className="text-sm font-medium text-quikle-slate flex items-center gap-2">
-                    {getFieldIcon(field.field_type)}
-                    {field.field_label}
-                    {field.is_required && <span className="text-red-500">*</span>}
-                  </Label>
-                  {editMode ? (
-                    <Input
-                      value={editValues[field.id] || ''}
-                      onChange={(e) => setEditValues(prev => ({
-                        ...prev,
-                        [field.id]: e.target.value
-                      }))}
-                      placeholder={`Enter ${field.field_label.toLowerCase()}`}
-                      className="border-quikle-silver/50 focus:border-quikle-primary"
-                    />
-                  ) : (
-                    <div className={`p-3 rounded-md border ${
-                      value ? 'bg-white border-quikle-silver/30' : 'bg-quikle-crystal/50 border-dashed border-quikle-silver/50'
-                    }`}>
-                      <span className={value ? 'text-quikle-charcoal' : 'text-quikle-slate italic'}>
-                        {formattedValue}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+      <Card className="bg-gradient-to-br from-quikle-crystal/50 to-white border-dashed border-quikle-silver/50">
+        <CardContent className="py-8 text-center">
+          <Building2 className="h-16 w-16 text-quikle-neutral/30 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-quikle-charcoal mb-2">No Templates Applied</h3>
+          <p className="text-quikle-slate mb-4">
+            No industry templates have been applied to this customer yet.
+          </p>
+          <Button 
+            onClick={refreshData}
+            className="bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white"
+          >
+            Refresh Data
+          </Button>
         </CardContent>
       </Card>
     );
-  };
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header with Edit Button */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-quikle-charcoal">Custom Information</h3>
-          <p className="text-sm text-quikle-slate">Industry-specific and custom fields</p>
+          <h3 className="text-lg font-semibold text-quikle-charcoal flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-quikle-primary" />
+            Business Information
+          </h3>
+          <div className="flex items-center gap-2 mt-1">
+            {appliedTemplates.map(template => (
+              <Badge key={template.id} variant="secondary" className="bg-quikle-primary/10 text-quikle-primary">
+                {template.industry}
+              </Badge>
+            ))}
+          </div>
         </div>
-        <Button
-          onClick={editMode ? handleSave : handleEdit}
-          className={editMode 
-            ? "bg-gradient-to-r from-quikle-success to-green-600 text-white"
-            : "bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white"
-          }
-          size="sm"
-        >
-          {editMode ? (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              Save Changes
-            </>
-          ) : (
-            <>
-              <Edit3 className="mr-2 h-4 w-4" />
-              Edit
-            </>
-          )}
-        </Button>
       </div>
 
-      {/* Applied Templates */}
-      {appliedTemplates.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {appliedTemplates.map(template => (
-            <Badge 
-              key={template.id} 
-              variant="secondary" 
-              className="bg-quikle-primary/10 text-quikle-primary border border-quikle-primary/20"
-            >
-              {template.industry} Template
-            </Badge>
-          ))}
-        </div>
+      {/* Company/Personal Information Section */}
+      {personalFields.length > 0 && (
+        <Card className="bg-gradient-to-br from-white to-quikle-crystal/30 border-quikle-silver/20">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-quikle-primary" />
+                <CardTitle className="text-lg text-quikle-charcoal">
+                  Company & Contact Information
+                </CardTitle>
+              </div>
+              <div className="flex items-center gap-2">
+                {requiredPersonalFields.length > 0 && (
+                  completedPersonalFields.length === requiredPersonalFields.length ? (
+                    <Badge className="bg-green-100 text-green-800 border-green-200">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Complete
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {completedPersonalFields.length}/{requiredPersonalFields.length} Required
+                    </Badge>
+                  )
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {personalFields.map((field) => (
+                <div key={field.id} className="space-y-2">
+                  <Label className="flex items-center gap-2 text-quikle-slate font-medium">
+                    {getFieldIcon(field.field_name)}
+                    {field.field_label}
+                    {field.is_required && <span className="text-red-500">*</span>}
+                  </Label>
+                  {renderFieldInput(field)}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Business Information */}
-      {renderFieldSection(
-        businessFields,
-        "Business Information",
-        <Building className="h-5 w-5 text-quikle-primary" />
-      )}
-
-      {/* Contact & Address Information */}
-      {renderFieldSection(
-        contactFields,
-        "Contact & Address Information",
-        <MapPin className="h-5 w-5 text-quikle-secondary" />
-      )}
-
-      {/* Additional Information */}
-      {renderFieldSection(
-        otherFields,
-        "Additional Information",
-        <Building className="h-5 w-5 text-quikle-accent" />
-      )}
-
-      {appliedTemplates.length === 0 && (
-        <Card className="bg-gradient-to-br from-quikle-crystal/50 to-white border-dashed border-quikle-silver/50">
-          <CardContent className="py-8 text-center">
-            <Building className="h-16 w-16 text-quikle-neutral/30 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-quikle-charcoal mb-2">No Custom Templates Applied</h3>
-            <p className="text-quikle-slate mb-4">
-              This customer doesn't have any industry-specific templates applied yet.
-            </p>
-            <p className="text-sm text-quikle-slate">
-              Templates can be applied during the onboarding process or by editing the customer's profile.
-            </p>
+      {/* Business Information Section */}
+      {businessFields.length > 0 && (
+        <Card className="bg-gradient-to-br from-white to-quikle-crystal/30 border-quikle-silver/20">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-quikle-primary" />
+                <CardTitle className="text-lg text-quikle-charcoal">
+                  Business Details
+                </CardTitle>
+              </div>
+              <div className="flex items-center gap-2">
+                {requiredBusinessFields.length > 0 && (
+                  completedBusinessFields.length === requiredBusinessFields.length ? (
+                    <Badge className="bg-green-100 text-green-800 border-green-200">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Complete
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {completedBusinessFields.length}/{requiredBusinessFields.length} Required
+                    </Badge>
+                  )
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {businessFields.map((field) => (
+                <div key={field.id} className="space-y-2">
+                  <Label className="flex items-center gap-2 text-quikle-slate font-medium">
+                    {getFieldIcon(field.field_name)}
+                    {field.field_label}
+                    {field.is_required && <span className="text-red-500">*</span>}
+                  </Label>
+                  {renderFieldInput(field)}
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
