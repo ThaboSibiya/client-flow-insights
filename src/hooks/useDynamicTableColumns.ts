@@ -11,14 +11,15 @@ export interface TableColumn {
   priority: number; // Lower number = higher priority
   width?: string;
   isRequired?: boolean;
+  sortable: boolean;
 }
 
 const CORE_COLUMNS: TableColumn[] = [
-  { key: 'name', label: 'Customer Name', type: 'text', category: 'core', priority: 1, isRequired: true },
-  { key: 'email', label: 'Email', type: 'text', category: 'core', priority: 2, isRequired: true },
-  { key: 'status', label: 'Status', type: 'status', category: 'core', priority: 3, isRequired: true },
-  { key: 'phone', label: 'Phone', type: 'text', category: 'core', priority: 4 },
-  { key: 'createdAt', label: 'Created', type: 'date', category: 'core', priority: 10 }
+  { key: 'name', label: 'Customer Name', type: 'text', category: 'core', priority: 1, isRequired: true, sortable: true },
+  { key: 'email', label: 'Email', type: 'text', category: 'core', priority: 2, isRequired: true, sortable: true },
+  { key: 'status', label: 'Status', type: 'status', category: 'core', priority: 3, isRequired: true, sortable: true },
+  { key: 'phone', label: 'Phone', type: 'text', category: 'core', priority: 4, sortable: false },
+  { key: 'createdAt', label: 'Created', type: 'date', category: 'core', priority: 10, sortable: true }
 ];
 
 export const useDynamicTableColumns = (customers: Customer[], customerId?: string) => {
@@ -39,7 +40,8 @@ export const useDynamicTableColumns = (customers: Customer[], customerId?: strin
           type: 'custom',
           category: field.category as 'personal' | 'business',
           priority: field.category === 'personal' ? 5 + index : 7 + index,
-          isRequired: field.is_required
+          isRequired: field.is_required,
+          sortable: false // Custom fields are typically not sortable
         });
       });
 
@@ -52,7 +54,8 @@ export const useDynamicTableColumns = (customers: Customer[], customerId?: strin
           type: 'text',
           category: 'equipment',
           priority: 8,
-          width: '120px'
+          width: '120px',
+          sortable: true
         },
         {
           key: 'primary_equipment',
@@ -60,7 +63,8 @@ export const useDynamicTableColumns = (customers: Customer[], customerId?: strin
           type: 'text',
           category: 'equipment',
           priority: 9,
-          width: '200px'
+          width: '200px',
+          sortable: false
         }
       );
     }
