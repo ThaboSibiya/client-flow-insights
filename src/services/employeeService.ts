@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { EmployeeFormData } from '@/components/employees/types';
 
@@ -56,7 +55,7 @@ export const createEmployee = async (formData: EmployeeFormData): Promise<void> 
 
   const { error } = await supabase
     .from('employees')
-    .insert([employeeData]);
+    .insert(employeeData);
 
   if (error) {
     console.error('Database error:', error);
