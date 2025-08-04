@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Customer } from '@/types/customer';
+import { Customer, CustomerStatus } from '@/types/customer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -83,7 +83,7 @@ const CustomerDetailsForm = ({ customer, onClose }: CustomerDetailsFormProps) =>
             <div className="space-y-2">
               <Label htmlFor="status" className="text-quikle-charcoal font-medium">Customer Status</Label>
               <Select 
-                onValueChange={(value) => form.setValue('status', value)}
+                onValueChange={(value) => form.setValue('status', value as CustomerStatus)}
                 defaultValue={customer.status}
               >
                 <SelectTrigger className="border-quikle-silver/50 focus:border-quikle-primary">
