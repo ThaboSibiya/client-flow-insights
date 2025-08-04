@@ -4,14 +4,7 @@ import { TableHead, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowUpDown } from 'lucide-react';
-
-interface TableColumn {
-  key: string;
-  label: string;
-  type: string;
-  sortable: boolean;
-  priority: 'high' | 'medium' | 'low';
-}
+import { TableColumn } from '@/hooks/useDynamicTableColumns';
 
 interface DynamicTableHeaderProps {
   columns: TableColumn[];
@@ -46,9 +39,9 @@ const DynamicTableHeader = ({
   const getVisibleColumns = () => {
     switch (screenSize) {
       case 'mobile':
-        return columns.filter(col => col.priority === 'high').slice(0, 2);
+        return columns.filter(col => col.isRequired || col.priority <= 3).slice(0, 2);
       case 'tablet':
-        return columns.filter(col => col.priority !== 'low');
+        return columns.filter(col => col.priority <= 7);
       default:
         return columns;
     }
