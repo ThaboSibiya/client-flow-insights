@@ -93,6 +93,11 @@ const App = () => (
                           <Analytics />
                         </ErrorBoundary>
                       } />
+                      <Route path="projects" element={
+                        <ErrorBoundary>
+                          {React.createElement(React.lazy(() => import('./pages/ProjectManagement')))}
+                        </ErrorBoundary>
+                      } />
                       <Route path="quotes" element={
                         <ErrorBoundary>
                           <QuoteInvoice />
