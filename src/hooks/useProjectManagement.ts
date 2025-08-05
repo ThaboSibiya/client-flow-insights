@@ -130,6 +130,53 @@ export const useProjectManagement = () => {
     ));
   }, []);
 
+  const addTask = useCallback((projectId: string, taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newTask: Task = {
+      ...taskData,
+      id: `task-${Date.now()}`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    setProjects(prev => prev.map(project => 
+      project.id === projectId 
+        ? {
+            ...project,
+            tasks: [...project.tasks, newTask],
+            updatedAt: new Date()
+          }
+        : project
+    ));
+  }, []);
+
+  const updateTask = useCallback((projectId: string, taskId: string, updates: Partial<Task>) => {
+    setProjects(prev => prev.map(project => 
+      project.id === projectId 
+        ? {
+            ...project,
+            tasks: project.tasks.map(task =>
+              task.id === taskId 
+                ? { ...task, ...updates, updatedAt: new Date() }
+                : task
+            ),
+            updatedAt: new Date()
+          }
+        : project
+    ));
+  }, []);
+
+  const deleteTask = useCallback((projectId: string, taskId: string) => {
+    setProjects(prev => prev.map(project => 
+      project.id === projectId 
+        ? {
+            ...project,
+            tasks: project.tasks.filter(task => task.id !== taskId),
+            updatedAt: new Date()
+          }
+        : project
+    ));
+  }, []);
+
   const addProject = useCallback((projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newProject: Project = {
       ...projectData,
@@ -168,5 +215,8 @@ export const useProjectManagement = () => {
     addProject,
     updateProject,
     deleteProject,
+    addTask,
+    updateTask,
+    deleteTask,
   };
 };

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, LayoutGrid, BarChart3, Calendar, Settings } from "lucide-react";
+import { Plus, LayoutGrid, BarChart3, Calendar, Settings, CheckSquare } from "lucide-react";
 import { useProjectManagement } from '@/hooks/useProjectManagement';
 import ProjectOverview from './ProjectOverview';
 import ProjectKanbanBoard from './ProjectKanbanBoard';
@@ -11,6 +11,7 @@ import ProjectGanttChart from './ProjectGanttChart';
 import ProjectFilters from './ProjectFilters';
 import NewProjectModal from './NewProjectModal';
 import ProjectSettingsModal from './ProjectSettingsModal';
+import TaskManagement from './TaskManagement';
 
 const ProjectManagement = () => {
   const {
@@ -20,15 +21,22 @@ const ProjectManagement = () => {
     teamMembers,
     updateProjectStatus,
     addProject,
+    addTask,
+    updateTask,
   } = useProjectManagement();
 
-  const [activeView, setActiveView] = React.useState<'overview' | 'kanban' | 'gantt' | 'calendar'>('overview');
+  const [activeView, setActiveView] = React.useState<'overview' | 'kanban' | 'gantt' | 'calendar' | 'tasks'>('overview');
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = React.useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = React.useState(false);
+  const [selectedProjectForTasks, setSelectedProjectForTasks] = React.useState<string | null>(null);
 
   const handleCreateProject = (projectData: Parameters<typeof addProject>[0]) => {
     addProject(projectData);
   };
+
+  const selectedProject = selectedProjectForTasks 
+    ? projects.find(p => p.id === selectedProjectForTasks) 
+    : null;
 
   return (
     <div className="space-y-6">
@@ -62,7 +70,7 @@ const ProjectManagement = () => {
       {/* View Tabs */}
       <Tabs value={activeView} onValueChange={(value: any) => setActiveView(value)}>
         <div className="flex items-center justify-between">
-          <TabsList className="grid w-fit grid-cols-4">
+          <TabsList className="grid w-fit grid-cols-5">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -70,6 +78,10 @@ const ProjectManagement = () => {
             <TabsTrigger value="kanban" className="flex items-center gap-2">
               <LayoutGrid className="h-4 w-4" />
               Kanban
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="flex items-center gap-2">
+              <CheckSquare className="h-4 w-4" />
+              Tasks
             </TabsTrigger>
             <TabsTrigger value="gantt" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -109,6 +121,51 @@ const ProjectManagement = () => {
                 />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="tasks" className="mt-0">
+            {!selectedProject ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <CheckSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">Select a Project</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Choose a project to manage its tasks and assignments
+                  </p>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {projects.map((project) => (
+                      <Button
+                        key={project.id}
+                        variant="outline"
+                        onClick={() => setSelectedProjectForTasks(project.id)}
+                      >
+                        {project.name}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSelectedProjectForTasks(null)}
+                  >
+                    ← Back to Projects
+                  </Button>
+                  <div>
+                    <h2 className="text-xl font-semibold">{selectedProject.name}</h2>
+                    <p className="text-muted-foreground">{selectedProject.description}</p>
+                  </div>
+                </div>
+                <TaskManagement
+                  project={selectedProject}
+                  onTaskCreate={(taskData) => addTask(selectedProject.id, taskData)}
+                  onTaskUpdate={(taskId, updates) => updateTask(selectedProject.id, taskId, updates)}
+                />
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="gantt" className="mt-0">
