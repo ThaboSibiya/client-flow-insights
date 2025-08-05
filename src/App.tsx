@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -41,6 +42,8 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const ProjectManagement = React.lazy(() => import('./pages/ProjectManagement'));
 
 const App = () => (
   <ErrorBoundary>
@@ -95,7 +98,9 @@ const App = () => (
                       } />
                       <Route path="projects" element={
                         <ErrorBoundary>
-                          {React.createElement(React.lazy(() => import('./pages/ProjectManagement')))}
+                          <React.Suspense fallback={<div>Loading...</div>}>
+                            <ProjectManagement />
+                          </React.Suspense>
                         </ErrorBoundary>
                       } />
                       <Route path="quotes" element={
