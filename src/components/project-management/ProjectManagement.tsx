@@ -9,6 +9,8 @@ import ProjectOverview from './ProjectOverview';
 import ProjectKanbanBoard from './ProjectKanbanBoard';
 import ProjectGanttChart from './ProjectGanttChart';
 import ProjectFilters from './ProjectFilters';
+import NewProjectModal from './NewProjectModal';
+import ProjectSettingsModal from './ProjectSettingsModal';
 
 const ProjectManagement = () => {
   const {
@@ -17,9 +19,16 @@ const ProjectManagement = () => {
     setFilters,
     teamMembers,
     updateProjectStatus,
+    addProject,
   } = useProjectManagement();
 
   const [activeView, setActiveView] = React.useState<'overview' | 'kanban' | 'gantt' | 'calendar'>('overview');
+  const [isNewProjectModalOpen, setIsNewProjectModalOpen] = React.useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = React.useState(false);
+
+  const handleCreateProject = (projectData: Parameters<typeof addProject>[0]) => {
+    addProject(projectData);
+  };
 
   return (
     <div className="space-y-6">
@@ -32,11 +41,18 @@ const ProjectManagement = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => setIsSettingsModalOpen(true)}
+          >
             <Settings className="h-4 w-4" />
             Settings
           </Button>
-          <Button className="bg-quikle-primary hover:bg-quikle-secondary text-white">
+          <Button 
+            className="bg-quikle-primary hover:bg-quikle-secondary text-white"
+            onClick={() => setIsNewProjectModalOpen(true)}
+          >
             <Plus className="h-4 w-4 mr-2" />
             New Project
           </Button>
@@ -123,13 +139,29 @@ const ProjectManagement = () => {
               Get started by creating your first project. You can track progress, assign tasks, 
               and collaborate with your team all in one place.
             </p>
-            <Button className="bg-quikle-primary hover:bg-quikle-secondary text-white">
+            <Button 
+              className="bg-quikle-primary hover:bg-quikle-secondary text-white"
+              onClick={() => setIsNewProjectModalOpen(true)}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Project
             </Button>
           </CardContent>
         </Card>
       )}
+
+      {/* Modals */}
+      <NewProjectModal
+        isOpen={isNewProjectModalOpen}
+        onClose={() => setIsNewProjectModalOpen(false)}
+        onCreateProject={handleCreateProject}
+        teamMembers={teamMembers}
+      />
+
+      <ProjectSettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+      />
     </div>
   );
 };
