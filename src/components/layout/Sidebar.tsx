@@ -11,7 +11,8 @@ import {
   UserPlus,
   UserCog,
   ShieldCheck,
-  Bot
+  Bot,
+  FolderKanban
 } from 'lucide-react';
 import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import UserProfile from '@/components/auth/UserProfile';
@@ -26,13 +27,14 @@ const Sidebar = () => {
     { path: '/conversations', icon: MessageCircle, label: 'Conversations' },
     { path: '/employees', icon: UserCog, label: 'Employees' },
     { path: '/pipeline', icon: Bot, label: 'Pipeline' },
+    { path: '/projects', icon: FolderKanban, label: 'Projects' },
     { path: '/quotes', icon: FileText, label: 'Quotes & Invoices' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/onboarding', icon: UserPlus, label: 'Onboarding' },
   ];
 
   if (employee?.role === 'admin') {
-    menuItems.splice(4, 0, { path: '/audit-log', icon: ShieldCheck, label: 'Audit Log' });
+    menuItems.splice(5, 0, { path: '/audit-log', icon: ShieldCheck, label: 'Audit Log' });
   }
 
   return (
