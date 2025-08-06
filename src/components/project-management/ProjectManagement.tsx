@@ -8,6 +8,7 @@ import { useProjectManagement } from '@/hooks/useProjectManagement';
 import ProjectOverview from './ProjectOverview';
 import ProjectKanbanBoard from './ProjectKanbanBoard';
 import ProjectGanttChart from './ProjectGanttChart';
+import ProjectCalendar from './ProjectCalendar';
 import ProjectFilters from './ProjectFilters';
 import NewProjectModal from './NewProjectModal';
 import ProjectSettingsModal from './ProjectSettingsModal';
@@ -173,15 +174,7 @@ const ProjectManagement = () => {
           </TabsContent>
 
           <TabsContent value="calendar" className="mt-0">
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-4xl mb-4">📅</div>
-                <h3 className="text-lg font-semibold mb-2">Calendar View</h3>
-                <p className="text-muted-foreground">
-                  Calendar view coming soon! This will show project deadlines and milestones in a calendar format.
-                </p>
-              </CardContent>
-            </Card>
+            <ProjectCalendar projects={projects} />
           </TabsContent>
         </div>
       </Tabs>
