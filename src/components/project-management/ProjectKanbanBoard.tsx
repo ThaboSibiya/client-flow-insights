@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { DndContext, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent, closestCenter, pointerWithin, rectIntersection } from '@dnd-kit/core';
-import { SortableContext } from '@dnd-kit/sortable';
+import { DndContext, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent, closestCenter, pointerWithin } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,8 +38,8 @@ const DroppableColumn = ({
   });
 
   return (
-    <div key={status} className="flex-shrink-0 w-80">
-      <Card className={`h-full transition-colors ${isOver ? 'ring-2 ring-quikle-primary ring-opacity-50 bg-quikle-crystal' : ''}`}>
+    <div className="flex-shrink-0 w-80">
+      <Card className={`h-full transition-all duration-200 ${isOver ? 'ring-2 ring-blue-500 bg-blue-50/50' : ''}`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
@@ -55,13 +55,12 @@ const DroppableColumn = ({
           </div>
         </CardHeader>
         
-        <CardContent className="pt-0 space-y-3 max-h-[600px] overflow-y-auto">
+        <CardContent className="pt-0 space-y-3">
           <div 
             ref={setNodeRef}
-            className={`min-h-[400px] space-y-3 p-2 rounded-lg transition-colors ${
-              isOver ? 'bg-quikle-crystal/50' : ''
+            className={`min-h-[500px] space-y-3 p-2 rounded-lg transition-all duration-200 ${
+              isOver ? 'bg-blue-50/30 border-2 border-dashed border-blue-300' : 'border-2 border-transparent'
             }`}
-            data-status={status}
           >
             {children}
           </div>
@@ -73,7 +72,6 @@ const DroppableColumn = ({
 
 const ProjectKanbanBoard = ({ projects, onProjectMove }: ProjectKanbanBoardProps) => {
   const [activeProject, setActiveProject] = React.useState<Project | null>(null);
-  const [overId, setOverId] = React.useState<string | null>(null);
 
   // Group projects by status
   const projectsByStatus = React.useMemo(() => {
@@ -93,15 +91,9 @@ const ProjectKanbanBoard = ({ projects, onProjectMove }: ProjectKanbanBoardProps
     setActiveProject(project || null);
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { over } = event;
-    setOverId(over ? over.id as string : null);
-  };
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveProject(null);
-    setOverId(null);
 
     if (!over) return;
 
@@ -109,38 +101,23 @@ const ProjectKanbanBoard = ({ projects, onProjectMove }: ProjectKanbanBoardProps
     const newStatus = over.id as ProjectStatus;
     const currentProject = projects.find(p => p.id === projectId);
 
+    console.log('Drag end:', { projectId, newStatus, currentProject });
+
     // Only move if the status actually changed
     if (currentProject && currentProject.status !== newStatus) {
+      console.log('Moving project:', projectId, 'to status:', newStatus);
       onProjectMove(projectId, newStatus);
     }
   };
 
-  // Custom collision detection to prioritize droppable areas
-  const customCollisionDetection = (args: any) => {
-    // First, let's see if there are any collisions with droppable areas
-    const pointerIntersections = pointerWithin(args);
-    const intersections = pointerIntersections.length > 0 
-      ? pointerIntersections 
-      : rectIntersection(args);
-
-    // Return the first droppable area collision
-    const droppableCollision = intersections.find(({ id }) => 
-      Object.keys(statusConfig).includes(id as string)
-    );
-
-    if (droppableCollision) {
-      return [droppableCollision];
-    }
-
-    return intersections;
-  };
+  // Use closestCenter for better collision detection
+  const collisionDetection = closestCenter;
 
   return (
     <DndContext 
       onDragStart={handleDragStart} 
-      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
-      collisionDetection={customCollisionDetection}
+      collisionDetection={collisionDetection}
     >
       <div className="flex gap-6 overflow-x-auto pb-4 h-full">
         {(Object.keys(statusConfig) as ProjectStatus[]).map((status) => (
@@ -150,7 +127,10 @@ const ProjectKanbanBoard = ({ projects, onProjectMove }: ProjectKanbanBoardProps
             config={statusConfig[status]}
             projects={projectsByStatus[status] || []}
           >
-            <SortableContext items={(projectsByStatus[status] || []).map(p => p.id)}>
+            <SortableContext 
+              items={(projectsByStatus[status] || []).map(p => p.id)}
+              strategy={verticalListSortingStrategy}
+            >
               {projectsByStatus[status]?.map((project) => (
                 <ProjectCard key={project.id} project={project} />
               ))}
@@ -161,7 +141,7 @@ const ProjectKanbanBoard = ({ projects, onProjectMove }: ProjectKanbanBoardProps
 
       <DragOverlay>
         {activeProject ? (
-          <div className="rotate-3 opacity-90 transform scale-105">
+          <div className="rotate-2 opacity-95 transform scale-105 shadow-xl">
             <ProjectCard project={activeProject} />
           </div>
         ) : null}
