@@ -29,24 +29,29 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: project.id });
+  } = useSortable({ 
+    id: project.id,
+    data: {
+      type: 'project',
+      project,
+    }
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 'auto',
   };
 
   const progressPercentage = Math.round(project.progress);
-  const budgetUsed = Math.round((project.spent / project.budget) * 100);
 
   return (
     <Card
       ref={setNodeRef}
       style={style}
-      {...attributes}
       className={`cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 ${
-        isDragging ? 'shadow-lg' : ''
+        isDragging ? 'shadow-lg ring-2 ring-quikle-primary ring-opacity-50 bg-white' : ''
       }`}
     >
       <CardContent className="p-4">
@@ -59,7 +64,8 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
           </div>
           <div 
             {...listeners}
-            className="ml-2 p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
+            {...attributes}
+            className="ml-2 p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing touch-none"
           >
             <GripVertical className="h-4 w-4 text-gray-400" />
           </div>
