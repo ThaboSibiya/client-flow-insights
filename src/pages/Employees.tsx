@@ -52,15 +52,18 @@ const Employees = () => {
     refetch();
   };
 
-  // Optimized filtering - only filter when search term exists
-  const filteredEmployees = searchTerm.trim() 
-    ? employees.filter(employee =>
-        employee.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.designation.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : employees;
+  // Optimized filtering with useMemo to prevent unnecessary recalculations
+  const filteredEmployees = React.useMemo(() => {
+    if (!searchTerm.trim()) return employees;
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return employees.filter(employee =>
+      employee.first_name.toLowerCase().includes(lowerSearchTerm) ||
+      employee.last_name.toLowerCase().includes(lowerSearchTerm) ||
+      employee.email.toLowerCase().includes(lowerSearchTerm) ||
+      employee.designation.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [employees, searchTerm]);
 
   return (
     <EmployeeAccessChecker requiredPrivilege="can_manage_employees">

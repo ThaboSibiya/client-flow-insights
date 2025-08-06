@@ -24,16 +24,17 @@ export const useOptimizedEmployeeData = () => {
   const [isCompanyOwner, setIsCompanyOwner] = useState(false);
 
   const fetchEmployees = async () => {
-    try {
-      if (!user) {
-        setEmployees([]);
-        setLoading(false);
-        return;
-      }
+    if (!user) {
+      setEmployees([]);
+      setIsCompanyOwner(false);
+      setLoading(false);
+      return;
+    }
 
+    try {
       setLoading(true);
 
-      // Optimized query - only fetch essential fields for list view
+      // Single optimized query to fetch employees
       const { data, error } = await supabase
         .from('employees')
         .select(`
@@ -49,27 +50,16 @@ export const useOptimizedEmployeeData = () => {
           auth_user_id
         `)
         .eq('company_owner_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50); // Limit initial load for better performance
+        .order('created_at', { ascending: false });
 
       if (error) {
-        // If no employees found for this user as company owner, they might be an employee themselves
-        if (error.code === 'PGRST116' || (data && data.length === 0)) {
-          setIsCompanyOwner(false);
-          setEmployees([]);
-        } else {
-          console.error('Error fetching employees:', error);
-          toast({
-            title: "Error",
-            description: "Failed to load employees",
-            variant: "destructive"
-          });
-        }
-        return;
+        // If no employees found, user is not a company owner
+        setIsCompanyOwner(false);
+        setEmployees([]);
+      } else {
+        setIsCompanyOwner(true);
+        setEmployees(data || []);
       }
-
-      setIsCompanyOwner(true);
-      setEmployees(data || []);
     } catch (error: any) {
       console.error('Error fetching employees:', error);
       toast({
@@ -77,6 +67,8 @@ export const useOptimizedEmployeeData = () => {
         description: "Failed to load employees",
         variant: "destructive"
       });
+      setIsCompanyOwner(false);
+      setEmployees([]);
     } finally {
       setLoading(false);
     }
@@ -84,7 +76,7 @@ export const useOptimizedEmployeeData = () => {
 
   useEffect(() => {
     fetchEmployees();
-  }, [user?.id]); // Only depend on user ID change
+  }, [user?.id]);
 
   const refetch = () => {
     fetchEmployees();

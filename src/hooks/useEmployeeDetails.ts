@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -27,8 +27,11 @@ export const useEmployeeDetails = () => {
   const [detailedEmployees, setDetailedEmployees] = useState<Record<string, DetailedEmployee>>({});
   const [loadingDetails, setLoadingDetails] = useState<Record<string, boolean>>({});
 
-  const loadEmployeeDetails = async (employeeIds: string[]) => {
-    const idsToLoad = employeeIds.filter(id => !detailedEmployees[id]);
+  const loadEmployeeDetails = useCallback(async (employeeIds: string[]) => {
+    // Only load details that we don't already have and aren't currently loading
+    const idsToLoad = employeeIds.filter(id => 
+      !detailedEmployees[id] && !loadingDetails[id]
+    );
     
     if (idsToLoad.length === 0) return;
 
@@ -88,7 +91,7 @@ export const useEmployeeDetails = () => {
         return newState;
       });
     }
-  };
+  }, [detailedEmployees, loadingDetails]);
 
   return {
     detailedEmployees,

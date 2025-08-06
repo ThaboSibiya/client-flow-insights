@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,15 +29,16 @@ interface OptimizedEmployeeListProps {
 const OptimizedEmployeeList = ({ employees, loading, onEditEmployee, onInvitationSent }: OptimizedEmployeeListProps) => {
   const { detailedEmployees, loadingDetails, loadEmployeeDetails } = useEmployeeDetails();
 
+  // Memoize employee IDs to prevent unnecessary re-fetches
+  const employeeIds = useMemo(() => employees.map(emp => emp.id), [employees]);
+
   useEffect(() => {
-    // Load details for visible employees
-    if (employees.length > 0) {
-      const employeeIds = employees.map(emp => emp.id);
+    if (employeeIds.length > 0) {
       loadEmployeeDetails(employeeIds);
     }
-  }, [employees]);
+  }, [employeeIds, loadEmployeeDetails]);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useMemo(() => (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-50 text-quikle-success border border-quikle-success/20';
       case 'inactive': return 'bg-quikle-platinum text-quikle-slate border border-quikle-silver';
@@ -45,9 +46,9 @@ const OptimizedEmployeeList = ({ employees, loading, onEditEmployee, onInvitatio
       case 'terminated': return 'bg-red-50 text-quikle-danger border border-quikle-danger/20';
       default: return 'bg-quikle-platinum text-quikle-slate border border-quikle-silver';
     }
-  };
+  }, []);
 
-  const getRoleColor = (role: string) => {
+  const getRoleColor = useMemo(() => (role: string) => {
     switch (role) {
       case 'admin': return 'bg-purple-50 text-quikle-purple border border-quikle-purple/20';
       case 'manager': return 'bg-blue-50 text-quikle-info border border-quikle-info/20';
@@ -56,9 +57,9 @@ const OptimizedEmployeeList = ({ employees, loading, onEditEmployee, onInvitatio
       case 'intern': return 'bg-quikle-crystal text-quikle-slate border border-quikle-silver/80';
       default: return 'bg-quikle-platinum text-quikle-slate border border-quikle-silver';
     }
-  };
+  }, []);
 
-  const getAuthStatus = (employee: BasicEmployee) => {
+  const getAuthStatus = useMemo(() => (employee: BasicEmployee) => {
     if (employee.auth_user_id) {
       return (
         <Badge variant="secondary" className="text-green-600 border-green-200">
@@ -71,7 +72,7 @@ const OptimizedEmployeeList = ({ employees, loading, onEditEmployee, onInvitatio
         ⏳ Pending Setup
       </Badge>
     );
-  };
+  }, []);
 
   if (loading) {
     return <div className="text-center py-8 text-quikle-slate">Loading employees...</div>;
