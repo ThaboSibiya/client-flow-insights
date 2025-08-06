@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from 'react';
 import { Project, Task, ProjectFilters, TeamMember, TaskStatus, ProjectStatus, Priority } from '@/types/project';
 
@@ -20,8 +19,8 @@ const mockProjects: Project[] = [
     priority: 'high',
     startDate: new Date('2024-01-15'),
     dueDate: new Date('2024-03-15'),
-    budget: 25000,
-    spent: 12000,
+    budget: 450000,
+    spent: 216000,
     progress: 65,
     owner: mockTeamMembers[0],
     team: mockTeamMembers,
@@ -40,7 +39,7 @@ const mockProjects: Project[] = [
     priority: 'medium',
     startDate: new Date('2024-02-01'),
     dueDate: new Date('2024-06-01'),
-    budget: 50000,
+    budget: 900000,
     spent: 0,
     progress: 0,
     owner: mockTeamMembers[1],

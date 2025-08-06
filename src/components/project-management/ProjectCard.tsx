@@ -41,6 +41,15 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
 
   const progressPercentage = Math.round(project.progress);
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   return (
     <Card
       ref={setNodeRef}
@@ -90,7 +99,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
           </div>
           <div className="flex items-center gap-1">
             <DollarSign className="h-3 w-3" />
-            ${project.budget.toLocaleString()}
+            {formatCurrency(project.budget)}
           </div>
         </div>
 
