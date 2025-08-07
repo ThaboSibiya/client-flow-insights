@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +23,7 @@ const EnhancedPrivilegesManager = ({ employeeId }: EnhancedPrivilegesManagerProp
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [changeReason, setChangeReason] = useState('');
+  const [existingPrivilegeId, setExistingPrivilegeId] = useState<string | null>(null);
 
   useEffect(() => {
     if (employeeId) {
@@ -40,9 +40,9 @@ const EnhancedPrivilegesManager = ({ employeeId }: EnhancedPrivilegesManagerProp
         .from('employee_privileges')
         .select('*')
         .eq('employee_id', employeeId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         throw error;
       }
 
@@ -79,6 +79,8 @@ const EnhancedPrivilegesManager = ({ employeeId }: EnhancedPrivilegesManagerProp
         requires_financial_approval: data.requires_financial_approval !== false
       } : getDefaultPrivileges();
 
+      // Store the existing record ID if it exists
+      setExistingPrivilegeId(data?.id || null);
       setPrivileges(currentPrivileges);
       setOriginalPrivileges(currentPrivileges);
     } catch (error: any) {
@@ -119,11 +121,28 @@ const EnhancedPrivilegesManager = ({ employeeId }: EnhancedPrivilegesManagerProp
         ...privileges
       };
 
-      const { error } = await supabase
-        .from('employee_privileges')
-        .upsert([privilegeData], {
-          onConflict: 'employee_id'
-        });
+      let error;
+      
+      if (existingPrivilegeId) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from('employee_privileges')
+          .update(privilegeData)
+          .eq('id', existingPrivilegeId);
+        error = updateError;
+      } else {
+        // Insert new record
+        const { data, error: insertError } = await supabase
+          .from('employee_privileges')
+          .insert([privilegeData])
+          .select('id')
+          .single();
+        
+        if (data) {
+          setExistingPrivilegeId(data.id);
+        }
+        error = insertError;
+      }
 
       if (error) throw error;
 
@@ -146,7 +165,7 @@ const EnhancedPrivilegesManager = ({ employeeId }: EnhancedPrivilegesManagerProp
       console.error('Error saving privileges:', error);
       toast({
         title: "Error",
-        description: "Failed to save employee privileges",
+        description: error.message || "Failed to save employee privileges",
         variant: "destructive"
       });
     } finally {
