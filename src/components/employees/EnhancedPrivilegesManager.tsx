@@ -105,9 +105,9 @@ const EnhancedPrivilegesManager = ({ employeeId }: EnhancedPrivilegesManagerProp
   const savePrivileges = async () => {
     if (!employeeId) {
       toast({
-        title: "Error",
-        description: "Please save the employee first before setting privileges",
-        variant: "destructive"
+        title: "Info",
+        description: "Privileges will be saved when the employee is created",
+        variant: "default"
       });
       return;
     }
@@ -225,7 +225,7 @@ const EnhancedPrivilegesManager = ({ employeeId }: EnhancedPrivilegesManagerProp
           <div className="flex justify-end pt-4 border-t border-quikle-silver">
             <Button
               onClick={savePrivileges}
-              disabled={saving || !employeeId || !hasChanges()}
+              disabled={saving || !hasChanges()}
               className="bg-quikle-primary hover:bg-quikle-secondary text-white"
             >
               <Save className="h-4 w-4 mr-2" />
