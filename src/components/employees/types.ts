@@ -1,6 +1,7 @@
 
+
 export type EmployeeRole = 'admin' | 'manager' | 'employee';
-export type EmployeeStatus = 'active' | 'inactive' | 'pending';
+export type EmployeeStatus = 'active' | 'inactive' | 'suspended' | 'terminated';
 
 export interface EmployeeFormData {
   first_name: string;
