@@ -17,8 +17,16 @@ export const validateEmployeeForm = (formData: EmployeeFormData): string[] => {
   }
   
   // Phone validation (if provided)
-  if (formData.phone && formData.phone.length < 10) {
+  if (formData.phone && formData.phone.trim() && formData.phone.trim().length < 10) {
     errors.push('Phone number must be at least 10 digits');
+  }
+
+  // Salary validation (if provided)
+  if (formData.salary && formData.salary.trim()) {
+    const salary = parseFloat(formData.salary);
+    if (isNaN(salary) || salary < 0) {
+      errors.push('Please enter a valid salary amount');
+    }
   }
   
   return errors;

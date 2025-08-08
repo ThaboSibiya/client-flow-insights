@@ -22,6 +22,7 @@ export const useCompanyProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       if (!user) {
+        setProfile(null);
         setLoading(false);
         return;
       }
@@ -33,13 +34,15 @@ export const useCompanyProfile = () => {
           .eq('id', user.id)
           .single();
 
-        if (error && error.code !== 'PGRST116') { // Not found is ok
+        if (error) {
           console.error('Error fetching company profile:', error);
-        } else if (data) {
+          setProfile(null);
+        } else {
           setProfile(data);
         }
       } catch (error) {
         console.error('Error fetching company profile:', error);
+        setProfile(null);
       } finally {
         setLoading(false);
       }

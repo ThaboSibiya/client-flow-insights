@@ -51,7 +51,7 @@ export const createEmployee = async (formData: EmployeeFormData): Promise<any> =
     salary: formData.salary ? parseFloat(formData.salary) : null,
     company_owner_id: user.id,
     user_id: user.id,
-    employee_number: '' // Will be overwritten by database trigger
+    employee_number: '' // Will be set by database trigger
   };
 
   const { data, error } = await supabase
@@ -63,8 +63,7 @@ export const createEmployee = async (formData: EmployeeFormData): Promise<any> =
   if (error) {
     console.error('Database error:', error);
     
-    // Handle specific database errors
-    if (error.code === '23505') { // Unique constraint violation
+    if (error.code === '23505') {
       throw new Error('An employee with this email already exists');
     }
     

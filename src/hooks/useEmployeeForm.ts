@@ -7,7 +7,8 @@ import {
   checkEmailUniqueness, 
   createEmployeeWithInvitation, 
   updateEmployee,
-  retryInvitation 
+  retryInvitation,
+  EmployeeCreationResult
 } from '@/services/employeeService';
 
 export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName?: string) => {
@@ -26,7 +27,7 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName
   });
 
   const [loading, setLoading] = useState(false);
-  const [creationResult, setCreationResult] = useState<any>(null);
+  const [creationResult, setCreationResult] = useState<EmployeeCreationResult | null>(null);
 
   useEffect(() => {
     if (employee) {
@@ -41,7 +42,7 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName
         role: (employee.role as EmployeeRole) || 'employee',
         status: (employee.status as EmployeeStatus) || 'active',
         hire_date: employee.hire_date ? employee.hire_date.split('T')[0] : new Date().toISOString().split('T')[0],
-        salary: employee.salary || ''
+        salary: employee.salary?.toString() || ''
       });
     }
   }, [employee]);
@@ -74,11 +75,11 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName
         description: "Invitation sent successfully"
       });
 
-      setCreationResult(prev => ({
+      setCreationResult(prev => prev ? {
         ...prev,
         invitationSent: true,
         error: undefined
-      }));
+      } : null);
 
     } catch (error: any) {
       toast({
@@ -129,6 +130,8 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName
           title: "Success",
           description: "Employee updated successfully"
         });
+        
+        if (onSave) onSave();
       } else {
         // Create new employee with invitation
         const result = await createEmployeeWithInvitation(formData, companyName || 'Your Company');
@@ -139,17 +142,17 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName
             title: "Success",
             description: `${formData.first_name} ${formData.last_name} has been created and invitation sent to ${formData.email}`
           });
+          
+          if (onSave) onSave();
         } else {
           toast({
             title: "Partial Success",
             description: result.error || "Employee created but invitation failed",
             variant: "destructive"
           });
-          return; // Don't close form - allow retry
+          // Don't close form - allow retry
         }
       }
-
-      if (onSave) onSave();
     } catch (error: any) {
       console.error('Error saving employee:', error);
       toast({
