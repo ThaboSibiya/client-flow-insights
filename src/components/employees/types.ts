@@ -20,4 +20,5 @@ export interface EmployeeFormProps {
   employee?: any;
   onSave: () => void;
   onCancel: () => void;
+  companyName?: string;
 }

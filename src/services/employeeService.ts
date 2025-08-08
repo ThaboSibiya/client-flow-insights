@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { EmployeeFormData } from '@/components/employees/types';
 
@@ -30,7 +31,7 @@ export const checkEmailUniqueness = async (email: string, excludeId?: string): P
   }
 };
 
-export const createEmployee = async (formData: EmployeeFormData): Promise<void> => {
+export const createEmployee = async (formData: EmployeeFormData): Promise<any> => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('You must be logged in to manage employees');
@@ -53,9 +54,11 @@ export const createEmployee = async (formData: EmployeeFormData): Promise<void> 
     employee_number: '' // Will be overwritten by database trigger
   };
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('employees')
-    .insert(employeeData);
+    .insert(employeeData)
+    .select()
+    .single();
 
   if (error) {
     console.error('Database error:', error);
@@ -67,6 +70,91 @@ export const createEmployee = async (formData: EmployeeFormData): Promise<void> 
     
     throw new Error(error.message);
   }
+
+  return data;
+};
+
+export const sendEmployeeInvitation = async (
+  employeeId: string, 
+  email: string, 
+  firstName: string, 
+  lastName: string, 
+  companyName: string
+): Promise<string> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('send-employee-invitation', {
+      body: {
+        employeeId,
+        email,
+        firstName,
+        lastName,
+        companyName
+      }
+    });
+
+    if (error) throw error;
+
+    return data?.invitationToken || '';
+  } catch (error: any) {
+    console.error('Error sending invitation:', error);
+    throw new Error(error.message || 'Failed to send invitation');
+  }
+};
+
+export interface EmployeeCreationResult {
+  employee: any;
+  invitationSent: boolean;
+  invitationToken?: string;
+  error?: string;
+}
+
+export const createEmployeeWithInvitation = async (
+  formData: EmployeeFormData, 
+  companyName: string
+): Promise<EmployeeCreationResult> => {
+  try {
+    // Step 1: Create employee record
+    const employee = await createEmployee(formData);
+    
+    try {
+      // Step 2: Send invitation immediately
+      const invitationToken = await sendEmployeeInvitation(
+        employee.id,
+        employee.email,
+        employee.first_name,
+        employee.last_name,
+        companyName
+      );
+
+      return {
+        employee,
+        invitationSent: true,
+        invitationToken
+      };
+    } catch (invitationError: any) {
+      // Employee was created but invitation failed
+      console.error('Invitation failed after employee creation:', invitationError);
+      
+      return {
+        employee,
+        invitationSent: false,
+        error: `Employee created successfully, but invitation failed: ${invitationError.message}`
+      };
+    }
+  } catch (employeeError: any) {
+    // Employee creation failed
+    throw employeeError;
+  }
+};
+
+export const retryInvitation = async (
+  employeeId: string,
+  email: string,
+  firstName: string,
+  lastName: string,
+  companyName: string
+): Promise<void> => {
+  await sendEmployeeInvitation(employeeId, email, firstName, lastName, companyName);
 };
 
 export const updateEmployee = async (employeeId: string, formData: EmployeeFormData): Promise<void> => {

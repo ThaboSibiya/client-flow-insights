@@ -11,6 +11,7 @@ import EmployeeHierarchy from '../components/employees/EmployeeHierarchy';
 import EmployeeAccessChecker from '../components/employees/EmployeeAccessChecker';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useOptimizedEmployeeData } from '../hooks/useOptimizedEmployeeData';
+import { useCompanyProfile } from '../hooks/useCompanyProfile';
 
 const Employees = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,6 +19,7 @@ const Employees = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [activeTab, setActiveTab] = useState('list');
   const { employees, loading, isCompanyOwner, refetch } = useOptimizedEmployeeData();
+  const { profile } = useCompanyProfile();
 
   // Early return if user is not a company owner
   if (!loading && !isCompanyOwner) {
@@ -140,13 +142,14 @@ const Employees = () => {
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-quikle-charcoal">
-                {selectedEmployee ? 'Edit Employee' : 'Add New Employee'}
+                {selectedEmployee ? 'Edit Employee' : `Add New Employee${profile?.company ? ` to ${profile.company}` : ''}`}
               </DialogTitle>
             </DialogHeader>
             <EmployeeForm
               employee={selectedEmployee}
               onSave={handleFormClose}
               onCancel={handleFormClose}
+              companyName={profile?.company || 'Your Company'}
             />
           </DialogContent>
         </Dialog>

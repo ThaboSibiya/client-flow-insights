@@ -3,9 +3,14 @@ import { useState, useEffect } from 'react';
 import { toast } from "@/hooks/use-toast";
 import { EmployeeFormData, EmployeeRole, EmployeeStatus } from '@/components/employees/types';
 import { validateEmployeeForm } from '@/utils/employeeValidation';
-import { checkEmailUniqueness, createEmployee, updateEmployee } from '@/services/employeeService';
+import { 
+  checkEmailUniqueness, 
+  createEmployeeWithInvitation, 
+  updateEmployee,
+  retryInvitation 
+} from '@/services/employeeService';
 
-export const useEmployeeForm = (employee?: any, onSave?: () => void) => {
+export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName?: string) => {
   const [formData, setFormData] = useState<EmployeeFormData>({
     first_name: '',
     last_name: '',
@@ -21,6 +26,7 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void) => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [creationResult, setCreationResult] = useState<any>(null);
 
   useEffect(() => {
     if (employee) {
@@ -47,6 +53,41 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void) => {
       setFormData(prev => ({ ...prev, [field]: value as EmployeeStatus }));
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const retryEmployeeInvitation = async () => {
+    if (!creationResult?.employee || creationResult.invitationSent) return;
+
+    setLoading(true);
+    try {
+      await retryInvitation(
+        creationResult.employee.id,
+        creationResult.employee.email,
+        creationResult.employee.first_name,
+        creationResult.employee.last_name,
+        companyName || 'Your Company'
+      );
+
+      toast({
+        title: "Success",
+        description: "Invitation sent successfully"
+      });
+
+      setCreationResult(prev => ({
+        ...prev,
+        invitationSent: true,
+        error: undefined
+      }));
+
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: `Failed to send invitation: ${error.message}`,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -82,17 +123,30 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void) => {
       }
 
       if (employee) {
+        // Update existing employee
         await updateEmployee(employee.id, formData);
         toast({
           title: "Success",
           description: "Employee updated successfully"
         });
       } else {
-        await createEmployee(formData);
-        toast({
-          title: "Success",
-          description: "Employee created successfully"
-        });
+        // Create new employee with invitation
+        const result = await createEmployeeWithInvitation(formData, companyName || 'Your Company');
+        setCreationResult(result);
+
+        if (result.invitationSent) {
+          toast({
+            title: "Success",
+            description: `${formData.first_name} ${formData.last_name} has been created and invitation sent to ${formData.email}`
+          });
+        } else {
+          toast({
+            title: "Partial Success",
+            description: result.error || "Employee created but invitation failed",
+            variant: "destructive"
+          });
+          return; // Don't close form - allow retry
+        }
       }
 
       if (onSave) onSave();
@@ -111,7 +165,9 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void) => {
   return {
     formData,
     loading,
+    creationResult,
     handleInputChange,
-    handleSubmit
+    handleSubmit,
+    retryEmployeeInvitation
   };
 };
