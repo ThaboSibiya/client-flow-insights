@@ -52,6 +52,7 @@ export const useRevenueOptimizationSettings = () => {
         .from('company_settings')
         .select('value')
         .eq('key', 'revenue_optimization_settings')
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
@@ -85,6 +86,7 @@ export const useRevenueOptimizationSettings = () => {
         .upsert({
           key: 'revenue_optimization_settings',
           value: updatedSettings,
+          user_id: user.id,
         });
 
       if (error) {
