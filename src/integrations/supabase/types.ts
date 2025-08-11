@@ -451,6 +451,7 @@ export type Database = {
           sender: string
           status: string
           subject: string
+          user_id: string | null
         }
         Insert: {
           attachments?: string[] | null
@@ -461,6 +462,7 @@ export type Database = {
           sender: string
           status?: string
           subject: string
+          user_id?: string | null
         }
         Update: {
           attachments?: string[] | null
@@ -471,6 +473,7 @@ export type Database = {
           sender?: string
           status?: string
           subject?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1105,6 +1108,7 @@ export type Database = {
           industry: string
           template_name: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -1113,6 +1117,7 @@ export type Database = {
           industry: string
           template_name: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -1121,6 +1126,7 @@ export type Database = {
           industry?: string
           template_name?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1133,6 +1139,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           updated_at: string | null
+          user_id: string | null
           version: number | null
         }
         Insert: {
@@ -1143,6 +1150,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           updated_at?: string | null
+          user_id?: string | null
           version?: number | null
         }
         Update: {
@@ -1153,6 +1161,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           updated_at?: string | null
+          user_id?: string | null
           version?: number | null
         }
         Relationships: []
@@ -1899,6 +1908,7 @@ export type Database = {
           sender: string
           status: string
           subject: string
+          user_id: string | null
         }[]
       }
       insert_email_history: {

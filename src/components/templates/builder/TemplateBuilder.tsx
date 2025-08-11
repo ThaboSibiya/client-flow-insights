@@ -13,6 +13,9 @@ import TemplateFieldsList from './TemplateFieldsList';
 import TemplatePreview from './TemplatePreview';
 import { TemplateField } from '@/types/templates';
 import { toast } from '@/hooks/use-toast';
+import { useSecureTemplates } from '@/hooks/useSecureTemplates';
+import { useAuth } from '@/context/AuthContext';
+import { securityMonitoringService } from '@/services/securityMonitoringService';
 
 interface TemplateBuilderProps {
   onBack?: () => void;
@@ -25,12 +28,13 @@ export interface BuilderField extends Omit<TemplateField, 'id' | 'template_id' |
 }
 
 const TemplateBuilder = ({ onBack, existingTemplate }: TemplateBuilderProps) => {
+  const { user } = useAuth();
+  const { createTemplate, updateTemplate, isCreating, isUpdating } = useSecureTemplates();
   const [templateName, setTemplateName] = useState(existingTemplate?.name || '');
   const [templateIndustry, setTemplateIndustry] = useState(existingTemplate?.industry || '');
   const [templateDescription, setTemplateDescription] = useState(existingTemplate?.description || '');
   const [fields, setFields] = useState<BuilderField[]>([]);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -54,7 +58,6 @@ const TemplateBuilder = ({ onBack, existingTemplate }: TemplateBuilderProps) => 
         const [removed] = newFields.splice(oldIndex, 1);
         newFields.splice(newIndex, 0, removed);
         
-        // Update display order
         const updatedFields = newFields.map((field, index) => ({
           ...field,
           display_order: index
@@ -116,6 +119,15 @@ const TemplateBuilder = ({ onBack, existingTemplate }: TemplateBuilderProps) => 
   };
 
   const handleSave = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to save templates.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!templateName.trim()) {
       toast({
         title: "Validation Error",
@@ -143,26 +155,36 @@ const TemplateBuilder = ({ onBack, existingTemplate }: TemplateBuilderProps) => 
       return;
     }
 
-    setIsSaving(true);
-    
     try {
-      // TODO: Implement actual save functionality with templateService
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      
-      toast({
-        title: "Template Saved",
-        description: "Your custom template has been saved successfully.",
-      });
+      const templateData = {
+        name: templateName,
+        industry: templateIndustry,
+        description: templateDescription,
+        fields: fields.map(field => ({
+          field_name: field.field_name,
+          field_label: field.field_label,
+          field_type: field.field_type,
+          field_options: field.field_options,
+          is_required: field.is_required,
+          display_order: field.display_order,
+        })),
+      };
+
+      if (existingTemplate) {
+        await updateTemplate({ templateId: existingTemplate.id, templateData });
+        await securityMonitoringService.logTemplateAccess(existingTemplate.id, user.id, 'update');
+      } else {
+        const templateId = await createTemplate(templateData);
+        await securityMonitoringService.logTemplateAccess(templateId, user.id, 'create');
+      }
       
       onBack?.();
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Save Failed",
-        description: "Failed to save template. Please try again.",
+        description: error.message || "Failed to save template. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -174,9 +196,9 @@ const TemplateBuilder = ({ onBack, existingTemplate }: TemplateBuilderProps) => 
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Builder
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button onClick={handleSave} disabled={isCreating || isUpdating}>
             <Save className="w-4 h-4 mr-2" />
-            {isSaving ? 'Saving...' : 'Save Template'}
+            {isCreating || isUpdating ? 'Saving...' : 'Save Template'}
           </Button>
         </div>
         <TemplatePreview
@@ -208,9 +230,9 @@ const TemplateBuilder = ({ onBack, existingTemplate }: TemplateBuilderProps) => 
               <Eye className="w-4 h-4 mr-2" />
               Preview
             </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
+            <Button onClick={handleSave} disabled={isCreating || isUpdating}>
               <Save className="w-4 h-4 mr-2" />
-              {isSaving ? 'Saving...' : 'Save Template'}
+              {isCreating || isUpdating ? 'Saving...' : 'Save Template'}
             </Button>
           </div>
         </div>

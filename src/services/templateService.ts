@@ -1,8 +1,9 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { IndustryTemplate, TemplateField, CustomerCustomData, CustomerTemplate } from '@/types/templates';
 
 export const templateService = {
-  // Fetch all available industry templates
+  // Fetch all available industry templates (now secured by user ownership)
   async getIndustryTemplates(): Promise<IndustryTemplate[]> {
     const { data, error } = await supabase
       .from('industry_templates')
@@ -14,7 +15,7 @@ export const templateService = {
     return data || [];
   },
 
-  // Fetch template fields for a specific template
+  // Fetch template fields for a specific template (now secured)
   async getTemplateFields(templateId: string): Promise<TemplateField[]> {
     const { data, error } = await supabase
       .from('template_fields')
@@ -24,7 +25,6 @@ export const templateService = {
 
     if (error) throw error;
     
-    // Transform the data to match our TemplateField interface
     return (data || []).map(field => ({
       ...field,
       field_options: field.field_options as TemplateField['field_options']
@@ -33,7 +33,6 @@ export const templateService = {
 
   // Apply a template to a customer
   async applyTemplateToCustomer(customerId: string, templateId: string, userId: string): Promise<void> {
-    // First check if template is already applied
     const { data: existing } = await supabase
       .from('customer_templates')
       .select('id')
@@ -97,7 +96,7 @@ export const templateService = {
     return data || [];
   },
 
-  // Create a new custom template
+  // Create a new custom template (now with proper user ownership)
   async createCustomTemplate(templateData: {
     name: string;
     industry: string;
@@ -119,14 +118,14 @@ export const templateService = {
         industry: templateData.industry,
         description: templateData.description,
         is_active: true,
-        version: 1
+        version: 1,
+        user_id: templateData.userId
       })
       .select('id')
       .single();
 
     if (templateError) throw templateError;
 
-    // Insert template fields
     const fieldsToInsert = templateData.fields.map(field => ({
       template_id: template.id,
       field_name: field.field_name,
@@ -146,7 +145,7 @@ export const templateService = {
     return template.id;
   },
 
-  // Update an existing custom template
+  // Update an existing custom template (now with proper ownership validation)
   async updateCustomTemplate(templateId: string, templateData: {
     name: string;
     industry: string;
@@ -161,7 +160,6 @@ export const templateService = {
       display_order: number;
     }>;
   }): Promise<void> {
-    // Update template metadata
     const { error: templateError } = await supabase
       .from('industry_templates')
       .update({
@@ -174,7 +172,6 @@ export const templateService = {
 
     if (templateError) throw templateError;
 
-    // Delete existing fields
     const { error: deleteError } = await supabase
       .from('template_fields')
       .delete()
@@ -182,7 +179,6 @@ export const templateService = {
 
     if (deleteError) throw deleteError;
 
-    // Insert updated fields
     const fieldsToInsert = templateData.fields.map(field => ({
       template_id: templateId,
       field_name: field.field_name,
@@ -200,7 +196,7 @@ export const templateService = {
     if (fieldsError) throw fieldsError;
   },
 
-  // Delete a custom template
+  // Delete a custom template (now with proper ownership validation)
   async deleteCustomTemplate(templateId: string): Promise<void> {
     const { error } = await supabase
       .from('industry_templates')
@@ -210,17 +206,13 @@ export const templateService = {
     if (error) throw error;
   },
 
-  // Get templates created by the current user (if we add user tracking)
-  async getUserCustomTemplates(userId?: string): Promise<IndustryTemplate[]> {
-    let query = supabase
+  // Get templates created by the current user (now properly secured)
+  async getUserCustomTemplates(): Promise<IndustryTemplate[]> {
+    const { data, error } = await supabase
       .from('industry_templates')
       .select('*')
-      .eq('is_active', true);
-
-    // If we implement user-based templates, we can filter by user
-    // .eq('created_by', userId)
-
-    const { data, error } = await query.order('created_at', { ascending: false });
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data || [];

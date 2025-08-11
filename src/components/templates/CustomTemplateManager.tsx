@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, Eye } from "lucide-react";
-import { useCustomTemplates } from '@/hooks/useCustomTemplates';
+import { useSecureTemplates } from '@/hooks/useSecureTemplates';
 import TemplateBuilder from './builder/TemplateBuilder';
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,11 +17,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useAuth } from '@/context/AuthContext';
+import { securityMonitoringService } from '@/services/securityMonitoringService';
 
 type ViewMode = 'list' | 'builder' | 'edit';
 
 const CustomTemplateManager = () => {
-  const { templates, loading } = useCustomTemplates();
+  const { user } = useAuth();
+  const { templates, isLoading, deleteTemplate, isDeleting } = useSecureTemplates();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
@@ -30,14 +33,23 @@ const CustomTemplateManager = () => {
     setViewMode('builder');
   };
 
-  const handleEdit = (template: any) => {
+  const handleEdit = async (template: any) => {
+    if (user) {
+      await securityMonitoringService.logTemplateAccess(template.id, user.id, 'view');
+    }
     setSelectedTemplate(template);
     setViewMode('edit');
   };
 
   const handleDelete = async (templateId: string) => {
-    // TODO: Implement delete functionality
-    console.log('Delete template:', templateId);
+    try {
+      await deleteTemplate(templateId);
+      if (user) {
+        await securityMonitoringService.logTemplateAccess(templateId, user.id, 'delete');
+      }
+    } catch (error) {
+      console.error('Failed to delete template:', error);
+    }
   };
 
   const handleBack = () => {
@@ -61,7 +73,7 @@ const CustomTemplateManager = () => {
         <div>
           <h1 className="text-2xl font-bold">Custom Templates</h1>
           <p className="text-muted-foreground">
-            Create and manage your custom industry templates
+            Create and manage your custom industry templates (secured)
           </p>
         </div>
         <Button onClick={handleCreateNew}>
@@ -71,7 +83,7 @@ const CustomTemplateManager = () => {
       </div>
 
       {/* Templates Grid */}
-      {loading ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="animate-pulse">
@@ -114,9 +126,14 @@ const CustomTemplateManager = () => {
                       {template.industry}
                     </Badge>
                   </div>
-                  <Badge variant="secondary" className="text-xs">
-                    v{template.version}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      v{template.version}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs text-green-600">
+                      Secured
+                    </Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -130,7 +147,7 @@ const CustomTemplateManager = () => {
                       <Edit className="w-3 h-3 mr-1" />
                       Edit
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(template)}>
                       <Eye className="w-3 h-3 mr-1" />
                       Preview
                     </Button>
@@ -154,8 +171,9 @@ const CustomTemplateManager = () => {
                         <AlertDialogAction 
                           onClick={() => handleDelete(template.id)}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={isDeleting}
                         >
-                          Delete
+                          {isDeleting ? 'Deleting...' : 'Delete'}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>

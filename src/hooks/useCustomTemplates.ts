@@ -1,112 +1,21 @@
 
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { templateService } from '@/services/templateService';
-import { IndustryTemplate, TemplateField } from '@/types/templates';
-import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
 export const useCustomTemplates = () => {
-  const [templates, setTemplates] = useState<IndustryTemplate[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<IndustryTemplate | null>(null);
-  const [templateFields, setTemplateFields] = useState<TemplateField[]>([]);
-  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
-  const [fieldsLoading, setFieldsLoading] = useState(false);
+  const { user } = useAuth();
 
-  // Load available templates immediately on mount
-  useEffect(() => {
-    const loadTemplates = async () => {
-      try {
-        setLoading(true);
-        const data = await templateService.getIndustryTemplates();
-        setTemplates(data);
-      } catch (error: any) {
-        console.error('Failed to load templates:', error);
-        toast({
-          title: "Error",
-          description: `Failed to load templates: ${error.message}`,
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadTemplates();
-  }, []);
-
-  // Load fields when template is selected (separate loading state)
-  useEffect(() => {
-    const loadFields = async () => {
-      if (!selectedTemplate) {
-        setTemplateFields([]);
-        setCustomFieldValues({});
-        return;
-      }
-
-      try {
-        setFieldsLoading(true);
-        const fields = await templateService.getTemplateFields(selectedTemplate.id);
-        setTemplateFields(fields);
-        
-        // Initialize custom field values
-        const initialValues: Record<string, string> = {};
-        fields.forEach(field => {
-          initialValues[field.id] = '';
-        });
-        setCustomFieldValues(initialValues);
-      } catch (error: any) {
-        console.error('Failed to load template fields:', error);
-        toast({
-          title: "Error",
-          description: `Failed to load template fields: ${error.message}`,
-          variant: "destructive",
-        });
-      } finally {
-        setFieldsLoading(false);
-      }
-    };
-
-    loadFields();
-  }, [selectedTemplate]);
-
-  const updateCustomFieldValue = (fieldId: string, value: string) => {
-    setCustomFieldValues(prev => ({
-      ...prev,
-      [fieldId]: value
-    }));
-  };
-
-  const validateRequiredFields = (): boolean => {
-    const requiredFields = templateFields.filter(field => field.is_required);
-    const missingFields = requiredFields.filter(field => !customFieldValues[field.id]?.trim());
-    
-    if (missingFields.length > 0) {
-      toast({
-        title: "Validation Error",
-        description: `Please fill in all required fields: ${missingFields.map(f => f.field_label).join(', ')}`,
-        variant: "destructive",
-      });
-      return false;
-    }
-    return true;
-  };
-
-  const resetTemplate = () => {
-    setSelectedTemplate(null);
-    setTemplateFields([]);
-    setCustomFieldValues({});
-  };
+  const { data: templates, isLoading, error } = useQuery({
+    queryKey: ['custom-templates', user?.id],
+    queryFn: () => templateService.getUserCustomTemplates(),
+    enabled: !!user,
+    retry: false,
+  });
 
   return {
-    templates,
-    selectedTemplate,
-    setSelectedTemplate,
-    templateFields,
-    customFieldValues,
-    updateCustomFieldValue,
-    validateRequiredFields,
-    resetTemplate,
-    loading,
-    fieldsLoading
+    templates: templates || [],
+    loading: isLoading,
+    error,
   };
 };
