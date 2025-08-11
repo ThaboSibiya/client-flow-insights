@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -168,6 +167,7 @@ const TemplateBuilder = ({ onBack, existingTemplate }: TemplateBuilderProps) => 
           is_required: field.is_required,
           display_order: field.display_order,
         })),
+        userId: user.id
       };
 
       if (existingTemplate) {

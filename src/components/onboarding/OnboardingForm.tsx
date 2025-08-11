@@ -118,10 +118,15 @@ const OnboardingForm = () => {
 
         // Save all custom field data with non-empty values
         const savePromises = Object.entries(customFieldValues)
-          .filter(([_, value]) => value.trim()) // Only save non-empty values
-          .map(([fieldId, value]) => 
-            templateService.saveCustomFieldData(newCustomer.id, fieldId, value, user.id)
-          );
+          .filter(([_, value]) => {
+            // Ensure value is a string and trim it
+            const stringValue = typeof value === 'string' ? value : String(value);
+            return stringValue.trim(); // Only save non-empty values
+          })
+          .map(([fieldId, value]) => {
+            const stringValue = typeof value === 'string' ? value : String(value);
+            return templateService.saveCustomFieldData(newCustomer.id, fieldId, stringValue, user.id);
+          });
 
         await Promise.all(savePromises);
 

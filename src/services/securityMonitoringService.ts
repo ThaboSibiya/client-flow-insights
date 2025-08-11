@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 interface SecurityEvent {
@@ -112,7 +113,7 @@ export const securityMonitoringService = {
   },
 
   // Helper methods
-  private async getClientIP(): Promise<string> {
+  async getClientIP(): Promise<string> {
     try {
       const response = await fetch('https://api.ipify.org?format=json');
       const data = await response.json();
@@ -122,7 +123,7 @@ export const securityMonitoringService = {
     }
   },
 
-  private storeSecurityEvent(event: SecurityEvent): void {
+  storeSecurityEvent(event: SecurityEvent): void {
     const key = 'security_events';
     const stored = localStorage.getItem(key);
     const events = stored ? JSON.parse(stored) : [];
@@ -137,7 +138,7 @@ export const securityMonitoringService = {
     localStorage.setItem(key, JSON.stringify(events));
   },
 
-  private getRecentSecurityEvents(userId: string, eventType: string, timeWindowMs: number): SecurityEvent[] {
+  getRecentSecurityEvents(userId: string, eventType: string, timeWindowMs: number): SecurityEvent[] {
     const key = 'security_events';
     const stored = localStorage.getItem(key);
     const events: SecurityEvent[] = stored ? JSON.parse(stored) : [];
