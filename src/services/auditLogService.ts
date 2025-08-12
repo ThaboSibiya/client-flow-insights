@@ -69,8 +69,8 @@ export const getLoginHistory = async (): Promise<LoginHistoryEntry[]> => {
         return {
           id: item.id,
           login_timestamp: item.created_at,
-          ip_address: item.ip_address || '', // Ensure it's always a string
-          user_agent: item.user_agent || '',
+          ip_address: String(item.ip_address || ''), // Explicitly convert to string
+          user_agent: String(item.user_agent || ''), // Explicitly convert to string
           employees: employee
         };
       })
