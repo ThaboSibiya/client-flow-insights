@@ -50,6 +50,41 @@ export const validateCSRFToken = (token: string, sessionToken: string): boolean 
   return token === sessionToken && token.length === 64;
 };
 
+// Rate limiting functionality
+export const checkRateLimit = async (
+  identifier: string, 
+  resource: string, 
+  maxAttempts: number, 
+  windowMs: number
+): Promise<boolean> => {
+  const key = `rate_limit_${identifier}_${resource}`;
+  const now = Date.now();
+  
+  const stored = localStorage.getItem(key);
+  if (!stored) {
+    localStorage.setItem(key, JSON.stringify({ count: 1, firstAttempt: now }));
+    return true;
+  }
+  
+  const data = JSON.parse(stored);
+  
+  // Reset if window has expired
+  if (now - data.firstAttempt > windowMs) {
+    localStorage.setItem(key, JSON.stringify({ count: 1, firstAttempt: now }));
+    return true;
+  }
+  
+  // Check if limit exceeded
+  if (data.count >= maxAttempts) {
+    return false;
+  }
+  
+  // Increment count
+  data.count++;
+  localStorage.setItem(key, JSON.stringify(data));
+  return true;
+};
+
 // Log security events for monitoring
 export const logSecurityEvent = (event: string, details: any = {}) => {
   console.warn(`Security Event: ${event}`, details);

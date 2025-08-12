@@ -131,7 +131,7 @@ export const getFileAccessHistory = async (): Promise<FileAccessHistoryEntry[]> 
 };
 
 // Updated logFileAccess to match the expected signature (userId, filePath, action)
-export const logFileAccess = async (userId: string, filePath: string, action: string) => {
+export const logFileAccess = async (userId: string, filePath: string, action: string = 'access') => {
   try {
     await supabase
       .from('security_events')

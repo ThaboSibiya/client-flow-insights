@@ -1,151 +1,164 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
+import { uploadFile, downloadFile } from './storageService';
 import { logFileAccess } from './auditLogService';
 
-export interface TicketAttachment {
-  id: string;
-  ticket_id: string;
-  user_id: string;
-  file_name: string;
-  file_path: string;
-  file_size?: number;
-  file_type?: string;
-  uploaded_at: string;
+interface UploadAttachmentParams {
+  file: File;
+  ticketId: string;
+  userId: string;
 }
 
-/**
- * Upload a file attachment for a ticket
- */
-export const uploadTicketAttachment = async (
-  userId: string,
-  ticketId: string,
-  file: File
-): Promise<TicketAttachment | null> => {
+export const uploadTicketAttachment = async ({ file, ticketId, userId }: UploadAttachmentParams) => {
   try {
-    // Create a path with user ID as the first folder to maintain RLS security
-    const filePath = `${userId}/${ticketId}/${file.name}`;
-
-    const { data: storageData, error: storageError } = await supabase.storage
-      .from('ticket-attachments')
-      .upload(filePath, file, {
-        upsert: true,
-        cacheControl: '3600'
-      });
-
-    if (storageError) {
-      console.error('Error uploading file:', storageError.message);
-      throw storageError;
-    }
-
-    await logFileAccess(storageData.path, 'upload');
-
-    // Save attachment record in database
-    const { data: attachmentData, error: dbError } = await supabase
+    const fileName = `${Date.now()}-${file.name}`;
+    const filePath = `tickets/${ticketId}/${fileName}`;
+    
+    // Upload file to storage
+    const uploadData = await uploadFile(file, filePath, userId);
+    
+    // Save attachment record
+    const { data, error } = await supabase
       .from('ticket_attachments')
       .insert({
         ticket_id: ticketId,
-        user_id: userId,
         file_name: file.name,
-        file_path: storageData.path,
+        file_path: filePath,
         file_size: file.size,
-        file_type: file.type,
+        content_type: file.type,
+        uploaded_by: userId
       })
       .select()
       .single();
 
-    if (dbError) {
-      console.error('Error saving attachment record:', dbError.message);
-      throw dbError;
-    }
+    if (error) throw error;
 
-    return attachmentData;
-  } catch (error: any) {
-    console.error('Error in uploadTicketAttachment:', error.message);
+    // Log file access
+    await logFileAccess(userId, filePath, 'upload');
+
     toast({
-      title: "Error",
-      description: `Failed to upload attachment: ${error.message}`,
+      title: "Success",
+      description: "Attachment uploaded successfully",
+    });
+
+    return data;
+  } catch (error) {
+    console.error('Error uploading attachment:', error);
+    toast({
+      title: "Upload Error",
+      description: "Failed to upload attachment",
       variant: "destructive",
     });
-    return null;
+    throw error;
   }
 };
 
-/**
- * Get all attachments for a ticket
- */
-export const getTicketAttachments = async (
-  ticketId: string
-): Promise<TicketAttachment[]> => {
+interface DeleteAttachmentParams {
+  attachmentId: string;
+  userId: string;
+}
+
+export const deleteTicketAttachment = async ({ attachmentId, userId }: DeleteAttachmentParams) => {
+  try {
+    // Get attachment info
+    const { data: attachment, error: selectError } = await supabase
+      .from('ticket_attachments')
+      .select('*')
+      .eq('id', attachmentId)
+      .single();
+
+    if (selectError) throw selectError;
+
+    // Delete from storage
+    const { error: deleteError } = await supabase.storage
+      .from('attachments')
+      .remove([attachment.file_path]);
+
+    if (deleteError) throw deleteError;
+
+    // Delete attachment record
+    const { error: removeError } = await supabase
+      .from('ticket_attachments')
+      .delete()
+      .eq('id', attachmentId);
+
+    if (removeError) throw removeError;
+
+     // Log file access
+     await logFileAccess(userId, attachment.file_path, 'delete');
+
+    toast({
+      title: "Success",
+      description: "Attachment deleted successfully",
+    });
+  } catch (error) {
+    console.error('Error deleting attachment:', error);
+    toast({
+      title: "Delete Error",
+      description: "Failed to delete attachment",
+      variant: "destructive",
+    });
+    throw error;
+  }
+};
+
+export const getTicketAttachments = async (ticketId: string) => {
   try {
     const { data, error } = await supabase
       .from('ticket_attachments')
       .select('*')
       .eq('ticket_id', ticketId)
-      .order('uploaded_at', { ascending: false });
+      .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching attachments:', error.message);
-      throw error;
-    }
+    if (error) throw error;
 
     return data || [];
-  } catch (error: any) {
-    console.error('Error in getTicketAttachments:', error.message);
+  } catch (error) {
+    console.error('Error fetching attachments:', error);
+    toast({
+      title: "Fetch Error",
+      description: "Failed to fetch attachments",
+      variant: "destructive",
+    });
     return [];
   }
 };
 
-/**
- * Delete a ticket attachment
- */
-export const deleteTicketAttachment = async (
-  attachmentId: string,
-  filePath: string
-): Promise<boolean> => {
+export const downloadTicketAttachment = async (attachmentId: string, userId: string) => {
   try {
-    // Delete from storage
-    const { error: storageError } = await supabase.storage
-      .from('ticket-attachments')
-      .remove([filePath]);
-
-    if (storageError) {
-      console.error('Error deleting file from storage:', storageError.message);
-      throw storageError;
-    }
-
-    // Delete from database
-    const { error: dbError } = await supabase
+    // Get attachment info
+    const { data: attachment, error } = await supabase
       .from('ticket_attachments')
-      .delete()
-      .eq('id', attachmentId);
+      .select('*')
+      .eq('id', attachmentId)
+      .single();
 
-    if (dbError) {
-      console.error('Error deleting attachment record:', dbError.message);
-      throw dbError;
-    }
+    if (error) throw error;
 
-    await logFileAccess(filePath, 'delete');
+    // Download file
+    const fileBlob = await downloadFile(attachment.file_path, userId);
+    
+    // Create download link
+    const url = URL.createObjectURL(fileBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = attachment.file_name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 
-    return true;
-  } catch (error: any) {
-    console.error('Error in deleteTicketAttachment:', error.message);
+    // Log file access
+    await logFileAccess(userId, attachment.file_path, 'download');
+
+    return attachment;
+  } catch (error) {
+    console.error('Error downloading attachment:', error);
     toast({
-      title: "Error",
-      description: `Failed to delete attachment: ${error.message}`,
+      title: "Download Error",
+      description: "Failed to download attachment",
       variant: "destructive",
     });
-    return false;
+    throw error;
   }
-};
-
-/**
- * Get public URL for an attachment
- */
-export const getAttachmentUrl = (filePath: string): string => {
-  const { data } = supabase.storage
-    .from('ticket-attachments')
-    .getPublicUrl(filePath);
-  
-  return data.publicUrl;
 };

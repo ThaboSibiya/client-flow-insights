@@ -1,94 +1,89 @@
-
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import { logFileAccess } from './auditLogService';
 
-export interface AttachmentFile {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  url: string;
-  path: string;
-}
-
-export const uploadAttachment = async (
-  file: File,
-  conversationId: string,
-  userId: string
-): Promise<AttachmentFile | null> => {
+export const uploadAttachment = async (file: File, conversationId: string, userId: string) => {
   try {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `${userId}/${conversationId}/${fileName}`;
+    const fileName = `${Date.now()}-${file.name}`;
+    const filePath = `conversations/${conversationId}/${fileName}`;
+    
+    // Upload to Supabase storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('attachments')
+      .upload(filePath, file);
 
-    const { data, error } = await supabase.storage
-      .from('conversation-attachments')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+    if (uploadError) throw uploadError;
+
+    // Save attachment record
+    const { data, error } = await supabase
+      .from('message_attachments')
+      .insert({
+        conversation_id: conversationId,
+        file_name: file.name,
+        file_path: filePath,
+        file_size: file.size,
+        content_type: file.type,
+        uploaded_by: userId
+      })
+      .select()
+      .single();
 
     if (error) throw error;
 
+    // Log file access
     await logFileAccess(userId, filePath, 'upload');
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('conversation-attachments')
-      .getPublicUrl(filePath);
-
-    return {
-      id: fileName,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      url: publicUrl,
-      path: filePath
-    };
+    return data;
   } catch (error) {
     console.error('Error uploading attachment:', error);
-    return null;
+    toast({
+      title: "Upload Error",
+      description: "Failed to upload attachment",
+      variant: "destructive",
+    });
+    throw error;
   }
 };
 
-export const deleteAttachment = async (filePath: string, userId: string): Promise<boolean> => {
+export const downloadAttachment = async (attachmentId: string, userId: string) => {
   try {
-    const { error } = await supabase.storage
-      .from('conversation-attachments')
-      .remove([filePath]);
+    // Get attachment info
+    const { data: attachment, error } = await supabase
+      .from('message_attachments')
+      .select('*')
+      .eq('id', attachmentId)
+      .single();
 
     if (error) throw error;
 
-    await logFileAccess(userId, filePath, 'delete');
-    
-    return true;
-  } catch (error) {
-    console.error('Error deleting attachment:', error);
-    return false;
-  }
-};
+    // Download file
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from('attachments')
+      .download(attachment.file_path);
 
-export const getAttachmentUrl = (filePath: string): string => {
-  const { data: { publicUrl } } = supabase.storage
-    .from('conversation-attachments')
-    .getPublicUrl(filePath);
-  
-  return publicUrl;
-};
+    if (downloadError) throw downloadError;
 
-export const downloadAttachment = async (url: string, fileName: string) => {
-  try {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(downloadUrl);
+    // Log file access
+    await logFileAccess(userId, attachment.file_path, 'download');
+
+    // Create download link
+    const url = URL.createObjectURL(fileData);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = attachment.file_name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    return attachment;
   } catch (error) {
     console.error('Error downloading attachment:', error);
+    toast({
+      title: "Download Error", 
+      description: "Failed to download attachment",
+      variant: "destructive",
+    });
+    throw error;
   }
 };

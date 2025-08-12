@@ -1,123 +1,100 @@
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { logFileAccess } from './auditLogService';
 
-/**
- * Upload a file to the customer-docs bucket
- * Files are stored in a user-specific folder structure: {userId}/{customerId}/{filename}
- */
-export const uploadCustomerFile = async (
-  userId: string,
-  customerId: string,
-  file: File
-): Promise<string | null> => {
+export const uploadFile = async (file: File, path: string, userId: string) => {
   try {
-    // Create a path with user ID as the first folder to maintain RLS security
-    const filePath = `${userId}/${customerId}/${file.name}`;
-
     const { data, error } = await supabase.storage
-      .from('customer-docs')
-      .upload(filePath, file, {
-        upsert: true,
-        cacheControl: '3600'
-      });
+      .from('attachments')
+      .upload(path, file);
 
-    if (error) {
-      console.error('Error uploading file:', error.message);
-      throw error;
-    }
+    if (error) throw error;
 
-    await logFileAccess(data.path, 'upload');
+    // Log file upload
+    await logFileAccess(userId, path, 'upload');
 
-    // Return the path to the uploaded file
-    return data.path;
-  } catch (error: any) {
-    console.error('Error in uploadCustomerFile:', error.message);
+    return data;
+  } catch (error) {
+    console.error('File upload error:', error);
     toast({
-      title: "Error",
-      description: `Failed to upload file: ${error.message}`,
+      title: "Upload Failed",
+      description: "Failed to upload file. Please try again.",
       variant: "destructive",
     });
+    throw error;
+  }
+};
+
+export const downloadFile = async (path: string, userId: string) => {
+  try {
+    const { data, error } = await supabase.storage
+      .from('attachments')
+      .download(path);
+
+    if (error) throw error;
+
+    // Log file download
+    await logFileAccess(userId, path, 'download');
+
+    return data;
+  } catch (error) {
+    console.error('File download error:', error);
+    toast({
+      title: "Download Failed", 
+      description: "Failed to download file. Please try again.",
+      variant: "destructive",
+    });
+    throw error;
+  }
+};
+
+export const deleteFile = async (path: string, userId: string) => {
+  try {
+    const { error } = await supabase.storage
+      .from('attachments')
+      .remove([path]);
+
+    if (error) throw error;
+
+    // Log file deletion
+    await logFileAccess(userId, path, 'delete');
+
+    return { success: true };
+  } catch (error) {
+    console.error('File delete error:', error);
+    toast({
+      title: "Delete Failed",
+      description: "Failed to delete file. Please try again.",
+      variant: "destructive",
+    });
+    return { success: false, error };
+  }
+};
+
+export const getFileUrl = async (path: string) => {
+  try {
+    const { data } = supabase.storage
+      .from('attachments')
+      .getPublicUrl(path)
+
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Get file URL error:', error);
     return null;
   }
 };
 
-/**
- * List all files for a specific customer
- */
-export const listCustomerFiles = async (
-  userId: string,
-  customerId: string
-): Promise<{ name: string, path: string, url: string }[]> => {
+export const listFiles = async (directory: string) => {
   try {
-    // List files in the customer's folder
     const { data, error } = await supabase.storage
-      .from('customer-docs')
-      .list(`${userId}/${customerId}`);
+      .from('attachments')
+      .list(directory);
 
-    if (error) {
-      console.error('Error listing files:', error.message);
-      throw error;
-    }
+    if (error) throw error;
 
-    if (!data) {
-      return [];
-    }
-
-    // Create URLs for each file
-    return data.filter(item => !item.id.endsWith('/')).map(item => {
-      const path = `${userId}/${customerId}/${item.name}`;
-      const url = supabase.storage
-        .from('customer-docs')
-        .getPublicUrl(path).data.publicUrl;
-      
-      return {
-        name: item.name,
-        path: path,
-        url: url
-      };
-    });
-  } catch (error: any) {
-    console.error('Error in listCustomerFiles:', error.message);
-    toast({
-      title: "Error",
-      description: `Failed to list files: ${error.message}`,
-      variant: "destructive",
-    });
+    return data;
+  } catch (error) {
+    console.error('List files error:', error);
     return [];
-  }
-};
-
-/**
- * Delete a customer file
- */
-export const deleteCustomerFile = async (
-  userId: string,
-  customerId: string,
-  fileName:string
-): Promise<boolean> => {
-  try {
-    const filePath = `${userId}/${customerId}/${fileName}`;
-    
-    const { error } = await supabase.storage
-      .from('customer-docs')
-      .remove([filePath]);
-
-    if (error) {
-      console.error('Error deleting file:', error.message);
-      throw error;
-    }
-
-    await logFileAccess(filePath, 'delete');
-
-    return true;
-  } catch (error: any) {
-    console.error('Error in deleteCustomerFile:', error.message);
-    toast({
-      title: "Error",
-      description: `Failed to delete file: ${error.message}`,
-      variant: "destructive",
-    });
-    return false;
   }
 };
