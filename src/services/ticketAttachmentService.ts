@@ -10,9 +10,9 @@ export interface TicketAttachment {
   file_name: string;
   file_path: string;
   file_size: number;
-  content_type: string;
-  uploaded_by: string;
-  created_at: string;
+  file_type: string;
+  user_id: string;
+  uploaded_at: string;
 }
 
 interface UploadAttachmentParams {
@@ -29,7 +29,7 @@ export const uploadTicketAttachment = async (userId: string, ticketId: string, f
     // Upload file to storage
     const uploadData = await uploadFile(file, filePath, userId);
     
-    // Save attachment record
+    // Save attachment record - using correct field names that match database
     const { data, error } = await supabase
       .from('ticket_attachments')
       .insert({
@@ -37,8 +37,8 @@ export const uploadTicketAttachment = async (userId: string, ticketId: string, f
         file_name: file.name,
         file_path: filePath,
         file_size: file.size,
-        content_type: file.type,
-        uploaded_by: userId
+        file_type: file.type,
+        user_id: userId
       })
       .select()
       .single();
@@ -95,7 +95,7 @@ export const getTicketAttachments = async (ticketId: string) => {
       .from('ticket_attachments')
       .select('*')
       .eq('ticket_id', ticketId)
-      .order('created_at', { ascending: false });
+      .order('uploaded_at', { ascending: false });
 
     if (error) throw error;
 

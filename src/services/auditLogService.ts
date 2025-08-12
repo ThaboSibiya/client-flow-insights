@@ -61,7 +61,7 @@ export const getLoginHistory = async (): Promise<LoginHistoryEntry[]> => {
           const { data: employeeData } = await supabase
             .from('employees')
             .select('first_name, last_name, email')
-            .eq('user_id', item.user_id)
+            .eq('auth_user_id', item.user_id)
             .maybeSingle();
           employee = employeeData;
         }
@@ -69,7 +69,7 @@ export const getLoginHistory = async (): Promise<LoginHistoryEntry[]> => {
         return {
           id: item.id,
           login_timestamp: item.created_at,
-          ip_address: item.ip_address || '',
+          ip_address: item.ip_address || '', // Ensure it's always a string
           user_agent: item.user_agent || '',
           employees: employee
         };
@@ -107,7 +107,7 @@ export const getFileAccessHistory = async (): Promise<FileAccessHistoryEntry[]> 
           const { data: employeeData } = await supabase
             .from('employees')
             .select('first_name, last_name, email')
-            .eq('user_id', item.user_id)
+            .eq('auth_user_id', item.user_id)
             .maybeSingle();
           employee = employeeData;
         }
