@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { logFileAccess } from './auditLogService';
@@ -97,4 +98,18 @@ export const listFiles = async (directory: string) => {
     console.error('List files error:', error);
     return [];
   }
+};
+
+// Customer-specific file operations
+export const uploadCustomerFile = async (file: File, customerId: string, userId: string) => {
+  const filePath = `customers/${customerId}/${Date.now()}-${file.name}`;
+  return uploadFile(file, filePath, userId);
+};
+
+export const listCustomerFiles = async (customerId: string) => {
+  return listFiles(`customers/${customerId}`);
+};
+
+export const deleteCustomerFile = async (filePath: string, userId: string) => {
+  return deleteFile(filePath, userId);
 };

@@ -1,8 +1,21 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { logFileAccess } from './auditLogService';
 
-export const uploadAttachment = async (file: File, conversationId: string, userId: string) => {
+export interface AttachmentFile {
+  id: string;
+  name: string;
+  path: string;
+  size: number;
+  type: string;
+  url: string;
+  conversation_id?: string;
+  uploaded_by?: string;
+  created_at?: string;
+}
+
+export const uploadAttachment = async (file: File, conversationId: string, userId: string): Promise<AttachmentFile | null> => {
   try {
     const fileName = `${Date.now()}-${file.name}`;
     const filePath = `conversations/${conversationId}/${fileName}`;
@@ -14,26 +27,28 @@ export const uploadAttachment = async (file: File, conversationId: string, userI
 
     if (uploadError) throw uploadError;
 
-    // Save attachment record
-    const { data, error } = await supabase
-      .from('message_attachments')
-      .insert({
-        conversation_id: conversationId,
-        file_name: file.name,
-        file_path: filePath,
-        file_size: file.size,
-        content_type: file.type,
-        uploaded_by: userId
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('attachments')
+      .getPublicUrl(filePath);
 
     // Log file access
     await logFileAccess(userId, filePath, 'upload');
 
-    return data;
+    // Return attachment file object
+    const attachmentFile: AttachmentFile = {
+      id: crypto.randomUUID(),
+      name: file.name,
+      path: filePath,
+      size: file.size,
+      type: file.type,
+      url: publicUrl,
+      conversation_id: conversationId,
+      uploaded_by: userId,
+      created_at: new Date().toISOString()
+    };
+
+    return attachmentFile;
   } catch (error) {
     console.error('Error uploading attachment:', error);
     toast({
@@ -41,42 +56,28 @@ export const uploadAttachment = async (file: File, conversationId: string, userI
       description: "Failed to upload attachment",
       variant: "destructive",
     });
-    throw error;
+    return null;
   }
 };
 
-export const downloadAttachment = async (attachmentId: string, userId: string) => {
+export const downloadAttachment = async (url: string, fileName: string) => {
   try {
-    // Get attachment info
-    const { data: attachment, error } = await supabase
-      .from('message_attachments')
-      .select('*')
-      .eq('id', attachmentId)
-      .single();
-
-    if (error) throw error;
-
-    // Download file
-    const { data: fileData, error: downloadError } = await supabase.storage
-      .from('attachments')
-      .download(attachment.file_path);
-
-    if (downloadError) throw downloadError;
-
-    // Log file access
-    await logFileAccess(userId, attachment.file_path, 'download');
-
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Download failed');
+    
+    const blob = await response.blob();
+    
     // Create download link
-    const url = URL.createObjectURL(fileData);
+    const downloadUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = attachment.file_name;
+    a.href = downloadUrl;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(downloadUrl);
 
-    return attachment;
+    return true;
   } catch (error) {
     console.error('Error downloading attachment:', error);
     toast({
@@ -84,6 +85,21 @@ export const downloadAttachment = async (attachmentId: string, userId: string) =
       description: "Failed to download attachment",
       variant: "destructive",
     });
-    throw error;
+    return false;
+  }
+};
+
+export const deleteAttachment = async (filePath: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase.storage
+      .from('attachments')
+      .remove([filePath]);
+
+    if (error) throw error;
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting attachment:', error);
+    return false;
   }
 };

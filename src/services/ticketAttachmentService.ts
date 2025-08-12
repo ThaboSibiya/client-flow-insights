@@ -1,7 +1,19 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { uploadFile, downloadFile } from './storageService';
 import { logFileAccess } from './auditLogService';
+
+export interface TicketAttachment {
+  id: string;
+  ticket_id: string;
+  file_name: string;
+  file_path: string;
+  file_size: number;
+  content_type: string;
+  uploaded_by: string;
+  created_at: string;
+}
 
 interface UploadAttachmentParams {
   file: File;
@@ -9,7 +21,7 @@ interface UploadAttachmentParams {
   userId: string;
 }
 
-export const uploadTicketAttachment = async ({ file, ticketId, userId }: UploadAttachmentParams) => {
+export const uploadTicketAttachment = async (userId: string, ticketId: string, file: File) => {
   try {
     const fileName = `${Date.now()}-${file.name}`;
     const filePath = `tickets/${ticketId}/${fileName}`;
@@ -53,26 +65,12 @@ export const uploadTicketAttachment = async ({ file, ticketId, userId }: UploadA
   }
 };
 
-interface DeleteAttachmentParams {
-  attachmentId: string;
-  userId: string;
-}
-
-export const deleteTicketAttachment = async ({ attachmentId, userId }: DeleteAttachmentParams) => {
+export const deleteTicketAttachment = async (attachmentId: string, filePath: string) => {
   try {
-    // Get attachment info
-    const { data: attachment, error: selectError } = await supabase
-      .from('ticket_attachments')
-      .select('*')
-      .eq('id', attachmentId)
-      .single();
-
-    if (selectError) throw selectError;
-
     // Delete from storage
     const { error: deleteError } = await supabase.storage
       .from('attachments')
-      .remove([attachment.file_path]);
+      .remove([filePath]);
 
     if (deleteError) throw deleteError;
 
@@ -84,21 +82,10 @@ export const deleteTicketAttachment = async ({ attachmentId, userId }: DeleteAtt
 
     if (removeError) throw removeError;
 
-     // Log file access
-     await logFileAccess(userId, attachment.file_path, 'delete');
-
-    toast({
-      title: "Success",
-      description: "Attachment deleted successfully",
-    });
+    return true;
   } catch (error) {
     console.error('Error deleting attachment:', error);
-    toast({
-      title: "Delete Error",
-      description: "Failed to delete attachment",
-      variant: "destructive",
-    });
-    throw error;
+    return false;
   }
 };
 
@@ -161,4 +148,12 @@ export const downloadTicketAttachment = async (attachmentId: string, userId: str
     });
     throw error;
   }
+};
+
+export const getAttachmentUrl = (filePath: string) => {
+  const { data } = supabase.storage
+    .from('attachments')
+    .getPublicUrl(filePath);
+  
+  return data.publicUrl;
 };

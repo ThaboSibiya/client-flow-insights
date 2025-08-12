@@ -3,187 +3,145 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, File as FileIcon, Trash2, Download, Loader2 } from 'lucide-react';
+import { Upload, File, Trash2, Download } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 import {
   uploadCustomerFile,
   listCustomerFiles,
-  deleteCustomerFile
+  deleteCustomerFile,
+  getFileUrl
 } from '@/services/storageService';
 
 interface CustomerFileUploadProps {
   customerId: string;
 }
 
-interface CustomerFile {
-  name: string;
-  path: string;
-  url: string;
-}
-
 const CustomerFileUpload = ({ customerId }: CustomerFileUploadProps) => {
   const { user } = useAuth();
-  const [files, setFiles] = useState<CustomerFile[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [files, setFiles] = useState<any[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (user && customerId) {
-      loadCustomerFiles();
+    if (customerId) {
+      loadFiles();
     }
-  }, [user, customerId]);
+  }, [customerId]);
 
-  const loadCustomerFiles = async () => {
-    if (!user) return;
-    
-    setIsLoading(true);
+  const loadFiles = async () => {
     try {
-      const customerFiles = await listCustomerFiles(user.id, customerId);
-      setFiles(customerFiles);
+      const fileList = await listCustomerFiles(customerId);
+      setFiles(fileList || []);
     } catch (error) {
       console.error('Error loading files:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const uploadedFile = event.target.files?.[0];
-    if (!uploadedFile || !user) return;
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
 
-    setIsUploading(true);
+    setUploading(true);
     try {
-      await uploadCustomerFile(user.id, customerId, uploadedFile);
+      await uploadCustomerFile(file, customerId, user.id);
+      await loadFiles();
       toast({
         title: "Success",
         description: "File uploaded successfully",
       });
-      await loadCustomerFiles(); // Reload the files list
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Upload error:', error);
       toast({
         title: "Error",
-        description: `Upload failed: ${error.message}`,
+        description: "Failed to upload file",
         variant: "destructive",
       });
     } finally {
-      setIsUploading(false);
-      // Reset the input
+      setUploading(false);
       event.target.value = '';
     }
   };
 
-  const handleFileDelete = async (fileName: string) => {
+  const handleDeleteFile = async (filePath: string) => {
     if (!user) return;
     
-    if (window.confirm(`Are you sure you want to delete ${fileName}?`)) {
-      try {
-        await deleteCustomerFile(user.id, customerId, fileName);
-        toast({
-          title: "Success",
-          description: "File deleted successfully",
-        });
-        await loadCustomerFiles(); // Reload the files list
-      } catch (error: any) {
-        toast({
-          title: "Error",
-          description: `Deletion failed: ${error.message}`,
-          variant: "destructive",
-        });
-      }
+    try {
+      await deleteCustomerFile(filePath, user.id);
+      await loadFiles();
+      toast({
+        title: "Success",
+        description: "File deleted successfully",
+      });
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete file",
+        variant: "destructive",
+      });
     }
   };
 
-  if (!user) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Customer Documents</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">You must be logged in to manage customer documents.</p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleDownloadFile = async (fileName: string) => {
+    const filePath = `customers/${customerId}/${fileName}`;
+    const url = await getFileUrl(filePath);
+    if (url) {
+      window.open(url, '_blank');
+    }
+  };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FileIcon className="h-5 w-5 text-broker-primary" />
-          Customer Documents
+          <File className="h-5 w-5" />
+          Customer Files
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Input
-              type="file"
-              onChange={handleFileUpload}
-              disabled={isUploading}
-              className="flex-1"
-            />
-            <Button 
-              variant="outline" 
-              disabled={isUploading} 
-              className="flex items-center gap-2"
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4" />
-                  Upload
-                </>
-              )}
-            </Button>
-          </div>
-          
-          <div className="border rounded-md divide-y">
-            {isLoading ? (
-              <div className="p-4 text-center">
-                <Loader2 className="h-5 w-5 animate-spin mx-auto" />
-                <p className="text-sm text-muted-foreground mt-2">Loading documents...</p>
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Input
+            type="file"
+            onChange={handleFileUpload}
+            disabled={uploading}
+            className="hidden"
+            id="customer-file-upload"
+          />
+          <Button
+            onClick={() => document.getElementById('customer-file-upload')?.click()}
+            disabled={uploading}
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            {uploading ? 'Uploading...' : 'Upload File'}
+          </Button>
+        </div>
+
+        <div className="space-y-2">
+          {files.map((file, index) => (
+            <div key={index} className="flex items-center justify-between p-2 border rounded">
+              <span className="text-sm">{file.name}</span>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDownloadFile(file.name)}
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDeleteFile(`customers/${customerId}/${file.name}`)}
+                  className="text-red-600"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
-            ) : files.length === 0 ? (
-              <div className="p-4 text-center text-muted-foreground">
-                No documents uploaded yet
-              </div>
-            ) : (
-              files.map((file, index) => (
-                <div key={index} className="p-3 flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <FileIcon className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{file.name}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <a 
-                      href={file.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      <Button variant="ghost" size="icon">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </a>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => handleFileDelete(file.name)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+            </div>
+          ))}
+          {files.length === 0 && (
+            <p className="text-sm text-gray-500 text-center py-4">No files uploaded</p>
+          )}
         </div>
       </CardContent>
     </Card>
