@@ -1,162 +1,235 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { sanitizeString, validateEmail, validatePhone, validateRequired } from '@/utils/securityUtils';
+import { sanitizeInput, logSecurityEvent } from '@/utils/securityUtils';
 
-export interface SecureFormData {
-  [key: string]: any;
+export interface SecurityAlert {
+  id: string;
+  type: 'suspicious_login' | 'data_breach' | 'privilege_escalation' | 'mass_export';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  userId?: string;
+  metadata: Record<string, any>;
+  createdAt: string;
 }
 
-export interface ValidationRule {
-  field: string;
-  required?: boolean;
-  type?: 'email' | 'phone' | 'string' | 'number';
-  maxLength?: number;
-  minLength?: number;
-  pattern?: RegExp;
+export interface SecurityMetrics {
+  totalSecurityEvents: number;
+  criticalAlerts: number;
+  suspiciousLogins: number;
+  dataExports: number;
+  privilegeChanges: number;
 }
 
-export const enhancedSecurityService = {
-  // Enhanced form validation with security checks
-  validateFormData: (data: SecureFormData, rules: ValidationRule[]): { isValid: boolean; errors: string[] } => {
-    const errors: string[] = [];
-
-    for (const rule of rules) {
-      const value = data[rule.field];
-
-      // Check required fields
-      if (rule.required && !validateRequired(value)) {
-        errors.push(`${rule.field} is required`);
-        continue;
-      }
-
-      // Skip validation for empty optional fields
-      if (!rule.required && (!value || (typeof value === 'string' && value.trim() === ''))) {
-        continue;
-      }
-
-      const stringValue = String(value);
-
-      // Type-specific validation
-      switch (rule.type) {
-        case 'email':
-          if (!validateEmail(stringValue)) {
-            errors.push(`${rule.field} must be a valid email address`);
+class EnhancedSecurityService {
+  // Monitor for suspicious activities
+  async monitorSuspiciousActivity(userId: string, action: string, metadata: Record<string, any> = {}) {
+    try {
+      // Log the security event
+      await supabase
+        .from('security_events')
+        .insert({
+          user_id: userId,
+          event_type: action,
+          resource_type: 'security_monitoring',
+          metadata: {
+            ...metadata,
+            timestamp: new Date().toISOString(),
+            severity: this.calculateSeverity(action, metadata)
           }
-          break;
-        case 'phone':
-          if (!validatePhone(stringValue)) {
-            errors.push(`${rule.field} must be a valid phone number`);
-          }
-          break;
-        case 'number':
-          if (isNaN(Number(stringValue))) {
-            errors.push(`${rule.field} must be a valid number`);
-          }
-          break;
-      }
+        });
 
-      // Length validation
-      if (rule.maxLength && stringValue.length > rule.maxLength) {
-        errors.push(`${rule.field} must be no more than ${rule.maxLength} characters`);
-      }
-      if (rule.minLength && stringValue.length < rule.minLength) {
-        errors.push(`${rule.field} must be at least ${rule.minLength} characters`);
-      }
-
-      // Pattern validation
-      if (rule.pattern && !rule.pattern.test(stringValue)) {
-        errors.push(`${rule.field} format is invalid`);
-      }
+      // Check for patterns that might indicate suspicious behavior
+      await this.checkForSuspiciousPatterns(userId, action);
+    } catch (error) {
+      console.error('Failed to monitor suspicious activity:', error);
     }
+  }
 
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  },
+  // Calculate severity based on action and context
+  private calculateSeverity(action: string, metadata: Record<string, any>): string {
+    const highRiskActions = ['mass_data_export', 'privilege_escalation', 'failed_login_multiple'];
+    const criticalActions = ['data_breach_attempt', 'unauthorized_access'];
 
-  // Sanitize form data to prevent XSS
-  sanitizeFormData: (data: SecureFormData): SecureFormData => {
-    const sanitized: SecureFormData = {};
-    
-    for (const [key, value] of Object.entries(data)) {
+    if (criticalActions.includes(action)) return 'critical';
+    if (highRiskActions.includes(action)) return 'high';
+    if (metadata.failedAttempts > 5) return 'medium';
+    return 'low';
+  }
+
+  // Check for suspicious patterns
+  private async checkForSuspiciousPatterns(userId: string, action: string) {
+    try {
+      // Check for multiple failed login attempts
+      if (action === 'failed_login') {
+        const { data, error } = await supabase
+          .from('security_events')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('event_type', 'failed_login')
+          .gte('created_at', new Date(Date.now() - 15 * 60 * 1000).toISOString()); // Last 15 minutes
+
+        if (error) throw error;
+
+        if (data && data.length >= 5) {
+          await this.createSecurityAlert({
+            type: 'suspicious_login',
+            severity: 'high',
+            message: `Multiple failed login attempts detected for user ${userId}`,
+            userId,
+            metadata: { failedAttempts: data.length }
+          });
+        }
+      }
+
+      // Check for mass data exports
+      if (action === 'data_export') {
+        const { data, error } = await supabase
+          .from('security_events')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('event_type', 'data_export')
+          .gte('created_at', new Date(Date.now() - 60 * 60 * 1000).toISOString()); // Last hour
+
+        if (error) throw error;
+
+        if (data && data.length >= 10) {
+          await this.createSecurityAlert({
+            type: 'mass_export',
+            severity: 'critical',
+            message: `Mass data export detected for user ${userId}`,
+            userId,
+            metadata: { exportCount: data.length }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check suspicious patterns:', error);
+    }
+  }
+
+  // Create security alert
+  private async createSecurityAlert(alert: Omit<SecurityAlert, 'id' | 'createdAt'>) {
+    try {
+      await supabase
+        .from('security_events')
+        .insert({
+          user_id: alert.userId || null,
+          event_type: 'security_alert',
+          resource_type: alert.type,
+          metadata: {
+            severity: alert.severity,
+            message: alert.message,
+            alertMetadata: alert.metadata,
+            timestamp: new Date().toISOString()
+          }
+        });
+
+      // Log to browser console for immediate visibility
+      console.warn('Security Alert:', alert);
+      logSecurityEvent('security_alert_created', alert);
+    } catch (error) {
+      console.error('Failed to create security alert:', error);
+    }
+  }
+
+  // Validate customer access permissions
+  async validateCustomerAccess(userId: string, customerId: string): Promise<boolean> {
+    try {
+      // Fixed query - using eq instead of insert for checking access
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('id', customerId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
+        throw error;
+      }
+
+      const hasAccess = !!data;
+
+      // Log access attempt
+      await this.monitorSuspiciousActivity(userId, 'customer_access_check', {
+        customerId,
+        hasAccess,
+        result: hasAccess ? 'granted' : 'denied'
+      });
+
+      return hasAccess;
+    } catch (error) {
+      console.error('Failed to validate customer access:', error);
+      return false;
+    }
+  }
+
+  // Get security metrics
+  async getSecurityMetrics(userId: string): Promise<SecurityMetrics> {
+    try {
+      const [totalEvents, criticalAlerts, suspiciousLogins, dataExports, privilegeChanges] = await Promise.all([
+        this.getEventCount(userId, null),
+        this.getEventCount(userId, 'security_alert'),
+        this.getEventCount(userId, 'failed_login'),
+        this.getEventCount(userId, 'data_export'),
+        this.getEventCount(userId, 'privilege_change')
+      ]);
+
+      return {
+        totalSecurityEvents: totalEvents,
+        criticalAlerts,
+        suspiciousLogins,
+        dataExports,
+        privilegeChanges
+      };
+    } catch (error) {
+      console.error('Failed to get security metrics:', error);
+      return {
+        totalSecurityEvents: 0,
+        criticalAlerts: 0,
+        suspiciousLogins: 0,
+        dataExports: 0,
+        privilegeChanges: 0
+      };
+    }
+  }
+
+  private async getEventCount(userId: string, eventType: string | null): Promise<number> {
+    try {
+      let query = supabase
+        .from('security_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+      if (eventType) {
+        query = query.eq('event_type', eventType);
+      }
+
+      const { count, error } = await query;
+
+      if (error) throw error;
+      return count || 0;
+    } catch (error) {
+      console.error(`Failed to get event count for ${eventType}:`, error);
+      return 0;
+    }
+  }
+
+  // Sanitize and validate input data
+  validateAndSanitizeInput(input: Record<string, any>): Record<string, any> {
+    const sanitized: Record<string, any> = {};
+
+    for (const [key, value] of Object.entries(input)) {
       if (typeof value === 'string') {
-        sanitized[key] = sanitizeString(value);
+        sanitized[key] = sanitizeInput(value);
+      } else if (typeof value === 'object' && value !== null) {
+        sanitized[key] = this.validateAndSanitizeInput(value);
       } else {
         sanitized[key] = value;
       }
     }
-    
+
     return sanitized;
-  },
-
-  // Enhanced customer creation with security validation
-  createSecureCustomer: async (customerData: any, userId: string) => {
-    // Validation rules for customer data
-    const rules: ValidationRule[] = [
-      { field: 'name', required: true, type: 'string', maxLength: 255, minLength: 1 },
-      { field: 'email', required: true, type: 'email', maxLength: 254 },
-      { field: 'phone', required: false, type: 'phone', maxLength: 20 },
-      { field: 'address', required: false, type: 'string', maxLength: 500 },
-      { field: 'notes', required: false, type: 'string', maxLength: 1000 }
-    ];
-
-    // Validate input
-    const validation = enhancedSecurityService.validateFormData(customerData, rules);
-    if (!validation.isValid) {
-      throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
-    }
-
-    // Sanitize input
-    const sanitizedData = enhancedSecurityService.sanitizeFormData(customerData);
-
-    // Insert with proper user ownership
-    const { data, error } = await supabase
-      .from('customers')
-      .insert({
-        ...sanitizedData,
-        user_id: userId
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  // Enhanced template field validation
-  validateTemplateField: (field: any): { isValid: boolean; errors: string[] } => {
-    const rules: ValidationRule[] = [
-      { field: 'field_name', required: true, type: 'string', maxLength: 100, pattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/ },
-      { field: 'field_label', required: true, type: 'string', maxLength: 255 },
-      { field: 'field_type', required: true, type: 'string', maxLength: 50 }
-    ];
-
-    return enhancedSecurityService.validateFormData(field, rules);
-  },
-
-  // Secure file upload validation
-  validateFileUpload: (file: File, allowedTypes: string[], maxSize: number): { isValid: boolean; error?: string } => {
-    // Check file type
-    if (!allowedTypes.includes(file.type)) {
-      return { isValid: false, error: 'File type not allowed' };
-    }
-
-    // Check file size
-    if (file.size > maxSize) {
-      return { isValid: false, error: `File size exceeds ${maxSize / 1024 / 1024}MB limit` };
-    }
-
-    // Check for suspicious file extensions in name
-    const suspiciousExtensions = ['.exe', '.bat', '.cmd', '.scr', '.pif', '.com', '.js', '.vbs'];
-    const fileName = file.name.toLowerCase();
-    
-    for (const ext of suspiciousExtensions) {
-      if (fileName.includes(ext)) {
-        return { isValid: false, error: 'File type not allowed for security reasons' };
-      }
-    }
-
-    return { isValid: true };
   }
-};
+}
+
+export const enhancedSecurityService = new EnhancedSecurityService();

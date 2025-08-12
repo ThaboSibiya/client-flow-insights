@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getLoginHistory } from '@/services/auditLogService';
+import { getLoginHistory, LoginHistoryEntry } from '@/services/auditLogService';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import LoadingSpinner from '../auth/LoadingSpinner';
@@ -18,7 +18,7 @@ const LoginHistoryList = ({ searchTerm }: LoginHistoryListProps) => {
     queryFn: getLoginHistory,
   });
 
-  const filteredHistory = history?.filter(log => {
+  const filteredHistory = (history || []).filter((log: LoginHistoryEntry) => {
     const employee = log.employees;
     const search = searchTerm.toLowerCase();
     return (

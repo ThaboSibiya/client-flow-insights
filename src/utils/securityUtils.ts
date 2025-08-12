@@ -1,3 +1,4 @@
+
 // Security utility functions for CSRF protection and input validation
 export const generateCSRFToken = (): string => {
   const array = new Uint8Array(32);
@@ -17,6 +18,23 @@ export const sanitizeString = (input: string): string => {
     .replace(/javascript:/gi, '') // Remove javascript: protocol
     .replace(/on\w+=/gi, '') // Remove event handlers
     .trim();
+};
+
+// Sanitize general input - alias for sanitizeString
+export const sanitizeInput = (input: string): string => {
+  return sanitizeString(input);
+};
+
+// Sanitize HTML content for display
+export const sanitizeHtmlContent = (html: string): string => {
+  // Basic HTML sanitization - in production, use a library like DOMPurify
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '')
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+    .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '');
 };
 
 export const validateEmail = (email: string): boolean => {

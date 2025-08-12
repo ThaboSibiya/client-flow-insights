@@ -12,6 +12,117 @@ export interface AuditLogEntry {
   user_agent?: string;
 }
 
+export interface LoginHistoryEntry {
+  id: string;
+  login_timestamp: string;
+  ip_address: string;
+  user_agent: string;
+  employees?: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+}
+
+export interface FileAccessHistoryEntry {
+  id: string;
+  accessed_at: string;
+  action: string;
+  file_path: string;
+  employees?: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+}
+
+// Get login history with proper types
+export const getLoginHistory = async (): Promise<LoginHistoryEntry[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('security_events')
+      .select(`
+        id,
+        created_at,
+        ip_address,
+        user_agent,
+        employees:user_id (
+          first_name,
+          last_name,
+          email
+        )
+      `)
+      .eq('event_type', 'user_login')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    
+    return (data || []).map(item => ({
+      id: item.id,
+      login_timestamp: item.created_at,
+      ip_address: item.ip_address || '',
+      user_agent: item.user_agent || '',
+      employees: item.employees
+    }));
+  } catch (error) {
+    console.error('Failed to fetch login history:', error);
+    return [];
+  }
+};
+
+// Get file access history with proper types
+export const getFileAccessHistory = async (): Promise<FileAccessHistoryEntry[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('security_events')
+      .select(`
+        id,
+        created_at,
+        metadata,
+        employees:user_id (
+          first_name,
+          last_name,
+          email
+        )
+      `)
+      .eq('event_type', 'data_access')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    
+    return (data || []).map(item => ({
+      id: item.id,
+      accessed_at: item.created_at,
+      action: item.metadata?.action || 'access',
+      file_path: item.metadata?.file_path || 'Unknown',
+      employees: item.employees
+    }));
+  } catch (error) {
+    console.error('Failed to fetch file access history:', error);
+    return [];
+  }
+};
+
+// Log file access for audit purposes
+export const logFileAccess = async (userId: string, filePath: string, action: string) => {
+  try {
+    await supabase
+      .from('security_events')
+      .insert({
+        user_id: userId,
+        event_type: 'data_access',
+        resource_type: 'file',
+        metadata: {
+          file_path: filePath,
+          action,
+          timestamp: new Date().toISOString()
+        }
+      });
+  } catch (error) {
+    console.error('Failed to log file access:', error);
+  }
+};
+
 export const auditLogService = {
   // Log user login for security monitoring
   logLoginHistory: async (userId: string) => {
