@@ -451,7 +451,7 @@ export type Database = {
           sender: string
           status: string
           subject: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           attachments?: string[] | null
@@ -462,7 +462,7 @@ export type Database = {
           sender: string
           status?: string
           subject: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           attachments?: string[] | null
@@ -473,7 +473,7 @@ export type Database = {
           sender?: string
           status?: string
           subject?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -1571,6 +1571,33 @@ export type Database = {
           },
         ]
       }
+      rate_limiting: {
+        Row: {
+          attempt_count: number | null
+          created_at: string | null
+          id: string
+          identifier: string
+          resource: string
+          window_start: string | null
+        }
+        Insert: {
+          attempt_count?: number | null
+          created_at?: string | null
+          id?: string
+          identifier: string
+          resource: string
+          window_start?: string | null
+        }
+        Update: {
+          attempt_count?: number | null
+          created_at?: string | null
+          id?: string
+          identifier?: string
+          resource?: string
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       scheduled_calls: {
         Row: {
           call_type: string
@@ -1614,6 +1641,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      security_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          resource_id: string | null
+          resource_type: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       template_fields: {
         Row: {
@@ -1908,7 +1971,7 @@ export type Database = {
           sender: string
           status: string
           subject: string
-          user_id: string | null
+          user_id: string
         }[]
       }
       insert_email_history: {
