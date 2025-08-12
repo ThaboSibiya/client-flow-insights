@@ -46,24 +46,37 @@ export const getLoginHistory = async (): Promise<LoginHistoryEntry[]> => {
         created_at,
         ip_address,
         user_agent,
-        employees:user_id (
-          first_name,
-          last_name,
-          email
-        )
+        user_id
       `)
       .eq('event_type', 'user_login')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
     
-    return (data || []).map(item => ({
-      id: item.id,
-      login_timestamp: item.created_at,
-      ip_address: item.ip_address || '',
-      user_agent: item.user_agent || '',
-      employees: item.employees
-    }));
+    // Get employee details separately for each user_id
+    const loginHistoryWithEmployees = await Promise.all(
+      (data || []).map(async (item) => {
+        let employee = null;
+        if (item.user_id) {
+          const { data: employeeData } = await supabase
+            .from('employees')
+            .select('first_name, last_name, email')
+            .eq('user_id', item.user_id)
+            .maybeSingle();
+          employee = employeeData;
+        }
+        
+        return {
+          id: item.id,
+          login_timestamp: item.created_at,
+          ip_address: item.ip_address || '',
+          user_agent: item.user_agent || '',
+          employees: employee
+        };
+      })
+    );
+    
+    return loginHistoryWithEmployees;
   } catch (error) {
     console.error('Failed to fetch login history:', error);
     return [];
@@ -79,31 +92,45 @@ export const getFileAccessHistory = async (): Promise<FileAccessHistoryEntry[]> 
         id,
         created_at,
         metadata,
-        employees:user_id (
-          first_name,
-          last_name,
-          email
-        )
+        user_id
       `)
       .eq('event_type', 'data_access')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
     
-    return (data || []).map(item => ({
-      id: item.id,
-      accessed_at: item.created_at,
-      action: item.metadata?.action || 'access',
-      file_path: item.metadata?.file_path || 'Unknown',
-      employees: item.employees
-    }));
+    // Get employee details separately for each user_id
+    const fileAccessHistoryWithEmployees = await Promise.all(
+      (data || []).map(async (item) => {
+        let employee = null;
+        if (item.user_id) {
+          const { data: employeeData } = await supabase
+            .from('employees')
+            .select('first_name, last_name, email')
+            .eq('user_id', item.user_id)
+            .maybeSingle();
+          employee = employeeData;
+        }
+        
+        const metadata = item.metadata as any;
+        return {
+          id: item.id,
+          accessed_at: item.created_at,
+          action: metadata?.action || 'access',
+          file_path: metadata?.file_path || 'Unknown',
+          employees: employee
+        };
+      })
+    );
+    
+    return fileAccessHistoryWithEmployees;
   } catch (error) {
     console.error('Failed to fetch file access history:', error);
     return [];
   }
 };
 
-// Log file access for audit purposes
+// Updated logFileAccess to match the expected signature (userId, filePath, action)
 export const logFileAccess = async (userId: string, filePath: string, action: string) => {
   try {
     await supabase

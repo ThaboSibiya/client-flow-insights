@@ -30,7 +30,7 @@ export const uploadAttachment = async (
 
     if (error) throw error;
 
-    await logFileAccess(filePath, 'upload');
+    await logFileAccess(userId, filePath, 'upload');
 
     const { data: { publicUrl } } = supabase.storage
       .from('conversation-attachments')
@@ -50,7 +50,7 @@ export const uploadAttachment = async (
   }
 };
 
-export const deleteAttachment = async (filePath: string): Promise<boolean> => {
+export const deleteAttachment = async (filePath: string, userId: string): Promise<boolean> => {
   try {
     const { error } = await supabase.storage
       .from('conversation-attachments')
@@ -58,7 +58,7 @@ export const deleteAttachment = async (filePath: string): Promise<boolean> => {
 
     if (error) throw error;
 
-    await logFileAccess(filePath, 'delete');
+    await logFileAccess(userId, filePath, 'delete');
     
     return true;
   } catch (error) {

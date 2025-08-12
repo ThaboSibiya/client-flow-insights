@@ -2,7 +2,7 @@
 import React from 'react';
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { sanitizeInput } from '@/services/securityService';
+import { sanitizeInput } from '@/utils/securityUtils';
 
 interface SecureCustomerSearchInputProps {
   searchTerm: string;

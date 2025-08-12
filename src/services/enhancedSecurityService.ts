@@ -20,7 +20,92 @@ export interface SecurityMetrics {
   privilegeChanges: number;
 }
 
+interface ValidationRule {
+  field: string;
+  required: boolean;
+  type: 'string' | 'number' | 'boolean';
+  maxLength?: number;
+  minLength?: number;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
 class EnhancedSecurityService {
+  // Validate form data against rules
+  validateFormData(data: Record<string, any>, rules: ValidationRule[]): ValidationResult {
+    const errors: string[] = [];
+    
+    for (const rule of rules) {
+      const value = data[rule.field];
+      
+      if (rule.required && (!value || value === '')) {
+        errors.push(`${rule.field} is required`);
+        continue;
+      }
+      
+      if (value && rule.type === 'string') {
+        if (rule.maxLength && value.length > rule.maxLength) {
+          errors.push(`${rule.field} exceeds maximum length of ${rule.maxLength}`);
+        }
+        if (rule.minLength && value.length < rule.minLength) {
+          errors.push(`${rule.field} must be at least ${rule.minLength} characters`);
+        }
+      }
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+  
+  // Validate template field structure
+  validateTemplateField(field: any): ValidationResult {
+    const errors: string[] = [];
+    
+    if (!field.field_name || typeof field.field_name !== 'string') {
+      errors.push('Field name is required and must be a string');
+    }
+    
+    if (!field.field_type || !['text', 'number', 'email', 'phone', 'textarea', 'select'].includes(field.field_type)) {
+      errors.push('Valid field type is required');
+    }
+    
+    if (field.field_name && field.field_name.length > 100) {
+      errors.push('Field name must be less than 100 characters');
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+  
+  // Sanitize form data recursively
+  sanitizeFormData(data: Record<string, any>): Record<string, any> {
+    const sanitized: Record<string, any> = {};
+    
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof value === 'string') {
+        sanitized[key] = sanitizeInput(value, 1000);
+      } else if (Array.isArray(value)) {
+        sanitized[key] = value.map(item => 
+          typeof item === 'object' ? this.sanitizeFormData(item) : 
+          typeof item === 'string' ? sanitizeInput(item, 1000) : item
+        );
+      } else if (typeof value === 'object' && value !== null) {
+        sanitized[key] = this.sanitizeFormData(value);
+      } else {
+        sanitized[key] = value;
+      }
+    }
+    
+    return sanitized;
+  }
+
   // Monitor for suspicious activities
   async monitorSuspiciousActivity(userId: string, action: string, metadata: Record<string, any> = {}) {
     try {
@@ -135,13 +220,13 @@ class EnhancedSecurityService {
   // Validate customer access permissions
   async validateCustomerAccess(userId: string, customerId: string): Promise<boolean> {
     try {
-      // Fixed query - using eq instead of insert for checking access
+      // Check if customer belongs to user
       const { data, error } = await supabase
         .from('customers')
         .select('id')
         .eq('user_id', userId)
         .eq('id', customerId)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
         throw error;

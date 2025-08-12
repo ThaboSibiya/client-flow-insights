@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Textarea } from "@/components/ui/textarea";
-import { sanitizeInput } from '@/services/securityService';
+import { sanitizeInput } from '@/utils/securityUtils';
 
 interface SecureNotesInputProps {
   value: string;
