@@ -54,17 +54,27 @@ const Employees = () => {
     refetch();
   };
 
-  // Optimized filtering with useMemo to prevent unnecessary recalculations
+  // Fixed filtering logic to work with available BasicEmployee fields
   const filteredEmployees = React.useMemo(() => {
     if (!searchTerm.trim()) return employees;
     
     const lowerSearchTerm = searchTerm.toLowerCase();
-    return employees.filter(employee =>
-      employee.first_name.toLowerCase().includes(lowerSearchTerm) ||
-      employee.last_name.toLowerCase().includes(lowerSearchTerm) ||
-      employee.email.toLowerCase().includes(lowerSearchTerm) ||
-      employee.designation.toLowerCase().includes(lowerSearchTerm)
-    );
+    return employees.filter(employee => {
+      // Only search on fields that are guaranteed to exist in BasicEmployee
+      const searchableFields = [
+        employee.first_name,
+        employee.last_name,
+        employee.email,
+        employee.designation,
+        employee.employee_number,
+        employee.role,
+        employee.status
+      ];
+      
+      return searchableFields.some(field => 
+        field && field.toLowerCase().includes(lowerSearchTerm)
+      );
+    });
   }, [employees, searchTerm]);
 
   return (
@@ -115,7 +125,7 @@ const Employees = () => {
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-quikle-slate h-4 w-4" />
                     <Input
-                      placeholder="Search employees..."
+                      placeholder="Search by name, email, designation, employee number, role, or status..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10 border-quikle-silver"
