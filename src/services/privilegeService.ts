@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { logSecurityEvent } from './securityService';
 import { EnhancedEmployeePrivileges } from '@/types/enhancedSecurity';
+import { logSecureSecurityEvent } from './secureSecurityService';
 
 export const getDefaultPrivileges = (): EnhancedEmployeePrivileges => ({
   can_view_customers: false,
@@ -39,25 +39,55 @@ export const getDefaultPrivileges = (): EnhancedEmployeePrivileges => ({
 export const getEnhancedUserPrivileges = async (): Promise<EnhancedEmployeePrivileges | null> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
+    if (!user) {
+      await logSecureSecurityEvent({
+        action: 'privilege_check_no_user',
+        resource_type: 'employee_privileges',
+        success: false,
+        error_message: 'No authenticated user'
+      });
+      return null;
+    }
 
-    const { data: employee } = await supabase
-      .from('employees')
-      .select('id')
-      .eq('user_id', user.id)
-      .single();
+    // Use secure helper function to get employee ID
+    const { data: employeeId, error: employeeError } = await supabase.rpc('current_employee_id');
+    
+    if (employeeError || !employeeId) {
+      await logSecureSecurityEvent({
+        action: 'privilege_check_no_employee',
+        resource_type: 'employee_privileges',
+        success: false,
+        error_message: 'Employee record not found'
+      });
+      return null;
+    }
 
-    if (!employee) return null;
-
-    const { data: privileges } = await supabase
+    const { data: privileges, error } = await supabase
       .from('employee_privileges')
       .select('*')
-      .eq('employee_id', employee.id)
-      .single();
+      .eq('employee_id', employeeId)
+      .maybeSingle();
+
+    if (error) {
+      await logSecureSecurityEvent({
+        action: 'privilege_fetch_failed',
+        resource_type: 'employee_privileges',
+        success: false,
+        error_message: error.message
+      });
+      return null;
+    }
 
     if (!privileges) {
       return getDefaultPrivileges();
     }
+
+    await logSecureSecurityEvent({
+      action: 'privileges_fetched_successfully',
+      resource_type: 'employee_privileges',
+      success: true,
+      metadata: { employee_id: employeeId }
+    });
 
     return {
       can_view_customers: privileges.can_view_customers || false,
@@ -92,9 +122,8 @@ export const getEnhancedUserPrivileges = async (): Promise<EnhancedEmployeePrivi
       requires_financial_approval: privileges.requires_financial_approval !== false
     };
   } catch (error) {
-    console.error('Error getting enhanced user privileges:', error);
-    await logSecurityEvent({
-      action: 'enhanced_privilege_check_failed',
+    await logSecureSecurityEvent({
+      action: 'privilege_fetch_error',
       resource_type: 'employee_privileges',
       success: false,
       error_message: error instanceof Error ? error.message : 'Unknown error'

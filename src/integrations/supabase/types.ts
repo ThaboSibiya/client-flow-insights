@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -1578,6 +1578,7 @@ export type Database = {
           id: string
           identifier: string
           resource: string
+          user_id: string | null
           window_start: string | null
         }
         Insert: {
@@ -1586,6 +1587,7 @@ export type Database = {
           id?: string
           identifier: string
           resource: string
+          user_id?: string | null
           window_start?: string | null
         }
         Update: {
@@ -1594,6 +1596,7 @@ export type Database = {
           id?: string
           identifier?: string
           resource?: string
+          user_id?: string | null
           window_start?: string | null
         }
         Relationships: []
@@ -1641,6 +1644,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      security_audit_logs: {
+        Row: {
+          action: string
+          error_message: string | null
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          resource_id: string | null
+          resource_type: string
+          success: boolean
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          success: boolean
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          success?: boolean
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       security_events: {
         Row: {
@@ -1944,12 +1989,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          p_max_attempts?: number
+          p_resource: string
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
       complete_employee_registration: {
         Args: { p_token: string; p_user_id: string }
         Returns: boolean
       }
       create_employee_invitation: {
-        Args: { p_employee_id: string; p_email: string; p_created_by: string }
+        Args: { p_created_by: string; p_email: string; p_employee_id: string }
+        Returns: string
+      }
+      current_employee_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      current_user_company_owner_id: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       generate_employee_number: {
@@ -1976,21 +2037,25 @@ export type Database = {
       }
       insert_email_history: {
         Args: {
-          p_customer_id: string
-          p_sender: string
-          p_subject: string
-          p_message: string
           p_attachments?: string[]
+          p_customer_id: string
+          p_message: string
+          p_sender: string
           p_status?: string
+          p_subject: string
         }
         Returns: string
+      }
+      is_company_owner_for_employee: {
+        Args: { _employee_id: string }
+        Returns: boolean
       }
       log_privilege_change: {
         Args: {
           p_employee_id: string
-          p_privilege_name: string
-          p_old_value: boolean
           p_new_value: boolean
+          p_old_value: boolean
+          p_privilege_name: string
           p_reason?: string
         }
         Returns: undefined
@@ -1998,10 +2063,10 @@ export type Database = {
       validate_invitation_token: {
         Args: { p_token: string }
         Returns: {
-          employee_id: string
           email: string
-          is_valid: boolean
           employee_data: Json
+          employee_id: string
+          is_valid: boolean
         }[]
       }
     }

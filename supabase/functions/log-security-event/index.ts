@@ -10,92 +10,111 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
     )
 
-    // Get the user from the Authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'No authorization header' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    // Verify JWT token
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseClient.auth.getUser()
 
     if (userError || !user) {
-      console.error('Auth error:', userError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
-      );
+      )
     }
 
-    const body = await req.json();
-    
-    // Get client IP and user agent from headers
-    const clientIP = req.headers.get('CF-Connecting-IP') || 
-                     req.headers.get('X-Forwarded-For') || 
-                     req.headers.get('X-Real-IP') || 
-                     'unknown';
-    const userAgent = req.headers.get('User-Agent') || 'unknown';
+    // Parse request body
+    const { 
+      action, 
+      resource_type, 
+      resource_id, 
+      success = true, 
+      error_message, 
+      metadata = {} 
+    } = await req.json()
 
-    // Log the security event to database
-    const { error: logError } = await supabaseClient
+    // Validate required fields
+    if (!action || !resource_type) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields: action, resource_type' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Get client IP and user agent
+    const clientIP = req.headers.get('cf-connecting-ip') || 
+                    req.headers.get('x-forwarded-for') || 
+                    req.headers.get('x-real-ip') || 
+                    'unknown'
+    const userAgent = req.headers.get('user-agent') || 'unknown'
+
+    // Insert into secure audit logs
+    const { error: insertError } = await supabaseClient
       .from('security_audit_logs')
       .insert({
         user_id: user.id,
-        action: body.action,
-        resource_type: body.resource_type,
-        resource_id: body.resource_id,
-        success: body.success,
-        error_message: body.error_message,
+        action,
+        resource_type,
+        resource_id,
+        success,
+        error_message,
         ip_address: clientIP,
         user_agent: userAgent,
-        metadata: body.metadata,
-        timestamp: new Date().toISOString()
-      });
+        metadata: {
+          ...metadata,
+          timestamp: new Date().toISOString(),
+          function_version: '1.0.0'
+        }
+      })
 
-    if (logError) {
-      console.error('Failed to log security event:', logError);
+    if (insertError) {
+      console.error('Failed to insert security audit log:', insertError)
       return new Response(
         JSON.stringify({ error: 'Failed to log security event' }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
-      );
+      )
     }
 
-    console.log(`Security event logged: ${body.action} for user ${user.id}`);
-
     return new Response(
-      JSON.stringify({ success: true }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      JSON.stringify({ success: true, message: 'Security event logged successfully' }),
+      { 
+        status: 200, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
 
   } catch (error) {
-    console.error('Error in log-security-event function:', error);
+    console.error('Error in log-security-event function:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
-    );
+    )
   }
-});
+})
