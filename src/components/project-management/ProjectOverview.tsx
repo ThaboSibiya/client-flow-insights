@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { 
   TrendingUp, 
   TrendingDown, 
-  DollarSign, 
+  Banknote, 
   Clock, 
   Users, 
   Target,
@@ -20,6 +19,15 @@ interface ProjectOverviewProps {
 }
 
 const ProjectOverview = ({ projects }: ProjectOverviewProps) => {
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   const stats = React.useMemo(() => {
     const total = projects.length;
     const completed = projects.filter(p => p.status === 'completed').length;
@@ -107,9 +115,9 @@ const ProjectOverview = ({ projects }: ProjectOverviewProps) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Budget</p>
-                <p className="text-2xl font-bold">${(stats.totalBudget / 1000).toFixed(0)}k</p>
+                <p className="text-2xl font-bold">{formatCurrency(stats.totalBudget)}</p>
                 <p className="text-xs text-blue-600 flex items-center mt-1">
-                  <DollarSign className="h-3 w-3 mr-1" />
+                  <Banknote className="h-3 w-3 mr-1" />
                   {stats.budgetUtilization.toFixed(0)}% utilized
                 </p>
               </div>

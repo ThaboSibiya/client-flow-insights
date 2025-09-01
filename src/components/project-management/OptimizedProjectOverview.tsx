@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Project } from '@/types/project';
-import { Calendar, DollarSign, Users, Clock } from 'lucide-react';
+import { Calendar, Banknote, Users, Clock } from 'lucide-react';
 
 interface OptimizedProjectOverviewProps {
   projects: Project[];
@@ -28,6 +28,15 @@ const ProjectCard = memo(({ project }: { project: Project }) => {
       case 'medium': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-green-100 text-green-800';
     }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
 
   return (
@@ -64,9 +73,9 @@ const ProjectCard = memo(({ project }: { project: Project }) => {
             <span>{new Date(project.dueDate).toLocaleDateString()}</span>
           </div>
           <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Banknote className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">Budget:</span>
-            <span>${(project.budget / 1000).toFixed(0)}k</span>
+            <span>{formatCurrency(project.budget)}</span>
           </div>
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
