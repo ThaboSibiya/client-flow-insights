@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { EnhancedEmployeePrivileges } from '@/types/enhancedSecurity';
@@ -35,15 +36,43 @@ export const useSecurePrivileges = () => {
           .limit(1);
 
         if (isOwner && isOwner.length > 0) {
-          // Company owners have all privileges
-          const ownerPrivileges: EnhancedEmployeePrivileges = Object.keys(getDefaultPrivileges()).reduce((acc, key) => {
-            if (key.includes('scope')) {
-              acc[key as keyof EnhancedEmployeePrivileges] = 'all_company' as any;
-            } else {
-              acc[key as keyof EnhancedEmployeePrivileges] = true as any;
-            }
-            return acc;
-          }, {} as EnhancedEmployeePrivileges);
+          // Company owners have all privileges - fix type issues
+          const defaultPrivileges = getDefaultPrivileges();
+          const ownerPrivileges: EnhancedEmployeePrivileges = {
+            ...defaultPrivileges,
+            // Set all boolean privileges to true
+            can_view_customers: true,
+            can_edit_customers: true,
+            can_delete_customers: true,
+            can_view_quotes: true,
+            can_create_quotes: true,
+            can_edit_quotes: true,
+            can_delete_quotes: true,
+            can_view_analytics: true,
+            can_manage_employees: true,
+            can_update_customer_status_onsite: true,
+            can_view_automations: true,
+            can_create_automations: true,
+            can_edit_automations: true,
+            can_delete_automations: true,
+            can_execute_automations: true,
+            can_manage_automation_permissions: true,
+            can_access_sensitive_automations: true,
+            can_view_company_settings: true,
+            can_edit_basic_settings: true,
+            can_edit_integration_settings: true,
+            can_edit_security_settings: true,
+            can_edit_billing_settings: true,
+            can_manage_employee_settings: true,
+            can_access_customer_pii: true,
+            can_export_customer_data: true,
+            can_access_financial_automations: true,
+            can_modify_pricing_automations: true,
+            requires_financial_approval: false,
+            // Set scope properties correctly
+            automation_scope: 'all_company',
+            customer_access_scope: 'all_company'
+          };
           
           setPrivileges(ownerPrivileges);
           

@@ -69,7 +69,24 @@ export const readSecureAuditLogs = async (limit: number = 100): Promise<SecureAu
       metadata: { records_read: data?.length || 0 }
     });
 
-    return data || [];
+    // Transform the data to match our interface, handling the Json type properly
+    const transformedData: SecureAuditLogEntry[] = (data || []).map(record => ({
+      id: record.id,
+      user_id: record.user_id,
+      action: record.action,
+      resource_type: record.resource_type,
+      resource_id: record.resource_id,
+      success: record.success,
+      error_message: record.error_message,
+      ip_address: record.ip_address,
+      user_agent: record.user_agent,
+      metadata: typeof record.metadata === 'object' && record.metadata !== null 
+        ? record.metadata as Record<string, any> 
+        : {},
+      timestamp: record.timestamp
+    }));
+
+    return transformedData;
   } catch (error) {
     console.error('Error reading secure audit logs:', error);
     await logSecureSecurityEvent({
