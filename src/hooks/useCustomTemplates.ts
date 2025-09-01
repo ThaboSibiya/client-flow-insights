@@ -13,11 +13,12 @@ export const useCustomTemplates = () => {
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
   const [fieldsLoading, setFieldsLoading] = useState(false);
 
+  // Updated to use getIndustryTemplates instead of getUserCustomTemplates for onboarding
   const { data: templates, isLoading, error } = useQuery({
-    queryKey: ['custom-templates', user?.id],
-    queryFn: () => templateService.getUserCustomTemplates(),
-    enabled: !!user,
-    retry: false,
+    queryKey: ['industry-templates'],
+    queryFn: () => templateService.getIndustryTemplates(),
+    retry: 3,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const loadTemplateFields = async (template: IndustryTemplate) => {

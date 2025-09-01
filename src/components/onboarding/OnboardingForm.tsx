@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,6 +29,7 @@ import { useNavigate } from 'react-router-dom';
 import TemplateSelector from '@/components/templates/TemplateSelector';
 import { useCustomTemplates } from '@/hooks/useCustomTemplates';
 import { addCustomer as addCustomerService } from '@/services/customerService';
+import { seedDefaultTemplates } from '@/services/defaultTemplateSeeder';
 import { ArrowDown, Sparkles } from 'lucide-react';
 
 const formSchema = z.object({
@@ -62,8 +63,25 @@ const OnboardingForm = () => {
     validateRequiredFields,
     resetTemplate,
     loading: templatesLoading,
-    fieldsLoading
+    fieldsLoading,
+    error: templatesError
   } = useCustomTemplates();
+
+  // Seed default templates on first load if user exists and no templates
+  useEffect(() => {
+    const initializeTemplates = async () => {
+      if (user && !templatesLoading && templates.length === 0 && !templatesError) {
+        try {
+          await seedDefaultTemplates(user.id);
+          // The query will automatically refetch due to React Query
+        } catch (error) {
+          console.error('Failed to seed default templates:', error);
+        }
+      }
+    };
+
+    initializeTemplates();
+  }, [user, templatesLoading, templates.length, templatesError]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

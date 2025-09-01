@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { IndustryTemplate, TemplateField, CustomerCustomData, CustomerTemplate } from '@/types/templates';
 
 export const templateService = {
-  // Fetch all available industry templates (now secured by user ownership)
+  // Fetch all available industry templates (both system and user-created)
   async getIndustryTemplates(): Promise<IndustryTemplate[]> {
     const { data, error } = await supabase
       .from('industry_templates')
