@@ -1,1 +1,17 @@
 project_id = "oquiaxbnkdnpixqhqdfq"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+
+[functions.secure-api-keys]
+verify_jwt = true
+
+[functions.secure-audit-logs]
+verify_jwt = true
