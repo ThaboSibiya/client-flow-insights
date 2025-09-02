@@ -134,7 +134,7 @@ const HelpPanel = ({ isOpen, onClose }: HelpPanelProps) => {
           <Button 
             variant="outline" 
             className="w-full" 
-            onClick={() => window.open('/documentation', '_blank')}
+            onClick={() => window.open('/documentation', '_blank', 'noopener,noreferrer')}
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             View Full Documentation

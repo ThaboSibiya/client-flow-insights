@@ -68,11 +68,17 @@ export const useEmployeeAuth = () => {
       } else {
         setEmployeeProfile(employee);
         
-        // Update last login time for employees
-        await supabase
-          .from('employees')
-          .update({ last_login_at: new Date().toISOString() })
-          .eq('id', employee.id);
+        // Update last login time for employees using secure RPC
+        try {
+          const { error: loginError } = await supabase
+            .rpc('update_employee_login_time');
+          
+          if (loginError) {
+            console.error('Error updating login time:', loginError);
+          }
+        } catch (error) {
+          console.error('Error calling login time RPC:', error);
+        }
       }
     } catch (error) {
       console.error('Error in fetchEmployeeProfile:', error);

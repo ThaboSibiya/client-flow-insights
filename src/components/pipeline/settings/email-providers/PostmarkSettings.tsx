@@ -196,14 +196,14 @@ const PostmarkSettings = () => {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => window.open('https://postmarkapp.com/servers', '_blank')}
+            onClick={() => window.open('https://postmarkapp.com/servers', '_blank', 'noopener,noreferrer')}
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             Get Server Token
           </Button>
           <Button
             variant="outline"
-            onClick={() => window.open('https://postmarkapp.com/domains', '_blank')}
+            onClick={() => window.open('https://postmarkapp.com/domains', '_blank', 'noopener,noreferrer')}
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             Setup Domain

@@ -215,14 +215,14 @@ const MailgunSettings = () => {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => window.open('https://app.mailgun.com/app/account/security/api_keys', '_blank')}
+            onClick={() => window.open('https://app.mailgun.com/app/account/security/api_keys', '_blank', 'noopener,noreferrer')}
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             Get API Key
           </Button>
           <Button
             variant="outline"
-            onClick={() => window.open('https://app.mailgun.com/app/domains', '_blank')}
+            onClick={() => window.open('https://app.mailgun.com/app/domains', '_blank', 'noopener,noreferrer')}
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             Setup Domain

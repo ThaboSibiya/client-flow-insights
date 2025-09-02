@@ -43,7 +43,7 @@ const RecentMentionsList: React.FC<RecentMentionsListProps> = ({
                 <Button 
                   size="sm" 
                   variant="outline"
-                  onClick={() => window.open(mention.url, '_blank')}
+                  onClick={() => window.open(mention.url, '_blank', 'noopener,noreferrer')}
                 >
                   <ExternalLink className="h-3 w-3" />
                 </Button>

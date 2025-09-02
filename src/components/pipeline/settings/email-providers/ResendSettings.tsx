@@ -192,7 +192,7 @@ const ResendSettings = () => {
       <div className="flex justify-between items-center pt-4 border-t">
         <Button
           variant="outline"
-          onClick={() => window.open('https://resend.com/domains', '_blank')}
+          onClick={() => window.open('https://resend.com/domains', '_blank', 'noopener,noreferrer')}
         >
           <ExternalLink className="h-4 w-4 mr-2" />
           Verify Domain

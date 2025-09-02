@@ -86,7 +86,7 @@ const CustomerFileUpload = ({ customerId }: CustomerFileUploadProps) => {
     const filePath = `customers/${customerId}/${fileName}`;
     const url = await getFileUrl(filePath);
     if (url) {
-      window.open(url, '_blank');
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
 

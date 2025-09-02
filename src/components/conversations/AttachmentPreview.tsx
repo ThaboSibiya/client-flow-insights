@@ -49,7 +49,7 @@ const AttachmentPreview = ({
   };
 
   const handlePreview = () => {
-    window.open(attachment.url, '_blank');
+    window.open(attachment.url, '_blank', 'noopener,noreferrer');
   };
 
   const IconComponent = getFileIcon(attachment.type);

@@ -56,7 +56,7 @@ const EmailProviderSetup = ({ providers, onConfigurationSaved }: EmailProviderSe
     
     try {
       const authUrl = await emailIntegrationService.initiateOAuthFlow(selectedProvider.id);
-      window.open(authUrl, '_blank', 'width=500,height=600');
+      window.open(authUrl, '_blank', 'width=500,height=600,noopener,noreferrer');
       toast.info('Complete OAuth authorization in the popup window');
     } catch (error) {
       toast.error('Failed to initiate OAuth flow');

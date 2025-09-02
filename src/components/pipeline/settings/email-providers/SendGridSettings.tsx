@@ -193,14 +193,14 @@ const SendGridSettings = () => {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => window.open('https://app.sendgrid.com/settings/api_keys', '_blank')}
+            onClick={() => window.open('https://app.sendgrid.com/settings/api_keys', '_blank', 'noopener,noreferrer')}
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             Get API Key
           </Button>
           <Button
             variant="outline"
-            onClick={() => window.open('https://app.sendgrid.com/settings/sender_auth', '_blank')}
+            onClick={() => window.open('https://app.sendgrid.com/settings/sender_auth', '_blank', 'noopener,noreferrer')}
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             Verify Domain

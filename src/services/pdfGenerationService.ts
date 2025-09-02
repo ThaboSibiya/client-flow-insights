@@ -197,7 +197,7 @@ export class PDFGenerationService {
       const htmlContent = this.generateHTMLContent(quote, options);
       
       // Create a new window with the PDF content
-      const printWindow = window.open('', '_blank');
+      const printWindow = window.open('', '_blank', 'noopener,noreferrer');
       if (!printWindow) {
         throw new Error('Unable to open print window. Please check your popup blocker.');
       }

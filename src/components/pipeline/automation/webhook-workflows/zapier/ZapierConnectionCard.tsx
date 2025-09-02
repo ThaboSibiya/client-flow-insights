@@ -64,7 +64,7 @@ const ZapierConnectionCard: React.FC<ZapierConnectionCardProps> = ({
             <Button 
               size="sm" 
               variant="outline"
-              onClick={() => window.open(connection.webhookUrl, '_blank')}
+              onClick={() => window.open(connection.webhookUrl, '_blank', 'noopener,noreferrer')}
             >
               <ExternalLink className="h-4 w-4" />
             </Button>
