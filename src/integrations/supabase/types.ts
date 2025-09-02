@@ -2046,6 +2046,10 @@ export type Database = {
         }
         Returns: string
       }
+      is_company_owner: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_company_owner_for_employee: {
         Args: { _employee_id: string }
         Returns: boolean
