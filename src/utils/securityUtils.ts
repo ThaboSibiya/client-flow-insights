@@ -50,13 +50,16 @@ export const validateCSRFToken = (token: string, sessionToken: string): boolean 
   return token === sessionToken && token.length === 64;
 };
 
-// Rate limiting functionality
+// DEPRECATED: Use server-side rate limiting instead
+// This client-side rate limiting is insecure and should not be used for security purposes
 export const checkRateLimit = async (
   identifier: string, 
   resource: string, 
   maxAttempts: number, 
   windowMs: number
 ): Promise<boolean> => {
+  console.warn('Client-side rate limiting is deprecated. Use server-side rate limiting with useSecureRateLimit hook.');
+  
   const key = `rate_limit_${identifier}_${resource}`;
   const now = Date.now();
   

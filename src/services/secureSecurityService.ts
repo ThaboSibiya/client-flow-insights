@@ -14,22 +14,38 @@ export interface SecureSecurityAuditEvent {
 
 export const logSecureSecurityEvent = async (event: SecureSecurityAuditEvent) => {
   try {
-    // Use edge function for secure server-side audit logging
-    const { error } = await supabase.functions.invoke('log-security-event', {
-      body: {
-        ...event,
-        timestamp: new Date().toISOString()
-      }
-    });
+    // Use the security_events table directly with proper RLS
+    const { error } = await supabase
+      .from('security_events')
+      .insert({
+        event_type: event.action,
+        event_data: {
+          ...event,
+          timestamp: new Date().toISOString()
+        },
+        ip_address: event.ip_address || await getClientIP(),
+        user_agent: event.user_agent || navigator.userAgent
+      });
 
     if (error) {
-      console.error('Failed to log security event via edge function:', error);
+      console.error('Failed to log security event:', error);
       // Fallback to client-side logging only as last resort
       fallbackSecurityLogging(event);
     }
   } catch (error) {
     console.error('Failed to log security event:', error);
     fallbackSecurityLogging(event);
+  }
+};
+
+// Helper function to get client IP (best effort)
+const getClientIP = async (): Promise<string | undefined> => {
+  try {
+    const response = await fetch('https://api.ipify.org?format=json');
+    const data = await response.json();
+    return data.ip;
+  } catch {
+    return undefined;
   }
 };
 

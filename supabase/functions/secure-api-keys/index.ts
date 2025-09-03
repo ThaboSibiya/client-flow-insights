@@ -291,7 +291,30 @@ async function testPostmarkKey(apiKey: string): Promise<boolean> {
 }
 
 async function getStoredApiKey(provider: string, userId: string): Promise<string | null> {
-  // In a real implementation, this would retrieve from Supabase Vault or secure storage
-  // For now, returning null as we haven't implemented actual storage
-  return null
+  try {
+    // In production, implement secure storage using Supabase Vault or encrypted storage
+    // For now, we'll check if configuration exists in the database
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    const { data, error } = await supabaseClient
+      .from('email_integrations')
+      .select('is_enabled')
+      .eq('user_id', userId)
+      .eq('provider_id', provider)
+      .single()
+
+    if (error || !data?.is_enabled) {
+      return null;
+    }
+
+    // TODO: Implement actual secure key retrieval from Vault
+    // For now, return a placeholder to indicate key exists
+    return 'PLACEHOLDER_KEY_EXISTS';
+  } catch (error) {
+    console.error('Error retrieving stored API key:', error);
+    return null;
+  }
 }

@@ -49,8 +49,8 @@ export const secureHtmlSanitization = (html: string, context?: string): string =
     FORBID_ATTR: ['target'], // Remove target attribute to prevent reverse tabnabbing
   });
   
-  // Add rel="noopener noreferrer" to all links for security
-  const secureHtml = sanitized.replace(/<a\s+href/gi, '<a rel="noopener noreferrer" href');
+// Add rel="noopener noreferrer" to all links for security (prevents reverse tabnabbing)
+  const secureHtml = sanitized.replace(/<a\s+href/gi, '<a rel="noopener noreferrer" target="_blank" href');
   
   // Log HTML sanitization events
   if (originalHtml !== secureHtml) {
