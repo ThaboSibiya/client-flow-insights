@@ -2013,6 +2013,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      current_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_employee_number: {
         Args: Record<PropertyKey, never>
         Returns: string
