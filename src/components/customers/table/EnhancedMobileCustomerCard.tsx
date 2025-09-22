@@ -44,7 +44,10 @@ const EnhancedMobileCustomerCard = ({
   isExpanded,
   onToggleExpanded
 }: EnhancedMobileCustomerCardProps) => {
-  const { appliedTemplates, customData, templateFields, loading } = useCustomerCustomData(customer.id);
+  // Use pre-loaded data to avoid N+1 queries
+  const appliedTemplates = (customer as any)._appliedTemplates || [];
+  const customData = (customer as any)._customData || [];
+  const loading = false;
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -59,12 +62,13 @@ const EnhancedMobileCustomerCard = ({
     return data?.field_value || '';
   };
 
-  const importantFields = templateFields
-    .filter(field => {
-      const value = getFieldValue(field.id);
-      return value && value.trim() !== '';
-    })
-    .sort((a, b) => a.display_order - b.display_order)
+  const importantFields = customData
+    .filter((cd: any) => cd.template_fields && cd.field_value && cd.field_value.trim())
+    .map((cd: any) => ({
+      ...cd.template_fields,
+      field_value: cd.field_value
+    }))
+    .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
     .slice(0, 2);
 
   return (
@@ -158,15 +162,12 @@ const EnhancedMobileCustomerCard = ({
                   <User className="h-3 w-3" />
                   <span>Custom Information</span>
                 </div>
-                {importantFields.map(field => {
-                  const value = getFieldValue(field.id);
-                  return (
+                {importantFields.map((field: any) => (
                     <div key={field.id} className="ml-5 text-xs">
                       <span className="font-medium text-quikle-slate">{field.field_label}:</span>
-                      <span className="ml-1 text-quikle-charcoal">{value}</span>
+                      <span className="ml-1 text-quikle-charcoal">{field.field_value}</span>
                     </div>
-                  );
-                })}
+                  ))}
               </div>
             )}
 

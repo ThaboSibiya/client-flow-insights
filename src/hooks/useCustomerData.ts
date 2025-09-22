@@ -76,9 +76,29 @@ export const useCustomerData = () => {
     setError(null);
 
     try {
+      // Fetch customers with all necessary data in one query to avoid N+1 problems
       const { data, error } = await supabase
         .from('customers')
-        .select('*')
+        .select(`
+          *,
+          customer_templates!inner(
+            template_id,
+            industry_templates(id, name, industry)
+          ),
+          customer_custom_data(
+            id,
+            field_id,
+            field_value,
+            template_fields!inner(id, field_name, field_label, category, is_required)
+          ),
+          customer_equipment(
+            id,
+            equipment_type,
+            brand,
+            model,
+            status
+          )
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -87,6 +107,12 @@ export const useCustomerData = () => {
       if (data) {
         const formattedCustomers: Customer[] = data.map(item => {
           const activeTickets = generateSampleTickets(item.id);
+          
+          // Extract custom data and template information
+          const customData = item.customer_custom_data || [];
+          const appliedTemplates = item.customer_templates || [];
+          const equipment = item.customer_equipment || [];
+          
           return {
             id: item.id,
             name: item.name,
@@ -94,11 +120,18 @@ export const useCustomerData = () => {
             phone: item.phone || '',
             status: item.status as CustomerStatus,
             notes: item.notes || '',
+            address: item.address || '',
+            contact_person: item.contact_person || '',
+            company_address: item.company_address || '',
             createdAt: new Date(item.created_at),
             updatedAt: new Date(item.updated_at),
             activeTickets,
             ticketCount: activeTickets.length,
             lastTicketDate: activeTickets.length > 0 ? activeTickets[0].createdAt : undefined,
+            // Include template and custom data for performance
+            _customData: customData,
+            _appliedTemplates: appliedTemplates,
+            _equipment: equipment,
           };
         });
         setCustomers(formattedCustomers);
@@ -106,11 +139,47 @@ export const useCustomerData = () => {
     } catch (error: any) {
       console.error('Error fetching customers:', error.message);
       setError('Failed to load customers');
-      toast({
-        title: "Error",
-        description: "Failed to load customers",
-        variant: "destructive",
-      });
+      
+      // Fallback to basic query if complex query fails
+      try {
+        const { data: basicData, error: basicError } = await supabase
+          .from('customers')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (basicError) throw basicError;
+
+        if (basicData) {
+          const formattedCustomers: Customer[] = basicData.map(item => {
+            const activeTickets = generateSampleTickets(item.id);
+            return {
+              id: item.id,
+              name: item.name,
+              email: item.email,
+              phone: item.phone || '',
+              status: item.status as CustomerStatus,
+              notes: item.notes || '',
+              address: item.address || '',
+              contact_person: item.contact_person || '',
+              company_address: item.company_address || '',
+              createdAt: new Date(item.created_at),
+              updatedAt: new Date(item.updated_at),
+              activeTickets,
+              ticketCount: activeTickets.length,
+              lastTicketDate: activeTickets.length > 0 ? activeTickets[0].createdAt : undefined,
+            };
+          });
+          setCustomers(formattedCustomers);
+        }
+      } catch (fallbackError: any) {
+        console.error('Fallback query also failed:', fallbackError.message);
+        toast({
+          title: "Error",
+          description: "Failed to load customers",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }

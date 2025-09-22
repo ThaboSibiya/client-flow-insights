@@ -23,9 +23,10 @@ const CORE_COLUMNS: TableColumn[] = [
 ];
 
 export const useDynamicTableColumns = (customers: Customer[], customerId?: string) => {
-  // Use the first customer's data to determine available template fields
-  const sampleCustomerId = customerId || customers[0]?.id || '';
-  const { templateFields, customData, equipmentData } = useCustomerCustomData(sampleCustomerId);
+  // Extract template data from pre-loaded customer data to avoid N+1 queries
+  const sampleCustomer = customers[0];
+  const templateFields = sampleCustomer?._customData?.map((cd: any) => cd.template_fields).filter(Boolean).flat() || [];
+  const equipmentData = sampleCustomer?._equipment || [];
 
   const columns = useMemo(() => {
     const allColumns: TableColumn[] = [...CORE_COLUMNS];
@@ -92,21 +93,24 @@ export const useDynamicTableColumns = (customers: Customer[], customerId?: strin
       return customer[columnKey as keyof Customer];
     }
 
-    // Handle custom fields
+    // Handle custom fields from pre-loaded data
     if (columnKey.startsWith('custom_')) {
       const fieldName = columnKey.replace('custom_', '');
-      // This would need to be enriched with actual custom data per customer
-      return 'Custom data'; // Placeholder - would need per-customer data
+      const customData = (customer as any)._customData || [];
+      const fieldData = customData.find((cd: any) => cd.template_fields?.field_name === fieldName);
+      return fieldData?.field_value || '-';
     }
 
-    // Handle equipment columns
+    // Handle equipment columns from per-customer data
     if (columnKey === 'equipment_count') {
-      return equipmentData.length;
+      const customerEquipment = (customer as any)._equipment || [];
+      return customerEquipment.length;
     }
 
     if (columnKey === 'primary_equipment') {
-      const primary = equipmentData[0];
-      return primary ? `${primary.brand} ${primary.model}` : 'No equipment';
+      const customerEquipment = (customer as any)._equipment || [];
+      const primary = customerEquipment[0];
+      return primary ? `${primary.brand || ''} ${primary.model || ''}`.trim() || 'No equipment' : 'No equipment';
     }
 
     return '';

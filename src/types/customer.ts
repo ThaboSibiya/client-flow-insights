@@ -52,16 +52,22 @@ export interface Customer {
   email: string;
   phone: string;
   address?: string;
+  contact_person?: string;
+  company_address?: string;
   status: CustomerStatus;
   notes: string;
   createdAt: Date;
   updatedAt: Date;
-  activeTickets: CustomerTicket[];
-  ticketCount: number;
+  activeTickets?: CustomerTicket[];
+  ticketCount?: number;
   lastTicketDate?: Date;
   assigned_to?: string; // Employee ID who is assigned to this customer
   assigned_to_email?: string; // Email of assigned employee
   territory?: string; // Customer's territory/region
+  // Performance optimization - pre-loaded related data
+  _customData?: any[];
+  _appliedTemplates?: any[];
+  _equipment?: any[];
 }
 
 export interface CRMContextType {

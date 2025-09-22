@@ -32,7 +32,10 @@ const CustomerTableRow = ({
   onManageTickets,
   rowIndex
 }: CustomerTableRowProps) => {
-  const { customData, templateFields, appliedTemplates, loading } = useCustomerCustomData(customer.id);
+  // Use pre-loaded data to avoid N+1 queries
+  const customData = (customer as any)._customData || [];
+  const appliedTemplates = (customer as any)._appliedTemplates || [];
+  const loading = false;
   
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -44,31 +47,29 @@ const CustomerTableRow = ({
 
   // Get key template data for inline display
   const getKeyTemplateData = () => {
-    if (loading || !templateFields.length || !customData.length) return [];
+    if (loading || !customData.length) return [];
     
-    // Get the first 2-3 most important filled fields
-    const keyData = templateFields
-      .filter(field => {
-        const data = customData.find(cd => cd.field_id === field.id);
-        return data && data.field_value && data.field_value.trim();
-      })
-      .sort((a, b) => {
+    // Extract template fields from custom data
+    const availableFields = customData
+      .filter((cd: any) => cd.template_fields && cd.field_value && cd.field_value.trim())
+      .map((cd: any) => ({
+        ...cd.template_fields,
+        field_value: cd.field_value
+      }))
+      .sort((a: any, b: any) => {
         // Prioritize required fields and display order
         if (a.is_required && !b.is_required) return -1;
         if (!a.is_required && b.is_required) return 1;
-        return a.display_order - b.display_order;
+        return (a.display_order || 0) - (b.display_order || 0);
       })
       .slice(0, 3)
-      .map(field => {
-        const data = customData.find(cd => cd.field_id === field.id);
-        return {
-          label: field.field_label,
-          value: data?.field_value || '',
-          isRequired: field.is_required
-        };
-      });
+      .map((field: any) => ({
+        label: field.field_label,
+        value: field.field_value,
+        isRequired: field.is_required
+      }));
     
-    return keyData;
+    return availableFields;
   };
 
   const keyTemplateData = getKeyTemplateData();
