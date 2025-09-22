@@ -32,10 +32,17 @@ export const validateEmail = (email: string): boolean => {
   return emailRegex.test(email) && email.length <= 254;
 };
 
-// Phone number validation (international format)
+// Phone number validation (international format) - Updated to be more flexible
 export const validatePhone = (phone: string): boolean => {
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-  return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
+  if (!phone || phone.trim() === '') return false;
+  
+  // Remove common formatting characters
+  const cleanPhone = phone.replace(/[\s\-\(\)\.]/g, '');
+  
+  // More flexible validation - allow numbers starting with 0 (common in many countries)
+  const phoneRegex = /^[\+]?[0-9]{7,15}$/;
+  
+  return phoneRegex.test(cleanPhone);
 };
 
 // Generate CSRF token

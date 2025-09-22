@@ -1,5 +1,5 @@
 
-@layer components {
+/* @layer components { */
   /* Custom animations */
   @keyframes fade-in {
     from {
@@ -45,4 +45,4 @@
   .animate-scale-in {
     animation: scale-in 0.2s ease-out;
   }
-}
+/* } */

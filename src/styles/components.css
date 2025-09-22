@@ -1,5 +1,5 @@
 
-@layer components {
+/* @layer components { */
   .card-gradient {
     @apply bg-gradient-to-br from-white to-quikle-crystal;
   }
@@ -57,11 +57,11 @@
 
     /* Mobile card animations */
     .mobile-card-enter {
-      @apply animate-fade-in;
+      animation: fade-in 0.3s ease-out;
     }
 
     .mobile-card-exit {
-      @apply animate-fade-out;
+      animation: fade-out 0.3s ease-out;
     }
 
     /* Enhanced mobile buttons */
@@ -104,7 +104,7 @@
     
     .mobile-card-enter,
     .mobile-card-exit {
-      @apply animate-none;
+      animation: none;
     }
   }
 
@@ -112,6 +112,6 @@
   @media (prefers-contrast: high) {
     .touch-target {
       @apply border border-current;
-    }
   }
 }
+/* } */

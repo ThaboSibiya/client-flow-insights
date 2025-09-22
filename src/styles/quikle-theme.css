@@ -1,4 +1,4 @@
-@layer components {
+/* @layer components { */
   /* Quikle specific styles - Ultra Premium Edition */
   .quikle-gradient-bg {
     @apply bg-gradient-quikle;
@@ -47,4 +47,4 @@
     @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent;
     animation: shimmer 2s infinite;
   }
-}
+/* } */
