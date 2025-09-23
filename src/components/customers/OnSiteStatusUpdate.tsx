@@ -28,7 +28,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
   const [ticketsLoading, setTicketsLoading] = useState(false);
 
   const { customers, loading, error, loadCustomerTickets } = useSecureCustomerData(isOpen);
-  const { location } = useLocation();
+  const { location, requestLocation } = useLocation();
   const { submitting, handleSubmit } = useSecureJobCompletion();
   
   const {
@@ -61,6 +61,13 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
     setNotes('');
     setCustomerTickets([]);
   };
+
+  // Request location only when modal opens and user has privileges
+  React.useEffect(() => {
+    if (isOpen) {
+      requestLocation();
+    }
+  }, [isOpen, requestLocation]);
 
   const onSubmit = async () => {
     if (selectedCustomer) {

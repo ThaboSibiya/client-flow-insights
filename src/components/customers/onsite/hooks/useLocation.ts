@@ -29,12 +29,11 @@ export const useLocation = () => {
     }
   };
 
-  useEffect(() => {
-    // Only request location if user has onsite privileges
+  const requestLocation = () => {
     if (canUpdateCustomerStatusOnsite) {
       getCurrentLocation();
     }
-  }, [canUpdateCustomerStatusOnsite]);
+  };
 
-  return { location };
+  return { location, requestLocation };
 };
