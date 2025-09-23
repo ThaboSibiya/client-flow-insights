@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -145,4 +145,4 @@ const PipelineCard = ({ item, type, stageId, onMove }: PipelineCardProps) => {
   );
 };
 
-export default PipelineCard;
+export default memo(PipelineCard);

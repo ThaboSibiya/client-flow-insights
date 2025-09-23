@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useCRM } from '@/context/CRMContext';
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
@@ -15,7 +15,7 @@ export interface PipelineStage {
 
 export const useCustomerPipeline = () => {
   const { customers } = useCRM();
-  const [stages, setStages] = useState<PipelineStage[]>([
+  const [stages, setStages] = useState<PipelineStage[]>(() => [
     {
       id: 'new',
       name: 'New Leads',
@@ -53,7 +53,7 @@ export const useCustomerPipeline = () => {
   const [isAddStageOpen, setIsAddStageOpen] = useState(false);
   const [activeItem, setActiveItem] = useState<any | null>(null);
 
-  const handleCustomerMove = (customerId: string, fromStageId: string, toStageId: string) => {
+  const handleCustomerMove = useCallback((customerId: string, fromStageId: string, toStageId: string) => {
     setStages(prevStages => {
       const newStages = [...prevStages];
       const fromStage = newStages.find(s => s.id === fromStageId);
@@ -69,9 +69,9 @@ export const useCustomerPipeline = () => {
       
       return newStages;
     });
-  };
+  }, []);
   
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     
     if (active.id.toString().startsWith('customer-')) {
@@ -83,9 +83,9 @@ export const useCustomerPipeline = () => {
     } else {
       setActiveItem(null);
     }
-  };
+  }, [stages]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     setActiveItem(null);
 
@@ -112,7 +112,7 @@ export const useCustomerPipeline = () => {
         return arrayMove(items, oldIndex, newIndex);
       });
     }
-  };
+  }, [stages, handleCustomerMove]);
 
   const addStage = (stageName: string, color: string) => {
     const newStage: PipelineStage = {

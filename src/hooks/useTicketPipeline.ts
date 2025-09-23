@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useCRM } from '@/context/CRMContext';
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
@@ -17,7 +17,7 @@ export const useTicketPipeline = () => {
   const { customers } = useCRM();
   const allTickets = customers.flatMap(c => c.activeTickets || []);
 
-  const [stages, setStages] = useState<TicketStage[]>([
+  const [stages, setStages] = useState<TicketStage[]>(() => [
     {
       id: 'open',
       name: 'New Tickets',
@@ -62,7 +62,25 @@ export const useTicketPipeline = () => {
   const [isAddStageOpen, setIsAddStageOpen] = useState(false);
   const [activeItem, setActiveItem] = useState<any | null>(null);
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleTicketMove = useCallback((ticketId: string, fromStageId: string, toStageId: string) => {
+    setStages(prevStages => {
+      const newStages = [...prevStages];
+      const fromStage = newStages.find(s => s.id === fromStageId);
+      const toStage = newStages.find(s => s.id === toStageId);
+      
+      if (fromStage && toStage) {
+        const ticket = fromStage.tickets.find(t => t.id === ticketId);
+        if (ticket) {
+          fromStage.tickets = fromStage.tickets.filter(t => t.id !== ticketId);
+          toStage.tickets.push(ticket);
+        }
+      }
+      
+      return newStages;
+    });
+  }, []);
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     
     if (active.id.toString().startsWith('ticket-')) {
@@ -74,9 +92,9 @@ export const useTicketPipeline = () => {
     } else {
       setActiveItem(null);
     }
-  };
+  }, [stages]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     setActiveItem(null);
 
@@ -103,25 +121,7 @@ export const useTicketPipeline = () => {
         return arrayMove(items, oldIndex, newIndex);
       });
     }
-  };
-
-  const handleTicketMove = (ticketId: string, fromStageId: string, toStageId: string) => {
-    setStages(prevStages => {
-      const newStages = [...prevStages];
-      const fromStage = newStages.find(s => s.id === fromStageId);
-      const toStage = newStages.find(s => s.id === toStageId);
-      
-      if (fromStage && toStage) {
-        const ticket = fromStage.tickets.find(t => t.id === ticketId);
-        if (ticket) {
-          fromStage.tickets = fromStage.tickets.filter(t => t.id !== ticketId);
-          toStage.tickets.push(ticket);
-        }
-      }
-      
-      return newStages;
-    });
-  };
+  }, [stages, handleTicketMove]);
 
   const addStage = (stageName: string, color: string) => {
     const newStage: TicketStage = {

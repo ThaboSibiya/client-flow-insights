@@ -89,7 +89,7 @@ export const useCustomerData = () => {
             id,
             field_id,
             field_value,
-            template_fields!inner(id, field_name, field_label, category, is_required)
+            template_fields!inner(id, field_name, field_label, field_type, is_required)
           ),
           customer_equipment(
             id,
