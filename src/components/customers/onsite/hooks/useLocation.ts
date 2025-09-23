@@ -1,9 +1,11 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { useEmployeePrivileges } from '@/hooks/useEmployeePrivileges';
 
 export const useLocation = () => {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const { canUpdateCustomerStatusOnsite } = useEmployeePrivileges();
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
@@ -28,8 +30,11 @@ export const useLocation = () => {
   };
 
   useEffect(() => {
-    getCurrentLocation();
-  }, []);
+    // Only request location if user has onsite privileges
+    if (canUpdateCustomerStatusOnsite) {
+      getCurrentLocation();
+    }
+  }, [canUpdateCustomerStatusOnsite]);
 
   return { location };
 };
