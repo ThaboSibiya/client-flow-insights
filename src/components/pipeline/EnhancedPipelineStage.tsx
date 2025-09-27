@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import PipelineCard from './PipelineCard';
+import EditStageDialog from './dialogs/EditStageDialog';
+import SetTargetDialog from './dialogs/SetTargetDialog';
+import SetAutomationDialog from './dialogs/SetAutomationDialog';
 
 interface EnhancedPipelineStageProps {
   stage: {
@@ -27,9 +30,11 @@ interface EnhancedPipelineStageProps {
     target?: number;
   };
   onCustomerMove: (itemId: string, fromStageId: string, toStageId: string) => void;
-  onStageEdit?: (stageId: string) => void;
+  onStageEdit?: (stageId: string, name: string, color: string) => void;
   onStageDelete?: (stageId: string) => void;
   onAddItem?: (stageId: string) => void;
+  onSetTarget?: (stageId: string, target: number | undefined) => void;
+  onSetAutomation?: (stageId: string, enabled: boolean) => void;
   type: 'customer' | 'ticket';
 }
 
@@ -39,10 +44,15 @@ const EnhancedPipelineStage = ({
   onStageEdit, 
   onStageDelete,
   onAddItem,
+  onSetTarget,
+  onSetAutomation,
   type 
 }: EnhancedPipelineStageProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isHovered, setIsHovered] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [targetDialogOpen, setTargetDialogOpen] = useState(false);
+  const [automationDialogOpen, setAutomationDialogOpen] = useState(false);
 
   const {
     attributes,
@@ -109,11 +119,15 @@ const EnhancedPipelineStage = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-white border-quikle-silver/30 z-50">
-                <DropdownMenuItem onClick={() => onStageEdit?.(stage.id)} className="text-quikle-charcoal hover:bg-quikle-crystal">
+                <DropdownMenuItem onClick={() => setEditDialogOpen(true)} className="text-quikle-charcoal hover:bg-quikle-crystal">
                   Edit Stage
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-quikle-charcoal hover:bg-quikle-crystal">Set Target</DropdownMenuItem>
-                <DropdownMenuItem className="text-quikle-charcoal hover:bg-quikle-crystal">Set Automation</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTargetDialogOpen(true)} className="text-quikle-charcoal hover:bg-quikle-crystal">
+                  Set Target
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setAutomationDialogOpen(true)} className="text-quikle-charcoal hover:bg-quikle-crystal">
+                  Set Automation
+                </DropdownMenuItem>
                 <DropdownMenuItem 
                   className="text-red-600 hover:bg-red-50"
                   onClick={() => onStageDelete?.(stage.id)}
@@ -199,6 +213,28 @@ const EnhancedPipelineStage = ({
           )}
         </CardContent>
       </Card>
+
+      {/* Dialogs */}
+      <EditStageDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        stage={stage}
+        onEditStage={(stageId, name, color) => onStageEdit?.(stageId, name, color)}
+      />
+      
+      <SetTargetDialog
+        open={targetDialogOpen}
+        onOpenChange={setTargetDialogOpen}
+        stage={stage}
+        onSetTarget={(stageId, target) => onSetTarget?.(stageId, target)}
+      />
+      
+      <SetAutomationDialog
+        open={automationDialogOpen}
+        onOpenChange={setAutomationDialogOpen}
+        stage={stage}
+        onSetAutomation={(stageId, enabled) => onSetAutomation?.(stageId, enabled)}
+      />
     </div>
   );
 };

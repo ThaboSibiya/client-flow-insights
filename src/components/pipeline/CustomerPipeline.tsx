@@ -22,6 +22,8 @@ const CustomerPipeline = () => {
     handleStageEdit,
     handleStageDelete,
     handleAddCustomer,
+    handleSetTarget,
+    handleSetAutomation,
   } = useCustomerPipeline();
 
   const sensors = useSensors(
@@ -74,6 +76,8 @@ const CustomerPipeline = () => {
                 onStageEdit={handleStageEdit}
                 onStageDelete={handleStageDelete}
                 onAddItem={handleAddCustomer}
+                onSetTarget={handleSetTarget}
+                onSetAutomation={handleSetAutomation}
                 type="customer"
               />
             ))}

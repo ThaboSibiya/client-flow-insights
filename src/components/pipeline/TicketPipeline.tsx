@@ -22,6 +22,8 @@ const TicketPipeline = () => {
     handleStageEdit,
     handleStageDelete,
     handleAddTicket,
+    handleSetTarget,
+    handleSetAutomation,
   } = useTicketPipeline();
 
   const sensors = useSensors(
@@ -74,6 +76,8 @@ const TicketPipeline = () => {
                 onStageEdit={handleStageEdit}
                 onStageDelete={handleStageDelete}
                 onAddItem={handleAddTicket}
+                onSetTarget={handleSetTarget}
+                onSetAutomation={handleSetAutomation}
                 type="ticket"
               />
             ))}

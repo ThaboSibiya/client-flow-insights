@@ -3,7 +3,7 @@ import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import EnhancedPipelineStage from './EnhancedPipelineStage';
 
-const DroppableStage = ({ stage, onCustomerMove, onStageEdit, onStageDelete, onAddItem, type }: any) => {
+const DroppableStage = ({ stage, onCustomerMove, onStageEdit, onStageDelete, onAddItem, onSetTarget, onSetAutomation, type }: any) => {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   });
@@ -16,6 +16,8 @@ const DroppableStage = ({ stage, onCustomerMove, onStageEdit, onStageDelete, onA
         onStageEdit={onStageEdit}
         onStageDelete={onStageDelete}
         onAddItem={onAddItem}
+        onSetTarget={onSetTarget}
+        onSetAutomation={onSetAutomation}
         type={type}
       />
     </div>

@@ -126,8 +126,12 @@ export const useCustomerPipeline = () => {
     setIsAddStageOpen(false);
   };
 
-  const handleStageEdit = (stageId: string) => {
-    console.log('Edit stage:', stageId);
+  const handleStageEdit = (stageId: string, name: string, color: string) => {
+    setStages(prev => prev.map(stage => 
+      stage.id === stageId 
+        ? { ...stage, name, color }
+        : stage
+    ));
   };
 
   const handleStageDelete = (stageId: string) => {
@@ -136,6 +140,22 @@ export const useCustomerPipeline = () => {
 
   const handleAddCustomer = (stageId: string) => {
     console.log('Add customer to stage:', stageId);
+  };
+
+  const handleSetTarget = (stageId: string, target: number | undefined) => {
+    setStages(prev => prev.map(stage => 
+      stage.id === stageId 
+        ? { ...stage, target }
+        : stage
+    ));
+  };
+
+  const handleSetAutomation = (stageId: string, automationEnabled: boolean) => {
+    setStages(prev => prev.map(stage => 
+      stage.id === stageId 
+        ? { ...stage, automationEnabled }
+        : stage
+    ));
   };
   
   return {
@@ -149,6 +169,8 @@ export const useCustomerPipeline = () => {
     addStage,
     handleStageEdit,
     handleStageDelete,
-    handleAddCustomer
+    handleAddCustomer,
+    handleSetTarget,
+    handleSetAutomation
   };
 };
