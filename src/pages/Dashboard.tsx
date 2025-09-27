@@ -25,9 +25,9 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-5 rounded-lg mb-4 shadow-lg border border-white/20 backdrop-blur-sm quikle-card">
-        <h1 className="text-2xl font-bold text-gradient-quikle drop-shadow-sm">Dashboard Overview</h1>
-        <p className="text-quikle-slate text-sm mt-0.5">Monitor your business performance at a glance</p>
+      <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-3 rounded-lg mb-3 shadow-lg border border-white/20 backdrop-blur-sm quikle-card">
+        <h1 className="text-xl font-bold text-gradient-quikle drop-shadow-sm">Dashboard Overview</h1>
+        <p className="text-quikle-slate text-xs mt-0">Monitor your business performance at a glance</p>
       </div>
 
       <DashboardLayoutManager 

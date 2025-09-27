@@ -14,11 +14,11 @@ const Pipeline = () => {
 
   return (
     <div className="space-y-6">
-      <div className="sophisticated-gradient p-5 rounded-lg mb-4 shadow-lg border border-quikle-silver/20 backdrop-blur-sm">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-broker-primary via-broker-secondary to-broker-accent bg-clip-text text-transparent drop-shadow-sm">
+      <div className="sophisticated-gradient p-3 rounded-lg mb-3 shadow-lg border border-quikle-silver/20 backdrop-blur-sm">
+        <h1 className="text-xl font-bold bg-gradient-to-r from-broker-primary via-broker-secondary to-broker-accent bg-clip-text text-transparent drop-shadow-sm">
           Pipeline & Integrations
         </h1>
-        <p className="text-muted-foreground text-sm mt-0.5">
+        <p className="text-muted-foreground text-xs mt-0">
           Manage your customer and ticket pipelines, integrations, automations, and settings.
         </p>
       </div>

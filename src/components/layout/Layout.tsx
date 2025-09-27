@@ -30,20 +30,20 @@ const Layout = () => {
         <AppSidebar />
         
         <div className="flex-1 flex flex-col">
-          <header className="bg-white/98 border-b border-quikle-silver/20 px-4 py-2 flex justify-between items-center shadow-sm backdrop-blur-lg">
+          <header className="bg-white/98 border-b border-quikle-silver/20 px-3 py-1.5 flex justify-between items-center shadow-sm backdrop-blur-lg">
             <SidebarTrigger className="md:hidden" />
             <div className="flex-1 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <img src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" alt="Quikle Logo" className="h-7 w-7" />
+              <div className="flex items-center gap-1.5">
+                <img src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" alt="Quikle Logo" className="h-6 w-6" />
                 <div className="hidden sm:block">
-                  <h1 className="text-base font-bold text-quikle-primary">QUIKLE</h1>
+                  <h1 className="text-sm font-bold text-quikle-primary">QUIKLE</h1>
                   <p className="text-xs text-quikle-neutral -mt-0.5">Innovation Suite</p>
                 </div>
               </div>
             </div>
           </header>
           
-          <main className="flex-1 p-4 quikle-gradient-bg">
+          <main className="flex-1 p-3 quikle-gradient-bg">
             <Outlet />
           </main>
         </div>

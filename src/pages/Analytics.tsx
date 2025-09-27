@@ -23,13 +23,13 @@ const Analytics = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-5 rounded-lg mb-4 shadow-lg transform hover:scale-[1.01] transition-all duration-300 border border-white/20 backdrop-blur-sm quikle-card">
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-3">
+      <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-3 rounded-lg mb-3 shadow-lg transform hover:scale-[1.01] transition-all duration-300 border border-white/20 backdrop-blur-sm quikle-card">
+        <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
           <div>
-            <h1 className="text-2xl font-bold text-gradient-quikle drop-shadow-sm">
+            <h1 className="text-xl font-bold text-gradient-quikle drop-shadow-sm">
               Analytics & Reports
             </h1>
-            <p className="text-muted-foreground text-sm mt-0.5">
+            <p className="text-muted-foreground text-xs mt-0">
               Comprehensive insights into your customer management and ticket performance
             </p>
           </div>
