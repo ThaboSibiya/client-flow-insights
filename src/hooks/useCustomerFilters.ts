@@ -38,7 +38,7 @@ export const useCustomerFilters = (customers: Customer[]) => {
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       filtered = customers.filter(customer => {
-        // Basic customer info search
+        // Basic customer info search using actual database fields
         const basicSearch = [
           customer.name,
           customer.email,
@@ -46,30 +46,13 @@ export const useCustomerFilters = (customers: Customer[]) => {
           customer.address,
           customer.notes,
           customer.status,
-          customer.assigned_to_email
+          customer.contact_person,
+          customer.company_address
         ].some(field => 
           field?.toLowerCase().includes(searchTerm)
         );
 
-        // Ticket-related search
-        const ticketSearch = customer.activeTickets?.some(ticket => [
-          ticket.ticketNumber,
-          ticket.subject,
-          ticket.description,
-          ticket.priority,
-          ticket.status,
-          ticket.assignedTo?.name,
-          ticket.assignedTo?.email,
-          // Search in time entries
-          ...ticket.timeEntries.map(entry => [
-            entry.description,
-            entry.userName
-          ]).flat()
-        ].some(field => 
-          field?.toLowerCase().includes(searchTerm)
-        )) || false;
-
-        return basicSearch || ticketSearch;
+        return basicSearch;
       });
     }
 
@@ -88,23 +71,11 @@ export const useCustomerFilters = (customers: Customer[]) => {
       });
     }
 
-    // Apply ticket count filter
+    // Apply ticket count filter - simplified for basic customer data
     if (ticketCountFilter !== 'all') {
-      filtered = filtered.filter(customer => {
-        const ticketCount = customer.ticketCount || 0;
-        switch (ticketCountFilter) {
-          case 'with-tickets':
-            return ticketCount > 0;
-          case 'no-tickets':
-            return ticketCount === 0;
-          case 'urgent-tickets':
-            return customer.activeTickets?.some(ticket => ticket.priority === 'urgent') || false;
-          case 'open-tickets':
-            return customer.activeTickets?.some(ticket => ticket.status === 'open') || false;
-          default:
-            return true;
-        }
-      });
+      // For now, just return all customers since we don't have ticket data in the basic query
+      // This can be enhanced later when ticket integration is added
+      filtered = filtered;
     }
 
     // Apply sorting
@@ -130,8 +101,9 @@ export const useCustomerFilters = (customers: Customer[]) => {
           bValue = new Date(b.createdAt);
           break;
         case 'ticketCount':
-          aValue = a.ticketCount || 0;
-          bValue = b.ticketCount || 0;
+          // Simplified - default to 0 since we don't have ticket data in basic query
+          aValue = 0;
+          bValue = 0;
           break;
         default:
           aValue = a.name;
