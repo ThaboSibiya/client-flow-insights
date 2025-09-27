@@ -96,14 +96,16 @@ const EnhancedPipelineStage = ({
         isHovered ? 'shadow-lg ring-2 ring-quikle-primary/20' : 'shadow-md'
       } ${isDragging ? 'rotate-2 scale-105' : ''}`}>
         <CardHeader 
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing pb-3 relative"
+          className="pb-3 relative"
           style={{ borderTop: `4px solid ${stage.color}` }}
         >
-          {/* Drag indicator */}
-          <div className={`absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-quikle-silver rounded-full transition-opacity ${
-            isHovered ? 'opacity-100' : 'opacity-0'
-          }`} />
+          {/* Drag handle - separate from dropdown */}
+          <div 
+            {...listeners}
+            className={`absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-quikle-silver rounded-full transition-opacity cursor-grab active:cursor-grabbing ${
+              isHovered ? 'opacity-100' : 'opacity-0'
+            }`} 
+          />
           
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -114,32 +116,57 @@ const EnhancedPipelineStage = ({
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-quikle-slate hover:text-quikle-primary">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-quikle-slate hover:text-quikle-primary"
+                  onClick={(e) => {
+                    console.log('Dropdown trigger clicked');
+                    e.stopPropagation();
+                  }}
+                >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-white border-quikle-silver/30 z-50">
-                <DropdownMenuItem onClick={() => {
-                  console.log('Edit dialog opening for stage:', stage.id);
-                  setEditDialogOpen(true);
-                }} className="text-quikle-charcoal hover:bg-quikle-crystal">
+              <DropdownMenuContent className="bg-white border-quikle-silver/30 z-[9999]">
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Edit dialog opening for stage:', stage.id);
+                    setEditDialogOpen(true);
+                  }} 
+                  className="text-quikle-charcoal hover:bg-quikle-crystal cursor-pointer"
+                >
                   Edit Stage
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {
-                  console.log('Target dialog opening for stage:', stage.id);
-                  setTargetDialogOpen(true);
-                }} className="text-quikle-charcoal hover:bg-quikle-crystal">
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Target dialog opening for stage:', stage.id);
+                    setTargetDialogOpen(true);
+                  }} 
+                  className="text-quikle-charcoal hover:bg-quikle-crystal cursor-pointer"
+                >
                   Set Target
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {
-                  console.log('Automation dialog opening for stage:', stage.id);
-                  setAutomationDialogOpen(true);
-                }} className="text-quikle-charcoal hover:bg-quikle-crystal">
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Automation dialog opening for stage:', stage.id);
+                    setAutomationDialogOpen(true);
+                  }} 
+                  className="text-quikle-charcoal hover:bg-quikle-crystal cursor-pointer"
+                >
                   Set Automation
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  className="text-red-600 hover:bg-red-50"
-                  onClick={() => {
+                  className="text-red-600 hover:bg-red-50 cursor-pointer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     console.log('Delete stage called:', stage.id);
                     onStageDelete?.(stage.id);
                   }}
