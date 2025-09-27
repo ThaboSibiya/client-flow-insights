@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +49,9 @@ const EditStageDialog = ({ open, onOpenChange, stage, onEditStage }: EditStageDi
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Stage</DialogTitle>
+          <DialogDescription>
+            Modify the name and color of this pipeline stage.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">

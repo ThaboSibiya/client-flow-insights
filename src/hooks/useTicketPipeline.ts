@@ -136,6 +136,7 @@ export const useTicketPipeline = () => {
   };
 
   const handleStageEdit = (stageId: string, name: string, color: string) => {
+    console.log('Ticket pipeline handleStageEdit called:', stageId, name, color);
     setStages(prev => prev.map(stage => 
       stage.id === stageId 
         ? { ...stage, name, color }
@@ -144,6 +145,7 @@ export const useTicketPipeline = () => {
   };
 
   const handleStageDelete = (stageId: string) => {
+    console.log('Ticket pipeline handleStageDelete called:', stageId);
     setStages(prev => prev.filter(stage => stage.id !== stageId));
   };
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +49,9 @@ const SetTargetDialog = ({ open, onOpenChange, stage, onSetTarget }: SetTargetDi
             <TrendingUp className="h-5 w-5 text-quikle-primary" />
             Set Target for "{stage?.name}"
           </DialogTitle>
+          <DialogDescription>
+            Set a target number to track progress and performance for this stage.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">

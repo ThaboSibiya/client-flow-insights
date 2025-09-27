@@ -119,18 +119,30 @@ const EnhancedPipelineStage = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-white border-quikle-silver/30 z-50">
-                <DropdownMenuItem onClick={() => setEditDialogOpen(true)} className="text-quikle-charcoal hover:bg-quikle-crystal">
+                <DropdownMenuItem onClick={() => {
+                  console.log('Edit dialog opening for stage:', stage.id);
+                  setEditDialogOpen(true);
+                }} className="text-quikle-charcoal hover:bg-quikle-crystal">
                   Edit Stage
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTargetDialogOpen(true)} className="text-quikle-charcoal hover:bg-quikle-crystal">
+                <DropdownMenuItem onClick={() => {
+                  console.log('Target dialog opening for stage:', stage.id);
+                  setTargetDialogOpen(true);
+                }} className="text-quikle-charcoal hover:bg-quikle-crystal">
                   Set Target
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setAutomationDialogOpen(true)} className="text-quikle-charcoal hover:bg-quikle-crystal">
+                <DropdownMenuItem onClick={() => {
+                  console.log('Automation dialog opening for stage:', stage.id);
+                  setAutomationDialogOpen(true);
+                }} className="text-quikle-charcoal hover:bg-quikle-crystal">
                   Set Automation
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   className="text-red-600 hover:bg-red-50"
-                  onClick={() => onStageDelete?.(stage.id)}
+                  onClick={() => {
+                    console.log('Delete stage called:', stage.id);
+                    onStageDelete?.(stage.id);
+                  }}
                 >
                   Delete Stage
                 </DropdownMenuItem>
@@ -219,21 +231,30 @@ const EnhancedPipelineStage = ({
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         stage={stage}
-        onEditStage={(stageId, name, color) => onStageEdit?.(stageId, name, color)}
+        onEditStage={(stageId, name, color) => {
+          console.log('EditStage called:', stageId, name, color);
+          onStageEdit?.(stageId, name, color);
+        }}
       />
       
       <SetTargetDialog
         open={targetDialogOpen}
         onOpenChange={setTargetDialogOpen}
         stage={stage}
-        onSetTarget={(stageId, target) => onSetTarget?.(stageId, target)}
+        onSetTarget={(stageId, target) => {
+          console.log('SetTarget called:', stageId, target);
+          onSetTarget?.(stageId, target);
+        }}
       />
       
       <SetAutomationDialog
         open={automationDialogOpen}
         onOpenChange={setAutomationDialogOpen}
         stage={stage}
-        onSetAutomation={(stageId, enabled) => onSetAutomation?.(stageId, enabled)}
+        onSetAutomation={(stageId, enabled) => {
+          console.log('SetAutomation called:', stageId, enabled);
+          onSetAutomation?.(stageId, enabled);
+        }}
       />
     </div>
   );

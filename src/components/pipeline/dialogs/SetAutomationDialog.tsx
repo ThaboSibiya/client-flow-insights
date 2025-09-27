@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -40,6 +40,9 @@ const SetAutomationDialog = ({ open, onOpenChange, stage, onSetAutomation }: Set
             <Zap className="h-5 w-5 text-quikle-accent" />
             Automation Settings for "{stage?.name}"
           </DialogTitle>
+          <DialogDescription>
+            Configure automation rules that will trigger when items enter this stage.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-6 py-4">
           <div className="flex items-center justify-between">

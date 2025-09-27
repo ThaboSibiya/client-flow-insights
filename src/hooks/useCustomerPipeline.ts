@@ -127,6 +127,7 @@ export const useCustomerPipeline = () => {
   };
 
   const handleStageEdit = (stageId: string, name: string, color: string) => {
+    console.log('Customer pipeline handleStageEdit called:', stageId, name, color);
     setStages(prev => prev.map(stage => 
       stage.id === stageId 
         ? { ...stage, name, color }
@@ -135,6 +136,7 @@ export const useCustomerPipeline = () => {
   };
 
   const handleStageDelete = (stageId: string) => {
+    console.log('Customer pipeline handleStageDelete called:', stageId);
     setStages(prev => prev.filter(stage => stage.id !== stageId));
   };
 
