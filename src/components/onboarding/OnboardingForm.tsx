@@ -163,10 +163,10 @@ const OnboardingForm = () => {
       form.reset();
       resetTemplate();
       
-      // Redirect to customers page after successful submission
+      // Redirect to customers page immediately to see the new customer
       setTimeout(() => {
         navigate('/customers');
-      }, 1500);
+      }, 500);
     } catch (error: any) {
       console.error('Onboarding error:', error);
       toast({

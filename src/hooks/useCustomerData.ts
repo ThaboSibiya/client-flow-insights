@@ -187,14 +187,14 @@ export const useCustomerData = () => {
 
   // Effect for initial data load
   useEffect(() => {
-    if (user && customers.length === 0) {
+    if (user) {
       fetchCustomers();
     }
     // Clear data on logout
     if (!user) {
       setCustomers([]);
     }
-  }, [user, customers.length, fetchCustomers, setCustomers]);
+  }, [user, fetchCustomers, setCustomers]);
 
   // Effect for real-time updates
   useEffect(() => {
@@ -222,5 +222,5 @@ export const useCustomerData = () => {
     };
   }, [user, fetchCustomers]);
 
-  return { customers, isLoading };
+  return { customers, isLoading, fetchCustomers };
 };

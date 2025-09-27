@@ -99,6 +99,10 @@ export const addCustomer = async (
         description: "Customer added successfully",
       });
 
+      // Trigger customer refresh event
+      const event = new CustomEvent('customerCreated', { detail: newCustomer });
+      window.dispatchEvent(event);
+
       return newCustomer;
     }
     

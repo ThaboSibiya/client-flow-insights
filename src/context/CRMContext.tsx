@@ -24,17 +24,8 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
   const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'activeTickets' | 'ticketCount'>) => {
     if (!user) return;
     
-    const tempId = `temp-${Date.now()}`;
-    const newCustomer: Customer = {
-      ...customerData,
-      id: tempId,
-      activeTickets: [],
-      ticketCount: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    await addCustomerOptimistically(newCustomer, async () => {
+    try {
+      // Add customer to database first
       const actualCustomer = await addCustomerService({
         ...customerData,
         activeTickets: [],
@@ -42,11 +33,20 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
       }, user.id);
       
       if (actualCustomer) {
-        // After successful creation, update the store with the actual customer data from the server
+        // Immediately update the store with the new customer
         const currentCustomers = customerStore.customers;
-        customerStore.setCustomers([actualCustomer, ...currentCustomers.filter(c => c.id !== tempId)]);
+        customerStore.setCustomers([actualCustomer, ...currentCustomers]);
+        
+        // Clear any error state
+        customerStore.setError(null);
+        
+        return actualCustomer;
       }
-    });
+    } catch (error) {
+      console.error('Failed to add customer:', error);
+      customerStore.setError('Failed to add customer');
+      throw error;
+    }
   };
 
   const updateCustomerStatus = async (id: string, status: CustomerStatus) => {
