@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CustomerChart from '@/components/analytics/CustomerChart';
@@ -12,24 +11,23 @@ import InteractiveReports from '@/components/analytics/InteractiveReports';
 import { Users, Ticket, TrendingUp, FileBarChart } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
 import { generateReportData, calculateSummary } from '@/utils/customer-analytics';
-
 const Analytics = () => {
-  const { customers } = useCRM();
+  const {
+    customers
+  } = useCRM();
   const [timeframe, setTimeframe] = useState<'monthly' | 'yearly'>('monthly');
-  
+
   // Generate analytics data from customer data
   const reportData = generateReportData(customers, timeframe);
   const summary = calculateSummary(reportData);
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-2 rounded-md mb-2 shadow-lg transform hover:scale-[1.01] transition-all duration-300 border border-white/20 backdrop-blur-sm quikle-card">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-1.5">
           <div>
             <h1 className="text-lg font-bold text-gradient-quikle drop-shadow-sm">
               Analytics & Reports
             </h1>
-            <p className="text-muted-foreground text-xs opacity-80">
+            <p className="text-muted-foreground opacity-80 text-base">
               Comprehensive insights into customer & ticket performance
             </p>
           </div>
@@ -80,8 +78,6 @@ const Analytics = () => {
           <InteractiveReports />
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 };
-
 export default Analytics;
