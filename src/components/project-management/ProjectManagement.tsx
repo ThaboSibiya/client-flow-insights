@@ -1,4 +1,3 @@
-
 import React, { Suspense } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,22 +15,14 @@ const ProjectKanbanBoard = React.lazy(() => import('./ProjectKanbanBoard'));
 const ProjectGanttChart = React.lazy(() => import('./ProjectGanttChart'));
 const ProjectCalendar = React.lazy(() => import('./ProjectCalendar'));
 const TaskManagement = React.lazy(() => import('./TaskManagement'));
-
-const LoadingSkeleton = () => (
-  <div className="space-y-6">
+const LoadingSkeleton = () => <div className="space-y-6">
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      {[...Array(4)].map((_, i) => (
-        <Skeleton key={i} className="h-20" />
-      ))}
+      {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-20" />)}
     </div>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[...Array(6)].map((_, i) => (
-        <Skeleton key={i} className="h-64" />
-      ))}
+      {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-64" />)}
     </div>
-  </div>
-);
-
+  </div>;
 const ProjectManagement = () => {
   const [activeView, setActiveView] = React.useState<'overview' | 'kanban' | 'gantt' | 'calendar' | 'tasks'>('overview');
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = React.useState(false);
@@ -42,32 +33,49 @@ const ProjectManagement = () => {
     priority: [],
     type: [],
     owner: [],
-    dateRange: { start: null, end: null },
-    search: '',
+    dateRange: {
+      start: null,
+      end: null
+    },
+    search: ''
   });
-
-  const { projects, isLoading, totalCount } = useOptimizedProjectData(filters);
-
-  const mockTeamMembers = React.useMemo(() => [
-    { id: '1', name: 'John Smith', email: 'john@company.com', role: 'Project Manager', department: 'Management' },
-    { id: '2', name: 'Sarah Johnson', email: 'sarah@company.com', role: 'Developer', department: 'Engineering' },
-    { id: '3', name: 'Mike Wilson', email: 'mike@company.com', role: 'Designer', department: 'Design' },
-    { id: '4', name: 'Lisa Brown', email: 'lisa@company.com', role: 'QA Engineer', department: 'Engineering' },
-  ], []);
-
+  const {
+    projects,
+    isLoading,
+    totalCount
+  } = useOptimizedProjectData(filters);
+  const mockTeamMembers = React.useMemo(() => [{
+    id: '1',
+    name: 'John Smith',
+    email: 'john@company.com',
+    role: 'Project Manager',
+    department: 'Management'
+  }, {
+    id: '2',
+    name: 'Sarah Johnson',
+    email: 'sarah@company.com',
+    role: 'Developer',
+    department: 'Engineering'
+  }, {
+    id: '3',
+    name: 'Mike Wilson',
+    email: 'mike@company.com',
+    role: 'Designer',
+    department: 'Design'
+  }, {
+    id: '4',
+    name: 'Lisa Brown',
+    email: 'lisa@company.com',
+    role: 'QA Engineer',
+    department: 'Engineering'
+  }], []);
   const handleCreateProject = React.useCallback((projectData: any) => {
     // In a real app, this would make an API call
     console.log('Creating project:', projectData);
   }, []);
-
-  const selectedProject = React.useMemo(() => 
-    selectedProjectForTasks ? projects.find(p => p.id === selectedProjectForTasks) : null,
-    [selectedProjectForTasks, projects]
-  );
-
+  const selectedProject = React.useMemo(() => selectedProjectForTasks ? projects.find(p => p.id === selectedProjectForTasks) : null, [selectedProjectForTasks, projects]);
   if (isLoading) {
-    return (
-      <div className="space-y-6">
+    return <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-quikle-charcoal">Project Management</h1>
@@ -76,33 +84,23 @@ const ProjectManagement = () => {
           <Skeleton className="h-10 w-32" />
         </div>
         <LoadingSkeleton />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-quikle-charcoal">Project Management</h1>
-          <p className="text-quikle-slate mt-1">
+          <h1 className="font-bold text-quikle-charcoal text-2xl">Project Management</h1>
+          <p className="text-quikle-slate mt-1 text-base">
             Manage and track your projects with Kanban boards, Gantt charts, and team collaboration
           </p>
         </div>
         <div className="flex gap-3">
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => setIsSettingsModalOpen(true)}
-          >
+          <Button variant="outline" className="flex items-center gap-2" onClick={() => setIsSettingsModalOpen(true)}>
             <Settings className="h-4 w-4" />
             Settings
           </Button>
-          <Button 
-            className="bg-quikle-primary hover:bg-quikle-secondary text-white"
-            onClick={() => setIsNewProjectModalOpen(true)}
-          >
+          <Button className="bg-quikle-primary hover:bg-quikle-secondary text-white" onClick={() => setIsNewProjectModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             New Project
           </Button>
@@ -142,11 +140,7 @@ const ProjectManagement = () => {
         </div>
 
         {/* Filters */}
-        <ProjectFilters
-          filters={filters}
-          onFiltersChange={setFilters}
-          teamMembers={mockTeamMembers}
-        />
+        <ProjectFilters filters={filters} onFiltersChange={setFilters} teamMembers={mockTeamMembers} />
 
         {/* Content */}
         <div className="min-h-[600px]">
@@ -160,18 +154,14 @@ const ProjectManagement = () => {
             <Card>
               <CardContent className="p-6">
                 <Suspense fallback={<Skeleton className="h-96" />}>
-                  <ProjectKanbanBoard
-                    projects={projects}
-                    onProjectMove={() => {}}
-                  />
+                  <ProjectKanbanBoard projects={projects} onProjectMove={() => {}} />
                 </Suspense>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="tasks" className="mt-0">
-            {!selectedProject ? (
-              <Card>
+            {!selectedProject ? <Card>
                 <CardContent className="p-6 text-center">
                   <CheckSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">Select a Project</h3>
@@ -179,25 +169,14 @@ const ProjectManagement = () => {
                     Choose a project to manage its tasks and assignments
                   </p>
                   <div className="flex flex-wrap gap-2 justify-center">
-                    {projects.map((project) => (
-                      <Button
-                        key={project.id}
-                        variant="outline"
-                        onClick={() => setSelectedProjectForTasks(project.id)}
-                      >
+                    {projects.map(project => <Button key={project.id} variant="outline" onClick={() => setSelectedProjectForTasks(project.id)}>
                         {project.name}
-                      </Button>
-                    ))}
+                      </Button>)}
                   </div>
                 </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
+              </Card> : <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setSelectedProjectForTasks(null)}
-                  >
+                  <Button variant="outline" onClick={() => setSelectedProjectForTasks(null)}>
                     ← Back to Projects
                   </Button>
                   <div>
@@ -206,14 +185,9 @@ const ProjectManagement = () => {
                   </div>
                 </div>
                 <Suspense fallback={<Skeleton className="h-96" />}>
-                  <TaskManagement
-                    project={selectedProject}
-                    onTaskCreate={() => {}}
-                    onTaskUpdate={() => {}}
-                  />
+                  <TaskManagement project={selectedProject} onTaskCreate={() => {}} onTaskUpdate={() => {}} />
                 </Suspense>
-              </div>
-            )}
+              </div>}
           </TabsContent>
 
           <TabsContent value="gantt" className="mt-0">
@@ -231,8 +205,7 @@ const ProjectManagement = () => {
       </Tabs>
 
       {/* Empty State */}
-      {projects.length === 0 && !isLoading && (
-        <Card>
+      {projects.length === 0 && !isLoading && <Card>
           <CardContent className="text-center py-12">
             <div className="text-6xl mb-4">🚀</div>
             <h2 className="text-2xl font-semibold mb-2">No projects yet</h2>
@@ -240,31 +213,17 @@ const ProjectManagement = () => {
               Get started by creating your first project. You can track progress, assign tasks, 
               and collaborate with your team all in one place.
             </p>
-            <Button 
-              className="bg-quikle-primary hover:bg-quikle-secondary text-white"
-              onClick={() => setIsNewProjectModalOpen(true)}
-            >
+            <Button className="bg-quikle-primary hover:bg-quikle-secondary text-white" onClick={() => setIsNewProjectModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Project
             </Button>
           </CardContent>
-        </Card>
-      )}
+        </Card>}
 
       {/* Modals */}
-      <NewProjectModal
-        isOpen={isNewProjectModalOpen}
-        onClose={() => setIsNewProjectModalOpen(false)}
-        onCreateProject={handleCreateProject}
-        teamMembers={mockTeamMembers}
-      />
+      <NewProjectModal isOpen={isNewProjectModalOpen} onClose={() => setIsNewProjectModalOpen(false)} onCreateProject={handleCreateProject} teamMembers={mockTeamMembers} />
 
-      <ProjectSettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-      />
-    </div>
-  );
+      <ProjectSettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} />
+    </div>;
 };
-
 export default ProjectManagement;
