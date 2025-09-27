@@ -5,7 +5,7 @@ import { useCustomerFilters } from '@/hooks/useCustomerFilters';
 import { useTableSelection } from '@/hooks/useTableSelection';
 import { useCustomerExport } from '@/hooks/useCustomerExport';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { useCustomerRefresh } from '@/hooks/useCustomerRefresh';
+
 import CustomerTableContent from './CustomerTableContent';
 import CustomerTableFilters from './CustomerTableFilters';
 import QuickActionsBar from '../QuickActionsBar';
@@ -13,9 +13,6 @@ import ErrorBoundary from '@/components/error/ErrorBoundary';
 import { toast } from '@/hooks/use-toast';
 
 const CustomerTableContainer = () => {
-  // Enable customer refresh listening
-  useCustomerRefresh();
-  
   const {
     customers,
     isLoading,

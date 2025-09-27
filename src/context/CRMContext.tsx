@@ -18,7 +18,7 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
   const { fetchCustomers } = useCustomerData(); // This hook now manages data fetching and updates the customer store.
   const customerStore = useCustomerStore();
   const ticketStore = useTicketStore();
-  const { updateCustomerOptimistically, deleteCustomerOptimistically, addCustomerOptimistically, updateTicketOptimistically } = useOptimisticUpdates();
+  const { updateCustomerOptimistically, deleteCustomerOptimistically, updateTicketOptimistically } = useOptimisticUpdates();
   const { user } = useAuth();
 
   const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'activeTickets' | 'ticketCount'>) => {
@@ -39,11 +39,6 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
         
         // Clear any error state
         customerStore.setError(null);
-        
-        // Trigger a refresh to ensure consistency
-        setTimeout(() => {
-          fetchCustomers();
-        }, 100);
         
         return actualCustomer;
       }
