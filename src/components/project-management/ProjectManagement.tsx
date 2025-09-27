@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, LayoutGrid, BarChart3, Calendar, Settings, CheckSquare } from "lucide-react";
-import { useOptimizedProjectData } from '@/hooks/useOptimizedProjectData';
+import { useProjectManagement } from '@/hooks/useProjectManagement';
 import { Skeleton } from "@/components/ui/skeleton";
 import ProjectFilters from './ProjectFilters';
 import NewProjectModal from './NewProjectModal';
@@ -28,52 +28,23 @@ const ProjectManagement = () => {
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = React.useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = React.useState(false);
   const [selectedProjectForTasks, setSelectedProjectForTasks] = React.useState<string | null>(null);
-  const [filters, setFilters] = React.useState({
-    status: [],
-    priority: [],
-    type: [],
-    owner: [],
-    dateRange: {
-      start: null,
-      end: null
-    },
-    search: ''
-  });
   const {
     projects,
-    isLoading,
-    totalCount
-  } = useOptimizedProjectData(filters);
-  const mockTeamMembers = React.useMemo(() => [{
-    id: '1',
-    name: 'John Smith',
-    email: 'john@company.com',
-    role: 'Project Manager',
-    department: 'Management'
-  }, {
-    id: '2',
-    name: 'Sarah Johnson',
-    email: 'sarah@company.com',
-    role: 'Developer',
-    department: 'Engineering'
-  }, {
-    id: '3',
-    name: 'Mike Wilson',
-    email: 'mike@company.com',
-    role: 'Designer',
-    department: 'Design'
-  }, {
-    id: '4',
-    name: 'Lisa Brown',
-    email: 'lisa@company.com',
-    role: 'QA Engineer',
-    department: 'Engineering'
-  }], []);
+    filters,
+    setFilters,
+    teamMembers,
+    addProject,
+    updateProject,
+    deleteProject
+  } = useProjectManagement();
+  
+  const isLoading = false;
+  const totalCount = projects.length;
   const handleCreateProject = React.useCallback((projectData: any) => {
-    // In a real app, this would make an API call
     console.log('Creating project:', projectData);
-  }, []);
-  const selectedProject = React.useMemo(() => selectedProjectForTasks ? projects.find(p => p.id === selectedProjectForTasks) : null, [selectedProjectForTasks, projects]);
+    addProject(projectData);
+  }, [addProject]);
+  const selectedProjectForTasksData = React.useMemo(() => selectedProjectForTasks ? projects.find(p => p.id === selectedProjectForTasks) : null, [selectedProjectForTasks, projects]);
   if (isLoading) {
     return <div className="space-y-6">
         <div className="flex justify-between items-center">
@@ -140,7 +111,7 @@ const ProjectManagement = () => {
         </div>
 
         {/* Filters */}
-        <ProjectFilters filters={filters} onFiltersChange={setFilters} teamMembers={mockTeamMembers} />
+        <ProjectFilters filters={filters} onFiltersChange={setFilters} teamMembers={teamMembers} />
 
         {/* Content */}
         <div className="min-h-[600px]">
@@ -161,7 +132,7 @@ const ProjectManagement = () => {
           </TabsContent>
 
           <TabsContent value="tasks" className="mt-0">
-            {!selectedProject ? <Card>
+            {!selectedProjectForTasksData ? <Card>
                 <CardContent className="p-6 text-center">
                   <CheckSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">Select a Project</h3>
@@ -180,12 +151,12 @@ const ProjectManagement = () => {
                     ← Back to Projects
                   </Button>
                   <div>
-                    <h2 className="text-xl font-semibold">{selectedProject.name}</h2>
-                    <p className="text-muted-foreground">{selectedProject.description}</p>
+                    <h2 className="text-xl font-semibold">{selectedProjectForTasksData.name}</h2>
+                    <p className="text-muted-foreground">{selectedProjectForTasksData.description}</p>
                   </div>
                 </div>
                 <Suspense fallback={<Skeleton className="h-96" />}>
-                  <TaskManagement project={selectedProject} onTaskCreate={() => {}} onTaskUpdate={() => {}} />
+                  <TaskManagement project={selectedProjectForTasksData} onTaskCreate={() => {}} onTaskUpdate={() => {}} />
                 </Suspense>
               </div>}
           </TabsContent>
@@ -221,7 +192,7 @@ const ProjectManagement = () => {
         </Card>}
 
       {/* Modals */}
-      <NewProjectModal isOpen={isNewProjectModalOpen} onClose={() => setIsNewProjectModalOpen(false)} onCreateProject={handleCreateProject} teamMembers={mockTeamMembers} />
+      <NewProjectModal isOpen={isNewProjectModalOpen} onClose={() => setIsNewProjectModalOpen(false)} onCreateProject={handleCreateProject} teamMembers={teamMembers} />
 
       <ProjectSettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} />
     </div>;
