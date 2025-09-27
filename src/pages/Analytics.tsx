@@ -21,13 +21,13 @@ const Analytics = () => {
   const reportData = generateReportData(customers, timeframe);
   const summary = calculateSummary(reportData);
   return <div className="space-y-6">
-      <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-2 rounded-md mb-2 shadow-lg transform hover:scale-[1.01] transition-all duration-300 border border-white/20 backdrop-blur-sm quikle-card">
+      <div className="mb-6">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-1.5">
           <div>
-            <h1 className="text-lg font-bold text-gradient-quikle drop-shadow-sm">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-lg">
               Analytics & Reports
             </h1>
-            <p className="text-muted-foreground opacity-80 text-base">
+            <p className="text-quikle-charcoal/70 font-medium">
               Comprehensive insights into customer & ticket performance
             </p>
           </div>

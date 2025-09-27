@@ -21,11 +21,11 @@ const Customers = () => {
   return (
     <div className="space-y-8">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-accent/15 to-quikle-secondary/20 p-2 rounded-md shadow-luxury transform hover:scale-[1.01] transition-all duration-300 border border-white/20 backdrop-blur-sm quikle-card">
+      <div className="mb-6">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-1.5">
           <div>
-            <h1 className="text-lg font-bold text-gradient-quikle drop-shadow-sm">Client Management</h1>
-            <p className="text-quikle-slate text-xs opacity-80">View, manage, and communicate with your clients</p>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-lg">Client Management</h1>
+            <p className="text-quikle-charcoal/70 font-medium">View, manage, and communicate with your clients</p>
           </div>
           <div className="flex gap-2">
             <Button 
