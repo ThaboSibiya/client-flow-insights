@@ -177,13 +177,38 @@ export const useProjectManagement = () => {
   }, []);
 
   const addProject = useCallback((projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
+    console.log('addProject called with:', projectData);
+    
+    // Ensure dates are proper Date objects
+    const startDate = projectData.startDate instanceof Date ? projectData.startDate : new Date(projectData.startDate);
+    const dueDate = projectData.dueDate instanceof Date ? projectData.dueDate : new Date(projectData.dueDate);
+    
+    // Ensure team array doesn't have circular references
+    const cleanTeam = Array.isArray(projectData.team) ? projectData.team.map(member => ({
+      id: member.id,
+      name: member.name,
+      email: member.email,
+      role: member.role,
+      department: member.department,
+      avatar: member.avatar
+    })) : [projectData.owner];
+    
     const newProject: Project = {
       ...projectData,
       id: `proj-${Date.now()}`,
+      startDate,
+      dueDate,
+      team: cleanTeam,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    setProjects(prev => [newProject, ...prev]);
+    
+    console.log('New project created:', newProject);
+    setProjects(prev => {
+      const updated = [newProject, ...prev];
+      console.log('Updated projects array:', updated);
+      return updated;
+    });
   }, []);
 
   const updateProject = useCallback((projectId: string, updates: Partial<Project>) => {
