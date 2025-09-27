@@ -17,13 +17,7 @@ const Onboarding = () => {
       </div>
       
       {user ? <>
-          <Alert className="bg-gradient-to-r from-quikle-crystal to-quikle-platinum border-quikle-primary/30 text-quikle-charcoal mb-4 shadow-platinum">
-            <Info className="h-4 w-4 text-quikle-primary" />
-            <AlertTitle className="text-quikle-primary font-semibold">Data is being saved</AlertTitle>
-            <AlertDescription className="text-quikle-slate">
-              All customer information and custom templates you create will be securely stored in your Supabase database.
-            </AlertDescription>
-          </Alert>
+          
 
           <Tabs defaultValue="individual" className="w-full">
             <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
