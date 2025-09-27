@@ -12,7 +12,7 @@ const Onboarding = () => {
   } = useAuth();
   return <div className="space-y-6">
       <div className="bg-gradient-to-r from-quikle-primary/20 via-quikle-secondary/15 to-quikle-accent/20 p-8 rounded-xl mb-6 shadow-luxury border border-quikle-silver/30 backdrop-blur-sm px-[3px] py-[3px]">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-sm">Customer Onboarding</h1>
+        <h1 className="font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-sm text-lg">Customer Onboarding</h1>
         <p className="text-quikle-slate mt-1">Add new customers to your CRM system individually, in bulk, or create custom templates</p>
       </div>
       
