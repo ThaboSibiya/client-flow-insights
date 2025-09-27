@@ -62,13 +62,13 @@ const QuoteInvoice = () => {
     setActiveTab(type === 'quote' ? 'create-quote' : 'create-invoice');
   };
   return <div className="space-y-8">
-      <div className="bg-gradient-to-r from-quikle-primary/10 via-quikle-accent/8 to-quikle-secondary/10 p-6 rounded-xl border border-quikle-silver/20 backdrop-blur-sm py-[2px] px-[2px]">
+      <div className="mb-6">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-lg">
               Quotes & Invoices
             </h1>
-            <p className="text-quikle-slate text-sm mt-1">
+            <p className="text-quikle-charcoal/70 font-medium">
               Create professional quotes and invoices with automated workflow management
             </p>
           </div>
