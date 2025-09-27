@@ -15,7 +15,7 @@ import { Customer, CustomerStatus, CustomerTicket, TicketStatus, CRMContextType,
 const CRMContext = createContext<CRMContextType | undefined>(undefined);
 
 export const CRMProvider = ({ children }: { children: ReactNode }) => {
-  useCustomerData(); // This hook now manages data fetching and updates the customer store.
+  const { fetchCustomers } = useCustomerData(); // This hook now manages data fetching and updates the customer store.
   const customerStore = useCustomerStore();
   const ticketStore = useTicketStore();
   const { updateCustomerOptimistically, deleteCustomerOptimistically, addCustomerOptimistically, updateTicketOptimistically } = useOptimisticUpdates();
@@ -39,6 +39,11 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
         
         // Clear any error state
         customerStore.setError(null);
+        
+        // Trigger a refresh to ensure consistency
+        setTimeout(() => {
+          fetchCustomers();
+        }, 100);
         
         return actualCustomer;
       }
