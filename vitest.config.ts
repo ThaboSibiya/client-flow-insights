@@ -10,6 +10,9 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     include: ['src/test/**/*.{test,spec}.{js,ts,tsx}'],
+    deps: {
+      inline: ['@testing-library/react'],
+    },
   },
   resolve: {
     alias: {
