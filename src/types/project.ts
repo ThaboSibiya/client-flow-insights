@@ -1,9 +1,11 @@
 
+// Status and enum types
 export type ProjectStatus = 'not-started' | 'in-progress' | 'on-hold' | 'completed' | 'cancelled';
 export type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 export type ProjectType = 'development' | 'marketing' | 'design' | 'research' | 'maintenance';
 
+// Core interfaces
 export interface TeamMember {
   id: string;
   name: string;
@@ -11,6 +13,15 @@ export interface TeamMember {
   avatar?: string;
   role: string;
   department: string;
+}
+
+export interface TaskComment {
+  id: string;
+  content: string;
+  author: TeamMember;
+  createdAt: Date;
+  parentId?: string;
+  attachments?: string[];
 }
 
 export interface Task {
@@ -28,19 +39,10 @@ export interface Task {
   tags: string[];
   dependencies: string[];
   attachments: string[];
-  comments: Comment[];
+  comments: TaskComment[];
   projectId: string;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface Comment {
-  id: string;
-  content: string;
-  author: TeamMember;
-  createdAt: Date;
-  parentId?: string;
-  attachments?: string[];
 }
 
 export interface Project {
@@ -64,6 +66,7 @@ export interface Project {
   updatedAt: Date;
 }
 
+// Filter and form interfaces
 export interface ProjectFilters {
   status: ProjectStatus[];
   priority: Priority[];
@@ -76,6 +79,30 @@ export interface ProjectFilters {
   search: string;
 }
 
+export interface ProjectFormData {
+  name: string;
+  description: string;
+  type: ProjectType;
+  priority: Priority;
+  budget: number;
+  client: string;
+  startDate: Date;
+  dueDate: Date;
+  ownerId: string;
+  teamIds: string[];
+}
+
+export interface TaskFormData {
+  title: string;
+  description: string;
+  priority: Priority;
+  estimatedHours: number;
+  dueDate: Date;
+  assignedToIds: string[];
+  tags: string[];
+}
+
+// Chart and visualization interfaces
 export interface GanttChartData {
   id: string;
   name: string;
@@ -86,4 +113,64 @@ export interface GanttChartData {
   dependencies: string[];
   assignees: TeamMember[];
   parent?: string;
+}
+
+export interface ProjectStats {
+  totalProjects: number;
+  activeProjects: number;
+  completedProjects: number;
+  totalBudget: number;
+  totalSpent: number;
+  budgetUtilization: number;
+}
+
+// Event handler types
+export interface ProjectEventHandlers {
+  onProjectCreate?: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onProjectUpdate?: (projectId: string, updates: Partial<Project>) => void;
+  onProjectDelete?: (projectId: string) => void;
+  onProjectMove?: (projectId: string, newStatus: ProjectStatus) => void;
+  onTaskCreate?: (projectId: string, task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onTaskUpdate?: (projectId: string, taskId: string, updates: Partial<Task>) => void;
+  onTaskDelete?: (projectId: string, taskId: string) => void;
+}
+
+// Component prop interfaces
+export interface ProjectComponentProps {
+  projects: Project[];
+  selectedProject?: Project | null;
+  onProjectSelect?: (project: Project | null) => void;
+  onError?: (error: Error) => void;
+}
+
+export interface ProjectModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  project?: Project | null;
+}
+
+// API response types
+export interface ProjectApiResponse {
+  projects: Project[];
+  totalCount: number;
+  hasMore: boolean;
+}
+
+export interface ProjectApiError {
+  message: string;
+  code?: string;
+  details?: Record<string, unknown>;
+}
+
+// Validation types
+export interface ValidationResult {
+  success: boolean;
+  errors?: string[];
+  data?: unknown;
+}
+
+export interface ProjectValidationError {
+  field: string;
+  message: string;
+  code?: string;
 }

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Project, ProjectStatus, ProjectType, Priority, TeamMember } from '@/types/project';
+import { Project, ProjectStatus, ProjectType, Priority, TeamMember, ProjectFormData } from '@/types/project';
 import { toast } from '@/hooks/use-toast';
+import { validateProject, sanitizeProjectInput } from '@/utils/project-validation';
 
 interface NewProjectModalProps {
   isOpen: boolean;
@@ -21,106 +22,125 @@ interface NewProjectModalProps {
   teamMembers: TeamMember[];
 }
 
-const NewProjectModal = ({ isOpen, onClose, onCreateProject, teamMembers }: NewProjectModalProps) => {
-  const [formData, setFormData] = useState({
+const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClose, onCreateProject, teamMembers }) => {
+  const [formData, setFormData] = useState<ProjectFormData>({
     name: '',
     description: '',
     type: '' as ProjectType,
     priority: '' as Priority,
-    budget: '',
+    budget: 0,
     client: '',
-    startDate: undefined as Date | undefined,
-    dueDate: undefined as Date | undefined,
+    startDate: new Date(),
+    dueDate: new Date(),
     ownerId: '',
-    teamIds: [] as string[],
+    teamIds: [],
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    if (!formData.name.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Project name is required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.type) {
-      toast({
-        title: "Validation Error", 
-        description: "Project type is required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.priority) {
-      toast({
-        title: "Validation Error",
-        description: "Priority is required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.ownerId) {
-      toast({
-        title: "Validation Error",
-        description: "Project owner is required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const owner = teamMembers.find(member => member.id === formData.ownerId)!;
-    const team = teamMembers.filter(member => 
-      formData.teamIds.includes(member.id) || member.id === formData.ownerId
-    );
-
-    const projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'> = {
-      name: formData.name,
-      description: formData.description,
-      status: 'not-started' as ProjectStatus,
-      type: formData.type,
-      priority: formData.priority,
-      startDate: formData.startDate || new Date(),
-      dueDate: formData.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      budget: parseFloat(formData.budget) || 0,
-      spent: 0,
-      progress: 0,
-      owner,
-      team,
-      tasks: [],
-      tags: [],
-      client: formData.client || 'Internal',
-    };
-
-    onCreateProject(projectData);
-    handleReset();
-    onClose();
+    if (isSubmitting) return;
     
-    toast({
-      title: "Project Created",
-      description: `${formData.name} has been created successfully.`,
-    });
+    setIsSubmitting(true);
+    
+    try {
+      // Sanitize inputs
+      const sanitizedData = {
+        ...formData,
+        name: sanitizeProjectInput(formData.name),
+        description: sanitizeProjectInput(formData.description),
+        client: sanitizeProjectInput(formData.client)
+      };
+      
+      // Validate form data
+      const validation = validateProject(sanitizedData);
+      if (!validation.success) {
+        toast({
+          title: "Validation Error",
+          description: validation.errors?.[0] || "Please check your inputs",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!formData.ownerId) {
+        toast({
+          title: "Validation Error",
+          description: "Project owner is required.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const owner = teamMembers.find(member => member.id === formData.ownerId);
+      if (!owner) {
+        toast({
+          title: "Validation Error",
+          description: "Selected owner not found.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const team = teamMembers.filter(member => 
+        formData.teamIds.includes(member.id) || member.id === formData.ownerId
+      );
+
+      const projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'> = {
+        name: sanitizedData.name,
+        description: sanitizedData.description,
+        status: 'not-started' as ProjectStatus,
+        type: formData.type,
+        priority: formData.priority,
+        startDate: formData.startDate,
+        dueDate: formData.dueDate,
+        budget: formData.budget,
+        spent: 0,
+        progress: 0,
+        owner,
+        team,
+        tasks: [],
+        tags: [],
+        client: sanitizedData.client || 'Internal',
+      };
+
+      onCreateProject(projectData);
+      handleReset();
+      onClose();
+      
+      toast({
+        title: "Project Created",
+        description: `${sanitizedData.name} has been created successfully.`,
+      });
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create project. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setFormData({
       name: '',
       description: '',
       type: '' as ProjectType,
       priority: '' as Priority,
-      budget: '',
+      budget: 0,
       client: '',
-      startDate: undefined,
-      dueDate: undefined,
+      startDate: new Date(),
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       ownerId: '',
       teamIds: [],
     });
-  };
+    setIsSubmitting(false);
+  }, []);
 
   const handleClose = () => {
     handleReset();
@@ -198,14 +218,15 @@ const NewProjectModal = ({ isOpen, onClose, onCreateProject, teamMembers }: NewP
 
             <div>
               <Label htmlFor="budget">Budget ($)</Label>
-              <Input
-                id="budget"
-                type="number"
-                value={formData.budget}
-                onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
-                placeholder="0"
-                min="0"
-              />
+                <Input
+                  id="budget"
+                  type="number"
+                  value={formData.budget}
+                  onChange={(e) => setFormData(prev => ({ ...prev, budget: Number(e.target.value) || 0 }))}
+                  placeholder="0"
+                  min="0"
+                  step="1000"
+                />
             </div>
 
             <div>
@@ -290,12 +311,25 @@ const NewProjectModal = ({ isOpen, onClose, onCreateProject, teamMembers }: NewP
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={handleClose}>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-quikle-primary hover:bg-quikle-secondary text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Project
+            <Button 
+              type="submit" 
+              className="bg-quikle-primary hover:bg-quikle-secondary text-white" 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Project
+                </>
+              )}
             </Button>
           </div>
         </form>
