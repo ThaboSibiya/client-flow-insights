@@ -6,13 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Clock, Mail, Phone, GripVertical } from "lucide-react";
 import { format } from 'date-fns';
-
-interface PipelineCardProps {
-  item: any;
-  type: 'customer' | 'ticket';
-  stageId: string;
-  onMove: (itemId: string, fromStageId: string, toStageId: string) => void;
-}
+import { PipelineCardProps } from '@/types/pipeline';
 
 const PipelineCard = ({ item, type, stageId, onMove }: PipelineCardProps) => {
   const {
@@ -47,6 +41,7 @@ const PipelineCard = ({ item, type, stageId, onMove }: PipelineCardProps) => {
   };
 
   if (type === 'customer') {
+    const customer = item as import('@/types/customer').Customer;
     return (
       <Card
         ref={setNodeRef}
@@ -66,14 +61,14 @@ const PipelineCard = ({ item, type, stageId, onMove }: PipelineCardProps) => {
           <div className="flex items-center gap-3 mb-2 ml-6">
             <Avatar className="h-8 w-8">
               <AvatarFallback className="bg-quikle-crystal text-quikle-primary">
-                {item.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+                {customer.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate text-quikle-charcoal">{item.name}</p>
+              <p className="font-medium text-sm truncate text-quikle-charcoal">{customer.name}</p>
               <div className="flex items-center gap-2 text-xs text-quikle-slate">
                 <Mail className="h-3 w-3" />
-                <span className="truncate">{item.email}</span>
+                <span className="truncate">{customer.email}</span>
               </div>
             </div>
           </div>
@@ -81,21 +76,22 @@ const PipelineCard = ({ item, type, stageId, onMove }: PipelineCardProps) => {
           <div className="flex items-center justify-between text-xs ml-6">
             <div className="flex items-center gap-1 text-quikle-slate">
               <Phone className="h-3 w-3" />
-              <span>{item.phone}</span>
+              <span>{customer.phone}</span>
             </div>
             <Badge variant="outline" className="text-xs border-quikle-silver/50 text-quikle-slate">
-              {item.ticketCount} tickets
+              {customer.ticketCount} tickets
             </Badge>
           </div>
           
           <div className="mt-2 text-xs text-quikle-slate ml-6">
-            Added {format(new Date(item.createdAt), 'MMM dd')}
+            Added {format(new Date(customer.createdAt), 'MMM dd')}
           </div>
         </CardContent>
       </Card>
     );
   }
 
+  const ticket = item as import('@/types/customer').CustomerTicket;
   return (
     <Card
       ref={setNodeRef}
@@ -114,21 +110,21 @@ const PipelineCard = ({ item, type, stageId, onMove }: PipelineCardProps) => {
 
         <div className="flex items-start justify-between mb-2 ml-6">
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate text-quikle-charcoal">{item.subject}</p>
+            <p className="font-medium text-sm truncate text-quikle-charcoal">{ticket.subject}</p>
             <p className="text-xs text-quikle-slate truncate">
-              #{item.ticketNumber}
+              #{ticket.ticketNumber}
             </p>
           </div>
-          <div className={`w-2 h-2 rounded-full ${getPriorityColor(item.priority)}`} />
+          <div className={`w-2 h-2 rounded-full ${getPriorityColor(ticket.priority)}`} />
         </div>
         
         <div className="flex items-center gap-2 mb-2 ml-6">
           <Badge variant="outline" className="text-xs border-quikle-silver/50 text-quikle-slate">
-            {item.priority}
+            {ticket.priority}
           </Badge>
-          {item.assignedTo && (
+          {ticket.assignedTo && (
             <Badge variant="secondary" className="text-xs bg-quikle-crystal text-quikle-primary">
-              {item.assignedTo.name}
+              {ticket.assignedTo.name}
             </Badge>
           )}
         </div>
@@ -136,9 +132,9 @@ const PipelineCard = ({ item, type, stageId, onMove }: PipelineCardProps) => {
         <div className="flex items-center justify-between text-xs text-quikle-slate ml-6">
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            <span>{Math.round(item.totalTimeSpent / 60)}h</span>
+            <span>{Math.round(ticket.totalTimeSpent / 60)}h</span>
           </div>
-          <span>{format(new Date(item.createdAt), 'MMM dd')}</span>
+          <span>{format(new Date(ticket.createdAt), 'MMM dd')}</span>
         </div>
       </CardContent>
     </Card>

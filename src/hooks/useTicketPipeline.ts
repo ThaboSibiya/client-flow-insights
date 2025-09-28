@@ -3,21 +3,17 @@ import { useState, useCallback, useMemo } from 'react';
 import { useCRM } from '@/context/CRMContext';
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
+import { 
+  TicketPipelineStage, 
+  TicketPipelineItem, 
+  TicketPipelineHookReturn 
+} from '@/types/pipeline';
 
-export interface TicketStage {
-  id: string;
-  name: string;
-  color: string;
-  tickets: any[];
-  automationEnabled: boolean;
-  target?: number;
-}
-
-export const useTicketPipeline = () => {
+export const useTicketPipeline = (): TicketPipelineHookReturn => {
   const { customers } = useCRM();
   const allTickets = customers.flatMap(c => c.activeTickets || []);
 
-  const [stages, setStages] = useState<TicketStage[]>(() => [
+  const [stages, setStages] = useState<TicketPipelineStage[]>(() => [
     {
       id: 'open',
       name: 'New Tickets',
@@ -59,8 +55,8 @@ export const useTicketPipeline = () => {
     }
   ]);
 
-  const [isAddStageOpen, setIsAddStageOpen] = useState(false);
-  const [activeItem, setActiveItem] = useState<any | null>(null);
+  const [isAddStageOpen, setIsAddStageOpen] = useState<boolean>(false);
+  const [activeItem, setActiveItem] = useState<TicketPipelineItem | null>(null);
 
   const handleTicketMove = useCallback((ticketId: string, fromStageId: string, toStageId: string) => {
     setStages(prevStages => {
@@ -123,8 +119,8 @@ export const useTicketPipeline = () => {
     }
   }, [stages, handleTicketMove]);
 
-  const addStage = (stageName: string, color: string) => {
-    const newStage: TicketStage = {
+  const addStage = (stageName: string, color: string): void => {
+    const newStage: TicketPipelineStage = {
       id: `stage-${Date.now()}`,
       name: stageName,
       color,

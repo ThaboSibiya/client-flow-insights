@@ -3,16 +3,17 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Users, Ticket, Clock, Target } from "lucide-react";
-
-interface PipelineMetricsProps {
-  type: 'customer' | 'ticket';
-  stages: any[];
-}
+import { PipelineMetricsProps } from '@/types/pipeline';
 
 const PipelineMetrics = ({ type, stages }: PipelineMetricsProps) => {
   const totalItems = stages.reduce((sum, stage) => {
-    const items = type === 'customer' ? (stage.customers || []) : (stage.tickets || []);
-    return sum + items.length;
+    if (type === 'customer') {
+      const customerStage = stage as import('@/types/pipeline').CustomerPipelineStage;
+      return sum + (customerStage.customers?.length || 0);
+    } else {
+      const ticketStage = stage as import('@/types/pipeline').TicketPipelineStage;
+      return sum + (ticketStage.tickets?.length || 0);
+    }
   }, 0);
 
   const completedStages = stages.filter(stage => {
@@ -23,15 +24,21 @@ const PipelineMetrics = ({ type, stages }: PipelineMetricsProps) => {
   });
 
   const completedItems = completedStages.reduce((sum, stage) => {
-    const items = type === 'customer' ? (stage.customers || []) : (stage.tickets || []);
-    return sum + items.length;
+    if (type === 'customer') {
+      const customerStage = stage as import('@/types/pipeline').CustomerPipelineStage;
+      return sum + (customerStage.customers?.length || 0);
+    } else {
+      const ticketStage = stage as import('@/types/pipeline').TicketPipelineStage;
+      return sum + (ticketStage.tickets?.length || 0);
+    }
   }, 0);
 
   const conversionRate = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
   const avgTimeInPipeline = type === 'ticket' ? 
     stages.reduce((sum, stage) => {
-      const tickets = stage.tickets || [];
+      const ticketStage = stage as import('@/types/pipeline').TicketPipelineStage;
+      const tickets = ticketStage.tickets || [];
       const avgTime = tickets.reduce((ticketSum, ticket) => {
         return ticketSum + (ticket.totalTimeSpent || 0);
       }, 0) / Math.max(tickets.length, 1);

@@ -8,13 +8,17 @@ import AutomationManager from '@/components/pipeline/AutomationManager';
 import PipelineSettings from '@/components/pipeline/PipelineSettings';
 import IntegrationAutomationsManager from '@/components/pipeline/automation/IntegrationAutomationsManager';
 import WebhookWorkflowsManager from '@/components/pipeline/automation/WebhookWorkflowsManager';
+import PipelineErrorBoundary from '@/components/error/PipelineErrorBoundary';
 
-const Pipeline = () => {
-  const [activeTab, setActiveTab] = useState('customers');
+type TabValue = 'customers' | 'tickets' | 'integrations' | 'webhooks' | 'automations' | 'settings';
+
+const Pipeline: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<TabValue>('customers');
 
   return (
-    <div className="space-y-6">
-      <div className="mb-6">
+    <PipelineErrorBoundary>
+      <div className="space-y-6">
+        <div className="mb-6">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-lg">
           Pipeline & Integrations
         </h1>
@@ -23,7 +27,7 @@ const Pipeline = () => {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)} className="w-full">
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="customers" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
@@ -52,11 +56,15 @@ const Pipeline = () => {
         </TabsList>
 
         <TabsContent value="customers" className="mt-6">
-          <CustomerPipeline />
+          <PipelineErrorBoundary>
+            <CustomerPipeline />
+          </PipelineErrorBoundary>
         </TabsContent>
 
         <TabsContent value="tickets" className="mt-6">
-          <TicketPipeline />
+          <PipelineErrorBoundary>
+            <TicketPipeline />
+          </PipelineErrorBoundary>
         </TabsContent>
 
         <TabsContent value="integrations" className="mt-6">
@@ -75,7 +83,8 @@ const Pipeline = () => {
           <PipelineSettings />
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </PipelineErrorBoundary>
   );
 };
 

@@ -3,19 +3,15 @@ import { useState, useCallback, useMemo } from 'react';
 import { useCRM } from '@/context/CRMContext';
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
+import { 
+  CustomerPipelineStage, 
+  CustomerPipelineItem, 
+  CustomerPipelineHookReturn 
+} from '@/types/pipeline';
 
-export interface PipelineStage {
-  id: string;
-  name: string;
-  color: string;
-  customers: any[];
-  automationEnabled: boolean;
-  target?: number;
-}
-
-export const useCustomerPipeline = () => {
+export const useCustomerPipeline = (): CustomerPipelineHookReturn => {
   const { customers } = useCRM();
-  const [stages, setStages] = useState<PipelineStage[]>(() => [
+  const [stages, setStages] = useState<CustomerPipelineStage[]>(() => [
     {
       id: 'new',
       name: 'New Leads',
@@ -50,8 +46,8 @@ export const useCustomerPipeline = () => {
     }
   ]);
 
-  const [isAddStageOpen, setIsAddStageOpen] = useState(false);
-  const [activeItem, setActiveItem] = useState<any | null>(null);
+  const [isAddStageOpen, setIsAddStageOpen] = useState<boolean>(false);
+  const [activeItem, setActiveItem] = useState<CustomerPipelineItem | null>(null);
 
   const handleCustomerMove = useCallback((customerId: string, fromStageId: string, toStageId: string) => {
     setStages(prevStages => {
@@ -114,8 +110,8 @@ export const useCustomerPipeline = () => {
     }
   }, [stages, handleCustomerMove]);
 
-  const addStage = (stageName: string, color: string) => {
-    const newStage: PipelineStage = {
+  const addStage = (stageName: string, color: string): void => {
+    const newStage: CustomerPipelineStage = {
       id: `stage-${Date.now()}`,
       name: stageName,
       color,
@@ -126,7 +122,7 @@ export const useCustomerPipeline = () => {
     setIsAddStageOpen(false);
   };
 
-  const handleStageEdit = (stageId: string, name: string, color: string) => {
+  const handleStageEdit = (stageId: string, name: string, color: string): void => {
     console.log('Customer pipeline handleStageEdit called:', stageId, name, color);
     setStages(prev => prev.map(stage => 
       stage.id === stageId 
@@ -135,16 +131,16 @@ export const useCustomerPipeline = () => {
     ));
   };
 
-  const handleStageDelete = (stageId: string) => {
+  const handleStageDelete = (stageId: string): void => {
     console.log('Customer pipeline handleStageDelete called:', stageId);
     setStages(prev => prev.filter(stage => stage.id !== stageId));
   };
 
-  const handleAddCustomer = (stageId: string) => {
+  const handleAddCustomer = (stageId: string): void => {
     console.log('Add customer to stage:', stageId);
   };
 
-  const handleSetTarget = (stageId: string, target: number | undefined) => {
+  const handleSetTarget = (stageId: string, target: number | undefined): void => {
     setStages(prev => prev.map(stage => 
       stage.id === stageId 
         ? { ...stage, target }
@@ -152,7 +148,7 @@ export const useCustomerPipeline = () => {
     ));
   };
 
-  const handleSetAutomation = (stageId: string, automationEnabled: boolean) => {
+  const handleSetAutomation = (stageId: string, automationEnabled: boolean): void => {
     setStages(prev => prev.map(stage => 
       stage.id === stageId 
         ? { ...stage, automationEnabled }
