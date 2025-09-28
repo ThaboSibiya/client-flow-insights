@@ -10,7 +10,7 @@ interface EmployeeBasicInfoProps {
   onInputChange: (field: string, value: string) => void;
 }
 
-const EmployeeBasicInfo = ({ formData, onInputChange }: EmployeeBasicInfoProps) => {
+const EmployeeBasicInfo: React.FC<EmployeeBasicInfoProps> = ({ formData, onInputChange }) => {
   return (
     <Card className="bg-white/95 border border-quikle-silver/30 shadow-platinum hover:shadow-luxury transition-all duration-300">
       <CardHeader className="border-b border-quikle-silver/20">
@@ -25,7 +25,7 @@ const EmployeeBasicInfo = ({ formData, onInputChange }: EmployeeBasicInfoProps) 
             <Input
               id="first_name"
               value={formData.first_name}
-              onChange={(e) => onInputChange('first_name', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange('first_name', e.target.value)}
               placeholder="Enter first name"
               className="border-quikle-silver/50 focus:border-quikle-primary"
               required
@@ -38,7 +38,7 @@ const EmployeeBasicInfo = ({ formData, onInputChange }: EmployeeBasicInfoProps) 
             <Input
               id="last_name"
               value={formData.last_name}
-              onChange={(e) => onInputChange('last_name', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange('last_name', e.target.value)}
               placeholder="Enter last name"
               className="border-quikle-silver/50 focus:border-quikle-primary"
               required
@@ -55,7 +55,7 @@ const EmployeeBasicInfo = ({ formData, onInputChange }: EmployeeBasicInfoProps) 
               id="email"
               type="email"
               value={formData.email}
-              onChange={(e) => onInputChange('email', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange('email', e.target.value)}
               placeholder="employee@company.com"
               className="border-quikle-silver/50 focus:border-quikle-primary"
               required
@@ -69,7 +69,7 @@ const EmployeeBasicInfo = ({ formData, onInputChange }: EmployeeBasicInfoProps) 
             <Input
               id="phone"
               value={formData.phone}
-              onChange={(e) => onInputChange('phone', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange('phone', e.target.value)}
               placeholder="+27123456789"
               className="border-quikle-silver/50 focus:border-quikle-primary"
             />

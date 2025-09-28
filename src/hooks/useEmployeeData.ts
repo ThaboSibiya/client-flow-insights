@@ -1,15 +1,31 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 
+interface Employee {
+  id: string;
+  employee_number: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  designation: string;
+  role: string;
+  status: string;
+  invitation_sent_at: string | null;
+  invitation_expires_at: string | null;
+  is_invited: boolean;
+  auth_user_id: string | null;
+  last_login_at: string | null;
+}
+
 export const useEmployeeData = () => {
   const { user } = useAuth();
-  const [employees, setEmployees] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
       if (!user) {
         setEmployees([]);
@@ -65,16 +81,16 @@ export const useEmployeeData = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchEmployees();
-  }, [user]);
+  }, [user, fetchEmployees]);
 
-  const refetch = () => {
+  const refetch = useCallback(() => {
     setLoading(true);
     fetchEmployees();
-  };
+  }, [fetchEmployees]);
 
   return {
     employees,

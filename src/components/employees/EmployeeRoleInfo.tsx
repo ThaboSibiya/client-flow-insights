@@ -10,7 +10,7 @@ interface EmployeeRoleInfoProps {
   onInputChange: (field: string, value: string) => void;
 }
 
-const EmployeeRoleInfo = ({ formData, onInputChange }: EmployeeRoleInfoProps) => {
+const EmployeeRoleInfo: React.FC<EmployeeRoleInfoProps> = ({ formData, onInputChange }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-2">
@@ -54,7 +54,7 @@ const EmployeeRoleInfo = ({ formData, onInputChange }: EmployeeRoleInfoProps) =>
           id="hire_date"
           type="date"
           value={formData.hire_date}
-          onChange={(e) => onInputChange('hire_date', e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange('hire_date', e.target.value)}
           className="border-quikle-silver/50 focus:border-quikle-primary focus:ring-quikle-primary/20"
           required
         />
@@ -71,7 +71,7 @@ const EmployeeRoleInfo = ({ formData, onInputChange }: EmployeeRoleInfoProps) =>
           min="0"
           placeholder="Enter salary amount"
           value={formData.salary}
-          onChange={(e) => onInputChange('salary', e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange('salary', e.target.value)}
           className="border-quikle-silver/50 focus:border-quikle-primary focus:ring-quikle-primary/20"
         />
       </div>

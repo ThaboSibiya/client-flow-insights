@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from "@/hooks/use-toast";
 import { EmployeeFormData, EmployeeRole, EmployeeStatus } from '@/components/employees/types';
 import { validateEmployeeForm } from '@/utils/employeeValidation';
@@ -47,7 +47,7 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName
     }
   }, [employee]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = useCallback((field: string, value: string) => {
     if (field === 'role') {
       setFormData(prev => ({ ...prev, [field]: value as EmployeeRole }));
     } else if (field === 'status') {
@@ -55,9 +55,9 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
     }
-  };
+  }, []);
 
-  const retryEmployeeInvitation = async () => {
+  const retryEmployeeInvitation = useCallback(async () => {
     if (!creationResult?.employee || creationResult.invitationSent) return;
 
     setLoading(true);
@@ -90,9 +90,9 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName
     } finally {
       setLoading(false);
     }
-  };
+  }, [creationResult, companyName]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -163,7 +163,7 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData, employee, onSave, companyName]);
 
   return {
     formData,

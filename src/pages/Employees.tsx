@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,11 +11,25 @@ import EmployeeAccessChecker from '../components/employees/EmployeeAccessChecker
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useOptimizedEmployeeData } from '../hooks/useOptimizedEmployeeData';
 import { useCompanyProfile } from '../hooks/useCompanyProfile';
-const Employees = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [activeTab, setActiveTab] = useState('list');
+
+interface BasicEmployee {
+  id: string;
+  employee_number: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  designation: string;
+  role: string;
+  status: string;
+  is_invited: boolean;
+  auth_user_id: string | null;
+}
+
+const Employees: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<BasicEmployee | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('list');
   const {
     employees,
     loading,
@@ -36,30 +50,41 @@ const Employees = () => {
         </div>
       </div>;
   }
-  const handleAddEmployee = () => {
+  const handleAddEmployee = useCallback(() => {
     setSelectedEmployee(null);
     setIsFormOpen(true);
-  };
-  const handleEditEmployee = (employee: any) => {
+  }, []);
+
+  const handleEditEmployee = useCallback((employee: BasicEmployee) => {
     setSelectedEmployee(employee);
     setIsFormOpen(true);
-  };
-  const handleFormClose = () => {
+  }, []);
+
+  const handleFormClose = useCallback(() => {
     setIsFormOpen(false);
     setSelectedEmployee(null);
     refetch();
-  };
-  const handleInvitationSent = () => {
+  }, [refetch]);
+
+  const handleInvitationSent = useCallback(() => {
     refetch();
-  };
+  }, [refetch]);
 
   // Fixed filtering logic to work with available BasicEmployee fields
-  const filteredEmployees = React.useMemo(() => {
+  const filteredEmployees = useMemo(() => {
     if (!searchTerm.trim()) return employees;
     const lowerSearchTerm = searchTerm.toLowerCase();
-    return employees.filter(employee => {
+    return employees.filter((employee: BasicEmployee) => {
       // Only search on fields that are guaranteed to exist in BasicEmployee
-      const searchableFields = [employee.first_name, employee.last_name, employee.email, employee.designation, employee.employee_number, employee.role, employee.status];
+      const searchableFields = [
+        employee.first_name, 
+        employee.last_name, 
+        employee.email, 
+        employee.designation, 
+        employee.employee_number, 
+        employee.role, 
+        employee.status
+      ];
       return searchableFields.some(field => field && field.toLowerCase().includes(lowerSearchTerm));
     });
   }, [employees, searchTerm]);
@@ -100,7 +125,12 @@ const Employees = () => {
                 <div className="flex items-center gap-4">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-quikle-slate h-4 w-4" />
-                    <Input placeholder="Search by name, email, designation, employee number, role, or status..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 border-quikle-silver" />
+                    <Input 
+                      placeholder="Search by name, email, designation, employee number, role, or status..." 
+                      value={searchTerm} 
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)} 
+                      className="pl-10 border-quikle-silver" 
+                    />
                   </div>
                 </div>
 

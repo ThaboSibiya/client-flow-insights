@@ -8,7 +8,7 @@ interface PrivilegesManagerProps {
   employeeId?: string;
 }
 
-const PrivilegesManager = ({ employeeId }: PrivilegesManagerProps) => {
+const PrivilegesManager: React.FC<PrivilegesManagerProps> = ({ employeeId }) => {
   return (
     <Card>
       <CardHeader>

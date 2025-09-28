@@ -17,7 +17,7 @@ interface EnhancedPrivilegesManagerProps {
   employeeId?: string;
 }
 
-const EnhancedPrivilegesManager = ({ employeeId }: EnhancedPrivilegesManagerProps) => {
+const EnhancedPrivilegesManager: React.FC<EnhancedPrivilegesManagerProps> = ({ employeeId }) => {
   const [privileges, setPrivileges] = useState<EnhancedEmployeePrivileges>(getDefaultPrivileges());
   const [originalPrivileges, setOriginalPrivileges] = useState<EnhancedEmployeePrivileges>(getDefaultPrivileges());
   const [loading, setLoading] = useState(false);

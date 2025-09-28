@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
@@ -24,17 +24,7 @@ export const useEmployeeAuth = () => {
   const [loading, setLoading] = useState(true);
   const [isCompanyOwner, setIsCompanyOwner] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchEmployeeProfile();
-    } else {
-      setEmployeeProfile(null);
-      setIsCompanyOwner(false);
-      setLoading(false);
-    }
-  }, [user]);
-
-  const fetchEmployeeProfile = async () => {
+  const fetchEmployeeProfile = useCallback(async () => {
     try {
       if (!user) return;
 
@@ -75,15 +65,25 @@ export const useEmployeeAuth = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const getAccessLevel = () => {
+  useEffect(() => {
+    if (user) {
+      fetchEmployeeProfile();
+    } else {
+      setEmployeeProfile(null);
+      setIsCompanyOwner(false);
+      setLoading(false);
+    }
+  }, [user, fetchEmployeeProfile]);
+
+  const getAccessLevel = useCallback((): string => {
     if (isCompanyOwner) return 'owner';
     if (!employeeProfile) return 'none';
     return employeeProfile.role;
-  };
+  }, [isCompanyOwner, employeeProfile]);
 
-  const canAccessFeature = (feature: string): boolean => {
+  const canAccessFeature = useCallback((feature: string): boolean => {
     const accessLevel = getAccessLevel();
     
     if (accessLevel === 'owner' || accessLevel === 'admin') {
@@ -101,7 +101,7 @@ export const useEmployeeAuth = () => {
 
     const allowedRoles = featurePermissions[feature] || [];
     return allowedRoles.includes(accessLevel);
-  };
+  }, [getAccessLevel]);
 
   return {
     employeeProfile,

@@ -1,23 +1,14 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getCurrentUserPrivileges, EmployeePrivileges } from '@/services/employeePrivilegeService';
 import { useAuth } from '@/context/AuthContext';
 
 export const useEmployeePrivileges = () => {
   const { user } = useAuth();
   const [privileges, setPrivileges] = useState<EmployeePrivileges | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    if (user) {
-      loadPrivileges();
-    } else {
-      setPrivileges(null);
-      setLoading(false);
-    }
-  }, [user]);
-
-  const loadPrivileges = async () => {
+  const loadPrivileges = useCallback(async () => {
     try {
       const userPrivileges = await getCurrentUserPrivileges();
       setPrivileges(userPrivileges);
@@ -27,9 +18,18 @@ export const useEmployeePrivileges = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const hasPrivilege = (privilege: keyof EmployeePrivileges): boolean => {
+  useEffect(() => {
+    if (user) {
+      loadPrivileges();
+    } else {
+      setPrivileges(null);
+      setLoading(false);
+    }
+  }, [user, loadPrivileges]);
+
+  const hasPrivilege = useCallback((privilege: keyof EmployeePrivileges): boolean => {
     if (!privileges) return false;
     
     const value = privileges[privilege];
@@ -45,9 +45,10 @@ export const useEmployeePrivileges = () => {
     }
     
     return false;
-  };
+  }, [privileges]);
 
-  const canUpdateCustomerStatusOnsite = hasPrivilege('can_update_customer_status_onsite');
+  const canUpdateCustomerStatusOnsite = useCallback(() => 
+    hasPrivilege('can_update_customer_status_onsite'), [hasPrivilege]);
 
   return {
     privileges,

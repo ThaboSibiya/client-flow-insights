@@ -11,7 +11,7 @@ import EmployeeRoleInfo from './EmployeeRoleInfo';
 import { useEmployeeForm } from '@/hooks/useEmployeeForm';
 import { EmployeeFormProps } from './types';
 
-const EmployeeForm = ({ employee, onSave, onCancel, companyName = 'Your Company' }: EmployeeFormProps) => {
+const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSave, onCancel, companyName = 'Your Company' }) => {
   const { 
     formData, 
     loading, 

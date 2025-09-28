@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -20,10 +20,10 @@ interface BasicEmployee {
 export const useOptimizedEmployeeData = () => {
   const { user } = useAuth();
   const [employees, setEmployees] = useState<BasicEmployee[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isCompanyOwner, setIsCompanyOwner] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isCompanyOwner, setIsCompanyOwner] = useState<boolean>(false);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     if (!user) {
       setEmployees([]);
       setIsCompanyOwner(false);
@@ -72,15 +72,15 @@ export const useOptimizedEmployeeData = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     fetchEmployees();
-  }, [user?.id]);
+  }, [user?.id, fetchEmployees]);
 
-  const refetch = () => {
+  const refetch = useCallback(() => {
     fetchEmployees();
-  };
+  }, [fetchEmployees]);
 
   return {
     employees,
