@@ -35,7 +35,8 @@ const ProjectManagement = () => {
     teamMembers,
     addProject,
     updateProject,
-    deleteProject
+    deleteProject,
+    updateProjectStatus
   } = useProjectManagement();
   
   const isLoading = false;
@@ -43,7 +44,13 @@ const ProjectManagement = () => {
   const handleCreateProject = React.useCallback((projectData: any) => {
     console.log('Creating project:', projectData);
     addProject(projectData);
+    setIsNewProjectModalOpen(false);
   }, [addProject]);
+
+  const handleProjectMove = React.useCallback((projectId: string, newStatus: any) => {
+    console.log('Moving project:', projectId, 'to status:', newStatus);
+    updateProjectStatus(projectId, newStatus);
+  }, [updateProjectStatus]);
   const selectedProjectForTasksData = React.useMemo(() => selectedProjectForTasks ? projects.find(p => p.id === selectedProjectForTasks) : null, [selectedProjectForTasks, projects]);
   if (isLoading) {
     return <div className="space-y-6">
@@ -125,7 +132,7 @@ const ProjectManagement = () => {
             <Card>
               <CardContent className="p-6">
                 <Suspense fallback={<Skeleton className="h-96" />}>
-                  <ProjectKanbanBoard projects={projects} onProjectMove={() => {}} />
+                  <ProjectKanbanBoard projects={projects} onProjectMove={handleProjectMove} />
                 </Suspense>
               </CardContent>
             </Card>
