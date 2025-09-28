@@ -179,9 +179,26 @@ export const useProjectManagement = () => {
   const addProject = useCallback((projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
     console.log('addProject called with:', projectData);
     
+    // Helper function to extract proper Date from complex date objects
+    const extractDate = (dateValue: any): Date => {
+      if (dateValue instanceof Date) return dateValue;
+      if (dateValue && typeof dateValue === 'object' && dateValue.value) {
+        // Handle complex date objects from form libraries
+        if (dateValue.value.iso) return new Date(dateValue.value.iso);
+        if (dateValue.value.value) return new Date(dateValue.value.value);
+        if (typeof dateValue.value === 'string' || typeof dateValue.value === 'number') {
+          return new Date(dateValue.value);
+        }
+      }
+      if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+        return new Date(dateValue);
+      }
+      return new Date(); // fallback to current date
+    };
+    
     // Ensure dates are proper Date objects
-    const startDate = projectData.startDate instanceof Date ? projectData.startDate : new Date(projectData.startDate);
-    const dueDate = projectData.dueDate instanceof Date ? projectData.dueDate : new Date(projectData.dueDate);
+    const startDate = extractDate(projectData.startDate);
+    const dueDate = extractDate(projectData.dueDate);
     
     // Ensure team array doesn't have circular references
     const cleanTeam = Array.isArray(projectData.team) ? projectData.team.map(member => ({
