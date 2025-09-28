@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { templateService } from '@/services/templateService';
 import { useAuth } from '@/context/AuthContext';
@@ -21,7 +21,7 @@ export const useCustomTemplates = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const loadTemplateFields = async (template: IndustryTemplate) => {
+  const loadTemplateFields = useCallback(async (template: IndustryTemplate) => {
     if (!template) return;
     
     setFieldsLoading(true);
@@ -45,9 +45,9 @@ export const useCustomTemplates = () => {
     } finally {
       setFieldsLoading(false);
     }
-  };
+  }, []);
 
-  const handleSelectTemplate = async (template: IndustryTemplate | null) => {
+  const handleSelectTemplate = useCallback(async (template: IndustryTemplate | null) => {
     setSelectedTemplate(template);
     if (template) {
       await loadTemplateFields(template);
@@ -55,16 +55,16 @@ export const useCustomTemplates = () => {
       setTemplateFields([]);
       setCustomFieldValues({});
     }
-  };
+  }, [loadTemplateFields]);
 
-  const updateCustomFieldValue = (fieldId: string, value: string) => {
+  const updateCustomFieldValue = useCallback((fieldId: string, value: string) => {
     setCustomFieldValues(prev => ({
       ...prev,
       [fieldId]: value
     }));
-  };
+  }, []);
 
-  const validateRequiredFields = (): boolean => {
+  const validateRequiredFields = useCallback((): boolean => {
     const requiredFields = templateFields.filter(field => field.is_required);
     const missingFields = requiredFields.filter(field => 
       !customFieldValues[field.id] || customFieldValues[field.id].trim() === ''
@@ -80,13 +80,13 @@ export const useCustomTemplates = () => {
     }
     
     return true;
-  };
+  }, [templateFields, customFieldValues]);
 
-  const resetTemplate = () => {
+  const resetTemplate = useCallback(() => {
     setSelectedTemplate(null);
     setTemplateFields([]);
     setCustomFieldValues({});
-  };
+  }, []);
 
   return {
     templates: templates || [],

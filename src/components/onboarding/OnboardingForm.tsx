@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,7 +48,9 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const OnboardingForm = () => {
+interface OnboardingFormProps {}
+
+const OnboardingForm: React.FC<OnboardingFormProps> = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,7 +96,7 @@ const OnboardingForm = () => {
     },
   });
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = useCallback(async (values: FormValues) => {
     if (!user) {
       toast({
         title: "Authentication Error",
@@ -177,7 +179,7 @@ const OnboardingForm = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [user, selectedTemplate, validateRequiredFields, form, resetTemplate, navigate]);
 
   return (
     <div className="space-y-6">

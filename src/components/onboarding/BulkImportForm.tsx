@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,9 @@ interface ImportRow {
   errors?: string[];
 }
 
-const BulkImportForm = () => {
+interface BulkImportFormProps {}
+
+const BulkImportForm: React.FC<BulkImportFormProps> = () => {
   const { addCustomer } = useCRM();
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -29,7 +31,7 @@ const BulkImportForm = () => {
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<{ success: number; errors: number } | null>(null);
 
-  const downloadTemplate = () => {
+  const downloadTemplate = useCallback(() => {
     const template = [
       ['name', 'email', 'phone', 'status', 'notes'],
       ['John Smith', 'john@example.com', '555-1234', 'new', 'Sample customer'],
@@ -47,9 +49,9 @@ const BulkImportForm = () => {
     a.download = 'customer_import_template.csv';
     a.click();
     window.URL.revokeObjectURL(url);
-  };
+  }, []);
 
-  const parseCSV = (text: string): ImportRow[] => {
+  const parseCSV = useCallback((text: string): ImportRow[] => {
     const lines = text.split('\n').filter(line => line.trim());
     if (lines.length < 2) return [];
 
@@ -83,7 +85,7 @@ const BulkImportForm = () => {
 
       return row;
     }).filter(row => row.name || row.email); // Filter out completely empty rows
-  };
+  }, []);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -118,16 +120,17 @@ const BulkImportForm = () => {
         title: "File loaded",
         description: `Found ${data.length} rows to import`,
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         title: "Error reading file",
-        description: "Could not parse the file. Please check the format.",
+        description: `Could not parse the file: ${errorMessage}`,
         variant: "destructive",
       });
     }
   };
 
-  const processImport = async () => {
+  const processImport = useCallback(async () => {
     if (!user || importData.length === 0) return;
 
     setIsProcessing(true);
@@ -173,16 +176,16 @@ const BulkImportForm = () => {
       description: `Successfully imported ${successCount} customers. ${errorCount} errors.`,
       variant: errorCount > 0 ? "destructive" : "default",
     });
-  };
+  }, [user, importData, addCustomer]);
 
-  const resetImport = () => {
+  const resetImport = useCallback(() => {
     setImportData([]);
     setResults(null);
     setProgress(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
+  }, []);
 
   return (
     <Card>

@@ -6,10 +6,11 @@ import { useAuth } from '@/context/AuthContext';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Info, User, FileSpreadsheet, Palette } from "lucide-react";
-const Onboarding = () => {
-  const {
-    user
-  } = useAuth();
+
+interface OnboardingProps {}
+
+const Onboarding: React.FC<OnboardingProps> = () => {
+  const { user } = useAuth();
   return <div className="space-y-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-lg">Customer Onboarding</h1>

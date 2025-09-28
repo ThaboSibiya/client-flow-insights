@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, Eye } from "lucide-react";
@@ -22,26 +22,28 @@ import { securityMonitoringService } from '@/services/securityMonitoringService'
 
 type ViewMode = 'list' | 'builder' | 'edit';
 
-const CustomTemplateManager = () => {
+interface CustomTemplateManagerProps {}
+
+const CustomTemplateManager: React.FC<CustomTemplateManagerProps> = () => {
   const { user } = useAuth();
   const { templates, isLoading, deleteTemplate, isDeleting } = useSecureTemplates();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(() => {
     setSelectedTemplate(null);
     setViewMode('builder');
-  };
+  }, []);
 
-  const handleEdit = async (template: any) => {
+  const handleEdit = useCallback(async (template: any) => {
     if (user) {
       await securityMonitoringService.logTemplateAccess(template.id, user.id, 'view');
     }
     setSelectedTemplate(template);
     setViewMode('edit');
-  };
+  }, [user]);
 
-  const handleDelete = async (templateId: string) => {
+  const handleDelete = useCallback(async (templateId: string) => {
     try {
       await deleteTemplate(templateId);
       if (user) {
@@ -50,12 +52,12 @@ const CustomTemplateManager = () => {
     } catch (error) {
       console.error('Failed to delete template:', error);
     }
-  };
+  }, [deleteTemplate, user]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setSelectedTemplate(null);
     setViewMode('list');
-  };
+  }, []);
 
   if (viewMode === 'builder' || viewMode === 'edit') {
     return (
