@@ -1,4 +1,3 @@
-
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,36 +14,41 @@ interface State {
   error?: Error;
 }
 
-class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
+export class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false
+  };
 
-  static getDerivedStateFromError(error: Error): State {
+  public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    this.props.onError?.(error, errorInfo);
+    
+    // Call the onError callback if provided
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
   }
 
-  handleRetry = () => {
+  private handleRetry = () => {
     this.setState({ hasError: false, error: undefined });
   };
 
-  render() {
+  public render() {
     if (this.state.hasError) {
+      // Custom fallback UI
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
+      // Default error UI
       return (
-        <Card className="w-full max-w-md mx-auto mt-8" role="alert">
+        <Card className="w-full max-w-md mx-auto mt-8">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+              <AlertTriangle className="h-5 w-5" />
               <span>Something went wrong</span>
             </CardTitle>
           </CardHeader>
@@ -55,10 +59,10 @@ class ErrorBoundary extends Component<Props, State> {
             
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="text-xs">
-                <summary className="cursor-pointer text-destructive hover:underline focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2 rounded">
+                <summary className="cursor-pointer text-destructive">
                   Error details (development only)
                 </summary>
-                <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-auto max-h-32">
+                <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-auto">
                   {this.state.error.stack}
                 </pre>
               </details>
@@ -70,9 +74,8 @@ class ErrorBoundary extends Component<Props, State> {
                 variant="default"
                 size="sm"
                 className="flex items-center space-x-1"
-                aria-label="Try to recover from error"
               >
-                <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                <RefreshCw className="h-4 w-4" />
                 <span>Try Again</span>
               </Button>
               
@@ -80,7 +83,6 @@ class ErrorBoundary extends Component<Props, State> {
                 onClick={() => window.location.reload()}
                 variant="outline"
                 size="sm"
-                aria-label="Refresh the entire page"
               >
                 Refresh Page
               </Button>
@@ -94,4 +96,40 @@ class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-export default ErrorBoundary;
+// Hook-based error boundary for functional components
+export const useErrorBoundary = () => {
+  const [error, setError] = React.useState<Error | null>(null);
+
+  const resetError = React.useCallback(() => {
+    setError(null);
+  }, []);
+
+  const captureError = React.useCallback((error: Error) => {
+    setError(error);
+  }, []);
+
+  React.useEffect(() => {
+    if (error) {
+      throw error;
+    }
+  }, [error]);
+
+  return { captureError, resetError };
+};
+
+// HOC for wrapping components with error boundary
+export function withErrorBoundary<T extends {}>(
+  Component: React.ComponentType<T>,
+  fallback?: ReactNode,
+  onError?: (error: Error, errorInfo: ErrorInfo) => void
+) {
+  const WrappedComponent = (props: T) => (
+    <ErrorBoundary fallback={fallback} onError={onError}>
+      <Component {...props} />
+    </ErrorBoundary>
+  );
+
+  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
+  
+  return WrappedComponent;
+}
