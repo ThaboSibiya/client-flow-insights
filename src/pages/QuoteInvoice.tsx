@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Download, Send, Clock, Plus, TrendingUp, Settings as SettingsIcon } from "lucide-react";
+import { FileText, Plus, TrendingUp, Settings as SettingsIcon } from "lucide-react";
 import QuoteForm from "@/components/quotes/QuoteForm";
 import InvoiceForm from "@/components/quotes/InvoiceForm";
 import QuotePreview from "@/components/quotes/QuotePreview";
@@ -15,25 +15,48 @@ import DocumentWorkflowManager from "@/components/quotes/workflow/DocumentWorkfl
 import { useFetchQuotes } from '@/hooks/useFetchQuotes';
 import { useCreateQuote } from '@/hooks/mutations/useCreateQuote';
 import { useUpdateQuote } from '@/hooks/mutations/useUpdateQuote';
-import { QuoteInvoiceInsert, QuoteInvoice as QuoteInvoiceType } from '@/types/quote';
+import { QuoteInvoiceInsert, QuoteInvoice as QuoteInvoiceType, QuoteInvoiceType as DocumentType } from '@/types/quote';
 import { Skeleton } from '@/components/ui/skeleton';
-const QuoteInvoice = () => {
-  const [activeTab, setActiveTab] = useState('quotes');
+import { useToast } from '@/hooks/use-toast';
+const QuoteInvoice: React.FC = () => {
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<string>('quotes');
   const [selectedQuote, setSelectedQuote] = useState<QuoteInvoiceType | null>(null);
   const [editingQuote, setEditingQuote] = useState<QuoteInvoiceType | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  
   const {
     quotes,
-    isLoading
+    isLoading,
+    error
   } = useFetchQuotes();
+  
   const {
     createQuoteInvoice
   } = useCreateQuote();
+  
   const {
     updateQuoteInvoice
   } = useUpdateQuote();
-  const handleSave = async (data: QuoteInvoiceInsert) => {
+
+  // Handle any fetch errors
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error Loading Documents",
+        description: "Failed to load quotes and invoices. Please try refreshing the page.",
+        variant: "destructive"
+      });
+    }
+  }, [error, toast]);
+
+  const handleSave = useCallback(async (data: QuoteInvoiceInsert): Promise<void> => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
-      let savedQuote;
+      let savedQuote: QuoteInvoiceType;
+      
       if (editingQuote) {
         savedQuote = await updateQuoteInvoice({
           id: editingQuote.id,
@@ -42,25 +65,48 @@ const QuoteInvoice = () => {
       } else {
         savedQuote = await createQuoteInvoice(data);
       }
+      
       if (savedQuote) {
         setSelectedQuote(savedQuote);
         setEditingQuote(null);
         setActiveTab('preview');
+        
+        toast({
+          title: "Success",
+          description: `${data.type === 'quote' ? 'Quote' : 'Invoice'} saved successfully.`
+        });
       }
     } catch (error) {
       console.error("Failed to save:", error);
+      toast({
+        title: "Error",
+        description: `Failed to save ${data.type}. Please try again.`,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-  };
-  const handleEdit = (quote: QuoteInvoiceType) => {
+  }, [editingQuote, updateQuoteInvoice, createQuoteInvoice, isSubmitting, toast]);
+
+  const handleEdit = useCallback((quote: QuoteInvoiceType): void => {
     setEditingQuote(quote);
     setSelectedQuote(quote);
     setActiveTab(quote.type === 'quote' ? 'create-quote' : 'create-invoice');
-  };
-  const handleCreateNew = (type: 'quote' | 'invoice') => {
+  }, []);
+
+  const handleCreateNew = useCallback((type: DocumentType): void => {
     setEditingQuote(null);
     setSelectedQuote(null);
     setActiveTab(type === 'quote' ? 'create-quote' : 'create-invoice');
-  };
+  }, []);
+
+  const handleSelectQuote = useCallback((quote: QuoteInvoiceType): void => {
+    setSelectedQuote(quote);
+  }, []);
+
+  const handlePreview = useCallback((): void => {
+    setActiveTab('preview');
+  }, []);
   return <div className="space-y-8">
       <div className="mb-6">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
@@ -124,15 +170,23 @@ const QuoteInvoice = () => {
               <Skeleton className="h-32 w-full rounded-lg" />
               <Skeleton className="h-32 w-full rounded-lg" />
               <Skeleton className="h-32 w-full rounded-lg" />
-            </div> : <QuoteList quotes={quotes} onSelectQuote={setSelectedQuote} onPreview={() => setActiveTab('preview')} onEdit={handleEdit} />}
+            </div> : <QuoteList quotes={quotes} onSelectQuote={handleSelectQuote} onPreview={handlePreview} onEdit={handleEdit} />}
         </TabsContent>
 
         <TabsContent value="create-quote" className="mt-6">
-          <QuoteForm onSave={handleSave} initialData={editingQuote?.type === 'quote' ? editingQuote : null} />
+          <QuoteForm 
+            onSave={handleSave} 
+            initialData={editingQuote?.type === 'quote' ? editingQuote : null}
+            disabled={isSubmitting}
+          />
         </TabsContent>
 
         <TabsContent value="create-invoice" className="mt-6">
-          <InvoiceForm onSave={handleSave} initialData={editingQuote?.type === 'invoice' ? editingQuote : null} />
+          <InvoiceForm 
+            onSave={handleSave} 
+            initialData={editingQuote?.type === 'invoice' ? editingQuote : null}
+            disabled={isSubmitting}
+          />
         </TabsContent>
 
         <TabsContent value="workflow" className="mt-6">

@@ -20,11 +20,12 @@ interface InvoiceItem {
 }
 
 interface InvoiceFormProps {
-  onSave: (invoice: QuoteInvoiceInsert) => void;
+  onSave: (invoice: QuoteInvoiceInsert) => Promise<void>;
   initialData?: QuoteInvoice | null;
+  disabled?: boolean;
 }
 
-const InvoiceForm = ({ onSave, initialData }: InvoiceFormProps) => {
+const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSave, initialData, disabled = false }) => {
   const { customers } = useCRM();
   const [formData, setFormData] = useState({
     invoiceNumber: `INV-${Date.now()}`,
@@ -101,7 +102,7 @@ const InvoiceForm = ({ onSave, initialData }: InvoiceFormProps) => {
     }
   }, [initialData]);
 
-  const handleCustomerSelect = (customerId: string) => {
+  const handleCustomerSelect = (customerId: string): void => {
     const customer = customers.find(c => c.id === customerId);
     if (customer) {
       setFormData(prev => ({
@@ -114,7 +115,7 @@ const InvoiceForm = ({ onSave, initialData }: InvoiceFormProps) => {
     }
   };
 
-  const addItem = () => {
+  const addItem = (): void => {
     const newItem: InvoiceItem = {
       id: Date.now().toString(),
       description: '',
@@ -125,7 +126,7 @@ const InvoiceForm = ({ onSave, initialData }: InvoiceFormProps) => {
     setItems([...items, newItem]);
   };
 
-  const updateItem = (id: string, field: keyof InvoiceItem, value: any) => {
+  const updateItem = (id: string, field: keyof InvoiceItem, value: string | number) => {
     setItems(items.map(item => {
       if (item.id === id) {
         const updated = { ...item, [field]: value };
@@ -138,17 +139,17 @@ const InvoiceForm = ({ onSave, initialData }: InvoiceFormProps) => {
     }));
   };
 
-  const removeItem = (id: string) => {
+  const removeItem = (id: string): void => {
     if (items.length > 1) {
       setItems(items.filter(item => item.id !== id));
     }
   };
 
-  const calculateSubtotal = () => {
+  const calculateSubtotal = (): number => {
     return items.reduce((sum, item) => sum + item.amount, 0);
   };
 
-  const calculateDiscount = () => {
+  const calculateDiscount = (): number => {
     const subtotal = calculateSubtotal();
     if (formData.discountType === 'percentage') {
       return (subtotal * formData.discountValue) / 100;
@@ -156,20 +157,20 @@ const InvoiceForm = ({ onSave, initialData }: InvoiceFormProps) => {
     return formData.discountValue;
   };
 
-  const calculateTax = () => {
+  const calculateTax = (): number => {
     const subtotal = calculateSubtotal();
     const discount = calculateDiscount();
     return ((subtotal - discount) * formData.taxRate) / 100;
   };
 
-  const calculateTotal = () => {
+  const calculateTotal = (): number => {
     const subtotal = calculateSubtotal();
     const discount = calculateDiscount();
     const tax = calculateTax();
     return subtotal - discount + tax;
   };
 
-  const handleSave = () => {
+  const handleSave = async (): Promise<void> => {
     if (!formData.customerName || !formData.subject || items.some(item => !item.description)) {
       toast({
         title: "Validation Error",
@@ -207,7 +208,7 @@ const InvoiceForm = ({ onSave, initialData }: InvoiceFormProps) => {
       }))
     };
     
-    onSave(invoiceToSave);
+    await onSave(invoiceToSave);
   };
 
   return (
@@ -505,11 +506,19 @@ const InvoiceForm = ({ onSave, initialData }: InvoiceFormProps) => {
       </Card>
 
       <div className="flex justify-end gap-4">
-        <Button variant="outline" className="border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal">
+        <Button 
+          variant="outline" 
+          className="border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal"
+          disabled={disabled}
+        >
           Save as Draft
         </Button>
-        <Button onClick={handleSave} className="bg-quikle-primary hover:bg-quikle-secondary text-white">
-          {initialData ? 'Update Invoice' : 'Create Invoice'}
+        <Button 
+          onClick={handleSave} 
+          className="bg-quikle-primary hover:bg-quikle-secondary text-white"
+          disabled={disabled}
+        >
+          {disabled ? 'Saving...' : (initialData ? 'Update Invoice' : 'Create Invoice')}
         </Button>
       </div>
     </div>

@@ -20,11 +20,12 @@ interface QuoteItem {
 }
 
 interface QuoteFormProps {
-  onSave: (quote: QuoteInvoiceInsert) => void;
+  onSave: (quote: QuoteInvoiceInsert) => Promise<void>;
   initialData?: QuoteInvoice | null;
+  disabled?: boolean;
 }
 
-const QuoteForm = ({ onSave, initialData }: QuoteFormProps) => {
+const QuoteForm: React.FC<QuoteFormProps> = ({ onSave, initialData, disabled = false }) => {
   const { customers } = useCRM();
   const [formData, setFormData] = useState({
     quoteNumber: `QUO-${Date.now()}`,
@@ -95,7 +96,7 @@ const QuoteForm = ({ onSave, initialData }: QuoteFormProps) => {
     }
   }, [initialData]);
 
-  const handleCustomerSelect = (customerId: string) => {
+  const handleCustomerSelect = (customerId: string): void => {
     const customer = customers.find(c => c.id === customerId);
     if (customer) {
       setFormData(prev => ({
@@ -108,7 +109,7 @@ const QuoteForm = ({ onSave, initialData }: QuoteFormProps) => {
     }
   };
 
-  const addItem = () => {
+  const addItem = (): void => {
     const newItem: QuoteItem = {
       id: Date.now().toString(),
       description: '',
@@ -119,7 +120,7 @@ const QuoteForm = ({ onSave, initialData }: QuoteFormProps) => {
     setItems([...items, newItem]);
   };
 
-  const updateItem = (id: string, field: keyof QuoteItem, value: any) => {
+  const updateItem = (id: string, field: keyof QuoteItem, value: string | number) => {
     setItems(items.map(item => {
       if (item.id === id) {
         const updated = { ...item, [field]: value };
@@ -132,17 +133,17 @@ const QuoteForm = ({ onSave, initialData }: QuoteFormProps) => {
     }));
   };
 
-  const removeItem = (id: string) => {
+  const removeItem = (id: string): void => {
     if (items.length > 1) {
       setItems(items.filter(item => item.id !== id));
     }
   };
 
-  const calculateSubtotal = () => {
+  const calculateSubtotal = (): number => {
     return items.reduce((sum, item) => sum + item.amount, 0);
   };
 
-  const calculateDiscount = () => {
+  const calculateDiscount = (): number => {
     const subtotal = calculateSubtotal();
     if (formData.discountType === 'percentage') {
       return (subtotal * formData.discountValue) / 100;
@@ -150,20 +151,20 @@ const QuoteForm = ({ onSave, initialData }: QuoteFormProps) => {
     return formData.discountValue;
   };
 
-  const calculateTax = () => {
+  const calculateTax = (): number => {
     const subtotal = calculateSubtotal();
     const discount = calculateDiscount();
     return ((subtotal - discount) * formData.taxRate) / 100;
   };
 
-  const calculateTotal = () => {
+  const calculateTotal = (): number => {
     const subtotal = calculateSubtotal();
     const discount = calculateDiscount();
     const tax = calculateTax();
     return subtotal - discount + tax;
   };
 
-  const handleSave = () => {
+  const handleSave = async (): Promise<void> => {
     if (!formData.customerName || !formData.subject || items.some(item => !item.description)) {
       toast({
         title: "Validation Error",
@@ -201,7 +202,7 @@ const QuoteForm = ({ onSave, initialData }: QuoteFormProps) => {
       }))
     };
 
-    onSave(quoteToSave);
+    await onSave(quoteToSave);
   };
 
   return (
@@ -465,11 +466,19 @@ const QuoteForm = ({ onSave, initialData }: QuoteFormProps) => {
       </Card>
 
       <div className="flex justify-end gap-4">
-        <Button variant="outline" className="border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal">
+        <Button 
+          variant="outline" 
+          className="border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal"
+          disabled={disabled}
+        >
           Save as Draft
         </Button>
-        <Button onClick={handleSave} className="bg-quikle-primary hover:bg-quikle-secondary text-white">
-          {initialData ? 'Update Quote' : 'Create Quote'}
+        <Button 
+          onClick={handleSave} 
+          className="bg-quikle-primary hover:bg-quikle-secondary text-white"
+          disabled={disabled}
+        >
+          {disabled ? 'Saving...' : (initialData ? 'Update Quote' : 'Create Quote')}
         </Button>
       </div>
     </div>

@@ -32,13 +32,13 @@ interface QuoteListProps {
   onEdit: (quote: QuoteInvoice) => void;
 }
 
-const QuoteList = ({ quotes, onSelectQuote, onPreview, onEdit }: QuoteListProps) => {
+const QuoteList: React.FC<QuoteListProps> = ({ quotes, onSelectQuote, onPreview, onEdit }) => {
   const { sendQuoteEmail, isSending } = useQuoteEmail();
   const { updateQuoteStatus } = useUpdateQuoteStatus();
   const { convertQuoteToInvoice } = useRevenueOptimization();
   const { generatePDF } = usePDFGeneration();
 
-  const getStatusColor = (status: string, type: string) => {
+  const getStatusColor = (status: string, type: string): string => {
     switch (status) {
       case 'draft': return 'bg-gray-100 text-gray-800';
       case 'sent': return 'bg-blue-100 text-blue-800';
@@ -50,28 +50,36 @@ const QuoteList = ({ quotes, onSelectQuote, onPreview, onEdit }: QuoteListProps)
     }
   };
 
-  const handlePreview = (quote: QuoteInvoice) => {
+  const handlePreview = (quote: QuoteInvoice): void => {
     onSelectQuote(quote);
     onPreview();
   };
 
-  const handleSendEmail = async (quote: QuoteInvoice) => {
-    await sendQuoteEmail(quote);
+  const handleSendEmail = async (quote: QuoteInvoice): Promise<void> => {
+    try {
+      await sendQuoteEmail(quote);
+    } catch (error) {
+      console.error('Failed to send email:', error);
+    }
   };
 
-  const handleConvertToInvoice = async (quote: QuoteInvoice) => {
+  const handleConvertToInvoice = async (quote: QuoteInvoice): Promise<void> => {
     if (quote.type === 'quote' && quote.status === 'accepted') {
-      const invoice = await convertQuoteToInvoice(quote.id);
-      if (invoice) {
-        toast({
-          title: "Quote Converted",
-          description: `Quote ${quote.number} has been converted to Invoice ${invoice.number}`,
-        });
+      try {
+        const invoice = await convertQuoteToInvoice(quote.id);
+        if (invoice) {
+          toast({
+            title: "Quote Converted",
+            description: `Quote ${quote.number} has been converted to Invoice ${invoice.number}`,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to convert quote:', error);
       }
     }
   };
 
-  const handleDownloadPDF = (quote: QuoteInvoice) => {
+  const handleDownloadPDF = (quote: QuoteInvoice): void => {
     generatePDF(quote, {
       includeBranding: true,
       template: 'professional',
@@ -79,14 +87,14 @@ const QuoteList = ({ quotes, onSelectQuote, onPreview, onEdit }: QuoteListProps)
     });
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-ZA', {
       style: 'currency',
       currency: 'ZAR'
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('en-ZA');
   };
 
