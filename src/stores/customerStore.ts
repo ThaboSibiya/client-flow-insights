@@ -58,7 +58,7 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
         customers: customers.filter(c => c.id !== id),
         optimisticUpdates: {
           ...get().optimisticUpdates,
-          [id]: { ...customerToDelete, __deleted: true } as any
+          [id]: { ...customerToDelete, __deleted: true } as Partial<Customer> & { __deleted: true }
         }
       });
     }
@@ -70,7 +70,7 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
       customers: [customer, ...customers],
       optimisticUpdates: {
         ...get().optimisticUpdates,
-        [customer.id]: { __added: true } as any
+        [customer.id]: { __added: true } as Partial<Customer> & { __added: true }
       }
     });
   },
@@ -86,13 +86,13 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
       set({ optimisticUpdates: newOptimisticUpdates });
       
       // If it was a delete operation, restore the customer
-      if ((update as any).__deleted) {
+      if ('__deleted' in update && update.__deleted) {
         const { customers } = get();
         set({ customers: [update as Customer, ...customers] });
       }
       
       // If it was an add operation, remove the customer
-      if ((update as any).__added) {
+      if ('__added' in update && update.__added) {
         const { customers } = get();
         set({ customers: customers.filter(c => c.id !== id) });
       }

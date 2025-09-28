@@ -1,6 +1,7 @@
 
 import React, { Suspense, lazy } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FilterPreset } from '@/hooks/useCustomerFilters';
 
 // Lazy load the enhanced filters for better performance
 const EnhancedFilters = lazy(() => import('../filters/EnhancedFilters'));
@@ -14,8 +15,8 @@ interface CustomerTableFiltersProps {
   onDateRangeChange: (range: { start: Date | null; end: Date | null }) => void;
   ticketCountFilter: string;
   onTicketCountFilterChange: (filter: string) => void;
-  savedPresets: any[];
-  onApplyPreset: (preset: any) => void;
+  savedPresets: FilterPreset[];
+  onApplyPreset: (preset: FilterPreset) => void;
   onSavePreset: (name: string) => void;
   onQuickDateRange: (range: string) => void;
 }

@@ -12,7 +12,7 @@ export interface FilterState {
 export interface FilterPreset {
   id: string;
   name: string;
-  filters: any;
+  filters: FilterState;
 }
 
 export const useCustomerFilters = (customers: Customer[]) => {

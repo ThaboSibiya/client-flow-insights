@@ -1,6 +1,8 @@
 
 import React, { useState, lazy, Suspense } from 'react';
 import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
+import { CustomerTicket, TicketStatus, TimeEntry } from '@/types/customer';
+import { CustomerStatusChangeEvent, CustomerActionEvent } from '@/types/events';
 import { useTicketManagement } from '@/hooks/useTicketManagement';
 import CustomerDetailsDialog from '../forms/CustomerDetailsDialog';
 import { toast } from '@/hooks/use-toast';
@@ -15,34 +17,58 @@ export const useCustomerActions = () => {
   const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
   const [activeDialogTab, setActiveDialogTab] = useState('details');
 
-  const handleStatusChange = (customerId: string, newStatus: CustomerStatus) => {
-    updateCustomerStatus(customerId, newStatus);
-  };
-
-  const handleDeleteCustomer = (customerId: string) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      deleteCustomer(customerId);
+  const handleStatusChange = (customerId: string, newStatus: CustomerStatus): void => {
+    try {
+      updateCustomerStatus(customerId, newStatus);
+      toast({
+        title: "Status Updated",
+        description: `Customer status changed to ${newStatus}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update customer status",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleOpenCustomerDetails = (customer: Customer, tab = 'details') => {
+  const handleDeleteCustomer = (customerId: string): void => {
+    if (window.confirm('Are you sure you want to delete this customer?')) {
+      try {
+        deleteCustomer(customerId);
+        toast({
+          title: "Customer Deleted",
+          description: "Customer has been successfully removed",
+        });
+      } catch (error) {
+        toast({
+          title: "Delete Failed",
+          description: "Failed to delete customer",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleOpenCustomerDetails = (customer: Customer, tab: string = 'details'): void => {
     setSelectedCustomer(customer);
     setActiveDialogTab(tab);
     setIsFormOpen(true);
   };
 
-  const handleManageTickets = (customer: Customer) => {
+  const handleManageTickets = (customer: Customer): void => {
     setSelectedCustomer(customer);
     setIsTicketDialogOpen(true);
   };
 
-  const closeDetailsDialog = () => {
+  const closeDetailsDialog = (): void => {
     setIsFormOpen(false);
     setSelectedCustomer(null);
     setActiveDialogTab('details');
   };
 
-  const closeTicketDialog = () => {
+  const closeTicketDialog = (): void => {
     setIsTicketDialogOpen(false);
     setSelectedCustomer(null);
   };
@@ -65,16 +91,18 @@ export const useCustomerActions = () => {
 };
 
 // Separate component for dialogs
-export const CustomerActionDialogs: React.FC<{
+export interface CustomerActionDialogsProps {
   selectedCustomer: Customer | null;
   isFormOpen: boolean;
   isTicketDialogOpen: boolean;
   onCloseDetailsDialog: () => void;
   onCloseTicketDialog: () => void;
-  onCreateTicket: (customerId: string, ticket: any) => void;
-  onUpdateTicketStatus: (ticketId: string, status: any) => void;
-  onAddTimeEntry?: (ticketId: string, timeEntry: any) => void;
-}> = ({
+  onCreateTicket: (customerId: string, ticket: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>) => void;
+  onUpdateTicketStatus: (ticketId: string, status: TicketStatus) => void;
+  onAddTimeEntry?: (ticketId: string, timeEntry: Omit<TimeEntry, 'id' | 'ticketId' | 'createdAt'>) => void;
+}
+
+export const CustomerActionDialogs: React.FC<CustomerActionDialogsProps> = ({
   selectedCustomer,
   isFormOpen,
   isTicketDialogOpen,

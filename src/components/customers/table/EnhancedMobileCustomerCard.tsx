@@ -45,8 +45,8 @@ const EnhancedMobileCustomerCard = ({
   onToggleExpanded
 }: EnhancedMobileCustomerCardProps) => {
   // Use pre-loaded data to avoid N+1 queries
-  const appliedTemplates = (customer as any)._appliedTemplates || [];
-  const customData = (customer as any)._customData || [];
+  const appliedTemplates = customer._appliedTemplates || [];
+  const customData = customer._customData || [];
   const loading = false;
 
   const formatDate = (date: Date) => {
@@ -137,9 +137,9 @@ const EnhancedMobileCustomerCard = ({
         {!loading && appliedTemplates.length > 0 && (
           <div className="mb-3">
             <div className="flex flex-wrap gap-1">
-              {appliedTemplates.map(template => (
-                <Badge key={template.id} variant="outline" className="text-xs border-quikle-primary/30 text-quikle-primary">
-                  {template.industry}
+              {appliedTemplates.map((template, index) => (
+                <Badge key={index} variant="outline" className="text-xs border-quikle-primary/30 text-quikle-primary">
+                  {template.industry_templates?.industry || template.template_id}
                 </Badge>
               ))}
             </div>

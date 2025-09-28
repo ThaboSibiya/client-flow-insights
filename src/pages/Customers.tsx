@@ -8,19 +8,21 @@ import AiVoiceSessionDialog from '@/components/voice/AiVoiceSessionDialog';
 import KnowledgeBaseManager from '@/components/settings/KnowledgeBaseManager';
 import { AiAgentSettings } from '@/components/settings/AiAgentSettings';
 import OnSiteStatusUpdate from '@/components/customers/OnSiteStatusUpdate';
+import CustomerErrorBoundary from '@/components/error/CustomerErrorBoundary';
 
-const Customers = () => {
+const Customers: React.FC = () => {
   const navigate = useNavigate();
-  const [isSessionOpen, setIsSessionOpen] = useState(false);
-  const [isOnSiteUpdateOpen, setIsOnSiteUpdateOpen] = useState(false);
+  const [isSessionOpen, setIsSessionOpen] = useState<boolean>(false);
+  const [isOnSiteUpdateOpen, setIsOnSiteUpdateOpen] = useState<boolean>(false);
   
-  const handleOnboardNewCustomer = () => {
+  const handleOnboardNewCustomer = (): void => {
     navigate('/onboarding');
   };
   
   return (
-    <div className="space-y-8">
-      {/* Header Section */}
+    <CustomerErrorBoundary>
+      <div className="space-y-8">
+        {/* Header Section */}
       <div className="mb-6">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-1.5">
           <div>
@@ -55,10 +57,12 @@ const Customers = () => {
         </div>
       </div>
 
-      {/* Customer Table Section */}
-      <div className="quikle-card p-6 rounded-xl">
-        <CustomerTable />
-      </div>
+        {/* Customer Table Section */}
+        <div className="quikle-card p-6 rounded-xl">
+          <CustomerErrorBoundary>
+            <CustomerTable />
+          </CustomerErrorBoundary>
+        </div>
 
       {/* AI Configuration Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -78,7 +82,8 @@ const Customers = () => {
       
       {/* On-Site Status Update Dialog */}
       <OnSiteStatusUpdate isOpen={isOnSiteUpdateOpen} onClose={() => setIsOnSiteUpdateOpen(false)} />
-    </div>
+      </div>
+    </CustomerErrorBoundary>
   );
 };
 

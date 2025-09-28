@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, File, Trash2, Download } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
+import { CustomerFile } from '@/types/customer';
 import {
   uploadCustomerFile,
   listCustomerFiles,
@@ -19,7 +20,7 @@ interface CustomerFileUploadProps {
 
 const CustomerFileUpload = ({ customerId }: CustomerFileUploadProps) => {
   const { user } = useAuth();
-  const [files, setFiles] = useState<any[]>([]);
+  const [files, setFiles] = useState<CustomerFile[]>([]);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -31,7 +32,15 @@ const CustomerFileUpload = ({ customerId }: CustomerFileUploadProps) => {
   const loadFiles = async () => {
     try {
       const fileList = await listCustomerFiles(customerId);
-      setFiles(fileList || []);
+      // Transform the file objects to match CustomerFile interface
+      const transformedFiles: CustomerFile[] = (fileList || []).map((fileObj: any) => ({
+        name: fileObj.name,
+        path: fileObj.name, // Use name as path fallback
+        size: fileObj.metadata?.size,
+        created_at: fileObj.created_at ? new Date(fileObj.created_at) : undefined,
+        content_type: fileObj.metadata?.mimetype
+      }));
+      setFiles(transformedFiles);
     } catch (error) {
       console.error('Error loading files:', error);
     }

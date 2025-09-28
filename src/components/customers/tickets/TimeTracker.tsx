@@ -50,7 +50,7 @@ const TimeTracker = ({ timeEntries, totalTimeSpent, onAddTimeEntry }: TimeTracke
     }, 60000);
 
     // Store interval ID for cleanup
-    (window as any).timeTrackingInterval = interval;
+    (window as Window & { timeTrackingInterval?: NodeJS.Timeout }).timeTrackingInterval = interval;
   };
 
   const stopTracking = () => {
@@ -73,8 +73,9 @@ const TimeTracker = ({ timeEntries, totalTimeSpent, onAddTimeEntry }: TimeTracke
       setTrackingDescription('');
       
       // Clear interval
-      if ((window as any).timeTrackingInterval) {
-        clearInterval((window as any).timeTrackingInterval);
+      const windowWithInterval = window as Window & { timeTrackingInterval?: NodeJS.Timeout };
+      if (windowWithInterval.timeTrackingInterval) {
+        clearInterval(windowWithInterval.timeTrackingInterval);
       }
     }
   };

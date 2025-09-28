@@ -65,9 +65,47 @@ export interface Customer {
   assigned_to_email?: string; // Email of assigned employee
   territory?: string; // Customer's territory/region
   // Performance optimization - pre-loaded related data
-  _customData?: any[];
-  _appliedTemplates?: any[];
-  _equipment?: any[];
+  _customData?: CustomerCustomData[];
+  _appliedTemplates?: CustomerTemplate[];
+  _equipment?: CustomerEquipment[];
+}
+
+export interface CustomerCustomData {
+  id: string;
+  field_id: string;
+  field_value: string;
+  template_fields?: {
+    id: string;
+    field_name: string;
+    field_label: string;
+    field_type: string;
+    is_required: boolean;
+  };
+}
+
+export interface CustomerTemplate {
+  template_id: string;
+  industry_templates?: {
+    id: string;
+    name: string;
+    industry: string;
+  };
+}
+
+export interface CustomerEquipment {
+  id: string;
+  equipment_type: string;
+  brand?: string;
+  model?: string;
+  status: string;
+}
+
+export interface CustomerFile {
+  name: string;
+  path: string;
+  size?: number;
+  created_at?: Date;
+  content_type?: string;
 }
 
 export interface CRMContextType {

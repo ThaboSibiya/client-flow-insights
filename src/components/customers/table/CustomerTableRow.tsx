@@ -33,8 +33,8 @@ const CustomerTableRow = ({
   rowIndex
 }: CustomerTableRowProps) => {
   // Use pre-loaded data to avoid N+1 queries
-  const customData = (customer as any)._customData || [];
-  const appliedTemplates = (customer as any)._appliedTemplates || [];
+  const customData = customer._customData || [];
+  const appliedTemplates = customer._appliedTemplates || [];
   const loading = false;
   
   const formatDate = (date: Date) => {
@@ -99,8 +99,11 @@ const CustomerTableRow = ({
                     <TooltipContent>
                       <div className="text-xs">
                         <p className="font-medium mb-1">Applied Templates:</p>
-                        {appliedTemplates.map(template => (
-                          <p key={template.id}>{template.name} ({template.industry})</p>
+                        {appliedTemplates.map((template, index) => (
+                          <p key={index}>
+                            {template.industry_templates?.name || template.template_id} 
+                            {template.industry_templates?.industry && ` (${template.industry_templates.industry})`}
+                          </p>
                         ))}
                       </div>
                     </TooltipContent>
