@@ -18,7 +18,7 @@ import { validateProject, sanitizeProjectInput } from '@/utils/project-validatio
 interface NewProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateProject: (projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onCreateProject: (projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => Promise<boolean>;
   teamMembers: TeamMember[];
 }
 
@@ -106,14 +106,23 @@ const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClose, onCr
         client: sanitizedData.client || 'Internal',
       };
 
-      onCreateProject(projectData);
-      handleReset();
-      onClose();
+      const success = await onCreateProject(projectData);
       
-      toast({
-        title: "Project Created",
-        description: `${sanitizedData.name} has been created successfully.`,
-      });
+      if (success) {
+        handleReset();
+        onClose();
+        
+        toast({
+          title: "Project Created",
+          description: `${sanitizedData.name} has been created successfully.`,
+        });
+      } else {
+        toast({
+          title: "Creation Failed",
+          description: "Failed to create project. Please check your inputs and try again.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Error creating project:', error);
       toast({

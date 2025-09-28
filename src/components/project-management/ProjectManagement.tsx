@@ -63,9 +63,12 @@ const ProjectManagement: React.FC = () => {
       : null;
   }, [selectedProjectForTasks, allProjects]);
 
-  const handleCreateProject = useCallback((projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
-    addProject(projectData);
-    setIsNewProjectModalOpen(false);
+  const handleCreateProject = useCallback(async (projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const success = await addProject(projectData);
+    if (success) {
+      setIsNewProjectModalOpen(false);
+    }
+    return success;
   }, [addProject]);
 
   const handleProjectMove = useCallback((projectId: string, newStatus: ProjectStatus) => {

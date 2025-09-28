@@ -65,7 +65,7 @@ export interface UseProjectManagementReturn extends ProjectEventHandlers {
   teamMembers: TeamMember[];
   updateProjectStatus: (projectId: string, status: ProjectStatus) => void;
   updateTaskStatus: (projectId: string, taskId: string, status: TaskStatus) => void;
-  addProject: (projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  addProject: (projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => Promise<boolean>;
   updateProject: (projectId: string, updates: Partial<Project>) => void;
   deleteProject: (projectId: string) => void;
   addTask: (projectId: string, taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -204,89 +204,75 @@ export const useProjectManagement = (): UseProjectManagementReturn => {
     ));
   }, []);
 
-  const addProject = useCallback((projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addProject = useCallback((projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<boolean> => {
     const endMeasure = startMeasure('addProject');
     
-    try {
-      setIsLoading(true);
-      
-      // Sanitize input data
-      const sanitizedData = {
-        ...projectData,
-        name: sanitizeProjectInput(projectData.name),
-        description: sanitizeProjectInput(projectData.description || ''),
-        budget: sanitizeNumericInput(projectData.budget),
-        client: projectData.client ? sanitizeProjectInput(projectData.client) : undefined
-      };
-      
-      // Validate the project data
-      const validation = validateProject(sanitizedData);
-      if (!validation.success) {
-        const errorMessage = validation.errors?.join(', ') || 'Invalid project data';
-        logError(new Error(errorMessage), 'addProject');
-        return;
-      }
-      
-      // Helper function to extract proper Date from complex date objects
-      const extractDate = (dateValue: unknown): Date => {
-        if (dateValue instanceof Date) return dateValue;
-        if (dateValue && typeof dateValue === 'object' && dateValue !== null) {
-          const objValue = dateValue as Record<string, unknown>;
-          if (objValue.value) {
-            if (typeof objValue.value === 'string' && objValue.value.includes('T')) {
-              return new Date(objValue.value);
-            }
-            if (typeof objValue.value === 'string' || typeof objValue.value === 'number') {
-              return new Date(objValue.value);
-            }
-          }
+    return new Promise((resolve) => {
+      try {
+        setIsLoading(true);
+        
+        // Sanitize input data
+        const sanitizedData = {
+          ...projectData,
+          name: sanitizeProjectInput(projectData.name),
+          description: sanitizeProjectInput(projectData.description || ''),
+          budget: sanitizeNumericInput(projectData.budget),
+          client: projectData.client ? sanitizeProjectInput(projectData.client) : undefined
+        };
+        
+        // Validate the project data
+        const validation = validateProject(sanitizedData);
+        if (!validation.success) {
+          const errorMessage = validation.errors?.join(', ') || 'Invalid project data';
+          logError(new Error(errorMessage), 'addProject');
+          resolve(false);
+          return;
         }
-        if (typeof dateValue === 'string' || typeof dateValue === 'number') {
-          return new Date(dateValue);
+        
+        // Ensure dates are proper Date objects
+        const startDate = new Date(sanitizedData.startDate);
+        const dueDate = new Date(sanitizedData.dueDate);
+        
+        // Validate date range
+        if (startDate >= dueDate) {
+          logError(new Error('Start date must be before due date'), 'addProject');
+          resolve(false);
+          return;
         }
-        return new Date(); // fallback to current date
-      };
-      
-      // Ensure dates are proper Date objects
-      const startDate = extractDate(sanitizedData.startDate);
-      const dueDate = extractDate(sanitizedData.dueDate);
-      
-      // Validate date range
-      if (startDate >= dueDate) {
-        logError(new Error('Start date must be before due date'), 'addProject');
-        return;
+        
+        // Ensure team array doesn't have circular references
+        const cleanTeam = Array.isArray(sanitizedData.team) ? sanitizedData.team.map(member => ({
+          id: member.id,
+          name: sanitizeProjectInput(member.name),
+          email: sanitizeProjectInput(member.email),
+          role: sanitizeProjectInput(member.role),
+          department: sanitizeProjectInput(member.department),
+          avatar: member.avatar
+        })) : [sanitizedData.owner];
+        
+        const newProject: Project = {
+          ...sanitizedData,
+          id: `proj-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          startDate,
+          dueDate,
+          team: cleanTeam,
+          tasks: [],
+          tags: sanitizedData.tags || [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        
+        setProjects(prev => [newProject, ...prev]);
+        resolve(true);
+        
+      } catch (error) {
+        logError(error, 'addProject');
+        resolve(false);
+      } finally {
+        setIsLoading(false);
+        endMeasure();
       }
-      
-      // Ensure team array doesn't have circular references
-      const cleanTeam = Array.isArray(sanitizedData.team) ? sanitizedData.team.map(member => ({
-        id: member.id,
-        name: sanitizeProjectInput(member.name),
-        email: sanitizeProjectInput(member.email),
-        role: sanitizeProjectInput(member.role),
-        department: sanitizeProjectInput(member.department),
-        avatar: member.avatar
-      })) : [sanitizedData.owner];
-      
-      const newProject: Project = {
-        ...sanitizedData,
-        id: `proj-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        startDate,
-        dueDate,
-        team: cleanTeam,
-        tasks: [],
-        tags: sanitizedData.tags || [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      
-      setProjects(prev => [newProject, ...prev]);
-      
-    } catch (error) {
-      logError(error, 'addProject');
-    } finally {
-      setIsLoading(false);
-      endMeasure();
-    }
+    });
   }, [logError, startMeasure]);
 
   const updateProject = useCallback((projectId: string, updates: Partial<Project>) => {
