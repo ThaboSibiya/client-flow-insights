@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
+import { screen } from '@testing-library/dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';

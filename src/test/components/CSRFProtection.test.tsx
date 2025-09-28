@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, renderHook, act } from '@testing-library/react';
+import { screen } from '@testing-library/dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CSRFProvider, useCSRF, withCSRFProtection } from '@/components/security/CSRFProtection';
 

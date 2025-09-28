@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, renderHook } from '@testing-library/react';
+import { render, renderHook, act } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 
