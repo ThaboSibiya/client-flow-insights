@@ -100,10 +100,12 @@ export const useProjectManagement = (): UseProjectManagementReturn => {
         setIsLoading(true);
         const loadedProjects = await projectService.getProjects();
         setProjects(loadedProjects);
+        console.log('Projects loaded from database:', loadedProjects.length);
       } catch (error) {
+        console.error('Failed to load projects from database:', error);
         logError(error, 'loadProjects');
-        // Fallback to mock data if database fails
-        setProjects(mockProjects);
+        // Fallback to empty array if database fails and user is not authenticated
+        setProjects([]);
       } finally {
         setIsLoading(false);
       }
@@ -285,6 +287,7 @@ export const useProjectManagement = (): UseProjectManagementReturn => {
       // Save to database
       const newProject = await projectService.createProject(projectToCreate);
       setProjects(prev => [newProject, ...prev]);
+      console.log('Project created successfully:', newProject.id);
       return true;
       
     } catch (error) {

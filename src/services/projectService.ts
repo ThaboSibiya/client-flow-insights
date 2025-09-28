@@ -241,7 +241,7 @@ export const projectService = {
       description: taskData.description,
       status: taskData.status,
       priority: taskData.priority,
-      assigned_to: taskData.assignedTo,
+      assigned_to: JSON.parse(JSON.stringify(taskData.assignedTo)),
       due_date: taskData.dueDate.toISOString(),
       start_date: taskData.startDate.toISOString(),
       estimated_hours: taskData.estimatedHours,
@@ -254,7 +254,7 @@ export const projectService = {
 
     const { data, error } = await supabase
       .from('project_tasks')
-      .insert(dbTask)
+      .insert([dbTask])
       .select()
       .single();
 
@@ -273,7 +273,7 @@ export const projectService = {
     if (updates.description !== undefined) updateData.description = updates.description;
     if (updates.status) updateData.status = updates.status;
     if (updates.priority) updateData.priority = updates.priority;
-    if (updates.assignedTo) updateData.assigned_to = updates.assignedTo;
+    if (updates.assignedTo) updateData.assigned_to = JSON.parse(JSON.stringify(updates.assignedTo));
     if (updates.dueDate) updateData.due_date = updates.dueDate.toISOString();
     if (updates.startDate) updateData.start_date = updates.startDate.toISOString();
     if (updates.estimatedHours !== undefined) updateData.estimated_hours = updates.estimatedHours;
