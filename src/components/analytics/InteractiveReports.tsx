@@ -6,7 +6,7 @@ import DrillDownAnalytics from './DrillDownAnalytics';
 import ExportScheduler from './ExportScheduler';
 import CustomReportBuilder from './CustomReportBuilder';
 
-const InteractiveReports = () => {
+const InteractiveReports: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-blue-500/20 via-purple-500/15 to-indigo-500/20 p-6 rounded-xl border border-white/20 backdrop-blur-sm">

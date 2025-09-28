@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Customer } from '@/context/CRMContext';
@@ -8,21 +8,28 @@ interface StatusDistributionProps {
   customers: Customer[];
 }
 
-const COLORS = ['#1E40AF', '#059669', '#64748B', '#7C3AED'];
+interface StatusData {
+  name: string;
+  value: number;
+}
 
-const StatusDistribution = ({ customers }: StatusDistributionProps) => {
-  // Count customers by status
-  const statusCounts = customers.reduce((acc, customer) => {
-    acc[customer.status] = (acc[customer.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-  
-  const data = [
-    { name: 'New', value: statusCounts['new'] || 0 },
-    { name: 'Existing', value: statusCounts['existing'] || 0 },
-    { name: 'Pending', value: statusCounts['pending'] || 0 },
-    { name: 'Finalised', value: statusCounts['finalised'] || 0 },
-  ];
+const COLORS = ['#1E40AF', '#059669', '#64748B', '#7C3AED'] as const;
+
+const StatusDistribution: React.FC<StatusDistributionProps> = ({ customers }) => {
+  // Count customers by status with memoization
+  const data: StatusData[] = useMemo(() => {
+    const statusCounts = customers.reduce((acc, customer) => {
+      acc[customer.status] = (acc[customer.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return [
+      { name: 'New', value: statusCounts['new'] || 0 },
+      { name: 'Existing', value: statusCounts['existing'] || 0 },
+      { name: 'Pending', value: statusCounts['pending'] || 0 },
+      { name: 'Finalised', value: statusCounts['finalised'] || 0 },
+    ];
+  }, [customers]);
 
   return (
     <Card className="shadow-sm">
@@ -49,7 +56,7 @@ const StatusDistribution = ({ customers }: StatusDistributionProps) => {
                 ))}
               </Pie>
               <Legend />
-              <Tooltip formatter={(value) => [`${value} customers`, 'Count']} />
+              <Tooltip formatter={(value: number) => [`${value} customers`, 'Count']} />
             </PieChart>
           </ResponsiveContainer>
         </div>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 
-const ChartDefinitions = () => {
+const ChartDefinitions: React.FC = () => {
   return (
     <defs>
       <linearGradient id="colorNew" x1="0" y1="0" x2="0" y2="1">

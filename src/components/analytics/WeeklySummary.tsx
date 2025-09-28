@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Customer } from '@/context/CRMContext';
@@ -9,10 +9,17 @@ interface WeeklySummaryProps {
   customers: Customer[];
 }
 
-const WeeklySummary = ({ customers }: WeeklySummaryProps) => {
-  // Generate weekly data for last 7 days
-  const generateWeeklyData = () => {
-    const data = [];
+interface WeeklyData {
+  name: string;
+  acquisitions: number;
+  sales: number;
+  revenue: number;
+}
+
+const WeeklySummary: React.FC<WeeklySummaryProps> = ({ customers }) => {
+  // Generate weekly data for last 7 days with memoization
+  const weeklyData: WeeklyData[] = useMemo(() => {
+    const data: WeeklyData[] = [];
     const today = new Date();
     
     for (let i = 6; i >= 0; i--) {
@@ -45,9 +52,7 @@ const WeeklySummary = ({ customers }: WeeklySummaryProps) => {
     }
     
     return data;
-  };
-  
-  const weeklyData = generateWeeklyData();
+  }, [customers]);
 
   return (
     <Card className="shadow-lg border border-white/30 bg-gradient-to-br from-white via-white to-gray-50 hover:shadow-xl transition-all duration-300">
@@ -89,7 +94,7 @@ const WeeklySummary = ({ customers }: WeeklySummaryProps) => {
                   boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
                   border: '1px solid #E2E8F0' 
                 }}
-                formatter={(value: any, name: string) => {
+                formatter={(value: number, name: string) => {
                   if (name === 'revenue') {
                     return [`R${value.toLocaleString()}`, 'Revenue'];
                   }

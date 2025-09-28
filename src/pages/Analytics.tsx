@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CustomerChart from '@/components/analytics/CustomerChart';
 import CustomerMetricsSummary from '@/components/analytics/CustomerMetricsSummary';
@@ -10,16 +10,23 @@ import AdvancedAnalyticsDashboard from '@/components/analytics/AdvancedAnalytics
 import InteractiveReports from '@/components/analytics/InteractiveReports';
 import { Users, Ticket, TrendingUp, FileBarChart } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
-import { generateReportData, calculateSummary } from '@/utils/customer-analytics';
-const Analytics = () => {
-  const {
-    customers
-  } = useCRM();
+import { generateReportData, calculateSummary, type ReportData, type ReportSummary } from '@/utils/customer-analytics';
+interface AnalyticsProps {}
+
+const Analytics: React.FC<AnalyticsProps> = () => {
+  const { customers } = useCRM();
   const [timeframe, setTimeframe] = useState<'monthly' | 'yearly'>('monthly');
 
-  // Generate analytics data from customer data
-  const reportData = generateReportData(customers, timeframe);
-  const summary = calculateSummary(reportData);
+  // Generate analytics data from customer data with memoization
+  const reportData: ReportData[] = useMemo(() => 
+    generateReportData(customers, timeframe), 
+    [customers, timeframe]
+  );
+  
+  const summary: ReportSummary = useMemo(() => 
+    calculateSummary(reportData), 
+    [reportData]
+  );
   return <div className="space-y-6">
       <div className="mb-6">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-1.5">

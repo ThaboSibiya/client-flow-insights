@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Line, 
   XAxis, 
@@ -21,8 +21,8 @@ interface CustomerChartProps {
   timeframe: 'monthly' | 'yearly';
 }
 
-const CustomerChart = ({ reportData, timeframe }: CustomerChartProps) => {
-  const barSize = timeframe === 'yearly' ? 30 : 15;
+const CustomerChart: React.FC<CustomerChartProps> = ({ reportData, timeframe }) => {
+  const barSize = useMemo(() => timeframe === 'yearly' ? 30 : 15, [timeframe]);
   
   return (
     <div className="h-80">
@@ -44,7 +44,7 @@ const CustomerChart = ({ reportData, timeframe }: CustomerChartProps) => {
               paddingTop: '10px',
               fontSize: '12px'
             }}
-            formatter={(value) => <ChartLegendFormatter value={value} />}
+            formatter={(value: string | number) => <ChartLegendFormatter value={value} />}
           />
           
           <ChartBar 

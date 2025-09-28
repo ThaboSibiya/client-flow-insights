@@ -1,9 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Customer } from '@/context/CRMContext';
-import { ChevronDown } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -17,12 +16,20 @@ interface MonthlyTrendsProps {
   customers: Customer[];
 }
 
-const MonthlyTrends = ({ customers }: MonthlyTrendsProps) => {
-  const [viewOption, setViewOption] = useState<'all' | 'new' | 'finalised'>('all');
+interface MonthlyData {
+  name: string;
+  new: number;
+  finalised: number;
+}
+
+type ViewOption = 'all' | 'new' | 'finalised';
+
+const MonthlyTrends: React.FC<MonthlyTrendsProps> = ({ customers }) => {
+  const [viewOption, setViewOption] = useState<ViewOption>('all');
   
-  // Generate monthly data for the past 6 months
-  const generateMonthlyData = () => {
-    const data = [];
+  // Generate monthly data for the past 6 months with memoization
+  const monthlyData: MonthlyData[] = useMemo(() => {
+    const data: MonthlyData[] = [];
     const today = new Date();
     
     for (let i = 5; i >= 0; i--) {
@@ -50,9 +57,11 @@ const MonthlyTrends = ({ customers }: MonthlyTrendsProps) => {
     }
     
     return data;
-  };
-  
-  const monthlyData = generateMonthlyData();
+  }, [customers]);
+
+  const handleViewChange = useCallback((value: string) => {
+    setViewOption(value as ViewOption);
+  }, []);
 
   return (
     <Card className="shadow-lg border border-white/30 bg-gradient-to-br from-white via-white to-gray-50">
@@ -60,7 +69,7 @@ const MonthlyTrends = ({ customers }: MonthlyTrendsProps) => {
         <CardTitle className="text-lg font-semibold text-gradient">Monthly Trends</CardTitle>
         <Select
           value={viewOption}
-          onValueChange={(value) => setViewOption(value as 'all' | 'new' | 'finalised')}
+          onValueChange={handleViewChange}
         >
           <SelectTrigger className="w-[180px] bg-white border-quikle-primary/20 shadow-sm">
             <SelectValue placeholder="Select view" />

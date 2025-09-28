@@ -9,7 +9,7 @@ import CustomerAcquisitionCost from './CustomerAcquisitionCost';
 import ChurnRateAnalysis from './ChurnRateAnalysis';
 import RegionalPerformance from './RegionalPerformance';
 
-const AdvancedAnalyticsDashboard = () => {
+const AdvancedAnalyticsDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-purple-500/20 via-blue-500/15 to-green-500/20 p-6 rounded-xl border border-white/20 backdrop-blur-sm">

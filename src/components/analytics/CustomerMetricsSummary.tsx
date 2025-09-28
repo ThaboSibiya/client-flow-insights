@@ -6,7 +6,7 @@ interface CustomerMetricsSummaryProps {
   summary: ReportSummary;
 }
 
-const CustomerMetricsSummary = ({ summary }: CustomerMetricsSummaryProps) => {
+const CustomerMetricsSummary: React.FC<CustomerMetricsSummaryProps> = ({ summary }) => {
   return (
     <div className="grid grid-cols-3 gap-2 px-6 pt-4 text-center">
       <div className="p-2 bg-gradient-to-br from-quikle-crystal to-quikle-platinum rounded-lg border border-quikle-primary/20">
