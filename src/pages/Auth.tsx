@@ -7,15 +7,50 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
-import { toast } from '@/components/ui/use-toast';
-import { Mail, Lock, UserPlus, LogIn, RefreshCw } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { Mail, Lock, UserPlus, LogIn, RefreshCw, AlertCircle } from 'lucide-react';
+import { z } from 'zod';
 
-const Auth = () => {
+// Validation schemas
+const emailSchema = z.string().email('Please enter a valid email address');
+const passwordSchema = z.string().min(6, 'Password must be at least 6 characters long');
+
+const authSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+});
+
+const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
   const navigate = useNavigate();
+
+  // Validate form inputs
+  const validateForm = () => {
+    const errors: {[key: string]: string} = {};
+    
+    try {
+      emailSchema.parse(email);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        errors.email = error.errors[0]?.message || 'Invalid email';
+      }
+    }
+    
+    try {
+      passwordSchema.parse(password);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        errors.password = error.errors[0]?.message || 'Invalid password';
+      }
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   // Check for existing session
   useEffect(() => {
@@ -40,11 +75,21 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors below",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
     
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`
@@ -62,14 +107,19 @@ const Auth = () => {
         setActiveTab('login');
       } else {
         toast({
-          title: "Account created",
+          title: "Account created successfully",
           description: "Check your email for the confirmation link",
         });
+        // Clear form
+        setEmail('');
+        setPassword('');
+        setValidationErrors({});
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign up';
       toast({
         title: "Error",
-        description: error.message || "Failed to sign up",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -79,21 +129,36 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error", 
+        description: "Please fix the errors below",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password,
       });
       
       if (error) throw error;
       
       // Successfully signed in, navigation is handled by the auth state change listener
-    } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to sign in",
+        title: "Welcome back!",
+        description: "You have been successfully signed in",
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
+      toast({
+        title: "Sign in failed",
+        description: errorMessage,
         variant: "destructive",
       });
       setLoading(false);
@@ -161,10 +226,21 @@ const Auth = () => {
                         type="email"
                         placeholder="name@example.com"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (validationErrors.email) {
+                            setValidationErrors(prev => ({ ...prev, email: '' }));
+                          }
+                        }}
                         required
-                        className="pl-10"
+                        className={`pl-10 ${validationErrors.email ? 'border-red-500' : ''}`}
                       />
+                      {validationErrors.email && (
+                        <div className="flex items-center gap-1 mt-1 text-sm text-red-600">
+                          <AlertCircle className="h-3 w-3" />
+                          {validationErrors.email}
+                        </div>
+                      )}
                     </div>
                   </div>
                   
@@ -177,10 +253,21 @@ const Auth = () => {
                         type="password"
                         placeholder="••••••••"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          if (validationErrors.password) {
+                            setValidationErrors(prev => ({ ...prev, password: '' }));
+                          }
+                        }}
                         required
-                        className="pl-10"
+                        className={`pl-10 ${validationErrors.password ? 'border-red-500' : ''}`}
                       />
+                      {validationErrors.password && (
+                        <div className="flex items-center gap-1 mt-1 text-sm text-red-600">
+                          <AlertCircle className="h-3 w-3" />
+                          {validationErrors.password}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
