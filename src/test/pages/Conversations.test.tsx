@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
+import { fireEvent } from '@testing-library/dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import Conversations from '@/pages/Conversations';
@@ -214,7 +215,7 @@ describe('Conversations Page', () => {
     const tabTriggers = container.querySelectorAll('[role="tab"]');
     
     // Click on different tabs
-    tabTriggers[1]?.click(); // Email tab
+    if (tabTriggers[1]) fireEvent.click(tabTriggers[1]); // Email tab
     expect(mockConversationsData.updateFilter).toHaveBeenCalledWith('type', expect.any(String));
   });
 

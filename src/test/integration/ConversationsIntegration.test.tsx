@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
+import { fireEvent } from '@testing-library/dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -246,7 +247,7 @@ describe('Conversations Integration Tests', () => {
     expect(tabs).toHaveLength(5); // All, Email, WhatsApp, Internal, Forms
     
     // Click email tab
-    tabs[1]?.click();
+    if (tabs[1]) fireEvent.click(tabs[1]);
     expect(mockConversationsOptimized.updateFilter).toHaveBeenCalled();
   });
 

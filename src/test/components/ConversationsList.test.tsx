@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
+import { fireEvent } from '@testing-library/dom';
 import { describe, it, expect, vi } from 'vitest';
 import ConversationsList from '@/components/conversations/ConversationsList';
 
@@ -100,7 +101,7 @@ describe('ConversationsList Component', () => {
     );
     
     const conversation = getByText('Test Email Subject').closest('[role="button"], div[class*="cursor-pointer"]');
-    conversation?.click();
+    if (conversation) fireEvent.click(conversation);
     
     expect(mockOnSelect).toHaveBeenCalledWith('conv-1');
   });
