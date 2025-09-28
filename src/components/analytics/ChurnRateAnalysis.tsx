@@ -1,15 +1,29 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { UserMinus, AlertTriangle } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
 
-const ChurnRateAnalysis = () => {
+interface ChurnDataPoint {
+  month: string;
+  churnRate: number;
+  churnedCustomers: number;
+  totalCustomers: number;
+  retentionRate: number;
+}
+
+interface ChurnReason {
+  name: string;
+  value: number;
+  color: string;
+}
+
+const ChurnRateAnalysis: React.FC = () => {
   const { customers } = useCRM();
 
   // Generate churn analysis data
-  const generateChurnData = () => {
+  const generateChurnData = (): ChurnDataPoint[] => {
     const months = [];
     const currentDate = new Date();
     
@@ -39,15 +53,18 @@ const ChurnRateAnalysis = () => {
   };
 
   // Generate churn reasons data
-  const churnReasons = [
+  const churnReasons: ChurnReason[] = [
     { name: 'Poor Service', value: 35, color: '#ef4444' },
     { name: 'Price Concerns', value: 28, color: '#f97316' },
     { name: 'Feature Gaps', value: 20, color: '#eab308' },
     { name: 'Competition', value: 17, color: '#3b82f6' },
   ];
 
-  const churnData = generateChurnData();
-  const averageChurnRate = churnData.reduce((sum, month) => sum + month.churnRate, 0) / churnData.length;
+  const churnData = useMemo(() => generateChurnData(), [customers]);
+  const averageChurnRate = useMemo(() => 
+    churnData.reduce((sum, month) => sum + month.churnRate, 0) / churnData.length, 
+    [churnData]
+  );
   const currentChurnRate = churnData[churnData.length - 1]?.churnRate || 0;
 
   return (
@@ -161,4 +178,4 @@ const ChurnRateAnalysis = () => {
   );
 };
 
-export default ChurnRateAnalysis;
+export default React.memo(ChurnRateAnalysis);

@@ -2,7 +2,7 @@
 import React from 'react';
 import CustomerTableContainer from './table/CustomerTableContainer';
 
-const CustomerTable = () => {
+const CustomerTable: React.FC = () => {
   return <CustomerTableContainer />;
 };
 

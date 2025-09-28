@@ -38,15 +38,23 @@ interface CustomerDetailsDialogProps {
 const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDialogProps) => {
   const { updateCustomer } = useCRM();
   const [activeTab, setActiveTab] = useState('details');
+  const [isSaving, setIsSaving] = useState(false);
   
   const form = useForm<Partial<Customer>>({
     defaultValues: customer || {},
   });
   
-  const onSubmit = (data: Partial<Customer>) => {
-    if (customer) {
-      updateCustomer(customer.id, data);
+  const onSubmit = async (data: Partial<Customer>) => {
+    if (!customer) return;
+    
+    setIsSaving(true);
+    try {
+      await updateCustomer(customer.id, data);
       onClose();
+    } catch (error) {
+      console.error('Failed to update customer:', error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -144,9 +152,9 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
                     <X className="mr-2 h-4 w-4" />
                     Cancel
                   </Button>
-                  <Button type="submit">
+                  <Button type="submit" disabled={isSaving}>
                     <Save className="mr-2 h-4 w-4" />
-                    Save Changes
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </div>
               </form>

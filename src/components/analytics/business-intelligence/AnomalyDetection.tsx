@@ -115,7 +115,7 @@ const AnomalyDetection = ({ settings, onUpdateSettings }: AnomalyDetectionProps)
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Detection Sensitivity</Label>
-              <Select value={settings.sensitivity} onValueChange={(value: any) => updateSettings({ sensitivity: value })}>
+              <Select value={settings.sensitivity} onValueChange={(value: 'low' | 'medium' | 'high') => updateSettings({ sensitivity: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -129,7 +129,7 @@ const AnomalyDetection = ({ settings, onUpdateSettings }: AnomalyDetectionProps)
 
             <div className="space-y-2">
               <Label>Check Frequency</Label>
-              <Select value={settings.checkFrequency} onValueChange={(value: any) => updateSettings({ checkFrequency: value })}>
+              <Select value={settings.checkFrequency} onValueChange={(value: 'hourly' | 'daily') => updateSettings({ checkFrequency: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

@@ -63,10 +63,11 @@ export const EnhancedAuthProvider = ({ children }: EnhancedAuthProviderProps) =>
         title: "Welcome back!",
         description: "You have been signed in successfully.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: "Sign in failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -92,10 +93,11 @@ export const EnhancedAuthProvider = ({ children }: EnhancedAuthProviderProps) =>
         title: "Account created!",
         description: "Please check your email to verify your account.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: "Sign up failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -114,10 +116,11 @@ export const EnhancedAuthProvider = ({ children }: EnhancedAuthProviderProps) =>
         title: "Signed out",
         description: "You have been signed out successfully.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: "Sign out failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -138,10 +141,11 @@ export const EnhancedAuthProvider = ({ children }: EnhancedAuthProviderProps) =>
         title: "Password reset sent",
         description: "Check your email for password reset instructions.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: "Reset failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;

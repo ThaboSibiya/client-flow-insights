@@ -31,10 +31,13 @@ import AdminProtectedRoute from "./components/auth/AdminProtectedRoute";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: unknown) => {
         // Don't retry on 4xx errors
-        if (error?.status >= 400 && error?.status < 500) {
-          return false;
+        if (error && typeof error === 'object' && 'status' in error) {
+          const status = (error as { status: number }).status;
+          if (status >= 400 && status < 500) {
+            return false;
+          }
         }
         return failureCount < 3;
       },
@@ -98,7 +101,11 @@ const App = () => (
                       } />
                       <Route path="projects" element={
                         <ErrorBoundary>
-                          <React.Suspense fallback={<div>Loading...</div>}>
+                           <React.Suspense fallback={
+                             <div className="flex items-center justify-center h-64">
+                               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                             </div>
+                           }>
                             <ProjectManagement />
                           </React.Suspense>
                         </ErrorBoundary>

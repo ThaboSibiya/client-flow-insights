@@ -35,7 +35,7 @@ export interface CustomReport {
   chartType: string;
 }
 
-const CustomReportBuilder = () => {
+const CustomReportBuilder: React.FC = () => {
   const [currentReport, setCurrentReport] = useState<CustomReport>({
     id: '',
     name: '',

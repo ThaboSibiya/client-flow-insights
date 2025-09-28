@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { LogOut, User, Crown, Shield } from 'lucide-react';
 
-const UserProfile = () => {
+const UserProfile: React.FC = () => {
   const { user, signOut } = useAuth();
   const { employeeProfile, isCompanyOwner, loading } = useEmployeeAuth();
   
