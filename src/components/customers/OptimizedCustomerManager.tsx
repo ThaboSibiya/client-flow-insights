@@ -36,7 +36,8 @@ const customerSchema = z.object({
   email: z.string().email('Invalid email address').max(255, 'Email too long'),
   phone: z.string().min(10, 'Phone number too short').max(20, 'Phone number too long'),
   address: z.string().max(500, 'Address too long').optional(),
-  company: z.string().max(100, 'Company name too long').optional(),
+  contact_person: z.string().max(100, 'Contact person name too long').optional(),
+  company_address: z.string().max(500, 'Company address too long').optional(),
   status: z.enum(['new', 'existing', 'pending', 'finalised'] as const),
   notes: z.string().max(1000, 'Notes too long').optional(),
 });
@@ -55,7 +56,7 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
 
   // Search and filter configuration
   const searchOptions = useMemo(() => ({
-    searchFields: ['name', 'email', 'phone', 'company'] as (keyof Customer)[],
+    searchFields: ['name', 'email', 'phone', 'contact_person'] as (keyof Customer)[],
     filterFunctions: {
       status: (customer: Customer, status: CustomerStatus) => customer.status === status,
       hasTickets: (customer: Customer, hasTickets: boolean) => 
@@ -96,11 +97,21 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
   // Initialize optimistic CRUD
   const customerApiService = useMemo(() => ({
     create: async (customerData: Omit<Customer, 'id'>) => {
-      return await addCustomer(customerData);
+      const newCustomer: Customer = {
+        ...customerData,
+        id: `temp_${Date.now()}`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ticketCount: 0,
+        activeTickets: [],
+      };
+      await addCustomer(customerData);
+      return newCustomer;
     },
     update: async (id: string, updates: Partial<Customer>) => {
+      const updatedCustomer = { ...customers.find(c => c.id === id)!, ...updates, updatedAt: new Date() };
       await updateCustomer(id, updates);
-      return { ...customers.find(c => c.id === id)!, ...updates };
+      return updatedCustomer;
     },
     delete: async (id: string) => {
       await deleteCustomer(id);
@@ -119,14 +130,21 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
   // Customer creation with optimistic updates
   const handleCreateCustomer = useCallback(async (data: CustomerFormData) => {
     try {
-      const newCustomer = await createItem({
-        ...data,
-        id: '', // Will be set by the API
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      const customerData: Omit<Customer, 'id'> = {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        contact_person: data.contact_person,
+        company_address: data.company_address,
+        status: data.status,
+        notes: data.notes || '',
+        createdAt: new Date(),
+        updatedAt: new Date(),
         activeTickets: [],
         ticketCount: 0,
-      });
+      };
+      const newCustomer = await createItem(customerData);
       
       toast({
         title: "Customer created",
@@ -142,7 +160,7 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
     try {
       await updateItem(id, {
         ...updates,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       });
     } catch (error) {
       console.error('Failed to update customer:', error);
@@ -303,7 +321,7 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search customers by name, email, phone, or company..."
+                placeholder="Search customers by name, email, phone, or contact person..."
                 value={searchState.query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="pl-10"
@@ -390,14 +408,19 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">
-                  {highlightText(customer.name, searchState.query).map((part, index) => (
-                    <span 
-                      key={part.key} 
-                      className={part.highlighted ? 'bg-yellow-200' : ''}
-                    >
-                      {part.text}
-                    </span>
-                  ))}
+                  {(() => {
+                    const highlighted = highlightText(customer.name, searchState.query);
+                    return typeof highlighted === 'string' 
+                      ? highlighted 
+                      : highlighted.map((part, index) => (
+                          <span 
+                            key={part.key} 
+                            className={part.highlighted ? 'bg-yellow-200' : ''}
+                          >
+                            {part.text}
+                          </span>
+                        ));
+                  })()}
                 </CardTitle>
                 <Badge 
                   variant={
@@ -414,37 +437,52 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
             <CardContent>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  {highlightText(customer.email, searchState.query).map((part, index) => (
-                    <span 
-                      key={part.key} 
-                      className={part.highlighted ? 'bg-yellow-200' : ''}
-                    >
-                      {part.text}
-                    </span>
-                  ))}
+                  {(() => {
+                    const highlighted = highlightText(customer.email, searchState.query);
+                    return typeof highlighted === 'string' 
+                      ? highlighted 
+                      : highlighted.map((part, index) => (
+                          <span 
+                            key={part.key} 
+                            className={part.highlighted ? 'bg-yellow-200' : ''}
+                          >
+                            {part.text}
+                          </span>
+                        ));
+                  })()}
                 </p>
                 
                 <p className="text-sm text-muted-foreground">
-                  {highlightText(customer.phone, searchState.query).map((part, index) => (
-                    <span 
-                      key={part.key} 
-                      className={part.highlighted ? 'bg-yellow-200' : ''}
-                    >
-                      {part.text}
-                    </span>
-                  ))}
+                  {(() => {
+                    const highlighted = highlightText(customer.phone, searchState.query);
+                    return typeof highlighted === 'string' 
+                      ? highlighted 
+                      : highlighted.map((part, index) => (
+                          <span 
+                            key={part.key} 
+                            className={part.highlighted ? 'bg-yellow-200' : ''}
+                          >
+                            {part.text}
+                          </span>
+                        ));
+                  })()}
                 </p>
                 
-                {customer.company && (
+                {customer.contact_person && (
                   <p className="text-sm text-muted-foreground">
-                    {highlightText(customer.company, searchState.query).map((part, index) => (
-                      <span 
-                        key={part.key} 
-                        className={part.highlighted ? 'bg-yellow-200' : ''}
-                      >
-                        {part.text}
-                      </span>
-                    ))}
+                    {(() => {
+                      const highlighted = highlightText(customer.contact_person, searchState.query);
+                      return typeof highlighted === 'string' 
+                        ? highlighted 
+                        : highlighted.map((part, index) => (
+                            <span 
+                              key={part.key} 
+                              className={part.highlighted ? 'bg-yellow-200' : ''}
+                            >
+                              {part.text}
+                            </span>
+                          ));
+                    })()}
                   </p>
                 )}
                 
