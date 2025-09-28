@@ -23,7 +23,7 @@ interface EnhancedCustomerTableProps {
   loading?: boolean;
 }
 
-const EnhancedCustomerTable: React.FC<EnhancedCustomerTableProps> = ({ 
+const EnhancedCustomerTable: React.FC<EnhancedCustomerTableProps> = React.memo(({ 
   customers, 
   onEdit, 
   onDelete, 
@@ -153,6 +153,8 @@ const EnhancedCustomerTable: React.FC<EnhancedCustomerTableProps> = ({
       </div>
     </ErrorBoundary>
   );
-};
+});
+
+EnhancedCustomerTable.displayName = 'EnhancedCustomerTable';
 
 export default EnhancedCustomerTable;

@@ -12,7 +12,7 @@ import QuickActionsBar from '../QuickActionsBar';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 import { toast } from '@/hooks/use-toast';
 
-const CustomerTableContainer = () => {
+const CustomerTableContainer = React.memo(() => {
   const {
     customers,
     isLoading,
@@ -188,6 +188,8 @@ const CustomerTableContainer = () => {
       </div>
     </ErrorBoundary>
   );
-};
+});
+
+CustomerTableContainer.displayName = 'CustomerTableContainer';
 
 export default CustomerTableContainer;

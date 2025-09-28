@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,9 +24,21 @@ import {
 import { useOptimisticCRUD } from '@/hooks/useOptimisticCRUD';
 import { useInstantSearch } from '@/hooks/useInstantSearch';
 import { useSmartNavigation } from '@/hooks/useSmartNavigation';
+import { useApiCache } from '@/hooks/useApiCache';
 import { SmartForm } from '@/components/common/SmartForm';
 import { useCRM } from '@/context/CRMContext';
 import { Customer, CustomerStatus } from '@/types/customer';
+import { 
+  MemoizedCustomerStats, 
+  MemoizedCustomerList 
+} from '@/components/common/PerformanceOptimizedComponents';
+import { 
+  LazyCustomerAnalytics,
+  CustomerAnalyticsWrapper,
+  LazyCustomerDetailsDialog,
+  CustomerDetailsWrapper
+} from './LazyCustomerComponents';
+import { SkeletonCard } from '@/components/common/SkeletonScreens';
 import { z } from 'zod';
 import { toast } from '@/hooks/use-toast';
 
@@ -48,11 +60,12 @@ interface OptimizedCustomerManagerProps {
   className?: string;
 }
 
-export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> = ({ 
+export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> = React.memo(({ 
   className = '' 
 }) => {
   const { customers, addCustomer, updateCustomer, deleteCustomer } = useCRM();
   const { navigate } = useSmartNavigation();
+  const apiCache = useApiCache<Customer[]>({ ttl: 2 * 60 * 1000 }); // 2 minute cache
 
   // Search and filter configuration
   const searchOptions = useMemo(() => ({
@@ -94,7 +107,7 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
     getSearchPresets,
   } = useInstantSearch(customers, searchOptions);
 
-  // Initialize optimistic CRUD
+  // Initialize optimistic CRUD with caching
   const customerApiService = useMemo(() => ({
     create: async (customerData: Omit<Customer, 'id'>) => {
       const newCustomer: Customer = {
@@ -105,18 +118,35 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
         ticketCount: 0,
         activeTickets: [],
       };
+      
+      // Call API directly
       await addCustomer(customerData);
+      
+      // Invalidate customer list cache
+      apiCache.invalidate('customers-list');
+      
       return newCustomer;
     },
     update: async (id: string, updates: Partial<Customer>) => {
       const updatedCustomer = { ...customers.find(c => c.id === id)!, ...updates, updatedAt: new Date() };
+      
+      // Call API directly
       await updateCustomer(id, updates);
+      
+      // Invalidate specific customer and list cache
+      apiCache.invalidate(`customer-${id}`);
+      apiCache.invalidate('customers-list');
+      
       return updatedCustomer;
     },
     delete: async (id: string) => {
       await deleteCustomer(id);
+      
+      // Invalidate caches
+      apiCache.invalidate(`customer-${id}`);
+      apiCache.invalidate('customers-list');
     },
-  }), [addCustomer, updateCustomer, deleteCustomer, customers]);
+  }), [addCustomer, updateCustomer, deleteCustomer, customers, apiCache]);
 
   const {
     createItem,
@@ -193,23 +223,35 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
     }
   }, [bulkDelete]);
 
-  // Quick stats
-  const customerStats = useMemo(() => {
-    const total = customers.length;
-    const byStatus = customers.reduce((acc, customer) => {
-      acc[customer.status] = (acc[customer.status] || 0) + 1;
-      return acc;
-    }, {} as Record<CustomerStatus, number>);
+  // Optimized callbacks for customer actions
+  const handleEditCustomer = useCallback((customer: Customer) => {
+    navigate(`/customers/${customer.id}/edit`);
+  }, [navigate]);
 
-    return {
-      total,
-      new: byStatus.new || 0,
-      existing: byStatus.existing || 0,
-      pending: byStatus.pending || 0,
-      finalised: byStatus.finalised || 0,
-      withTickets: customers.filter(c => c.ticketCount > 0).length,
-    };
-  }, [customers]);
+  const handleViewCustomer = useCallback((customer: Customer) => {
+    navigate(`/customers/${customer.id}`);
+  }, [navigate]);
+
+  const handleDeleteCustomerOptimized = useCallback(async (id: string) => {
+    const customer = customers.find(c => c.id === id);
+    if (!customer) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${customer.name}? This action cannot be undone.`
+    );
+
+    if (confirmed) {
+      try {
+        await handleDeleteCustomer(id);
+        toast({
+          title: "Customer deleted",
+          description: `${customer.name} has been removed from your customer list`,
+        });
+      } catch (error) {
+        console.error('Failed to delete customer:', error);
+      }
+    }
+  }, [customers, handleDeleteCustomer]);
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -218,7 +260,7 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
         <div>
           <h1 className="text-2xl font-bold">Customer Management</h1>
           <p className="text-muted-foreground">
-            Manage your {customerStats.total} customers efficiently
+            Manage your {customers.length} customers efficiently
           </p>
         </div>
         
@@ -238,80 +280,8 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
         </div>
       </div>
 
-      {/* Quick stats cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Users className="h-4 w-4 text-blue-600" />
-              <div>
-                <p className="text-sm font-medium">Total</p>
-                <p className="text-xl font-bold">{customerStats.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Star className="h-4 w-4 text-green-600" />
-              <div>
-                <p className="text-sm font-medium">New</p>
-                <p className="text-xl font-bold">{customerStats.new}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-4 w-4 text-purple-600" />
-              <div>
-                <p className="text-sm font-medium">Existing</p>
-                <p className="text-xl font-bold">{customerStats.existing}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Activity className="h-4 w-4 text-orange-600" />
-              <div>
-                <p className="text-sm font-medium">Pending</p>
-                <p className="text-xl font-bold">{customerStats.pending}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <StarOff className="h-4 w-4 text-gray-600" />
-              <div>
-                <p className="text-sm font-medium">Finalised</p>
-                <p className="text-xl font-bold">{customerStats.finalised}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Activity className="h-4 w-4 text-red-600" />
-              <div>
-                <p className="text-sm font-medium">With Tickets</p>
-                <p className="text-xl font-bold">{customerStats.withTickets}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Quick stats cards - memoized */}
+      <MemoizedCustomerStats customers={customers} />
 
       {/* Search and filters */}
       <Card>
@@ -558,6 +528,8 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
       )}
     </div>
   );
-};
+});
+
+OptimizedCustomerManager.displayName = 'OptimizedCustomerManager';
 
 export default OptimizedCustomerManager;
