@@ -1,8 +1,9 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Project, Task, ProjectFilters, TeamMember, TaskStatus, ProjectStatus, Priority, ProjectEventHandlers } from '@/types/project';
 import { useProjectErrorHandling } from './useProjectErrorHandling';
 import { useProjectPerformance } from './useProjectPerformance';
 import { validateProject, sanitizeProjectInput, sanitizeNumericInput } from '@/utils/project-validation';
+import { projectService } from '@/services/projectService';
 
 // Mock data for demonstration
 const mockTeamMembers: TeamMember[] = [
@@ -77,9 +78,9 @@ export interface UseProjectManagementReturn extends ProjectEventHandlers {
 }
 
 export const useProjectManagement = (): UseProjectManagementReturn => {
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [filters, setFilters] = useState<ProjectFilters>({
     status: [],
     priority: [],
@@ -91,6 +92,25 @@ export const useProjectManagement = (): UseProjectManagementReturn => {
 
   const { logError, errors, clearErrors } = useProjectErrorHandling();
   const { startMeasure } = useProjectPerformance();
+
+  // Load projects from database on mount
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        setIsLoading(true);
+        const loadedProjects = await projectService.getProjects();
+        setProjects(loadedProjects);
+      } catch (error) {
+        logError(error, 'loadProjects');
+        // Fallback to mock data if database fails
+        setProjects(mockProjects);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProjects();
+  }, [logError]);
 
   const filteredProjects = useMemo(() => {
     return projects.filter(project => {
@@ -157,141 +177,147 @@ export const useProjectManagement = (): UseProjectManagementReturn => {
     ));
   }, []);
 
-  const addTask = useCallback((projectId: string, taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newTask: Task = {
-      ...taskData,
-      id: `task-${Date.now()}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+  const addTask = useCallback(async (projectId: string, taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const newTask = await projectService.createTask(projectId, taskData);
+      setProjects(prev => prev.map(project => 
+        project.id === projectId 
+          ? {
+              ...project,
+              tasks: [...project.tasks, newTask],
+              updatedAt: new Date()
+            }
+          : project
+      ));
+    } catch (error) {
+      logError(error, 'addTask');
+    }
+  }, [logError]);
 
-    setProjects(prev => prev.map(project => 
-      project.id === projectId 
-        ? {
-            ...project,
-            tasks: [...project.tasks, newTask],
-            updatedAt: new Date()
-          }
-        : project
-    ));
-  }, []);
+  const updateTask = useCallback(async (projectId: string, taskId: string, updates: Partial<Task>) => {
+    try {
+      const updatedTask = await projectService.updateTask(taskId, updates);
+      setProjects(prev => prev.map(project => 
+        project.id === projectId 
+          ? {
+              ...project,
+              tasks: project.tasks.map(task =>
+                task.id === taskId ? updatedTask : task
+              ),
+              updatedAt: new Date()
+            }
+          : project
+      ));
+    } catch (error) {
+      logError(error, 'updateTask');
+    }
+  }, [logError]);
 
-  const updateTask = useCallback((projectId: string, taskId: string, updates: Partial<Task>) => {
-    setProjects(prev => prev.map(project => 
-      project.id === projectId 
-        ? {
-            ...project,
-            tasks: project.tasks.map(task =>
-              task.id === taskId 
-                ? { ...task, ...updates, updatedAt: new Date() }
-                : task
-            ),
-            updatedAt: new Date()
-          }
-        : project
-    ));
-  }, []);
+  const deleteTask = useCallback(async (projectId: string, taskId: string) => {
+    try {
+      await projectService.deleteTask(taskId);
+      setProjects(prev => prev.map(project => 
+        project.id === projectId 
+          ? {
+              ...project,
+              tasks: project.tasks.filter(task => task.id !== taskId),
+              updatedAt: new Date()
+            }
+          : project
+      ));
+    } catch (error) {
+      logError(error, 'deleteTask');
+    }
+  }, [logError]);
 
-  const deleteTask = useCallback((projectId: string, taskId: string) => {
-    setProjects(prev => prev.map(project => 
-      project.id === projectId 
-        ? {
-            ...project,
-            tasks: project.tasks.filter(task => task.id !== taskId),
-            updatedAt: new Date()
-          }
-        : project
-    ));
-  }, []);
-
-  const addProject = useCallback((projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<boolean> => {
+  const addProject = useCallback(async (projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<boolean> => {
     const endMeasure = startMeasure('addProject');
     
-    return new Promise((resolve) => {
-      try {
-        setIsLoading(true);
-        
-        // Sanitize input data
-        const sanitizedData = {
-          ...projectData,
-          name: sanitizeProjectInput(projectData.name),
-          description: sanitizeProjectInput(projectData.description || ''),
-          budget: sanitizeNumericInput(projectData.budget),
-          client: projectData.client ? sanitizeProjectInput(projectData.client) : undefined
-        };
-        
-        // Validate the project data
-        const validation = validateProject(sanitizedData);
-        if (!validation.success) {
-          const errorMessage = validation.errors?.join(', ') || 'Invalid project data';
-          logError(new Error(errorMessage), 'addProject');
-          resolve(false);
-          return;
-        }
-        
-        // Ensure dates are proper Date objects
-        const startDate = new Date(sanitizedData.startDate);
-        const dueDate = new Date(sanitizedData.dueDate);
-        
-        // Validate date range
-        if (startDate >= dueDate) {
-          logError(new Error('Start date must be before due date'), 'addProject');
-          resolve(false);
-          return;
-        }
-        
-        // Ensure team array doesn't have circular references
-        const cleanTeam = Array.isArray(sanitizedData.team) ? sanitizedData.team.map(member => ({
-          id: member.id,
-          name: sanitizeProjectInput(member.name),
-          email: sanitizeProjectInput(member.email),
-          role: sanitizeProjectInput(member.role),
-          department: sanitizeProjectInput(member.department),
-          avatar: member.avatar
-        })) : [sanitizedData.owner];
-        
-        const newProject: Project = {
-          ...sanitizedData,
-          id: `proj-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          startDate,
-          dueDate,
-          team: cleanTeam,
-          tasks: [],
-          tags: sanitizedData.tags || [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        
-        setProjects(prev => [newProject, ...prev]);
-        resolve(true);
-        
-      } catch (error) {
-        logError(error, 'addProject');
-        resolve(false);
-      } finally {
-        setIsLoading(false);
-        endMeasure();
+    try {
+      setIsLoading(true);
+      
+      // Sanitize input data
+      const sanitizedData = {
+        ...projectData,
+        name: sanitizeProjectInput(projectData.name),
+        description: sanitizeProjectInput(projectData.description || ''),
+        budget: sanitizeNumericInput(projectData.budget),
+        client: projectData.client ? sanitizeProjectInput(projectData.client) : undefined
+      };
+      
+      // Validate the project data
+      const validation = validateProject(sanitizedData);
+      if (!validation.success) {
+        const errorMessage = validation.errors?.join(', ') || 'Invalid project data';
+        logError(new Error(errorMessage), 'addProject');
+        return false;
       }
-    });
+      
+      // Ensure dates are proper Date objects
+      const startDate = new Date(sanitizedData.startDate);
+      const dueDate = new Date(sanitizedData.dueDate);
+      
+      // Validate date range
+      if (startDate >= dueDate) {
+        logError(new Error('Start date must be before due date'), 'addProject');
+        return false;
+      }
+      
+      // Ensure team array doesn't have circular references
+      const cleanTeam = Array.isArray(sanitizedData.team) ? sanitizedData.team.map(member => ({
+        id: member.id,
+        name: sanitizeProjectInput(member.name),
+        email: sanitizeProjectInput(member.email),
+        role: sanitizeProjectInput(member.role),
+        department: sanitizeProjectInput(member.department),
+        avatar: member.avatar
+      })) : [sanitizedData.owner];
+      
+      const projectToCreate = {
+        ...sanitizedData,
+        startDate,
+        dueDate,
+        team: cleanTeam,
+        tasks: [],
+        tags: sanitizedData.tags || [],
+      };
+      
+      // Save to database
+      const newProject = await projectService.createProject(projectToCreate);
+      setProjects(prev => [newProject, ...prev]);
+      return true;
+      
+    } catch (error) {
+      logError(error, 'addProject');
+      return false;
+    } finally {
+      setIsLoading(false);
+      endMeasure();
+    }
   }, [logError, startMeasure]);
 
-  const updateProject = useCallback((projectId: string, updates: Partial<Project>) => {
+  const updateProject = useCallback(async (projectId: string, updates: Partial<Project>) => {
     const endMeasure = startMeasure('updateProject');
     
     try {
-      setProjects(prev => prev.map(project => {
-        if (project.id === projectId) {
-          const sanitizedUpdates = {
-            ...updates,
-            name: updates.name ? sanitizeProjectInput(updates.name) : project.name,
-            description: updates.description ? sanitizeProjectInput(updates.description) : project.description,
-            budget: updates.budget !== undefined ? sanitizeNumericInput(updates.budget) : project.budget,
-            updatedAt: new Date()
-          };
-          return { ...project, ...sanitizedUpdates };
+      const sanitizedUpdates = {
+        ...updates,
+        name: updates.name ? sanitizeProjectInput(updates.name) : undefined,
+        description: updates.description ? sanitizeProjectInput(updates.description) : undefined,
+        budget: updates.budget !== undefined ? sanitizeNumericInput(updates.budget) : undefined,
+      };
+
+      // Remove undefined values
+      Object.keys(sanitizedUpdates).forEach(key => {
+        if (sanitizedUpdates[key as keyof typeof sanitizedUpdates] === undefined) {
+          delete sanitizedUpdates[key as keyof typeof sanitizedUpdates];
         }
-        return project;
-      }));
+      });
+
+      const updatedProject = await projectService.updateProject(projectId, sanitizedUpdates);
+      setProjects(prev => prev.map(project => 
+        project.id === projectId ? updatedProject : project
+      ));
     } catch (error) {
       logError(error, 'updateProject');
     } finally {
@@ -299,10 +325,11 @@ export const useProjectManagement = (): UseProjectManagementReturn => {
     }
   }, [logError, startMeasure]);
 
-  const deleteProject = useCallback((projectId: string) => {
+  const deleteProject = useCallback(async (projectId: string) => {
     const endMeasure = startMeasure('deleteProject');
     
     try {
+      await projectService.deleteProject(projectId);
       setProjects(prev => prev.filter(project => project.id !== projectId));
       if (selectedProject?.id === projectId) {
         setSelectedProject(null);

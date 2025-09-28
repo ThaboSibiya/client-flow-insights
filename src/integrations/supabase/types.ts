@@ -1456,6 +1456,146 @@ export type Database = {
         }
         Relationships: []
       }
+      project_tasks: {
+        Row: {
+          actual_hours: number | null
+          assigned_to: Json | null
+          attachments: string[] | null
+          created_at: string
+          dependencies: string[] | null
+          description: string | null
+          due_date: string
+          estimated_hours: number | null
+          id: string
+          priority: string
+          progress: number | null
+          project_id: string
+          start_date: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actual_hours?: number | null
+          assigned_to?: Json | null
+          attachments?: string[] | null
+          created_at?: string
+          dependencies?: string[] | null
+          description?: string | null
+          due_date: string
+          estimated_hours?: number | null
+          id?: string
+          priority: string
+          progress?: number | null
+          project_id: string
+          start_date: string
+          status: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actual_hours?: number | null
+          assigned_to?: Json | null
+          attachments?: string[] | null
+          created_at?: string
+          dependencies?: string[] | null
+          description?: string | null
+          due_date?: string
+          estimated_hours?: number | null
+          id?: string
+          priority?: string
+          progress?: number | null
+          project_id?: string
+          start_date?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          budget: number | null
+          client: string | null
+          created_at: string
+          description: string | null
+          due_date: string
+          id: string
+          name: string
+          owner_email: string
+          owner_id: string
+          owner_name: string
+          priority: string
+          progress: number | null
+          spent: number | null
+          start_date: string
+          status: string
+          tags: string[] | null
+          team: Json | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget?: number | null
+          client?: string | null
+          created_at?: string
+          description?: string | null
+          due_date: string
+          id?: string
+          name: string
+          owner_email: string
+          owner_id: string
+          owner_name: string
+          priority: string
+          progress?: number | null
+          spent?: number | null
+          start_date: string
+          status: string
+          tags?: string[] | null
+          team?: Json | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget?: number | null
+          client?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          id?: string
+          name?: string
+          owner_email?: string
+          owner_id?: string
+          owner_name?: string
+          priority?: string
+          progress?: number | null
+          spent?: number | null
+          start_date?: string
+          status?: string
+          tags?: string[] | null
+          team?: Json | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       quote_invoice_items: {
         Row: {
           created_at: string
