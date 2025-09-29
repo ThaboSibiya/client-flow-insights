@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Ticket, Zap, Settings, Database, Webhook } from "lucide-react";
 import CustomerPipeline from '@/components/pipeline/CustomerPipeline';
@@ -13,7 +14,30 @@ import PipelineErrorBoundary from '@/components/error/PipelineErrorBoundary';
 type TabValue = 'customers' | 'tickets' | 'integrations' | 'webhooks' | 'automations' | 'settings';
 
 const Pipeline: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabValue>('customers');
+
+  // Handle URL-based tab switching
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tabFromUrl = searchParams.get('tab') as TabValue;
+    if (tabFromUrl && ['customers', 'tickets', 'integrations', 'webhooks', 'automations', 'settings'].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [location.search]);
+
+  const handleTabChange = (value: string) => {
+    const newTab = value as TabValue;
+    setActiveTab(newTab);
+    
+    // Update URL without the tab parameter for clean URLs
+    const searchParams = new URLSearchParams(location.search);
+    searchParams.delete('tab');
+    const newSearch = searchParams.toString();
+    const newPath = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+    navigate(newPath, { replace: true });
+  };
 
   return (
     <PipelineErrorBoundary>
@@ -27,7 +51,7 @@ const Pipeline: React.FC = () => {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="customers" className="flex items-center gap-2">
             <Users className="h-4 w-4" />

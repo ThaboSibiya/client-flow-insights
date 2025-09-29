@@ -8,8 +8,20 @@ import AddStageDialog from './AddStageDialog';
 import PipelineMetrics from './PipelineMetrics';
 import { useTicketPipeline } from '@/hooks/useTicketPipeline';
 import DroppableStage from './DroppableStage';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const TicketPipeline = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const handlePipelineSettingsClick = () => {
+    // Navigate to settings tab on the pipeline page
+    const currentPath = location.pathname;
+    const searchParams = new URLSearchParams(location.search);
+    searchParams.set('tab', 'settings');
+    navigate(`${currentPath}?${searchParams.toString()}`, { replace: true });
+  };
+
   const {
     stages,
     isAddStageOpen,
@@ -43,6 +55,7 @@ const TicketPipeline = () => {
         <div className="flex gap-2">
           <Button 
             variant="outline" 
+            onClick={handlePipelineSettingsClick}
             className="flex items-center gap-2 border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal hover:border-quikle-slate"
           >
             <Settings className="h-4 w-4" />
