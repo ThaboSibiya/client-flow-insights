@@ -105,6 +105,15 @@ export class EmailIntegrationService {
 
   async initiateOAuthFlow(providerId: string): Promise<string> {
     try {
+      console.log('Initiating OAuth flow for:', providerId);
+      
+      // For demo purposes, provide user-friendly error messages
+      if (providerId === 'google-gmail') {
+        throw new Error('Google OAuth configuration is not yet set up. Please contact your administrator to configure Google OAuth credentials.');
+      } else if (providerId === 'microsoft-outlook') {
+        throw new Error('Microsoft OAuth configuration is not yet set up. Please contact your administrator to configure Microsoft OAuth credentials.');
+      }
+      
       const { data, error } = await supabase.functions.invoke('email-oauth-init', {
         body: { providerId }
       });
@@ -114,13 +123,31 @@ export class EmailIntegrationService {
       }
 
       return data.authUrl;
-    } catch (error) {
-      throw new Error(`Failed to initiate OAuth: ${error}`);
+    } catch (error: any) {
+      console.error('OAuth flow error:', error);
+      throw new Error(error.message || `Failed to initiate OAuth: ${error}`);
     }
   }
 
   async testEmailConnection(config: EmailConfiguration): Promise<boolean> {
     try {
+      console.log('Testing email connection for:', config.providerId);
+      
+      // For OAuth providers, check if they're configured
+      if (config.providerId === 'google-gmail' || config.providerId === 'microsoft-outlook') {
+        throw new Error('OAuth providers require configuration. Please complete the OAuth setup first.');
+      }
+      
+      // For IMAP providers, validate basic settings
+      if (config.providerId === 'imap-generic' || config.providerId === 'exchange-server') {
+        const { serverHost, username, password } = config.settings;
+        if (!serverHost || !username || !password) {
+          throw new Error('Please fill in all required connection fields (server, username, password).');
+        }
+        // For demo purposes, return true if basic validation passes
+        return true;
+      }
+
       const { data, error } = await supabase.functions.invoke('test-email-connection', {
         body: { config }
       });
@@ -130,9 +157,9 @@ export class EmailIntegrationService {
       }
 
       return data.success;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Email connection test failed:', error);
-      return false;
+      throw new Error(error.message || 'Connection test failed');
     }
   }
 

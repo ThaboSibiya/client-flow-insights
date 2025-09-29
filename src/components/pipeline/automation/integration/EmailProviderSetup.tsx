@@ -112,12 +112,13 @@ const EmailProviderSetup = ({ providers, onConfigurationSaved }: EmailProviderSe
       } as EmailConfiguration);
       
       if (success) {
-        toast.success('Connection test successful!');
+        toast.success('✅ Connection test successful!');
       } else {
-        toast.error('Connection test failed');
+        toast.error('❌ Connection test failed');
       }
-    } catch (error) {
-      toast.error('Connection test failed');
+    } catch (error: any) {
+      console.error('Connection test error:', error);
+      toast.error(error.message || 'Connection test failed');
     } finally {
       setTesting(false);
     }
@@ -201,14 +202,22 @@ const EmailProviderSetup = ({ providers, onConfigurationSaved }: EmailProviderSe
 
               {selectedProvider.requiresOAuth ? (
                 <div className="space-y-4">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">OAuth Setup Required</h4>
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-4 rounded-lg">
+                    <h4 className="font-medium text-blue-900 mb-2">🔐 OAuth Setup Required</h4>
                     <p className="text-sm text-blue-800 mb-3">
-                      You'll need to authorize Quikle to access your {selectedProvider.name} account.
+                      Authorize Quikle to securely access your {selectedProvider.name} account. 
+                      This enables automatic email syncing and ticket creation.
                     </p>
-                    <Button onClick={handleOAuthSetup} className="w-full">
+                    <div className="bg-white/50 p-3 rounded border border-blue-100 mb-3">
+                      <p className="text-xs text-blue-700">
+                        ✅ Your credentials stay secure - we use OAuth 2.0 industry standard<br/>
+                        ✅ You can revoke access anytime from your {selectedProvider.name} settings<br/>
+                        ✅ We only access emails you authorize
+                      </p>
+                    </div>
+                    <Button onClick={handleOAuthSetup} className="w-full bg-blue-600 hover:bg-blue-700">
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      Authorize with {selectedProvider.name}
+                      🚀 Connect {selectedProvider.name} Account
                     </Button>
                   </div>
                 </div>
