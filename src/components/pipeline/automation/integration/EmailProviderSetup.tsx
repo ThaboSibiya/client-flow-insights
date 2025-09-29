@@ -56,10 +56,46 @@ const EmailProviderSetup = ({ providers, onConfigurationSaved }: EmailProviderSe
     
     try {
       const authUrl = await emailIntegrationService.initiateOAuthFlow(selectedProvider.id);
-      window.open(authUrl, '_blank', 'width=500,height=600,noopener,noreferrer');
+      
+      // Open popup and listen for completion
+      const popup = window.open(authUrl, 'oauth-popup', 'width=600,height=700,scrollbars=yes,resizable=yes');
+      
+      if (!popup) {
+        toast.error('Popup blocked. Please allow popups and try again.');
+        return;
+      }
+
       toast.info('Complete OAuth authorization in the popup window');
-    } catch (error) {
-      toast.error('Failed to initiate OAuth flow');
+
+      // Listen for OAuth completion
+      const handleMessage = (event: MessageEvent) => {
+        if (event.origin !== window.location.origin) return;
+        
+        if (event.data.success) {
+          toast.success(`Successfully authorized ${selectedProvider.name}!`);
+          popup.close();
+          window.removeEventListener('message', handleMessage);
+          onConfigurationSaved(); // Refresh the integration list
+        } else if (event.data.error) {
+          toast.error(`Authorization failed: ${event.data.error}`);
+          popup.close();
+          window.removeEventListener('message', handleMessage);
+        }
+      };
+
+      window.addEventListener('message', handleMessage);
+
+      // Check if popup is closed manually
+      const checkClosed = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkClosed);
+          window.removeEventListener('message', handleMessage);
+        }
+      }, 1000);
+
+    } catch (error: any) {
+      console.error('OAuth flow error:', error);
+      toast.error(error.message || 'Failed to initiate OAuth flow');
     }
   };
 
