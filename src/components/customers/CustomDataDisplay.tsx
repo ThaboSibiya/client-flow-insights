@@ -21,12 +21,15 @@ import {
 } from 'lucide-react';
 import { useCustomerCustomData } from '@/hooks/useCustomerCustomData';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import CustomFieldManager from './CustomFieldManager';
 
 interface CustomDataDisplayProps {
   customerId: string;
 }
 
 const CustomDataDisplay = ({ customerId }: CustomDataDisplayProps) => {
+  const { user } = useAuth();
   const { 
     appliedTemplates, 
     templateFields, 
@@ -203,23 +206,34 @@ const CustomDataDisplay = ({ customerId }: CustomDataDisplayProps) => {
     );
   }
 
-  if (appliedTemplates.length === 0) {
+  // Show custom field manager when no templates or alongside templates
+  const showCustomFieldManager = user && templateFields.length === 0;
+
+  if (loading) {
+    return null; // Loading already handled above
+  }
+
+  if (templateFields.length === 0 && customData.length === 0) {
     return (
-      <Card className="bg-gradient-to-br from-quikle-crystal/50 to-white border-dashed border-quikle-silver/50">
-        <CardContent className="py-8 text-center">
-          <Building2 className="h-16 w-16 text-quikle-neutral/30 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-quikle-charcoal mb-2">No Templates Applied</h3>
-          <p className="text-quikle-slate mb-4">
-            No industry templates have been applied to this customer yet.
-          </p>
-          <Button 
-            onClick={refreshData}
-            className="bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white"
-          >
-            Refresh Data
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <Card className="bg-gradient-to-br from-quikle-crystal/50 to-white border-dashed border-quikle-silver/50">
+          <CardContent className="py-8 text-center">
+            <Building2 className="h-16 w-16 text-quikle-neutral/30 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-quikle-charcoal mb-2">No Business Information Yet</h3>
+            <p className="text-quikle-slate mb-4">
+              Add custom fields to store business information for this customer.
+            </p>
+          </CardContent>
+        </Card>
+        
+        {user && (
+          <CustomFieldManager 
+            customerId={customerId}
+            userId={user.id}
+            onFieldAdded={refreshData}
+          />
+        )}
+      </div>
     );
   }
 
@@ -231,14 +245,23 @@ const CustomDataDisplay = ({ customerId }: CustomDataDisplayProps) => {
             <Building2 className="h-5 w-5 text-quikle-primary" />
             Business Information
           </h3>
-          <div className="flex items-center gap-2 mt-1">
-            {appliedTemplates.map(template => (
-              <Badge key={template.id} variant="secondary" className="bg-quikle-primary/10 text-quikle-primary">
-                {template.industry}
-              </Badge>
-            ))}
-          </div>
+          {appliedTemplates.length > 0 && (
+            <div className="flex items-center gap-2 mt-1">
+              {appliedTemplates.map(template => (
+                <Badge key={template.id} variant="secondary" className="bg-quikle-primary/10 text-quikle-primary">
+                  {template.industry}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
+        {user && (
+          <CustomFieldManager 
+            customerId={customerId}
+            userId={user.id}
+            onFieldAdded={refreshData}
+          />
+        )}
       </div>
 
       {/* Company/Personal Information Section */}

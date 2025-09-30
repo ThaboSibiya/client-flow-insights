@@ -82,19 +82,35 @@ export const useCustomerCustomData = (customerId: string) => {
 
       setAppliedTemplates(appliedTemplatesList);
 
-      // Load template fields for applied templates
+      // Load template fields for applied templates AND custom fields (template_id is null)
+      let fields: any[] = [];
       if (appliedTemplatesList.length > 0) {
         const templateIds = appliedTemplatesList.map(t => t.id);
-        const { data: fields, error: fieldsError } = await supabase
+        const { data: templateFieldsData, error: fieldsError } = await supabase
           .from('template_fields')
           .select('*')
           .in('template_id', templateIds)
           .order('display_order');
 
         if (fieldsError) throw fieldsError;
+        fields = templateFieldsData || [];
+      }
+
+      // Also load custom fields (not tied to templates)
+      const { data: customFieldsData, error: customFieldsError } = await supabase
+        .from('template_fields')
+        .select('*')
+        .is('template_id', null)
+        .order('display_order');
+
+      if (!customFieldsError && customFieldsData) {
+        fields = [...fields, ...customFieldsData];
+      }
+
+      if (fields.length > 0) {
 
         // Categorize fields based on template type and field names
-        const categorizedFields = (fields || []).map(field => {
+        const categorizedFields = fields.map(field => {
           let category: 'personal' | 'equipment' | 'business' = 'business';
           
           // Determine category based on field names for Printer Service Company
@@ -145,6 +161,10 @@ export const useCustomerCustomData = (customerId: string) => {
 
           setCustomData(enrichedCustomData);
         }
+      } else {
+        // If no templates, still load custom fields
+        setTemplateFields([]);
+        setCustomData([]);
       }
 
       // Load equipment data separately
