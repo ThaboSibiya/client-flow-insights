@@ -1,13 +1,11 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
 } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { CustomerTicket } from '@/types/customer';
-import { useTicketData } from '@/hooks/useTicketData';
-import TemplateSelector from './TemplateSelector';
 import TicketFormFields from './TicketFormFields';
 
 interface NewTicketFormProps {
@@ -24,9 +22,6 @@ type FormData = {
 };
 
 const NewTicketForm = ({ onSubmit, onCancel }: NewTicketFormProps) => {
-  const { templates, teamMembers } = useTicketData();
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
-
   const form = useForm<FormData>({
     defaultValues: {
       subject: '',
@@ -37,44 +32,21 @@ const NewTicketForm = ({ onSubmit, onCancel }: NewTicketFormProps) => {
     },
   });
 
-  const handleTemplateSelect = (templateId: string) => {
-    setSelectedTemplate(templateId);
-    const template = templates.find(t => t.id === templateId);
-    if (template) {
-      form.setValue('subject', template.subject);
-      form.setValue('description', template.description);
-      form.setValue('priority', template.priority);
-    }
-  };
-
   const handleSubmit = (data: FormData) => {
-    const assignedMember = data.assignedTo ? 
-      teamMembers.find(member => member.id === data.assignedTo) : undefined;
-    
     onSubmit({
       ...data,
-      assignedTo: assignedMember,
+      assignedTo: undefined,
       timeEntries: [],
       totalTimeSpent: 0,
     });
     form.reset();
-    setSelectedTemplate('');
   };
 
   return (
     <div className="border rounded-lg p-4 bg-gray-50">
-      <TemplateSelector
-        templates={templates}
-        selectedTemplate={selectedTemplate}
-        onTemplateSelect={handleTemplateSelect}
-      />
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <TicketFormFields
-            control={form.control}
-            teamMembers={teamMembers}
-          />
+          <TicketFormFields control={form.control} />
           
           <div className="flex gap-2">
             <Button type="submit" size="sm">Create Ticket</Button>

@@ -17,14 +17,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Control } from 'react-hook-form';
-import { TeamMember } from '@/types/customer';
 
 interface TicketFormFieldsProps {
   control: Control<any>;
-  teamMembers: TeamMember[];
 }
 
-const TicketFormFields = ({ control, teamMembers }: TicketFormFieldsProps) => {
+const TicketFormFields = ({ control }: TicketFormFieldsProps) => {
   return (
     <>
       <FormField
@@ -49,8 +47,8 @@ const TicketFormFields = ({ control, teamMembers }: TicketFormFieldsProps) => {
             <FormLabel>Description</FormLabel>
             <FormControl>
               <Textarea 
-                placeholder="Detailed description of the issue..." 
-                rows={3}
+                placeholder="Add your preferred description here..." 
+                rows={4}
                 {...field} 
               />
             </FormControl>
@@ -59,59 +57,29 @@ const TicketFormFields = ({ control, teamMembers }: TicketFormFieldsProps) => {
         )}
       />
       
-      <div className="grid grid-cols-2 gap-4">
-        <FormField
-          control={control}
-          name="priority"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Priority</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={control}
-          name="assignedTo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Assign To</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select team member..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {teamMembers.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{member.name}</span>
-                        <span className="text-xs text-gray-500">{member.role}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
+      <FormField
+        control={control}
+        name="priority"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Priority</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="urgent">Urgent</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </>
   );
 };
