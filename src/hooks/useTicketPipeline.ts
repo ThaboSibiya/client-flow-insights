@@ -10,7 +10,7 @@ import {
 } from '@/types/pipeline';
 
 export const useTicketPipeline = (): TicketPipelineHookReturn => {
-  const { customers } = useCRM();
+  const { customers, updateTicketStatus } = useCRM();
   const allTickets = customers.flatMap(c => c.activeTickets || []);
 
   const [stages, setStages] = useState<TicketPipelineStage[]>(() => [
@@ -58,7 +58,8 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
   const [isAddStageOpen, setIsAddStageOpen] = useState<boolean>(false);
   const [activeItem, setActiveItem] = useState<TicketPipelineItem | null>(null);
 
-  const handleTicketMove = useCallback((ticketId: string, fromStageId: string, toStageId: string) => {
+  const handleTicketMove = useCallback(async (ticketId: string, fromStageId: string, toStageId: string) => {
+    // Update local state immediately for responsive UI
     setStages(prevStages => {
       const newStages = [...prevStages];
       const fromStage = newStages.find(s => s.id === fromStageId);
@@ -74,7 +75,22 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
       
       return newStages;
     });
-  }, []);
+
+    // Map stage IDs to ticket status
+    const statusMap: Record<string, any> = {
+      'open': 'open',
+      'in-progress': 'in-progress',
+      'review': 'in-progress',
+      'resolved': 'resolved',
+      'closed': 'closed'
+    };
+
+    const newStatus = statusMap[toStageId];
+    if (newStatus) {
+      // Save to Supabase
+      await updateTicketStatus(ticketId, newStatus);
+    }
+  }, [updateTicketStatus]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;

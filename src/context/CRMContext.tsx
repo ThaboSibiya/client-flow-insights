@@ -9,6 +9,11 @@ import {
   updateCustomer as updateCustomerService,
   deleteCustomer as deleteCustomerService
 } from '@/services/customerService';
+import {
+  createTicket as createTicketService,
+  updateTicketStatus as updateTicketStatusService,
+  updateTicket as updateTicketService
+} from '@/services/ticketService';
 import { useAuth } from './AuthContext';
 import { Customer, CustomerStatus, CustomerTicket, TicketStatus, CRMContextType, TimeEntry } from '@/types/customer';
 
@@ -76,34 +81,33 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
   const createTicket = async (customerId: string, ticketData: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>) => {
     if (!user) return;
     
-    const ticketNumber = `TKT-${Date.now().toString().slice(-6)}`;
-    const newTicket: CustomerTicket = {
-      id: `ticket-${Date.now()}`,
-      ticketNumber,
-      ...ticketData,
-      timeEntries: [],
-      totalTimeSpent: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    try {
+      // Create ticket in Supabase
+      const actualTicket = await createTicketService(customerId, ticketData, user.id);
+      
+      if (actualTicket) {
+        // Update stores with the actual ticket from Supabase
+        ticketStore.optimisticAddTicket(customerId, actualTicket);
+        customerStore.optimisticUpdateCustomer(customerId, {
+          activeTickets: [...(customerStore.customers.find(c => c.id === customerId)?.activeTickets || []), actualTicket],
+          ticketCount: (customerStore.customers.find(c => c.id === customerId)?.ticketCount || 0) + 1,
+          lastTicketDate: new Date()
+        });
 
-    // Apply optimistic update to both stores
-    ticketStore.optimisticAddTicket(customerId, newTicket);
-    customerStore.optimisticUpdateCustomer(customerId, {
-      activeTickets: [...(customerStore.customers.find(c => c.id === customerId)?.activeTickets || []), newTicket],
-      ticketCount: (customerStore.customers.find(c => c.id === customerId)?.ticketCount || 0) + 1,
-      lastTicketDate: new Date()
-    });
-
-    // Note: In a real app, you'd make a server call here
+        return actualTicket;
+      }
+    } catch (error) {
+      console.error('Failed to create ticket:', error);
+      throw error;
+    }
   };
 
   const updateTicketStatus = async (ticketId: string, status: TicketStatus) => {
     if (!user) return;
     
     await updateTicketOptimistically(ticketId, { status, updatedAt: new Date() }, async () => {
-      // Note: In a real app, you'd make a server call here
-      console.log(`Updating ticket ${ticketId} status to ${status}`);
+      // Save to Supabase
+      await updateTicketStatusService(ticketId, status, user.id);
     });
 
     // Also update in customer store

@@ -10,7 +10,7 @@ import {
 } from '@/types/pipeline';
 
 export const useCustomerPipeline = (): CustomerPipelineHookReturn => {
-  const { customers } = useCRM();
+  const { customers, updateCustomerStatus } = useCRM();
   const [stages, setStages] = useState<CustomerPipelineStage[]>(() => [
     {
       id: 'new',
@@ -49,7 +49,8 @@ export const useCustomerPipeline = (): CustomerPipelineHookReturn => {
   const [isAddStageOpen, setIsAddStageOpen] = useState<boolean>(false);
   const [activeItem, setActiveItem] = useState<CustomerPipelineItem | null>(null);
 
-  const handleCustomerMove = useCallback((customerId: string, fromStageId: string, toStageId: string) => {
+  const handleCustomerMove = useCallback(async (customerId: string, fromStageId: string, toStageId: string) => {
+    // Update local state immediately for responsive UI
     setStages(prevStages => {
       const newStages = [...prevStages];
       const fromStage = newStages.find(s => s.id === fromStageId);
@@ -65,7 +66,21 @@ export const useCustomerPipeline = (): CustomerPipelineHookReturn => {
       
       return newStages;
     });
-  }, []);
+
+    // Map stage IDs to customer status
+    const statusMap: Record<string, any> = {
+      'new': 'new',
+      'contacted': 'pending',
+      'qualified': 'existing',
+      'closed': 'finalised'
+    };
+
+    const newStatus = statusMap[toStageId];
+    if (newStatus) {
+      // Save to Supabase
+      await updateCustomerStatus(customerId, newStatus);
+    }
+  }, [updateCustomerStatus]);
   
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
