@@ -47,9 +47,9 @@ const AutomationBuilder = ({ onClose, initialData = {} }: AutomationBuilderProps
     (actions.length > 0 || workflow.nodes.length > 0);
 
   return (
-    <div className="space-y-6 h-full flex flex-col">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow flex flex-col">
-        <TabsList className="grid w-full grid-cols-5">
+    <div className="h-full flex flex-col">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+        <TabsList className="grid w-full grid-cols-5 flex-shrink-0">
           <TabsTrigger value="details" className="flex items-center gap-1">
             <Zap className="h-4 w-4" />
             Details
@@ -69,7 +69,7 @@ const AutomationBuilder = ({ onClose, initialData = {} }: AutomationBuilderProps
           </TabsTrigger>
         </TabsList>
 
-        <div className="flex-grow overflow-y-auto pt-4">
+        <div className="flex-1 overflow-y-auto min-h-0 pb-4">
             <TabsContent value="details" className="space-y-4 m-0">
               <AutomationBasicInfo
                 automationName={automationName}
@@ -119,7 +119,7 @@ const AutomationBuilder = ({ onClose, initialData = {} }: AutomationBuilderProps
         </div>
       </Tabs>
 
-      <div className="flex justify-end gap-2 pt-4 border-t sticky bottom-0 bg-white dark:bg-zinc-900 py-4">
+      <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0 bg-background">
         <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>
