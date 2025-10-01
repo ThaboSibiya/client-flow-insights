@@ -122,7 +122,7 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = []
             hasNodes={nodes.length > 0}
           />
 
-          <div className="border-2 border-dashed rounded-lg h-[500px] bg-muted/20 relative">
+          <div className="border-2 border-dashed rounded-lg h-[600px] bg-muted/20 relative">
             <ReactFlow
               nodes={nodes}
               edges={edges}

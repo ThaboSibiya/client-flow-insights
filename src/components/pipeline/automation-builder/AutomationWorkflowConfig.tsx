@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import WorkflowEngine from '../workflow/WorkflowEngine';
 import { CustomNode } from '../workflow/types';
 import { Edge } from '@xyflow/react';
@@ -20,18 +19,13 @@ const AutomationWorkflowConfig = ({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Advanced Workflow Configuration</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <WorkflowEngine
-          onWorkflowChange={handleWorkflowChange}
-          initialNodes={workflow.nodes}
-          initialEdges={workflow.edges}
-        />
-      </CardContent>
-    </Card>
+    <div className="h-full">
+      <WorkflowEngine
+        onWorkflowChange={handleWorkflowChange}
+        initialNodes={workflow.nodes}
+        initialEdges={workflow.edges}
+      />
+    </div>
   );
 };
 

@@ -99,7 +99,7 @@ const AutomationBuilder = ({ onClose, initialData = {} }: AutomationBuilderProps
               />
             </TabsContent>
     
-            <TabsContent value="workflow" className="space-y-4 m-0">
+            <TabsContent value="workflow" className="h-full m-0">
               <AutomationWorkflowConfig
                 workflow={workflow}
                 setWorkflow={setWorkflow}
