@@ -81,7 +81,7 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto will-change-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto overscroll-contain">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-r from-quikle-primary/10 to-quikle-secondary/10 rounded-lg">
@@ -146,7 +146,7 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
                   .map((field) => (
                     <div 
                       key={field.id}
-                      className={`transition-colors duration-200 ${
+                      className={`${
                         customFieldValues[field.id]?.trim() 
                           ? 'border-2 border-green-300 bg-green-50/40' 
                           : 'border-2 border-red-300 bg-red-50/40'
@@ -178,7 +178,7 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
                   .map((field) => (
                     <div 
                       key={field.id}
-                      className={`transition-colors duration-200 ${
+                      className={`${
                         customFieldValues[field.id]?.trim() 
                           ? 'border-2 border-quikle-primary/40 bg-quikle-crystal/40' 
                           : 'border-2 border-quikle-silver/40 bg-white/50'
