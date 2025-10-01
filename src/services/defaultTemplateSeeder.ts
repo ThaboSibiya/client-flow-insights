@@ -176,6 +176,45 @@ const defaultTemplates = [
         field_options: { placeholder: 'Enter number of bathrooms' }
       }
     ]
+  },
+  {
+    name: 'Business Information',
+    industry: 'general_business',
+    description: 'Template for general business information',
+    fields: [
+      {
+        field_name: 'company_name',
+        field_label: 'Company Name',
+        field_type: 'text',
+        is_required: true,
+        display_order: 1,
+        field_options: { placeholder: 'Enter company name' }
+      },
+      {
+        field_name: 'contact_person',
+        field_label: 'Contact Person',
+        field_type: 'text',
+        is_required: true,
+        display_order: 2,
+        field_options: { placeholder: 'Enter contact person name' }
+      },
+      {
+        field_name: 'address',
+        field_label: 'Address',
+        field_type: 'textarea',
+        is_required: true,
+        display_order: 3,
+        field_options: { placeholder: 'Enter business address' }
+      },
+      {
+        field_name: 'phone_number',
+        field_label: 'Phone Number',
+        field_type: 'phone',
+        is_required: true,
+        display_order: 4,
+        field_options: { placeholder: 'Enter phone number' }
+      }
+    ]
   }
 ];
 
