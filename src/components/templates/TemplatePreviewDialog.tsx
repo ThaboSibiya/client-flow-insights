@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -80,7 +81,7 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto will-change-auto">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-r from-quikle-primary/10 to-quikle-secondary/10 rounded-lg">
@@ -90,9 +91,9 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
               <DialogTitle className="text-xl text-quikle-primary">
                 {template.name} - Live Preview
               </DialogTitle>
-              <p className="text-sm text-quikle-slate mt-1">
+              <DialogDescription className="text-sm text-quikle-slate mt-1">
                 Fill out the template fields and add custom fields as needed
-              </p>
+              </DialogDescription>
             </div>
             <div className="flex gap-2">
               <Badge variant="secondary" className="bg-quikle-primary/10 text-quikle-primary">
@@ -145,10 +146,10 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
                   .map((field) => (
                     <div 
                       key={field.id}
-                      className={`transition-all duration-200 ${
+                      className={`transition-colors duration-200 ${
                         customFieldValues[field.id]?.trim() 
-                          ? 'ring-2 ring-green-200 bg-green-50/30' 
-                          : 'ring-2 ring-red-200 bg-red-50/30'
+                          ? 'border-2 border-green-300 bg-green-50/40' 
+                          : 'border-2 border-red-300 bg-red-50/40'
                       } rounded-lg p-3`}
                     >
                       <CustomFieldRenderer
@@ -177,11 +178,11 @@ const TemplatePreviewDialog: React.FC<TemplatePreviewDialogProps> = ({
                   .map((field) => (
                     <div 
                       key={field.id}
-                      className={`transition-all duration-200 ${
+                      className={`transition-colors duration-200 ${
                         customFieldValues[field.id]?.trim() 
-                          ? 'ring-2 ring-quikle-primary/30 bg-quikle-crystal/30' 
-                          : 'bg-white/50'
-                      } rounded-lg p-3 border border-quikle-silver/30`}
+                          ? 'border-2 border-quikle-primary/40 bg-quikle-crystal/40' 
+                          : 'border-2 border-quikle-silver/40 bg-white/50'
+                      } rounded-lg p-3`}
                     >
                       <CustomFieldRenderer
                         field={field}
