@@ -69,9 +69,14 @@ const TemplateSelector = ({ customerId, onTemplateApplied }: TemplateSelectorPro
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
+      <Card className="border-quikle-silver/30">
+        <CardContent className="py-8">
+          <div className="flex flex-col items-center justify-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-quikle-primary" />
+            <p className="text-sm text-quikle-slate">Loading templates...</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -81,48 +86,51 @@ const TemplateSelector = ({ customerId, onTemplateApplied }: TemplateSelectorPro
 
   if (!businessTemplate) {
     return (
-      <Card className="bg-accent/50 border-dashed">
-        <CardContent className="py-6">
-          <p className="text-sm text-muted-foreground text-center">
-            No business information template available
-          </p>
+      <Card className="border-dashed border-quikle-silver/50 bg-quikle-crystal/30">
+        <CardContent className="py-8">
+          <div className="flex flex-col items-center justify-center gap-2">
+            <Building2 className="h-10 w-10 text-quikle-slate/40" />
+            <p className="text-sm text-quikle-slate text-center">
+              No business information template available
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="bg-gradient-to-br from-background to-accent/30 border-primary/20 hover:border-primary/40 transition-all">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Building2 className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">{businessTemplate.name}</CardTitle>
-              <CardDescription>
-                {businessTemplate.description || 'Store essential business information for this customer'}
-              </CardDescription>
-            </div>
+    <Card className="border-quikle-silver/30 bg-white shadow-sm transition-shadow hover:shadow-md">
+      <CardHeader className="pb-4">
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0 p-3 bg-gradient-to-br from-quikle-primary/10 to-quikle-accent/10 rounded-xl">
+            <Building2 className="h-6 w-6 text-quikle-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-lg text-quikle-charcoal mb-1">
+              {businessTemplate.name}
+            </CardTitle>
+            <CardDescription className="text-sm text-quikle-slate leading-relaxed">
+              {businessTemplate.description || 'Store essential business information for this customer'}
+            </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-0">
         <Button
           onClick={() => handleApplyTemplate(businessTemplate.id)}
           disabled={applying === businessTemplate.id}
-          className="w-full bg-gradient-to-r from-primary to-primary/80"
+          className="w-full bg-gradient-to-r from-quikle-primary to-quikle-secondary hover:shadow-lg transition-all duration-300"
         >
           {applying === businessTemplate.id ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Applying...
+              <span>Applying template...</span>
             </>
           ) : (
             <>
               <CheckCircle className="h-4 w-4 mr-2" />
-              Apply Template
+              <span>Apply Template</span>
             </>
           )}
         </Button>
