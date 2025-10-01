@@ -23,6 +23,7 @@ import { useCustomerCustomData } from '@/hooks/useCustomerCustomData';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import CustomFieldManager from './CustomFieldManager';
+import TemplateSelector from './TemplateSelector';
 
 interface CustomDataDisplayProps {
   customerId: string;
@@ -216,15 +217,24 @@ const CustomDataDisplay = ({ customerId }: CustomDataDisplayProps) => {
   if (templateFields.length === 0 && customData.length === 0) {
     return (
       <div className="space-y-4">
-        <Card className="bg-gradient-to-br from-quikle-crystal/50 to-white border-dashed border-quikle-silver/50">
-          <CardContent className="py-8 text-center">
-            <Building2 className="h-16 w-16 text-quikle-neutral/30 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-quikle-charcoal mb-2">No Business Information Yet</h3>
-            <p className="text-quikle-slate mb-4">
-              Add custom fields to store business information for this customer.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          <h3 className="text-sm font-medium text-muted-foreground">Apply a Template</h3>
+          <TemplateSelector 
+            customerId={customerId}
+            onTemplateApplied={refreshData}
+          />
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or add individual fields
+            </span>
+          </div>
+        </div>
         
         {user && (
           <CustomFieldManager 
