@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logLoginHistory } from '@/services/auditLogService';
+import { useSessionTimeout } from '@/hooks/useSessionTimeout';
+import SessionTimeoutWarning from '@/components/security/SessionTimeoutWarning';
 
 interface AuthContextType {
   session: Session | null;
@@ -16,6 +18,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const { showWarning, remainingTime, extendSession, resetTimers } = useSessionTimeout({
+    timeoutMinutes: 30,
+    warningMinutes: 2
+  });
 
   useEffect(() => {
     // Set up auth state listener first
@@ -51,7 +58,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <SessionTimeoutWarning
+        open={showWarning}
+        remainingSeconds={remainingTime}
+        onExtend={extendSession}
+        onLogout={signOut}
+      />
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
