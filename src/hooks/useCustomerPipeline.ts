@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useCRM } from '@/context/CRMContext';
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
@@ -11,12 +11,12 @@ import {
 
 export const useCustomerPipeline = (): CustomerPipelineHookReturn => {
   const { customers, updateCustomerStatus } = useCRM();
-  const [stages, setStages] = useState<CustomerPipelineStage[]>(() => [
+  const [stages, setStages] = useState<CustomerPipelineStage[]>([
     {
       id: 'new',
       name: 'New Leads',
       color: '#6B7280',
-      customers: customers.filter(c => c.status === 'new'),
+      customers: [],
       automationEnabled: false,
       target: 50
     },
@@ -32,7 +32,7 @@ export const useCustomerPipeline = (): CustomerPipelineHookReturn => {
       id: 'qualified',
       name: 'Qualified',
       color: '#059669',
-      customers: customers.filter(c => c.status === 'existing'),
+      customers: [],
       automationEnabled: false,
       target: 20
     },
@@ -40,33 +40,37 @@ export const useCustomerPipeline = (): CustomerPipelineHookReturn => {
       id: 'closed',
       name: 'Closed Won',
       color: '#1F2937',
-      customers: customers.filter(c => c.status === 'finalised'),
+      customers: [],
       automationEnabled: false,
       target: 10
     }
   ]);
 
+  // Sync customers with stages whenever customers array changes
+  useEffect(() => {
+    setStages(prevStages => prevStages.map(stage => {
+      let stageCustomers;
+      
+      if (stage.id === 'new') {
+        stageCustomers = customers.filter(c => c.status === 'new');
+      } else if (stage.id === 'contacted') {
+        stageCustomers = customers.filter(c => c.status === 'pending');
+      } else if (stage.id === 'qualified') {
+        stageCustomers = customers.filter(c => c.status === 'existing');
+      } else if (stage.id === 'closed') {
+        stageCustomers = customers.filter(c => c.status === 'finalised');
+      } else {
+        stageCustomers = stage.customers;
+      }
+      
+      return { ...stage, customers: stageCustomers };
+    }));
+  }, [customers]);
+
   const [isAddStageOpen, setIsAddStageOpen] = useState<boolean>(false);
   const [activeItem, setActiveItem] = useState<CustomerPipelineItem | null>(null);
 
   const handleCustomerMove = useCallback(async (customerId: string, fromStageId: string, toStageId: string) => {
-    // Update local state immediately for responsive UI
-    setStages(prevStages => {
-      const newStages = [...prevStages];
-      const fromStage = newStages.find(s => s.id === fromStageId);
-      const toStage = newStages.find(s => s.id === toStageId);
-      
-      if (fromStage && toStage) {
-        const customer = fromStage.customers.find(c => c.id === customerId);
-        if (customer) {
-          fromStage.customers = fromStage.customers.filter(c => c.id !== customerId);
-          toStage.customers.push(customer);
-        }
-      }
-      
-      return newStages;
-    });
-
     // Map stage IDs to customer status
     const statusMap: Record<string, any> = {
       'new': 'new',
@@ -77,7 +81,7 @@ export const useCustomerPipeline = (): CustomerPipelineHookReturn => {
 
     const newStatus = statusMap[toStageId];
     if (newStatus) {
-      // Save to Supabase
+      // Update in database - the useEffect will handle UI updates
       await updateCustomerStatus(customerId, newStatus);
     }
   }, [updateCustomerStatus]);

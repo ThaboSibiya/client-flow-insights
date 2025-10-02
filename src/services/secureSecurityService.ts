@@ -19,7 +19,9 @@ export const logSecureSecurityEvent = async (event: SecureSecurityAuditEvent) =>
       .from('security_events')
       .insert({
         event_type: event.action,
-        event_data: {
+        resource_type: event.resource_type,
+        resource_id: event.resource_id,
+        metadata: {
           ...event,
           timestamp: new Date().toISOString()
         },
