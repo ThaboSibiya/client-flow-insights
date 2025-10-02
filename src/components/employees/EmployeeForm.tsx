@@ -61,38 +61,38 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSave, onCancel,
         )}
 
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-quikle-crystal border border-quikle-silver/30">
+          <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-quikle-crystal/50 to-quikle-crystal/30 border border-quikle-silver/30 p-1">
             <TabsTrigger 
               value="basic" 
-              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-quikle-primary data-[state=active]:shadow-sm"
+              className="flex items-center gap-2 text-quikle-slate/70 font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-quikle-primary/20 data-[state=active]:font-semibold hover:text-quikle-primary hover:bg-white/50"
             >
               <User className="h-4 w-4" />
               Basic Info
             </TabsTrigger>
             <TabsTrigger 
               value="role" 
-              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-quikle-primary data-[state=active]:shadow-sm"
+              className="flex items-center gap-2 text-quikle-slate/70 font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-quikle-primary/20 data-[state=active]:font-semibold hover:text-quikle-primary hover:bg-white/50"
             >
               <Shield className="h-4 w-4" />
               Role & Status
             </TabsTrigger>
             <TabsTrigger 
               value="privileges" 
-              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-quikle-primary data-[state=active]:shadow-sm"
+              className="flex items-center gap-2 text-quikle-slate/70 font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-quikle-primary/20 data-[state=active]:font-semibold hover:text-quikle-primary hover:bg-white/50"
             >
               <Calendar className="h-4 w-4" />
               Privileges
             </TabsTrigger>
             <TabsTrigger 
               value="automation" 
-              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-quikle-primary data-[state=active]:shadow-sm"
+              className="flex items-center gap-2 text-quikle-slate/70 font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-quikle-primary/20 data-[state=active]:font-semibold hover:text-quikle-primary hover:bg-white/50"
             >
               <Lock className="h-4 w-4" />
               Automation
             </TabsTrigger>
             <TabsTrigger 
               value="audit" 
-              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-quikle-primary data-[state=active]:shadow-sm"
+              className="flex items-center gap-2 text-quikle-slate/70 font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-quikle-primary/20 data-[state=active]:font-semibold hover:text-quikle-primary hover:bg-white/50"
             >
               <FileText className="h-4 w-4" />
               Audit Log
