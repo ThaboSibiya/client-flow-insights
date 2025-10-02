@@ -119,23 +119,39 @@ const EmailProviderSetup = ({ providers, onConfigurationSaved }: EmailProviderSe
   const testConnection = async () => {
     if (!selectedProvider || !configuration.settings) return;
     
+    // Validate required fields before testing
+    const settings = configuration.settings;
+    
+    if (selectedProvider.requiresOAuth) {
+      if (!settings.clientId || !settings.clientSecret) {
+        toast.error('Please provide both Client ID and Client Secret before testing.');
+        return;
+      }
+    } else {
+      // Validate IMAP/Exchange settings
+      if (!settings.serverHost || !settings.username || !settings.password) {
+        toast.error('Please provide server host, username, and password before testing.');
+        return;
+      }
+    }
+    
     setTesting(true);
     try {
-      const success = await emailIntegrationService.testEmailConnection({
+      const result = await emailIntegrationService.testEmailConnection({
         id: '',
         providerId: selectedProvider.id,
         isEnabled: true,
         settings: configuration.settings
       } as EmailConfiguration);
       
-      if (success) {
-        toast.success('✅ Connection test successful!');
+      if (result.success) {
+        toast.success(`✅ Connection successful! ${selectedProvider.name} is configured correctly.`);
       } else {
-        toast.error('❌ Connection test failed');
+        toast.error(result.error || '❌ Connection test failed. Please check your settings.');
       }
     } catch (error: any) {
       console.error('Connection test error:', error);
-      toast.error(error.message || 'Connection test failed');
+      toast.error(error.message || 'Connection test failed. Please verify your settings.');
     } finally {
       setTesting(false);
     }

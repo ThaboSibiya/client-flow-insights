@@ -38,16 +38,23 @@ const EmailConfigurationList = ({
     }
   };
 
+  const [testingId, setTestingId] = React.useState<string | null>(null);
+
   const testConfiguration = async (config: EmailConfiguration) => {
+    setTestingId(config.id);
     try {
-      const success = await emailIntegrationService.testEmailConnection(config);
-      if (success) {
-        toast.success('Connection test successful!');
+      const result = await emailIntegrationService.testEmailConnection(config);
+      const provider = getProviderInfo(config.providerId);
+      
+      if (result.success) {
+        toast.success(`✅ ${provider?.name} connection is working properly!`);
       } else {
-        toast.error('Connection test failed');
+        toast.error(result.error || `❌ Failed to connect to ${provider?.name}. Please check your configuration.`);
       }
-    } catch (error) {
-      toast.error('Connection test failed');
+    } catch (error: any) {
+      toast.error(error.message || 'Connection test failed');
+    } finally {
+      setTestingId(null);
     }
   };
 
@@ -139,9 +146,10 @@ const EmailConfigurationList = ({
                   variant="outline" 
                   size="sm"
                   onClick={() => testConfiguration(config)}
+                  disabled={testingId === config.id}
                 >
                   <TestTube className="h-4 w-4 mr-2" />
-                  Test
+                  {testingId === config.id ? 'Testing...' : 'Test'}
                 </Button>
                 <Button 
                   variant="outline" 

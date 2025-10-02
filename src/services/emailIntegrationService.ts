@@ -147,37 +147,32 @@ export class EmailIntegrationService {
     }
   }
 
-  async testEmailConnection(config: EmailConfiguration): Promise<boolean> {
+  async testEmailConnection(config: EmailConfiguration): Promise<{ success: boolean; error?: string }> {
     try {
       console.log('Testing email connection for:', config.providerId);
       
-      // For OAuth providers, check if they're configured
-      if (config.providerId === 'google-gmail' || config.providerId === 'microsoft-outlook') {
-        throw new Error('OAuth providers require configuration. Please complete the OAuth setup first.');
-      }
-      
-      // For IMAP providers, validate basic settings
-      if (config.providerId === 'imap-generic' || config.providerId === 'exchange-server') {
-        const { serverHost, username, password } = config.settings;
-        if (!serverHost || !username || !password) {
-          throw new Error('Please fill in all required connection fields (server, username, password).');
-        }
-        // For demo purposes, return true if basic validation passes
-        return true;
-      }
-
       const { data, error } = await supabase.functions.invoke('test-email-connection', {
         body: { config }
       });
 
       if (error) {
-        throw new Error(error.message);
+        console.error('Edge function error:', error);
+        return {
+          success: false,
+          error: error.message || 'Failed to test connection'
+        };
       }
 
-      return data.success;
+      return {
+        success: data?.success === true,
+        error: data?.error
+      };
     } catch (error: any) {
       console.error('Email connection test failed:', error);
-      throw new Error(error.message || 'Connection test failed');
+      return {
+        success: false,
+        error: error.message || 'Connection test failed'
+      };
     }
   }
 
