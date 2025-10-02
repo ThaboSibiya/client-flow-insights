@@ -23,23 +23,50 @@ const Sidebar = () => {
   const location = useLocation();
   const { data: employee } = useEmployeeProfile();
 
-  const menuItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/customers', icon: Users, label: 'Customers' },
-    { path: '/conversations', icon: MessageCircle, label: 'Conversations' },
-    { path: '/employees', icon: UserCog, label: 'Employees' },
-    { path: '/pipeline', icon: Bot, label: 'Pipeline' },
-    { path: '/automations', icon: Zap, label: 'Automations' },
-    { path: '/integrations', icon: Workflow, label: 'Integrations' },
-    { path: '/projects', icon: FolderKanban, label: 'Projects' },
-    { path: '/quotes', icon: FileText, label: 'Quotes & Invoices' },
-    { path: '/analytics', icon: BarChart3, label: 'Analytics' },
-    { path: '/onboarding', icon: UserPlus, label: 'Onboarding' },
+  const menuGroups = [
+    {
+      label: 'Overview',
+      items: [
+        { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      ]
+    },
+    {
+      label: 'Customer Management',
+      items: [
+        { path: '/customers', icon: Users, label: 'Customers' },
+        { path: '/onboarding', icon: UserPlus, label: 'Onboarding' },
+        { path: '/conversations', icon: MessageCircle, label: 'Conversations' },
+      ]
+    },
+    {
+      label: 'Sales Operations',
+      items: [
+        { path: '/pipeline', icon: Bot, label: 'Pipeline' },
+        { path: '/projects', icon: FolderKanban, label: 'Projects' },
+        { path: '/quotes', icon: FileText, label: 'Quotes & Invoices' },
+      ]
+    },
+    {
+      label: 'Team & Security',
+      items: [
+        { path: '/employees', icon: UserCog, label: 'Employees' },
+        ...(employee?.role === 'admin' ? [{ path: '/audit-log', icon: ShieldCheck, label: 'Audit Log' }] : []),
+      ]
+    },
+    {
+      label: 'Automation',
+      items: [
+        { path: '/automations', icon: Zap, label: 'Automations' },
+        { path: '/integrations', icon: Workflow, label: 'Integrations' },
+      ]
+    },
+    {
+      label: 'Insights',
+      items: [
+        { path: '/analytics', icon: BarChart3, label: 'Analytics' },
+      ]
+    },
   ];
-
-  if (employee?.role === 'admin') {
-    menuItems.splice(5, 0, { path: '/audit-log', icon: ShieldCheck, label: 'Audit Log' });
-  }
 
   return (
     <div className="w-64 bg-gradient-to-b from-white to-quikle-crystal/30 border-r border-quikle-silver/30 min-h-screen flex flex-col backdrop-blur-sm">
@@ -55,30 +82,49 @@ const Sidebar = () => {
         
         {/* Navigation Menu */}
         <nav className="mt-6 px-3">
-          <div className="space-y-1">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    "flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group",
-                    isActive 
-                      ? "bg-gradient-to-r from-quikle-primary/10 to-quikle-secondary/10 text-quikle-primary border-r-2 border-quikle-primary shadow-sm" 
-                      : "text-quikle-charcoal hover:bg-quikle-crystal/50 hover:text-quikle-primary"
-                  )}
-                >
-                  <Icon className={cn(
-                    "mr-3 h-4 w-4 transition-colors",
-                    isActive ? "text-quikle-primary" : "text-quikle-slate group-hover:text-quikle-primary"
-                  )} />
-                  {item.label}
-                </Link>
-              );
-            })}
+          <div className="space-y-6">
+            {menuGroups.map((group, groupIndex) => (
+              <div key={group.label} className="space-y-1">
+                {/* Group Label */}
+                <div className="px-3 mb-2">
+                  <h3 className="text-xs font-semibold text-quikle-slate/60 uppercase tracking-wider">
+                    {group.label}
+                  </h3>
+                </div>
+                
+                {/* Group Items */}
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.path;
+                  
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={cn(
+                        "flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group",
+                        isActive 
+                          ? "bg-gradient-to-r from-quikle-primary/10 to-quikle-secondary/10 text-quikle-primary border-r-2 border-quikle-primary shadow-sm" 
+                          : "text-quikle-charcoal hover:bg-quikle-crystal/50 hover:text-quikle-primary"
+                      )}
+                    >
+                      <Icon className={cn(
+                        "mr-3 h-4 w-4 transition-colors",
+                        isActive ? "text-quikle-primary" : "text-quikle-slate group-hover:text-quikle-primary"
+                      )} />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+                
+                {/* Separator (except for last group) */}
+                {groupIndex < menuGroups.length - 1 && (
+                  <div className="pt-3">
+                    <div className="h-px bg-quikle-silver/20" />
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </nav>
       </div>
