@@ -54,7 +54,24 @@ const EmailProviderSetup = ({ providers, onConfigurationSaved }: EmailProviderSe
   const handleOAuthSetup = async () => {
     if (!selectedProvider) return;
     
+    // Validate OAuth credentials for OAuth providers
+    if (selectedProvider.requiresOAuth) {
+      if (!configuration.settings?.clientId || !configuration.settings?.clientSecret) {
+        toast.error('Please enter your OAuth Client ID and Client Secret');
+        return;
+      }
+    }
+    
     try {
+      // Save OAuth app configuration first
+      if (selectedProvider.requiresOAuth && configuration.settings?.clientId && configuration.settings?.clientSecret) {
+        await emailIntegrationService.saveOAuthAppConfig(
+          selectedProvider.id,
+          configuration.settings.clientId,
+          configuration.settings.clientSecret
+        );
+      }
+      
       const authUrl = await emailIntegrationService.initiateOAuthFlow(selectedProvider.id);
       
       // Open popup and listen for completion
@@ -203,21 +220,72 @@ const EmailProviderSetup = ({ providers, onConfigurationSaved }: EmailProviderSe
               {selectedProvider.requiresOAuth ? (
                 <div className="space-y-4">
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-4 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">🔐 OAuth Setup Required</h4>
+                    <h4 className="font-medium text-blue-900 mb-2">🔐 OAuth App Configuration</h4>
                     <p className="text-sm text-blue-800 mb-3">
-                      Authorize Quikle to securely access your {selectedProvider.name} account. 
-                      This enables automatic email syncing and ticket creation.
+                      To integrate your {selectedProvider.name} account, you'll need to create an OAuth app. Don't worry - we'll guide you through it!
                     </p>
-                    <div className="bg-white/50 p-3 rounded border border-blue-100 mb-3">
-                      <p className="text-xs text-blue-700">
-                        ✅ Your credentials stay secure - we use OAuth 2.0 industry standard<br/>
-                        ✅ You can revoke access anytime from your {selectedProvider.name} settings<br/>
-                        ✅ We only access emails you authorize
-                      </p>
+                    
+                    <div className="bg-white p-4 rounded-lg border border-blue-200 space-y-4 mb-4">
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-sm">📋 Setup Instructions:</h5>
+                        <ol className="text-xs text-gray-700 space-y-1 list-decimal list-inside">
+                          {selectedProvider.id === 'google-gmail' ? (
+                            <>
+                              <li>Go to <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Google Cloud Console</a></li>
+                              <li>Create a new project or select existing one</li>
+                              <li>Enable Gmail API</li>
+                              <li>Go to Credentials → Create OAuth 2.0 Client ID</li>
+                              <li>Add <code className="bg-gray-100 px-1 rounded text-xs">{window.location.origin}</code> to Authorized JavaScript origins</li>
+                              <li>Add <code className="bg-gray-100 px-1 rounded text-xs">https://oquiaxbnkdnpixqhqdfq.supabase.co/functions/v1/email-oauth-callback</code> to Authorized redirect URIs</li>
+                            </>
+                          ) : (
+                            <>
+                              <li>Go to <a href="https://portal.azure.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Azure Portal</a></li>
+                              <li>Navigate to Azure Active Directory → App registrations</li>
+                              <li>Click "New registration"</li>
+                              <li>Add <code className="bg-gray-100 px-1 rounded text-xs">https://oquiaxbnkdnpixqhqdfq.supabase.co/functions/v1/email-oauth-callback</code> as redirect URI</li>
+                              <li>Go to Certificates & secrets → Create new client secret</li>
+                              <li>Copy your Application (client) ID and client secret</li>
+                            </>
+                          )}
+                        </ol>
+                      </div>
+                      
+                      <div className="space-y-3 pt-3 border-t">
+                        <div className="space-y-2">
+                          <Label>Client ID *</Label>
+                          <Input
+                            placeholder={selectedProvider.id === 'google-gmail' ? 'your-app.apps.googleusercontent.com' : 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'}
+                            value={configuration.settings?.clientId || ''}
+                            onChange={(e) => updateSetting('settings.clientId', e.target.value)}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Client Secret *</Label>
+                          <Input
+                            type="password"
+                            placeholder="Enter your client secret"
+                            value={configuration.settings?.clientSecret || ''}
+                            onChange={(e) => updateSetting('settings.clientSecret', e.target.value)}
+                          />
+                        </div>
+                        
+                        <div className="bg-blue-50 p-3 rounded text-xs text-blue-700">
+                          <strong>🔒 Security Note:</strong> Your credentials are encrypted and stored securely. We never share them with third parties.
+                        </div>
+                      </div>
                     </div>
-                    <Button onClick={handleOAuthSetup} className="w-full bg-blue-600 hover:bg-blue-700">
+                    
+                    <Button 
+                      onClick={handleOAuthSetup} 
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      disabled={!configuration.settings?.clientId || !configuration.settings?.clientSecret}
+                    >
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      🚀 Connect {selectedProvider.name} Account
+                      {configuration.settings?.clientId && configuration.settings?.clientSecret 
+                        ? `🚀 Connect ${selectedProvider.name} Account` 
+                        : '⚠️ Enter credentials above to continue'}
                     </Button>
                   </div>
                 </div>

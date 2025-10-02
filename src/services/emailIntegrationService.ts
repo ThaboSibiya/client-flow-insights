@@ -103,29 +103,47 @@ export class EmailIntegrationService {
     })) || [];
   }
 
+  async saveOAuthAppConfig(providerId: string, clientId: string, clientSecret: string): Promise<void> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const baseUrl = 'https://oquiaxbnkdnpixqhqdfq.supabase.co';
+      const redirectUri = `${baseUrl}/functions/v1/email-oauth-callback`;
+
+      const { error } = await supabase
+        .from('user_oauth_apps')
+        .upsert({
+          user_id: user.id,
+          provider_id: providerId,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,provider_id'
+        });
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error('Error saving OAuth app config:', error);
+      throw new Error(error.message || 'Failed to save OAuth app configuration');
+    }
+  }
+
   async initiateOAuthFlow(providerId: string): Promise<string> {
     try {
-      console.log('Initiating OAuth flow for:', providerId);
-      
-      // For demo purposes, provide user-friendly error messages
-      if (providerId === 'google-gmail') {
-        throw new Error('Google OAuth configuration is not yet set up. Please contact your administrator to configure Google OAuth credentials.');
-      } else if (providerId === 'microsoft-outlook') {
-        throw new Error('Microsoft OAuth configuration is not yet set up. Please contact your administrator to configure Microsoft OAuth credentials.');
-      }
-      
       const { data, error } = await supabase.functions.invoke('email-oauth-init', {
         body: { providerId }
       });
 
-      if (error) {
-        throw new Error(error.message);
-      }
+      if (error) throw error;
+      if (!data?.authUrl) throw new Error('Failed to get authorization URL');
 
       return data.authUrl;
     } catch (error: any) {
-      console.error('OAuth flow error:', error);
-      throw new Error(error.message || `Failed to initiate OAuth: ${error}`);
+      console.error('OAuth flow initiation error:', error);
+      throw new Error(error.message || 'Failed to initiate OAuth flow');
     }
   }
 

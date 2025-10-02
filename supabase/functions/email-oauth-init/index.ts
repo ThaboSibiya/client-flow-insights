@@ -75,24 +75,48 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Check for user-specific OAuth app configuration first
+    const { data: userOAuthApp } = await supabase
+      .from('user_oauth_apps')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('provider_id', providerId)
+      .single();
+
     const config = getOAuthConfig();
     const state = generateState();
     
     let authUrl: string;
+    let clientId: string;
+    let redirectUri: string;
+    let scope: string;
     
     if (providerId === 'google-gmail') {
-      const googleConfig = config.google;
-      if (!googleConfig.clientId) {
-        return new Response(
-          JSON.stringify({ error: "Google OAuth not configured. Please contact administrator." }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      // Use user's OAuth app if available, otherwise fall back to system config
+      if (userOAuthApp) {
+        clientId = userOAuthApp.client_id;
+        redirectUri = userOAuthApp.redirect_uri;
+        scope = config.google.scope;
+      } else {
+        const googleConfig = config.google;
+        if (!googleConfig.clientId) {
+          return new Response(
+            JSON.stringify({ 
+              error: "Please configure your own OAuth app credentials to connect your Gmail account.",
+              hint: "Enter your Client ID and Client Secret in the setup form."
+            }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        clientId = googleConfig.clientId;
+        redirectUri = googleConfig.redirectUri;
+        scope = googleConfig.scope;
       }
       
       const params = new URLSearchParams({
-        client_id: googleConfig.clientId,
-        redirect_uri: googleConfig.redirectUri,
-        scope: googleConfig.scope,
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        scope: scope,
         response_type: 'code',
         state: `${state}:${user.id}:${providerId}`,
         access_type: 'offline',
@@ -102,18 +126,31 @@ const handler = async (req: Request): Promise<Response> => {
       authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
       
     } else if (providerId === 'microsoft-outlook') {
-      const msConfig = config.microsoft;
-      if (!msConfig.clientId) {
-        return new Response(
-          JSON.stringify({ error: "Microsoft OAuth not configured. Please contact administrator." }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      // Use user's OAuth app if available, otherwise fall back to system config
+      if (userOAuthApp) {
+        clientId = userOAuthApp.client_id;
+        redirectUri = userOAuthApp.redirect_uri;
+        scope = config.microsoft.scope;
+      } else {
+        const msConfig = config.microsoft;
+        if (!msConfig.clientId) {
+          return new Response(
+            JSON.stringify({ 
+              error: "Please configure your own OAuth app credentials to connect your Outlook account.",
+              hint: "Enter your Client ID and Client Secret in the setup form."
+            }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        clientId = msConfig.clientId;
+        redirectUri = msConfig.redirectUri;
+        scope = msConfig.scope;
       }
       
       const params = new URLSearchParams({
-        client_id: msConfig.clientId,
-        redirect_uri: msConfig.redirectUri,
-        scope: msConfig.scope,
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        scope: scope,
         response_type: 'code',
         state: `${state}:${user.id}:${providerId}`,
         response_mode: 'query'
