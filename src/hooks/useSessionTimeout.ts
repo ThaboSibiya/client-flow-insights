@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 interface UseSessionTimeoutOptions {
+  user: User | null;
+  signOut: () => Promise<void>;
   timeoutMinutes?: number;
   warningMinutes?: number;
   onTimeout?: () => void;
@@ -10,12 +12,13 @@ interface UseSessionTimeoutOptions {
 }
 
 export const useSessionTimeout = ({
+  user,
+  signOut,
   timeoutMinutes = 30,
   warningMinutes = 2,
   onTimeout,
   onWarning
-}: UseSessionTimeoutOptions = {}) => {
-  const { user, signOut } = useAuth();
+}: UseSessionTimeoutOptions) => {
   const [showWarning, setShowWarning] = useState(false);
   const [remainingTime, setRemainingTime] = useState(timeoutMinutes * 60);
   

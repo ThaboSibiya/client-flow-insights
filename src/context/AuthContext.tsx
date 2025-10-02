@@ -19,7 +19,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
   const { showWarning, remainingTime, extendSession, resetTimers } = useSessionTimeout({
+    user,
+    signOut,
     timeoutMinutes: 30,
     warningMinutes: 2
   });
@@ -46,10 +52,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
 
   const value = {
     session,
