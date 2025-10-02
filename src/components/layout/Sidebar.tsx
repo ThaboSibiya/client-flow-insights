@@ -120,27 +120,32 @@ const Sidebar = () => {
                         className={cn(
                           "flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-300 group relative overflow-hidden",
                           isActive 
-                            ? "bg-gradient-to-r from-quikle-primary/15 via-quikle-secondary/10 to-quikle-primary/15 text-quikle-primary shadow-lg shadow-quikle-primary/10" 
-                            : "text-quikle-charcoal/80 hover:bg-gradient-to-r hover:from-quikle-crystal/40 hover:to-quikle-crystal/20 hover:text-quikle-primary hover:shadow-md"
+                            ? "bg-gradient-to-r from-quikle-primary via-quikle-primary to-quikle-secondary text-white shadow-lg shadow-quikle-primary/20 border border-quikle-primary/30" 
+                            : "text-quikle-charcoal hover:bg-gradient-to-r hover:from-quikle-crystal hover:to-quikle-platinum/30 hover:text-quikle-primary hover:shadow-md border border-transparent"
                         )}
                       >
                         {/* Active indicator */}
                         {isActive && (
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-quikle-primary to-quikle-secondary rounded-r-full shadow-lg shadow-quikle-primary/30" />
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-gradient-to-b from-white/80 via-white to-white/80 rounded-r-full shadow-lg" />
                         )}
                         
                         <Icon className={cn(
                           "mr-3 h-[18px] w-[18px] transition-all duration-300",
                           isActive 
-                            ? "text-quikle-primary drop-shadow-sm" 
-                            : "text-quikle-slate/60 group-hover:text-quikle-primary group-hover:scale-110 group-hover:drop-shadow-sm"
+                            ? "text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]" 
+                            : "text-quikle-slate group-hover:text-quikle-primary group-hover:scale-110 group-hover:drop-shadow-sm"
                         )} />
                         <span className={cn(
-                          "transition-all duration-300",
-                          isActive ? "font-semibold" : "font-medium group-hover:translate-x-0.5"
+                          "transition-all duration-300 relative z-10",
+                          isActive ? "font-semibold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]" : "font-medium group-hover:translate-x-0.5"
                         )}>
                           {item.label}
                         </span>
+                        
+                        {/* Active shimmer effect */}
+                        {isActive && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+                        )}
                         
                         {/* Hover glow effect */}
                         {!isActive && (
