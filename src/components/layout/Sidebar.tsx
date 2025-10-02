@@ -96,12 +96,12 @@ const Sidebar = () => {
         </div>
         
         {/* Navigation Menu */}
-        <nav className="mt-8 px-3">
-          <div className="space-y-8">
+        <nav className="mt-6 px-3">
+          <div className="space-y-5">
             {menuGroups.map((group, groupIndex) => (
               <div key={group.label} className="space-y-2">
                 {/* Group Label */}
-                <div className="px-3 mb-3">
+                <div className="px-3 mb-2">
                   <h3 className="text-[10px] font-bold text-quikle-slate/50 uppercase tracking-[0.15em] letter-spacing-wider">
                     {group.label}
                   </h3>
@@ -153,7 +153,7 @@ const Sidebar = () => {
                 
                 {/* Refined Separator */}
                 {groupIndex < menuGroups.length - 1 && (
-                  <div className="pt-4 pb-2 px-3">
+                  <div className="pt-3 pb-1 px-3">
                     <div className="h-px bg-gradient-to-r from-transparent via-quikle-silver/30 to-transparent" />
                   </div>
                 )}
