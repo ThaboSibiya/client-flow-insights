@@ -59,7 +59,7 @@ const CustomApiTriggerCard: React.FC<CustomApiTriggerCardProps> = ({
               {trigger.method}
             </Badge>
             <Input 
-              value={`${window.location.origin}${trigger.endpoint}`}
+              value={`https://api.quikle.app${trigger.endpoint}`}
               readOnly 
               className="font-mono text-xs"
             />

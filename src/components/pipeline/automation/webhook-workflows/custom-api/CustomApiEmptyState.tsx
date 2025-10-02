@@ -13,9 +13,9 @@ const CustomApiEmptyState: React.FC<CustomApiEmptyStateProps> = ({ onCreateFirst
     <Card>
       <CardContent className="text-center py-12">
         <Code className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-lg font-semibold mb-2">No Custom Triggers</h3>
+        <h3 className="text-lg font-semibold mb-2">No Custom API Triggers Yet</h3>
         <p className="text-muted-foreground mb-4">
-          Create your first custom API trigger for specialized integrations
+          Create custom webhooks powered by Quikle Innovation Suite to integrate with any external system
         </p>
         <Button onClick={onCreateFirst}>
           Create Your First Trigger

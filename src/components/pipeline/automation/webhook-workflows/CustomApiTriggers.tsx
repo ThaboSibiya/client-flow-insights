@@ -59,7 +59,7 @@ const CustomApiTriggers = () => {
         <div>
           <h3 className="text-lg font-semibold">Custom API Triggers</h3>
           <p className="text-sm text-muted-foreground">
-            Create specialized webhook endpoints for custom integrations
+            Create webhook endpoints powered by Quikle Innovation Suite for seamless integrations
           </p>
         </div>
         <Dialog open={isCreating} onOpenChange={setIsCreating}>

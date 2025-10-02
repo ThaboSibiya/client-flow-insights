@@ -8,7 +8,7 @@ export const useCustomApiTriggers = () => {
     {
       id: '1',
       name: 'Customer Status Update',
-      endpoint: '/api/webhooks/customer-status',
+      endpoint: '/webhooks/customer-status',
       method: 'POST',
       isActive: true,
       authType: 'bearer',
@@ -25,7 +25,7 @@ export const useCustomApiTriggers = () => {
     {
       id: '2',
       name: 'New Lead Notification',
-      endpoint: '/api/webhooks/new-lead',
+      endpoint: '/webhooks/new-lead',
       method: 'POST',
       isActive: true,
       authType: 'apikey',
@@ -45,7 +45,7 @@ export const useCustomApiTriggers = () => {
 
   const generateEndpoint = () => {
     const randomId = Math.random().toString(36).substring(2, 8);
-    return `/api/webhooks/${randomId}`;
+    return `/webhooks/${randomId}`;
   };
 
   const createTrigger = (newTrigger: NewCustomApiTrigger) => {
@@ -79,18 +79,23 @@ export const useCustomApiTriggers = () => {
   };
 
   const copyEndpoint = (endpoint: string) => {
-    const fullUrl = `${window.location.origin}${endpoint}`;
-    navigator.clipboard.writeText(fullUrl);
-    toast.success("API endpoint copied to clipboard");
+    const quikleApiUrl = `https://api.quikle.app${endpoint}`;
+    navigator.clipboard.writeText(quikleApiUrl);
+    toast.success("Quikle API endpoint copied to clipboard");
   };
 
   const testTrigger = async (trigger: CustomApiTrigger) => {
-    const fullUrl = `${window.location.origin}${trigger.endpoint}`;
+    const quikleApiUrl = `https://api.quikle.app${trigger.endpoint}`;
     
     try {
-      const response = await fetch(fullUrl, {
+      toast.info("Sending test request to Quikle API...");
+      
+      const response = await fetch(quikleApiUrl, {
         method: trigger.method,
-        headers: trigger.headers,
+        headers: {
+          ...trigger.headers,
+          'X-Quikle-Test': 'true'
+        },
         body: trigger.method !== 'GET' ? trigger.samplePayload : undefined
       });
 
@@ -103,12 +108,12 @@ export const useCustomApiTriggers = () => {
           } : t
         ));
         
-        toast.success("API trigger test completed successfully");
+        toast.success("Quikle API trigger test successful!");
       } else {
         throw new Error(`HTTP ${response.status}`);
       }
     } catch (error) {
-      toast.error("Failed to test API trigger");
+      toast.error("Failed to test Quikle API trigger. Please verify the endpoint is configured correctly.");
     }
   };
 
