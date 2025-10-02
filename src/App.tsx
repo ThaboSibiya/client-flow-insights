@@ -26,6 +26,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Conversations from "./pages/Conversations";
 import AuditLog from "./pages/AuditLog";
 import EmailIntegration from "./pages/EmailIntegration";
+import Integrations from "./pages/Integrations";
 import AdminProtectedRoute from "./components/auth/AdminProtectedRoute";
 
 const queryClient = new QueryClient({
@@ -129,6 +130,11 @@ const App = () => (
                       <Route path="audit-log" element={
                         <ErrorBoundary>
                           <AdminProtectedRoute element={<AuditLog />} />
+                        </ErrorBoundary>
+                      } />
+                      <Route path="integrations" element={
+                        <ErrorBoundary>
+                          <Integrations />
                         </ErrorBoundary>
                       } />
                     </Route>

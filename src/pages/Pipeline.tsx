@@ -2,16 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Ticket, Zap, Settings, Database, Webhook } from "lucide-react";
+import { Users, Ticket, Zap, Settings } from "lucide-react";
 import CustomerPipeline from '@/components/pipeline/CustomerPipeline';
 import TicketPipeline from '@/components/pipeline/TicketPipeline';
 import AutomationManager from '@/components/pipeline/AutomationManager';
 import PipelineSettings from '@/components/pipeline/PipelineSettings';
-import IntegrationAutomationsManager from '@/components/pipeline/automation/IntegrationAutomationsManager';
-import WebhookWorkflowsManager from '@/components/pipeline/automation/WebhookWorkflowsManager';
 import PipelineErrorBoundary from '@/components/error/PipelineErrorBoundary';
 
-type TabValue = 'customers' | 'tickets' | 'integrations' | 'webhooks' | 'automations' | 'settings';
+type TabValue = 'customers' | 'tickets' | 'automations' | 'settings';
 
 const Pipeline: React.FC = () => {
   const location = useLocation();
@@ -22,7 +20,7 @@ const Pipeline: React.FC = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const tabFromUrl = searchParams.get('tab') as TabValue;
-    if (tabFromUrl && ['customers', 'tickets', 'integrations', 'webhooks', 'automations', 'settings'].includes(tabFromUrl)) {
+    if (tabFromUrl && ['customers', 'tickets', 'automations', 'settings'].includes(tabFromUrl)) {
       setActiveTab(tabFromUrl);
     }
   }, [location.search]);
@@ -44,15 +42,15 @@ const Pipeline: React.FC = () => {
       <div className="space-y-6">
         <div className="mb-6">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-lg">
-          Pipeline & Integrations
+          Pipeline Management
         </h1>
         <p className="text-quikle-charcoal/70 font-medium">
-          Manage pipelines, integrations & automations
+          Manage customer and ticket pipelines with automation
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="customers" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Customers
@@ -60,14 +58,6 @@ const Pipeline: React.FC = () => {
           <TabsTrigger value="tickets" className="flex items-center gap-2">
             <Ticket className="h-4 w-4" />
             Tickets
-          </TabsTrigger>
-          <TabsTrigger value="integrations" className="flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            Integrations
-          </TabsTrigger>
-          <TabsTrigger value="webhooks" className="flex items-center gap-2">
-            <Webhook className="h-4 w-4" />
-            Webhooks
           </TabsTrigger>
           <TabsTrigger value="automations" className="flex items-center gap-2">
             <Zap className="h-4 w-4" />
@@ -89,14 +79,6 @@ const Pipeline: React.FC = () => {
           <PipelineErrorBoundary>
             <TicketPipeline />
           </PipelineErrorBoundary>
-        </TabsContent>
-
-        <TabsContent value="integrations" className="mt-6">
-          <IntegrationAutomationsManager />
-        </TabsContent>
-
-        <TabsContent value="webhooks" className="mt-6">
-          <WebhookWorkflowsManager />
         </TabsContent>
 
         <TabsContent value="automations" className="mt-6">
