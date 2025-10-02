@@ -69,58 +69,92 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="w-64 bg-gradient-to-b from-white to-quikle-crystal/30 border-r border-quikle-silver/30 min-h-screen flex flex-col backdrop-blur-sm">
-      <div className="flex-1">
+    <div className="w-64 bg-gradient-to-br from-white via-white to-quikle-crystal/20 border-r border-quikle-silver/30 min-h-screen flex flex-col shadow-xl relative overflow-hidden">
+      {/* Subtle background pattern overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(139,92,246,0.03),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(59,130,246,0.03),transparent_50%)]" />
+      
+      <div className="flex-1 relative z-10">
         {/* Premium Logo Section */}
-        <div className="p-6 flex items-center gap-3 border-b border-quikle-silver/20 bg-white/50">
-          <img src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" alt="Quikle Logo" className="h-10 w-10" />
+        <div className="p-6 flex items-center gap-3 border-b border-quikle-silver/20 bg-gradient-to-r from-white/95 to-quikle-crystal/40 backdrop-blur-sm">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-quikle-primary/20 to-quikle-secondary/20 rounded-xl blur-lg" />
+            <img 
+              src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" 
+              alt="Quikle Logo" 
+              className="h-11 w-11 relative z-10 drop-shadow-md transition-transform duration-300 hover:scale-110" 
+            />
+          </div>
           <div>
-            <h1 className="text-2xl font-bold luxury-text">Quikle</h1>
-            <p className="text-xs text-quikle-slate -mt-1">Premium Suite</p>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-primary bg-clip-text text-transparent">
+              Quikle
+            </h1>
+            <p className="text-[10px] font-medium text-quikle-slate/70 tracking-widest uppercase -mt-0.5">
+              Innovation Suite
+            </p>
           </div>
         </div>
         
         {/* Navigation Menu */}
-        <nav className="mt-6 px-3">
-          <div className="space-y-6">
+        <nav className="mt-8 px-3">
+          <div className="space-y-8">
             {menuGroups.map((group, groupIndex) => (
-              <div key={group.label} className="space-y-1">
+              <div key={group.label} className="space-y-2">
                 {/* Group Label */}
-                <div className="px-3 mb-2">
-                  <h3 className="text-xs font-semibold text-quikle-slate/60 uppercase tracking-wider">
+                <div className="px-3 mb-3">
+                  <h3 className="text-[10px] font-bold text-quikle-slate/50 uppercase tracking-[0.15em] letter-spacing-wider">
                     {group.label}
                   </h3>
                 </div>
                 
                 {/* Group Items */}
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location.pathname === item.path;
-                  
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={cn(
-                        "flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group",
-                        isActive 
-                          ? "bg-gradient-to-r from-quikle-primary/10 to-quikle-secondary/10 text-quikle-primary border-r-2 border-quikle-primary shadow-sm" 
-                          : "text-quikle-charcoal hover:bg-quikle-crystal/50 hover:text-quikle-primary"
-                      )}
-                    >
-                      <Icon className={cn(
-                        "mr-3 h-4 w-4 transition-colors",
-                        isActive ? "text-quikle-primary" : "text-quikle-slate group-hover:text-quikle-primary"
-                      )} />
-                      {item.label}
-                    </Link>
-                  );
-                })}
+                <div className="space-y-1">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.path;
+                    
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={cn(
+                          "flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-300 group relative overflow-hidden",
+                          isActive 
+                            ? "bg-gradient-to-r from-quikle-primary/15 via-quikle-secondary/10 to-quikle-primary/15 text-quikle-primary shadow-lg shadow-quikle-primary/10" 
+                            : "text-quikle-charcoal/80 hover:bg-gradient-to-r hover:from-quikle-crystal/40 hover:to-quikle-crystal/20 hover:text-quikle-primary hover:shadow-md"
+                        )}
+                      >
+                        {/* Active indicator */}
+                        {isActive && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-quikle-primary to-quikle-secondary rounded-r-full shadow-lg shadow-quikle-primary/30" />
+                        )}
+                        
+                        <Icon className={cn(
+                          "mr-3 h-[18px] w-[18px] transition-all duration-300",
+                          isActive 
+                            ? "text-quikle-primary drop-shadow-sm" 
+                            : "text-quikle-slate/60 group-hover:text-quikle-primary group-hover:scale-110 group-hover:drop-shadow-sm"
+                        )} />
+                        <span className={cn(
+                          "transition-all duration-300",
+                          isActive ? "font-semibold" : "font-medium group-hover:translate-x-0.5"
+                        )}>
+                          {item.label}
+                        </span>
+                        
+                        {/* Hover glow effect */}
+                        {!isActive && (
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-quikle-primary/5 to-transparent" />
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
                 
-                {/* Separator (except for last group) */}
+                {/* Refined Separator */}
                 {groupIndex < menuGroups.length - 1 && (
-                  <div className="pt-3">
-                    <div className="h-px bg-quikle-silver/20" />
+                  <div className="pt-4 pb-2 px-3">
+                    <div className="h-px bg-gradient-to-r from-transparent via-quikle-silver/30 to-transparent" />
                   </div>
                 )}
               </div>
@@ -130,7 +164,7 @@ const Sidebar = () => {
       </div>
       
       {/* Enhanced User Profile Section */}
-      <div className="mt-auto">
+      <div className="mt-auto relative z-10 border-t border-quikle-silver/20 bg-gradient-to-t from-white/80 to-transparent backdrop-blur-sm">
         <UserProfile />
       </div>
     </div>
