@@ -2,7 +2,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   LayoutDashboard, 
   Users, 
@@ -97,113 +96,71 @@ const Sidebar = () => {
         </div>
         
         {/* Navigation Menu with Enhanced Hover Scrollbar */}
-        <ScrollArea className="flex-1 mt-4">
-          <style dangerouslySetInnerHTML={{ __html: `
-            [data-radix-scroll-area-viewport] {
-              scrollbar-width: thin;
-              scrollbar-color: transparent transparent;
-              transition: scrollbar-color 0.3s ease;
-            }
-            [data-radix-scroll-area-viewport]:hover {
-              scrollbar-color: rgba(139, 92, 246, 0.4) rgba(148, 163, 184, 0.08);
-            }
-            [data-radix-scroll-area-viewport]::-webkit-scrollbar {
-              width: 10px;
-            }
-            [data-radix-scroll-area-viewport]::-webkit-scrollbar-track {
-              background: transparent;
-              border-radius: 10px;
-              margin-top: 4px;
-              margin-bottom: 4px;
-            }
-            [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb {
-              background: transparent;
-              border-radius: 10px;
-              border: 2px solid transparent;
-              background-clip: padding-box;
-              transition: all 0.3s ease;
-            }
-            [data-radix-scroll-area-viewport]:hover::-webkit-scrollbar-track {
-              background: rgba(148, 163, 184, 0.08);
-            }
-            [data-radix-scroll-area-viewport]:hover::-webkit-scrollbar-thumb {
-              background: linear-gradient(180deg, rgba(139, 92, 246, 0.5), rgba(59, 130, 246, 0.4));
-              box-shadow: 0 0 6px rgba(139, 92, 246, 0.3);
-            }
-            [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb:hover {
-              background: linear-gradient(180deg, rgba(139, 92, 246, 0.7), rgba(59, 130, 246, 0.6));
-              box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
-            }
-            [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb:active {
-              background: linear-gradient(180deg, rgba(139, 92, 246, 0.9), rgba(59, 130, 246, 0.8));
-            }
-          ` }} />
-          <nav className="px-3 pb-4">
-            <div className="space-y-3">
-              {menuGroups.map((group, groupIndex) => (
-                <div key={group.label} className="space-y-1.5">
-                  {/* Group Label */}
-                  <div className="px-3 mb-1.5">
-                    <h3 className="text-[10px] font-bold text-quikle-slate/50 uppercase tracking-[0.15em] letter-spacing-wider">
-                      {group.label}
-                    </h3>
-                  </div>
-                  
-                  {/* Group Items */}
-                  <div className="space-y-1">
-                    {group.items.map((item) => {
-                      const Icon = item.icon;
-                      const isActive = location.pathname === item.path;
-                      
-                      return (
-                        <Link
-                          key={item.path}
-                          to={item.path}
-                          className={cn(
-                            "flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-300 group relative overflow-hidden",
-                            isActive 
-                              ? "bg-gradient-to-r from-quikle-primary/15 via-quikle-secondary/10 to-quikle-primary/15 text-quikle-primary shadow-lg shadow-quikle-primary/10" 
-                              : "text-quikle-charcoal/80 hover:bg-gradient-to-r hover:from-quikle-crystal/40 hover:to-quikle-crystal/20 hover:text-quikle-primary hover:shadow-md"
-                          )}
-                        >
-                          {/* Active indicator */}
-                          {isActive && (
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-quikle-primary to-quikle-secondary rounded-r-full shadow-lg shadow-quikle-primary/30" />
-                          )}
-                          
-                          <Icon className={cn(
-                            "mr-3 h-[18px] w-[18px] transition-all duration-300",
-                            isActive 
-                              ? "text-quikle-primary drop-shadow-sm" 
-                              : "text-quikle-slate/60 group-hover:text-quikle-primary group-hover:scale-110 group-hover:drop-shadow-sm"
-                          )} />
-                          <span className={cn(
-                            "transition-all duration-300",
-                            isActive ? "font-semibold" : "font-medium group-hover:translate-x-0.5"
-                          )}>
-                            {item.label}
-                          </span>
-                          
-                          {/* Hover glow effect */}
-                          {!isActive && (
-                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-quikle-primary/5 to-transparent" />
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                  
-                  {/* Light Border Separator */}
-                  {groupIndex < menuGroups.length - 1 && (
-                    <div className="pt-2.5 pb-0.5">
-                      <div className="h-px bg-gradient-to-r from-transparent via-quikle-silver/40 to-transparent shadow-sm" />
-                    </div>
-                  )}
+        <nav className="flex-1 mt-4 px-3 overflow-y-auto hover-scrollbar">
+          <div className="space-y-3 pb-4">
+            {menuGroups.map((group, groupIndex) => (
+              <div key={group.label} className="space-y-1.5">
+                {/* Group Label */}
+                <div className="px-3 mb-1.5">
+                  <h3 className="text-[10px] font-bold text-quikle-slate/50 uppercase tracking-[0.15em] letter-spacing-wider">
+                    {group.label}
+                  </h3>
                 </div>
-              ))}
-            </div>
-          </nav>
-        </ScrollArea>
+                
+                {/* Group Items */}
+                <div className="space-y-1">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.path;
+                    
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={cn(
+                          "flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-300 group relative overflow-hidden",
+                          isActive 
+                            ? "bg-gradient-to-r from-quikle-primary/15 via-quikle-secondary/10 to-quikle-primary/15 text-quikle-primary shadow-lg shadow-quikle-primary/10" 
+                            : "text-quikle-charcoal/80 hover:bg-gradient-to-r hover:from-quikle-crystal/40 hover:to-quikle-crystal/20 hover:text-quikle-primary hover:shadow-md"
+                        )}
+                      >
+                        {/* Active indicator */}
+                        {isActive && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-quikle-primary to-quikle-secondary rounded-r-full shadow-lg shadow-quikle-primary/30" />
+                        )}
+                        
+                        <Icon className={cn(
+                          "mr-3 h-[18px] w-[18px] transition-all duration-300",
+                          isActive 
+                            ? "text-quikle-primary drop-shadow-sm" 
+                            : "text-quikle-slate/60 group-hover:text-quikle-primary group-hover:scale-110 group-hover:drop-shadow-sm"
+                        )} />
+                        <span className={cn(
+                          "transition-all duration-300",
+                          isActive ? "font-semibold" : "font-medium group-hover:translate-x-0.5"
+                        )}>
+                          {item.label}
+                        </span>
+                        
+                        {/* Hover glow effect */}
+                        {!isActive && (
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-quikle-primary/5 to-transparent" />
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+                
+                {/* Light Border Separator */}
+                {groupIndex < menuGroups.length - 1 && (
+                  <div className="pt-2.5 pb-0.5">
+                    <div className="h-px bg-gradient-to-r from-transparent via-quikle-silver/40 to-transparent shadow-sm" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </nav>
       </div>
       
       {/* Enhanced User Profile Section */}
