@@ -74,9 +74,9 @@ const Sidebar = () => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(139,92,246,0.03),transparent_50%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(59,130,246,0.03),transparent_50%)]" />
       
-      <div className="flex-1 relative z-10">
+      <div className="flex-1 relative z-10 flex flex-col overflow-hidden">
         {/* Premium Logo Section */}
-        <div className="p-6 flex items-center gap-3 border-b border-quikle-silver/20 bg-gradient-to-r from-white/95 to-quikle-crystal/40 backdrop-blur-sm">
+        <div className="p-6 flex items-center gap-3 border-b border-quikle-silver/20 bg-gradient-to-r from-white/95 to-quikle-crystal/40 backdrop-blur-sm flex-shrink-0">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-quikle-primary/20 to-quikle-secondary/20 rounded-xl blur-lg" />
             <img 
@@ -95,8 +95,27 @@ const Sidebar = () => {
           </div>
         </div>
         
-        {/* Navigation Menu */}
-        <nav className="mt-4 px-3">
+        {/* Navigation Menu with Custom Scrollbar */}
+        <nav className="mt-4 px-3 flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-transparent hover:scrollbar-thumb-quikle-silver/30 transition-all duration-300">
+          <style dangerouslySetInnerHTML={{ __html: `
+            .scrollbar-thin::-webkit-scrollbar {
+              width: 6px;
+            }
+            .scrollbar-thin::-webkit-scrollbar-track {
+              background: transparent;
+            }
+            .scrollbar-thin::-webkit-scrollbar-thumb {
+              background: transparent;
+              border-radius: 10px;
+              transition: background 0.3s ease;
+            }
+            .scrollbar-thin:hover::-webkit-scrollbar-thumb {
+              background: rgba(148, 163, 184, 0.3);
+            }
+            .scrollbar-thin:hover::-webkit-scrollbar-thumb:hover {
+              background: rgba(148, 163, 184, 0.5);
+            }
+          ` }} />
           <div className="space-y-3">
             {menuGroups.map((group, groupIndex) => (
               <div key={group.label} className="space-y-1.5">
