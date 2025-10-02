@@ -75,6 +75,52 @@ const EmployeeBasicInfo: React.FC<EmployeeBasicInfoProps> = ({ formData, onInput
             />
           </div>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="designation" className="text-quikle-charcoal font-medium">
+              Designation <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="designation"
+              value={formData.designation}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange('designation', e.target.value)}
+              placeholder="e.g., Software Developer"
+              className="border-quikle-silver/50 focus:border-quikle-primary"
+              required
+            />
+            <p className="text-xs text-quikle-slate">
+              Job position or role designation
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-quikle-charcoal font-medium">
+              Title <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange('title', e.target.value)}
+              placeholder="e.g., Senior Developer"
+              className="border-quikle-silver/50 focus:border-quikle-primary"
+              required
+            />
+            <p className="text-xs text-quikle-slate">
+              Professional title or level
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="department" className="text-quikle-charcoal font-medium">Department</Label>
+          <Input
+            id="department"
+            value={formData.department}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange('department', e.target.value)}
+            placeholder="e.g., Engineering, Sales, HR"
+            className="border-quikle-silver/50 focus:border-quikle-primary"
+          />
+        </div>
       </CardContent>
     </Card>
   );
