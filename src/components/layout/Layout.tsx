@@ -12,10 +12,10 @@ const Layout = () => {
 
   if (isMobile) {
     return (
-      <div className="min-h-screen flex flex-col w-full quikle-gradient-bg">
+      <div className="min-h-screen flex flex-col w-full quikle-gradient-bg overflow-y-auto overflow-x-hidden">
         <MobileNavigation />
         
-        <main className="flex-1 p-4 pb-20 quikle-gradient-bg overflow-x-hidden">
+        <main className="flex-1 p-4 pb-20 quikle-gradient-bg">
           <Outlet />
         </main>
         
@@ -26,11 +26,11 @@ const Layout = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full quikle-gradient-bg">
+      <div className="min-h-screen flex w-full quikle-gradient-bg overflow-hidden">
         <AppSidebar />
         
-        <div className="flex-1 flex flex-col">
-          <header className="bg-white/98 border-b border-quikle-silver/20 px-2 py-1 flex justify-between items-center shadow-sm backdrop-blur-lg">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <header className="bg-white/98 border-b border-quikle-silver/20 px-2 py-1 flex justify-between items-center shadow-sm backdrop-blur-lg flex-shrink-0">
             <SidebarTrigger className="md:hidden" />
             <div className="flex-1 flex justify-between items-center">
               <div className="flex items-center gap-1">
@@ -43,7 +43,7 @@ const Layout = () => {
             </div>
           </header>
           
-          <main className="flex-1 p-2 quikle-gradient-bg">
+          <main className="flex-1 p-2 quikle-gradient-bg overflow-y-auto overflow-x-hidden">
             <Outlet />
           </main>
         </div>
