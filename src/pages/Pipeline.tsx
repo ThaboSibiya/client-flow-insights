@@ -2,14 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Ticket, Zap, Settings } from "lucide-react";
+import { Users, Ticket, Settings } from "lucide-react";
 import CustomerPipeline from '@/components/pipeline/CustomerPipeline';
 import TicketPipeline from '@/components/pipeline/TicketPipeline';
-import AutomationManager from '@/components/pipeline/AutomationManager';
 import PipelineSettings from '@/components/pipeline/PipelineSettings';
 import PipelineErrorBoundary from '@/components/error/PipelineErrorBoundary';
 
-type TabValue = 'customers' | 'tickets' | 'automations' | 'settings';
+type TabValue = 'customers' | 'tickets' | 'settings';
 
 const Pipeline: React.FC = () => {
   const location = useLocation();
@@ -20,7 +19,7 @@ const Pipeline: React.FC = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const tabFromUrl = searchParams.get('tab') as TabValue;
-    if (tabFromUrl && ['customers', 'tickets', 'automations', 'settings'].includes(tabFromUrl)) {
+    if (tabFromUrl && ['customers', 'tickets', 'settings'].includes(tabFromUrl)) {
       setActiveTab(tabFromUrl);
     }
   }, [location.search]);
@@ -50,7 +49,7 @@ const Pipeline: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="customers" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Customers
@@ -58,10 +57,6 @@ const Pipeline: React.FC = () => {
           <TabsTrigger value="tickets" className="flex items-center gap-2">
             <Ticket className="h-4 w-4" />
             Tickets
-          </TabsTrigger>
-          <TabsTrigger value="automations" className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            Automations
           </TabsTrigger>
           <TabsTrigger value="settings" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -79,10 +74,6 @@ const Pipeline: React.FC = () => {
           <PipelineErrorBoundary>
             <TicketPipeline />
           </PipelineErrorBoundary>
-        </TabsContent>
-
-        <TabsContent value="automations" className="mt-6">
-          <AutomationManager />
         </TabsContent>
 
         <TabsContent value="settings" className="mt-6">

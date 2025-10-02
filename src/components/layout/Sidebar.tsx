@@ -13,7 +13,8 @@ import {
   ShieldCheck,
   Bot,
   FolderKanban,
-  Workflow
+  Workflow,
+  Zap
 } from 'lucide-react';
 import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import UserProfile from '@/components/auth/UserProfile';
@@ -28,6 +29,7 @@ const Sidebar = () => {
     { path: '/conversations', icon: MessageCircle, label: 'Conversations' },
     { path: '/employees', icon: UserCog, label: 'Employees' },
     { path: '/pipeline', icon: Bot, label: 'Pipeline' },
+    { path: '/automations', icon: Zap, label: 'Automations' },
     { path: '/integrations', icon: Workflow, label: 'Integrations' },
     { path: '/projects', icon: FolderKanban, label: 'Projects' },
     { path: '/quotes', icon: FileText, label: 'Quotes & Invoices' },

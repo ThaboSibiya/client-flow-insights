@@ -9,7 +9,9 @@ import {
   BarChart3, 
   UserPlus,
   Menu,
-  Workflow
+  Workflow,
+  Zap,
+  Bot
 } from 'lucide-react';
 import {
   Sheet,
@@ -36,7 +38,8 @@ const MobileNavigation = () => {
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/customers', icon: Users, label: 'Customers' },
     { path: '/conversations', icon: MessageCircle, label: 'Conversations', badge: 3 },
-    { path: '/pipeline', icon: BarChart3, label: 'Pipeline' },
+    { path: '/pipeline', icon: Bot, label: 'Pipeline' },
+    { path: '/automations', icon: Zap, label: 'Automations' },
     { path: '/integrations', icon: Workflow, label: 'Integrations' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/onboarding', icon: UserPlus, label: 'Add Customer' },
