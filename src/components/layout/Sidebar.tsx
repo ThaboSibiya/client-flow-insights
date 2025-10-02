@@ -96,27 +96,36 @@ const Sidebar = () => {
         </div>
         
         {/* Navigation Menu with Custom Scrollbar */}
-        <nav className="mt-4 px-3 flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-transparent hover:scrollbar-thumb-quikle-silver/30 transition-all duration-300">
+        <nav className="mt-4 px-3 flex-1 overflow-y-auto custom-scrollbar">
           <style dangerouslySetInnerHTML={{ __html: `
-            .scrollbar-thin::-webkit-scrollbar {
-              width: 6px;
+            .custom-scrollbar {
+              scrollbar-width: thin;
+              scrollbar-color: transparent transparent;
             }
-            .scrollbar-thin::-webkit-scrollbar-track {
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 8px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
               background: transparent;
+              margin-top: 8px;
+              margin-bottom: 8px;
             }
-            .scrollbar-thin::-webkit-scrollbar-thumb {
+            .custom-scrollbar::-webkit-scrollbar-thumb {
               background: transparent;
               border-radius: 10px;
               transition: background 0.3s ease;
             }
-            .scrollbar-thin:hover::-webkit-scrollbar-thumb {
+            .custom-scrollbar:hover {
+              scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+            }
+            .custom-scrollbar:hover::-webkit-scrollbar-thumb {
               background: rgba(148, 163, 184, 0.3);
             }
-            .scrollbar-thin:hover::-webkit-scrollbar-thumb:hover {
-              background: rgba(148, 163, 184, 0.5);
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+              background: rgba(148, 163, 184, 0.6);
             }
           ` }} />
-          <div className="space-y-3">
+          <div className="space-y-3 pb-4">
             {menuGroups.map((group, groupIndex) => (
               <div key={group.label} className="space-y-1.5">
                 {/* Group Label */}
