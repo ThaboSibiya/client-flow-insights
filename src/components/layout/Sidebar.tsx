@@ -49,7 +49,7 @@ const Sidebar = () => {
     {
       label: 'Team & Security',
       items: [
-        { path: '/employees', icon: UserCog, label: 'Employees' },
+        { path: '/employees', icon: Users, label: 'Team' },
         ...(employee?.role === 'admin' ? [{ path: '/audit-log', icon: ShieldCheck, label: 'Audit Log' }] : []),
       ]
     },
