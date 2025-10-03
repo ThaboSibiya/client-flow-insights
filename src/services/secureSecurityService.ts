@@ -14,24 +14,28 @@ export interface SecureSecurityAuditEvent {
 
 export const logSecureSecurityEvent = async (event: SecureSecurityAuditEvent) => {
   try {
-    // Use the security_events table directly with proper RLS
-    const { error } = await supabase
-      .from('security_events')
-      .insert({
-        event_type: event.action,
-        resource_type: event.resource_type,
-        resource_id: event.resource_id,
-        metadata: {
-          ...event,
-          timestamp: new Date().toISOString()
-        },
-        ip_address: event.ip_address || await getClientIP(),
-        user_agent: event.user_agent || navigator.userAgent
-      });
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.warn('Cannot log security event: user not authenticated');
+      return;
+    }
+
+    // Use the secure SECURITY DEFINER logging function
+    const { error } = await supabase.rpc('log_security_event', {
+      p_user_id: user.id,
+      p_action: event.action,
+      p_resource_type: event.resource_type,
+      p_resource_id: event.resource_id || null,
+      p_success: event.success,
+      p_metadata: event.metadata || {},
+      p_error_message: event.error_message || null,
+      p_ip_address: event.ip_address || await getClientIP(),
+      p_user_agent: event.user_agent || navigator.userAgent
+    });
 
     if (error) {
       console.error('Failed to log security event:', error);
-      // Fallback to client-side logging only as last resort
       fallbackSecurityLogging(event);
     }
   } catch (error) {

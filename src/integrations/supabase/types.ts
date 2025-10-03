@@ -1741,6 +1741,36 @@ export type Database = {
         }
         Relationships: []
       }
+      role_change_audit: {
+        Row: {
+          changed_at: string | null
+          changed_by: string
+          id: string
+          new_role: Database["public"]["Enums"]["app_role"]
+          old_role: Database["public"]["Enums"]["app_role"] | null
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by: string
+          id?: string
+          new_role: Database["public"]["Enums"]["app_role"]
+          old_role?: Database["public"]["Enums"]["app_role"] | null
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string
+          id?: string
+          new_role?: Database["public"]["Enums"]["app_role"]
+          old_role?: Database["public"]["Enums"]["app_role"] | null
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       scheduled_calls: {
         Row: {
           call_type: string
@@ -2157,6 +2187,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          expires_at: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -2212,6 +2269,13 @@ export type Database = {
           user_id: string
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       insert_email_history: {
         Args: {
           p_attachments?: string[]
@@ -2241,6 +2305,20 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_security_event: {
+        Args: {
+          p_action: string
+          p_error_message?: string
+          p_ip_address?: string
+          p_metadata?: Json
+          p_resource_id?: string
+          p_resource_type: string
+          p_success?: boolean
+          p_user_agent?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       validate_invitation_token: {
         Args: { p_token: string }
         Returns: {
@@ -2252,6 +2330,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "manager" | "employee"
       employee_role:
         | "admin"
         | "manager"
@@ -2395,6 +2474,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "manager", "employee"],
       employee_role: [
         "admin",
         "manager",
