@@ -46,7 +46,7 @@ const Employees: React.FC = () => {
         <div className="text-center">
           <Users className="h-12 w-12 mx-auto mb-4 text-quikle-silver" />
           <h2 className="text-xl font-semibold text-quikle-charcoal mb-2">Access Restricted</h2>
-          <p className="text-quikle-slate">You don't have permission to manage employees.</p>
+          <p className="text-quikle-slate">You don't have permission to manage team members.</p>
         </div>
       </div>;
   }
@@ -92,12 +92,12 @@ const Employees: React.FC = () => {
       <div className="space-y-6 p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="font-bold text-quikle-charcoal text-xl">Employee Management</h1>
-            <p className="text-quikle-slate mt-1">Manage your company employees and their access</p>
+            <h1 className="font-bold text-quikle-charcoal text-xl">Team Management</h1>
+            <p className="text-quikle-slate mt-1">Manage your team members and their access</p>
           </div>
           <Button onClick={handleAddEmployee} className="bg-quikle-primary hover:bg-quikle-secondary text-white">
             <Plus className="h-4 w-4 mr-2" />
-            Add Employee
+            Add Team Member
           </Button>
         </div>
 
@@ -105,7 +105,7 @@ const Employees: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-quikle-charcoal">
               <Users className="h-5 w-5 text-quikle-primary" />
-              Employee Directory
+              Team Directory
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -116,7 +116,7 @@ const Employees: React.FC = () => {
                   className="flex items-center gap-2 text-quikle-slate/70 font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-quikle-primary/20 data-[state=active]:font-semibold hover:text-quikle-primary hover:bg-white/50"
                 >
                   <List className="h-4 w-4" />
-                  Employee List
+                  Team List
                 </TabsTrigger>
                 <TabsTrigger 
                   value="hierarchy" 
@@ -132,8 +132,8 @@ const Employees: React.FC = () => {
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-quikle-slate h-4 w-4" />
                     <Input 
-                      placeholder="Search by name, email, designation, employee number, role, or status..." 
-                      value={searchTerm} 
+                      placeholder="Search by name, email, designation, team member number, role, or status..." 
+                      value={searchTerm}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)} 
                       className="pl-10 border-quikle-silver" 
                     />
@@ -154,7 +154,7 @@ const Employees: React.FC = () => {
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-quikle-charcoal">
-                {selectedEmployee ? 'Edit Employee' : `Add New Employee${profile?.company ? ` to ${profile.company}` : ''}`}
+                {selectedEmployee ? 'Edit Team Member' : `Add New Team Member${profile?.company ? ` to ${profile.company}` : ''}`}
               </DialogTitle>
             </DialogHeader>
             <EmployeeForm employee={selectedEmployee} onSave={handleFormClose} onCancel={handleFormClose} companyName={profile?.company || 'Your Company'} />

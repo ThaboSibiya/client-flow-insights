@@ -56,12 +56,12 @@ const EmployeeBasicInfo: React.FC<EmployeeBasicInfoProps> = ({ formData, onInput
               type="email"
               value={formData.email}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange('email', e.target.value)}
-              placeholder="employee@company.com"
+              placeholder="member@company.com"
               className="border-quikle-silver/50 focus:border-quikle-primary"
               required
             />
             <p className="text-xs text-quikle-slate">
-              This email will be used for employee invitations
+              This email will be used for team member invitations
             </p>
           </div>
           <div className="space-y-2">

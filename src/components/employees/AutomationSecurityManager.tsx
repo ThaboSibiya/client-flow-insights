@@ -99,7 +99,7 @@ const AutomationSecurityManager: React.FC<AutomationSecurityManagerProps> = ({ e
       <CardContent className="space-y-4">
         <div className="flex justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            Manage specific automation access for this employee
+            Manage specific automation access for this team member
           </p>
           <Button
             size="sm"

@@ -253,7 +253,7 @@ export default function EmployeeHierarchy() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-quikle-slate" />
         <Input
-          placeholder="Search employees..."
+          placeholder="Search team members..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10 border-quikle-silver focus:border-quikle-primary"
@@ -285,7 +285,7 @@ export default function EmployeeHierarchy() {
       {/* Results Summary */}
       {searchTerm && (
         <div className="text-sm text-quikle-slate">
-          Showing {filteredEmployees.length} employee{filteredEmployees.length !== 1 ? 's' : ''} 
+          Showing {filteredEmployees.length} team member{filteredEmployees.length !== 1 ? 's' : ''} 
           {searchTerm && ` matching "${searchTerm}"`}
         </div>
       )}

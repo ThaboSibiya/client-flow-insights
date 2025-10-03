@@ -36,7 +36,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSave, onCancel,
               <div>
                 {creationResult.invitationSent ? (
                   <span className="text-green-800">
-                    Employee created successfully! Invitation sent to {formData.email}
+                    Team member created successfully! Invitation sent to {formData.email}
                   </span>
                 ) : (
                   <span className="text-orange-800">
@@ -117,7 +117,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSave, onCancel,
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <Lock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Save the employee first to manage automation permissions</p>
+                <p>Save the team member first to manage automation permissions</p>
               </div>
             )}
           </TabsContent>
@@ -128,7 +128,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSave, onCancel,
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Save the employee first to view audit logs</p>
+                <p>Save the team member first to view audit logs</p>
               </div>
             )}
           </TabsContent>
@@ -158,7 +158,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSave, onCancel,
                   {employee ? 'Updating...' : 'Creating & Sending Invitation...'}
                 </div>
               ) : (
-                employee ? 'Update Employee' : 'Create Employee & Send Invitation'
+                employee ? 'Update Team Member' : 'Create Team Member & Send Invitation'
               )}
             </Button>
           )}

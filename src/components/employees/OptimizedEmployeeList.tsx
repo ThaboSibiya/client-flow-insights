@@ -75,14 +75,14 @@ const OptimizedEmployeeList = ({ employees, loading, onEditEmployee, onInvitatio
   }, []);
 
   if (loading) {
-    return <div className="text-center py-8 text-quikle-slate">Loading employees...</div>;
+    return <div className="text-center py-8 text-quikle-slate">Loading team members...</div>;
   }
 
   if (employees.length === 0) {
     return (
       <div className="text-center py-8 text-quikle-slate">
         <Users className="h-12 w-12 mx-auto mb-4 text-quikle-silver" />
-        <p>No employees found</p>
+        <p>No team members found</p>
       </div>
     );
   }
