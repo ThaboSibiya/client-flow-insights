@@ -39,7 +39,7 @@ const Sidebar = () => {
       ]
     },
     {
-      label: 'Sales Operations',
+      label: 'Operation',
       items: [
         { path: '/pipeline', icon: Bot, label: 'Pipeline' },
         { path: '/projects', icon: FolderKanban, label: 'Projects' },
