@@ -11,8 +11,8 @@ interface SecureRateLimitConfig {
 }
 
 export const useSecureRateLimit = ({ 
-  maxAttempts = 5, 
-  windowMinutes = 15, 
+  maxAttempts = 10, 
+  windowMinutes = 30, 
   resource 
 }: SecureRateLimitConfig) => {
   const { user } = useAuth();
