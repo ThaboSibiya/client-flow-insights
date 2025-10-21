@@ -92,11 +92,29 @@ const Auth: React.FC = () => {
         email: email.trim(),
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            email: email.trim(),
+          }
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('SignUp error:', error);
+        
+        // Log failed registration attempt
+        await supabase.from('security_events').insert({
+          event_type: 'registration_failed',
+          resource_type: 'user_account',
+          metadata: {
+            email: email.trim(),
+            error: error.message,
+            error_code: error.status
+          }
+        });
+        
+        throw error;
+      }
       
       if (data.user && data.user.identities && data.user.identities.length === 0) {
         toast({
@@ -105,11 +123,24 @@ const Auth: React.FC = () => {
           variant: "destructive",
         });
         setActiveTab('login');
-      } else {
-        toast({
-          title: "Account created successfully",
-          description: "Check your email for the confirmation link",
+      } else if (data.user) {
+        // Log successful registration
+        await supabase.from('security_events').insert({
+          event_type: 'registration_success',
+          resource_type: 'user_account',
+          user_id: data.user.id,
+          metadata: {
+            email: email.trim(),
+            confirmed: data.user.email_confirmed_at !== null,
+            confirmation_sent_at: new Date().toISOString()
+          }
         });
+
+        toast({
+          title: "Account created successfully! 🎉",
+          description: "Please check your email inbox (and spam folder) for the confirmation link. The email should arrive within a few minutes.",
+        });
+        
         // Clear form
         setEmail('');
         setPassword('');
@@ -117,8 +148,10 @@ const Auth: React.FC = () => {
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign up';
+      console.error('Registration error:', errorMessage);
+      
       toast({
-        title: "Error",
+        title: "Registration Error",
         description: errorMessage,
         variant: "destructive",
       });
