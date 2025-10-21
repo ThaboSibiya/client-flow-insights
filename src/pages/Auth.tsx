@@ -88,7 +88,7 @@ const Auth: React.FC = () => {
     setLoading(true);
     
     try {
-      // Sign up with Supabase - using autoConfirm to avoid timeout issues
+      // Sign up with Supabase - simplified without email confirmation to avoid timeouts
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -149,14 +149,16 @@ const Auth: React.FC = () => {
 
         toast({
           title: "Account created successfully! 🎉",
-          description: "Please check your email to confirm your account. Check your spam folder if you don't see it.",
-          duration: 6000,
+          description: "Welcome to Quikle CRM! You're being redirected to your dashboard.",
+          duration: 3000,
         });
         
         // Clear form
         setEmail('');
         setPassword('');
         setValidationErrors({});
+        
+        // User will be automatically redirected by the auth state listener
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign up';
