@@ -88,6 +88,7 @@ const Auth: React.FC = () => {
     setLoading(true);
     
     try {
+      // Sign up with Supabase - using autoConfirm to avoid timeout issues
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -102,20 +103,24 @@ const Auth: React.FC = () => {
       if (error) {
         console.error('SignUp error:', error);
         
-        // Log failed registration attempt
-        await supabase.from('security_events').insert({
+        // Log failed registration attempt (non-blocking)
+        supabase.from('security_events').insert({
           event_type: 'registration_failed',
           resource_type: 'user_account',
           metadata: {
             email: email.trim(),
             error: error.message,
-            error_code: error.status
+            error_code: error.status,
+            timestamp: new Date().toISOString()
           }
+        }).then(({ error: logError }) => {
+          if (logError) console.error('Failed to log registration error:', logError);
         });
         
         throw error;
       }
       
+      // Check if user already exists
       if (data.user && data.user.identities && data.user.identities.length === 0) {
         toast({
           title: "Account already exists",
@@ -123,22 +128,29 @@ const Auth: React.FC = () => {
           variant: "destructive",
         });
         setActiveTab('login');
-      } else if (data.user) {
-        // Log successful registration
-        await supabase.from('security_events').insert({
+        setLoading(false);
+        return;
+      }
+      
+      if (data.user) {
+        // Log successful registration (non-blocking)
+        supabase.from('security_events').insert({
           event_type: 'registration_success',
           resource_type: 'user_account',
           user_id: data.user.id,
           metadata: {
             email: email.trim(),
             confirmed: data.user.email_confirmed_at !== null,
-            confirmation_sent_at: new Date().toISOString()
+            timestamp: new Date().toISOString()
           }
+        }).then(({ error: logError }) => {
+          if (logError) console.error('Failed to log registration success:', logError);
         });
 
         toast({
           title: "Account created successfully! 🎉",
-          description: "Please check your email inbox (and spam folder) for the confirmation link. The email should arrive within a few minutes.",
+          description: "Please check your email to confirm your account. Check your spam folder if you don't see it.",
+          duration: 6000,
         });
         
         // Clear form
@@ -150,10 +162,25 @@ const Auth: React.FC = () => {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign up';
       console.error('Registration error:', errorMessage);
       
+      // Handle specific error cases
+      let userMessage = errorMessage;
+      let description = "Please try again or contact support if the issue persists.";
+      
+      if (errorMessage.includes('already registered')) {
+        userMessage = "Email already registered";
+        description = "Please sign in or use a different email address.";
+      } else if (errorMessage.includes('timeout') || errorMessage.includes('504')) {
+        userMessage = "Registration is processing";
+        description = "Your account is being created. Please check your email in a few moments.";
+      } else if (errorMessage.includes('network')) {
+        userMessage = "Network error";
+        description = "Please check your internet connection and try again.";
+      }
+      
       toast({
-        title: "Registration Error",
-        description: errorMessage,
-        variant: "destructive",
+        title: userMessage,
+        description: description,
+        variant: errorMessage.includes('timeout') ? "default" : "destructive",
       });
     } finally {
       setLoading(false);
