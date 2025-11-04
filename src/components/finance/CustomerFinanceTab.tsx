@@ -52,7 +52,7 @@ const CustomerFinanceTab = ({ customerId, customerName }: CustomerFinanceTabProp
   }
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 min-h-0">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -81,16 +81,16 @@ const CustomerFinanceTab = ({ customerId, customerName }: CustomerFinanceTabProp
       <AccountSnapshot summary={financeSummary} />
 
       {/* Tabs for different finance sections */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="overview" className="w-full min-h-0">
+        <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="invoices">Invoices ({invoices.length})</TabsTrigger>
           <TabsTrigger value="payments">Payments ({payments.length})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6 mt-6">
+        <TabsContent value="overview" className="space-y-6 mt-6 min-h-0">
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
             <div className="lg:col-span-2 space-y-6">
               {/* Debtor Notes */}
               <DebtorNotesPanel notes={debtorNotes} onAddNote={addDebtorNote} />
@@ -106,11 +106,11 @@ const CustomerFinanceTab = ({ customerId, customerName }: CustomerFinanceTabProp
           </div>
         </TabsContent>
 
-        <TabsContent value="invoices" className="mt-6">
+        <TabsContent value="invoices" className="mt-6 min-h-0">
           <InvoicesTable invoices={invoices} onUpdateStatus={updateInvoiceStatus} />
         </TabsContent>
 
-        <TabsContent value="payments" className="mt-6">
+        <TabsContent value="payments" className="mt-6 min-h-0">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <TransactionLedger transactions={transactions} />

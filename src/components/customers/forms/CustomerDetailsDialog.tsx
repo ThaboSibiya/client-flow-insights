@@ -131,7 +131,7 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
             </TabsContent>
             
             <TabsContent value="finance" className="mt-6 flex-1 overflow-hidden">
-              <ScrollArea className="h-full pr-4">
+              <ScrollArea className="h-[calc(90vh-280px)] pr-4">
                 <CustomerFinanceTab customerId={customer.id} customerName={customer.name} />
               </ScrollArea>
             </TabsContent>
