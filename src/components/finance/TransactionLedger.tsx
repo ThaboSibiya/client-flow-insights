@@ -11,9 +11,12 @@ import { Receipt, CreditCard, FileText, RefreshCw, ArrowUpDown, Filter } from 'l
 
 interface TransactionLedgerProps {
   transactions: CustomerTransaction[];
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  loadingMore?: boolean;
 }
 
-const TransactionLedger = ({ transactions }: TransactionLedgerProps) => {
+const TransactionLedger = ({ transactions, hasMore = false, onLoadMore, loadingMore = false }: TransactionLedgerProps) => {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
@@ -216,6 +219,17 @@ const TransactionLedger = ({ transactions }: TransactionLedgerProps) => {
                 ))}
               </TableBody>
             </Table>
+          </div>
+        )}
+        {hasMore && onLoadMore && (
+          <div className="flex justify-center mt-4 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={onLoadMore}
+              disabled={loadingMore}
+            >
+              {loadingMore ? 'Loading...' : 'Load More Transactions'}
+            </Button>
           </div>
         )}
       </CardContent>
