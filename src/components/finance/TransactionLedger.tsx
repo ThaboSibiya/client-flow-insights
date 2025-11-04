@@ -1,15 +1,61 @@
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { CustomerTransaction, TransactionType, TransactionStatus } from '@/types/finance';
 import { format } from 'date-fns';
-import { Receipt, CreditCard, FileText, RefreshCw } from 'lucide-react';
+import { Receipt, CreditCard, FileText, RefreshCw, ArrowUpDown, Filter } from 'lucide-react';
 
 interface TransactionLedgerProps {
   transactions: CustomerTransaction[];
 }
 
 const TransactionLedger = ({ transactions }: TransactionLedgerProps) => {
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+
+  const filteredAndSortedTransactions = useMemo(() => {
+    let filtered = [...transactions];
+
+    // Apply filters
+    if (filterType !== 'all') {
+      filtered = filtered.filter(t => t.transaction_type === filterType);
+    }
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(t => t.status === filterStatus);
+    }
+    if (searchTerm) {
+      filtered = filtered.filter(t => 
+        t.reference_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      if (sortBy === 'date') {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      } else {
+        return sortOrder === 'asc' ? a.amount - b.amount : b.amount - a.amount;
+      }
+    });
+
+    return filtered;
+  }, [transactions, filterType, filterStatus, searchTerm, sortBy, sortOrder]);
+
+  const toggleSort = () => {
+    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
   const getTransactionIcon = (type: TransactionType) => {
     switch (type) {
       case 'invoice': return <Receipt className="h-4 w-4" />;
@@ -46,11 +92,86 @@ const TransactionLedger = ({ transactions }: TransactionLedgerProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Transaction Ledger</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Transaction Ledger</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
+        {showFilters && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 bg-muted/50 rounded-lg">
+            <div>
+              <label className="text-xs font-medium mb-1 block">Search</label>
+              <Input
+                placeholder="Reference or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium mb-1 block">Type</label>
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="invoice">Invoice</SelectItem>
+                  <SelectItem value="payment">Payment</SelectItem>
+                  <SelectItem value="credit_note">Credit Note</SelectItem>
+                  <SelectItem value="adjustment">Adjustment</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium mb-1 block">Status</label>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="disputed">Disputed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium mb-1 block">Sort By</label>
+              <div className="flex gap-2">
+                <Select value={sortBy} onValueChange={(v) => setSortBy(v as 'date' | 'amount')}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date">Date</SelectItem>
+                    <SelectItem value="amount">Amount</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" size="sm" onClick={toggleSort} className="h-9 px-2">
+                  <ArrowUpDown className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
         {transactions.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">No transactions recorded yet.</p>
+        ) : filteredAndSortedTransactions.length === 0 ? (
+          <p className="text-muted-foreground text-center py-8">No transactions match your filters.</p>
         ) : (
           <div className="overflow-x-auto">
             <Table>
@@ -65,7 +186,7 @@ const TransactionLedger = ({ transactions }: TransactionLedgerProps) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {transactions.map((transaction) => (
+                {filteredAndSortedTransactions.map((transaction) => (
                   <TableRow key={transaction.id}>
                     <TableCell>
                       {format(new Date(transaction.created_at), 'MMM dd, yyyy')}

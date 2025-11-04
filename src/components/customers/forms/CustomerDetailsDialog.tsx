@@ -14,7 +14,8 @@ import { Customer } from '@/types/customer';
 import CustomerDetailsForm from './CustomerDetailsForm';
 import CustomDataDisplay from '../CustomDataDisplay';
 import EquipmentDisplay from '../equipment/EquipmentDisplay';
-import { FileText, User, AlertCircle, CheckCircle, Printer } from 'lucide-react';
+import CustomerFinanceTab from '@/components/finance/CustomerFinanceTab';
+import { FileText, User, AlertCircle, CheckCircle, Printer, DollarSign } from 'lucide-react';
 import { useCustomerCustomData } from '@/hooks/useCustomerCustomData';
 
 interface CustomerDetailsDialogProps {
@@ -64,7 +65,7 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
         
         {customer && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col overflow-hidden px-6 pb-6">
-            <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30 mt-4 flex-shrink-0">
+            <TabsList className="grid w-full grid-cols-4 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30 mt-4 flex-shrink-0">
               <TabsTrigger 
                 value="details" 
                 className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
@@ -99,6 +100,13 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
                 <Printer className="h-4 w-4" />
                 Equipment
               </TabsTrigger>
+              <TabsTrigger 
+                value="finance" 
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
+              >
+                <DollarSign className="h-4 w-4" />
+                Finance
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="details" className="mt-6 flex-1 overflow-hidden">
@@ -119,6 +127,12 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
             <TabsContent value="equipment" className="mt-6 flex-1 overflow-hidden">
               <ScrollArea className="h-full pr-4">
                 <EquipmentDisplay customerId={customer.id} />
+              </ScrollArea>
+            </TabsContent>
+            
+            <TabsContent value="finance" className="mt-6 flex-1 overflow-hidden">
+              <ScrollArea className="h-full pr-4">
+                <CustomerFinanceTab customerId={customer.id} customerName={customer.name} />
               </ScrollArea>
             </TabsContent>
           </Tabs>
