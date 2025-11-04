@@ -15,3 +15,18 @@ verify_jwt = true
 
 [functions.secure-audit-logs]
 verify_jwt = true
+
+[functions.customer-finance-summary]
+verify_jwt = true
+
+[functions.customer-finance-notes]
+verify_jwt = true
+
+[functions.customer-transactions]
+verify_jwt = true
+
+[functions.customer-add-payment]
+verify_jwt = true
+
+[functions.customer-generate-statement]
+verify_jwt = true
