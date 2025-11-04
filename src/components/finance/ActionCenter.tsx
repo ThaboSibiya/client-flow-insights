@@ -4,18 +4,24 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CustomerTransaction, TransactionType } from '@/types/finance';
-import { DollarSign, FileText, Flag, Send } from 'lucide-react';
+import { CustomerTransaction } from '@/types/finance';
+import { DollarSign, FileText, Flag, Send, RefreshCw, Bell, Calculator } from 'lucide-react';
+import { financeBusinessLogic } from '@/services/financeBusinessLogic';
+import { financeApiService } from '@/services/financeApiService';
+import { toast } from '@/hooks/use-toast';
 
 interface ActionCenterProps {
+  customerId: string;
   onAddTransaction: (transaction: Partial<CustomerTransaction>) => void;
+  onRefresh?: () => void;
 }
 
-const ActionCenter = ({ onAddTransaction }: ActionCenterProps) => {
+const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterProps) => {
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [referenceNumber, setReferenceNumber] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleAddPayment = () => {
     if (!amount || !paymentMethod || !referenceNumber) return;
@@ -32,6 +38,106 @@ const ActionCenter = ({ onAddTransaction }: ActionCenterProps) => {
     setPaymentMethod('');
     setReferenceNumber('');
     setPaymentDialogOpen(false);
+  };
+
+  const handleReconcileTransactions = async () => {
+    setIsProcessing(true);
+    try {
+      const result = await financeBusinessLogic.reconcileTransactions(customerId, true);
+      toast({
+        title: "Reconciliation Complete",
+        description: `Matched: ${result.results.matched}, Auto-matched: ${result.results.auto_matched}`,
+      });
+      onRefresh?.();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reconcile transactions",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCalculateSummary = async () => {
+    setIsProcessing(true);
+    try {
+      await financeBusinessLogic.calculateAccountSummary(customerId);
+      toast({
+        title: "Summary Updated",
+        description: "Account summary recalculated successfully",
+      });
+      onRefresh?.();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to calculate summary",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSendReminder = async () => {
+    setIsProcessing(true);
+    try {
+      await financeBusinessLogic.sendNotification(customerId, 'payment_reminder');
+      toast({
+        title: "Reminder Sent",
+        description: "Payment reminder email sent successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send reminder",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSendStatement = async () => {
+    setIsProcessing(true);
+    try {
+      const result = await financeApiService.generateStatement(customerId);
+      toast({
+        title: "Statement Generated",
+        description: "Customer statement generated successfully",
+      });
+      // Could download or open the statement here
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate statement",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleFlagAccount = async () => {
+    setIsProcessing(true);
+    try {
+      await financeBusinessLogic.sendNotification(customerId, 'account_flagged', 
+        'Account flagged for manual review'
+      );
+      toast({
+        title: "Account Flagged",
+        description: "Account flagged and notification sent",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to flag account",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -96,17 +202,52 @@ const ActionCenter = ({ onAddTransaction }: ActionCenterProps) => {
             </DialogContent>
           </Dialog>
 
-          <Button className="w-full justify-start" variant="outline">
+          <Button 
+            className="w-full justify-start" 
+            variant="outline"
+            onClick={handleSendStatement}
+            disabled={isProcessing}
+          >
             <Send className="h-4 w-4 mr-2" />
             Send Statement
           </Button>
 
-          <Button className="w-full justify-start" variant="outline">
-            <FileText className="h-4 w-4 mr-2" />
-            Generate Invoice
+          <Button 
+            className="w-full justify-start" 
+            variant="outline"
+            onClick={handleSendReminder}
+            disabled={isProcessing}
+          >
+            <Bell className="h-4 w-4 mr-2" />
+            Send Reminder
           </Button>
 
-          <Button className="w-full justify-start" variant="outline">
+          <Button 
+            className="w-full justify-start" 
+            variant="outline"
+            onClick={handleReconcileTransactions}
+            disabled={isProcessing}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Reconcile Transactions
+          </Button>
+
+          <Button 
+            className="w-full justify-start" 
+            variant="outline"
+            onClick={handleCalculateSummary}
+            disabled={isProcessing}
+          >
+            <Calculator className="h-4 w-4 mr-2" />
+            Calculate Summary
+          </Button>
+
+          <Button 
+            className="w-full justify-start" 
+            variant="outline"
+            onClick={handleFlagAccount}
+            disabled={isProcessing}
+          >
             <Flag className="h-4 w-4 mr-2" />
             Flag Account
           </Button>

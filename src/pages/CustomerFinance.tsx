@@ -15,7 +15,8 @@ const CustomerFinance = () => {
     transactions,
     loading,
     addDebtorNote,
-    addTransaction
+    addTransaction,
+    refreshData
   } = useCustomerFinance(customerId || '');
 
   if (loading) {
@@ -76,7 +77,7 @@ const CustomerFinance = () => {
 
         {/* Action Center Sidebar */}
         <div className="lg:col-span-1">
-          <ActionCenter onAddTransaction={addTransaction} />
+          <ActionCenter customerId={customerId} onAddTransaction={addTransaction} onRefresh={refreshData} />
         </div>
       </div>
     </div>

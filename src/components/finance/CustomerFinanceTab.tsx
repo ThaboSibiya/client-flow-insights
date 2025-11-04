@@ -21,7 +21,8 @@ const CustomerFinanceTab = ({ customerId, customerName }: CustomerFinanceTabProp
     transactions,
     loading: legacyLoading,
     addDebtorNote,
-    addTransaction
+    addTransaction,
+    refreshData: refreshLegacyData
   } = useCustomerFinance(customerId);
 
   const {
@@ -31,10 +32,16 @@ const CustomerFinanceTab = ({ customerId, customerName }: CustomerFinanceTabProp
     loading: backendLoading,
     createPayment,
     updateInvoiceStatus,
-    resolveAccountFlag
+    resolveAccountFlag,
+    refreshData: refreshBackendData
   } = useFinanceBackend(customerId);
 
   const loading = legacyLoading || backendLoading;
+
+  const refreshAllData = () => {
+    refreshLegacyData();
+    refreshBackendData();
+  };
 
   if (loading) {
     return (
@@ -92,10 +99,10 @@ const CustomerFinanceTab = ({ customerId, customerName }: CustomerFinanceTabProp
               <TransactionLedger transactions={transactions} />
             </div>
 
-            {/* Action Center Sidebar */}
-            <div className="lg:col-span-1">
-              <ActionCenter onAddTransaction={addTransaction} />
-            </div>
+        {/* Action Center Sidebar */}
+        <div className="lg:col-span-1">
+          <ActionCenter customerId={customerId} onAddTransaction={addTransaction} onRefresh={refreshAllData} />
+        </div>
           </div>
         </TabsContent>
 
@@ -109,7 +116,7 @@ const CustomerFinanceTab = ({ customerId, customerName }: CustomerFinanceTabProp
               <TransactionLedger transactions={transactions} />
             </div>
             <div className="lg:col-span-1">
-              <ActionCenter onAddTransaction={addTransaction} />
+              <ActionCenter customerId={customerId} onAddTransaction={addTransaction} onRefresh={refreshAllData} />
             </div>
           </div>
         </TabsContent>
