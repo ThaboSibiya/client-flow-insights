@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { Invoice, Payment, FinanceNote, AccountFlag } from '@/types/financeBackend';
 import { toast } from '@/hooks/use-toast';
+import { financeAuditService } from '@/services/financeAuditService';
 
 export const useFinanceBackend = (customerId: string) => {
   const { user } = useAuth();
@@ -101,6 +102,10 @@ export const useFinanceBackend = (customerId: string) => {
       if (error) throw error;
       
       setInvoices(prev => [data as Invoice, ...prev]);
+      
+      // Log action
+      await financeAuditService.logCreate('invoice', data, customerId);
+      
       toast({
         title: "Success",
         description: "Invoice created successfully"
@@ -134,6 +139,10 @@ export const useFinanceBackend = (customerId: string) => {
       if (error) throw error;
       
       setPayments(prev => [data as Payment, ...prev]);
+      
+      // Log payment action
+      await financeAuditService.logPayment(data, customerId);
+      
       toast({
         title: "Success",
         description: "Payment recorded successfully"
@@ -170,6 +179,10 @@ export const useFinanceBackend = (customerId: string) => {
       if (error) throw error;
       
       setFinanceNotes(prev => [data as FinanceNote, ...prev]);
+      
+      // Log action
+      await financeAuditService.logCreate('note', data, customerId);
+      
       toast({
         title: "Success",
         description: "Note added successfully"
@@ -201,6 +214,10 @@ export const useFinanceBackend = (customerId: string) => {
       if (error) throw error;
       
       setAccountFlags(prev => [data as AccountFlag, ...prev]);
+      
+      // Log action
+      await financeAuditService.logCreate('account_flag', data, customerId);
+      
       toast({
         title: "Success",
         description: "Account flag created successfully"
@@ -219,6 +236,9 @@ export const useFinanceBackend = (customerId: string) => {
     if (!user) return;
 
     try {
+      // Get old value for audit log
+      const oldInvoice = invoices.find(inv => inv.id === invoiceId);
+      
       const { error } = await supabase
         .from('invoices')
         .update({ status })
@@ -226,6 +246,17 @@ export const useFinanceBackend = (customerId: string) => {
         .eq('user_id', user.id);
 
       if (error) throw error;
+      
+      // Log action
+      if (oldInvoice) {
+        await financeAuditService.logUpdate(
+          'invoice',
+          invoiceId,
+          { status: oldInvoice.status },
+          { status },
+          customerId
+        );
+      }
       
       await fetchInvoices();
       toast({
@@ -246,6 +277,9 @@ export const useFinanceBackend = (customerId: string) => {
     if (!user) return;
 
     try {
+      // Get old value for audit log
+      const oldFlag = accountFlags.find(flag => flag.id === flagId);
+      
       const { error } = await supabase
         .from('account_flags')
         .update({ 
@@ -257,6 +291,17 @@ export const useFinanceBackend = (customerId: string) => {
         .eq('user_id', user.id);
 
       if (error) throw error;
+      
+      // Log action
+      if (oldFlag) {
+        await financeAuditService.logUpdate(
+          'account_flag',
+          flagId,
+          { status: oldFlag.status },
+          { status: 'resolved', resolved_by: resolvedBy },
+          customerId
+        );
+      }
       
       await fetchAccountFlags();
       toast({

@@ -1061,6 +1061,7 @@ export type Database = {
           created_at: string
           customer_access_scope: string | null
           employee_id: string
+          finance_role: Database["public"]["Enums"]["finance_role"] | null
           id: string
           privilege_description: string | null
           privilege_name: string
@@ -1100,6 +1101,7 @@ export type Database = {
           created_at?: string
           customer_access_scope?: string | null
           employee_id: string
+          finance_role?: Database["public"]["Enums"]["finance_role"] | null
           id?: string
           privilege_description?: string | null
           privilege_name: string
@@ -1139,6 +1141,7 @@ export type Database = {
           created_at?: string
           customer_access_scope?: string | null
           employee_id?: string
+          finance_role?: Database["public"]["Enums"]["finance_role"] | null
           id?: string
           privilege_description?: string | null
           privilege_name?: string
@@ -1275,6 +1278,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      finance_audit_logs: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          customer_id: string | null
+          employee_id: string | null
+          error_message: string | null
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          new_values: Json | null
+          old_values: Json | null
+          resource_id: string | null
+          resource_type: string
+          session_id: string | null
+          success: boolean | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          customer_id?: string | null
+          employee_id?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          session_id?: string | null
+          success?: boolean | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          customer_id?: string | null
+          employee_id?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          session_id?: string | null
+          success?: boolean | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       finance_notes: {
         Row: {
@@ -2650,6 +2710,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      has_finance_permission: {
+        Args: { p_permission: string; p_user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2672,6 +2736,18 @@ export type Database = {
       is_company_owner_for_employee: {
         Args: { _employee_id: string }
         Returns: boolean
+      }
+      log_finance_action: {
+        Args: {
+          p_action_type: string
+          p_customer_id?: string
+          p_metadata?: Json
+          p_new_values?: Json
+          p_old_values?: Json
+          p_resource_id?: string
+          p_resource_type: string
+        }
+        Returns: string
       }
       log_privilege_change: {
         Args: {
@@ -2718,6 +2794,11 @@ export type Database = {
         | "intern"
         | "onsite_worker"
       employee_status: "active" | "inactive" | "suspended" | "terminated"
+      finance_role:
+        | "finance_admin"
+        | "finance_manager"
+        | "sales_view_only"
+        | "none"
       quote_invoice_status:
         | "draft"
         | "sent"
@@ -2863,6 +2944,12 @@ export const Constants = {
         "onsite_worker",
       ],
       employee_status: ["active", "inactive", "suspended", "terminated"],
+      finance_role: [
+        "finance_admin",
+        "finance_manager",
+        "sales_view_only",
+        "none",
+      ],
       quote_invoice_status: [
         "draft",
         "sent",
