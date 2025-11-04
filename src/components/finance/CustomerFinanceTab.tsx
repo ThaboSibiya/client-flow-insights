@@ -1,9 +1,13 @@
 import { useCustomerFinance } from '@/hooks/useCustomerFinance';
+import { useFinanceBackend } from '@/hooks/useFinanceBackend';
 import AccountSnapshot from './AccountSnapshot';
 import DebtorNotesPanel from './DebtorNotesPanel';
 import TransactionLedger from './TransactionLedger';
+import InvoicesTable from './InvoicesTable';
+import AccountFlagsPanel from './AccountFlagsPanel';
 import ActionCenter from './ActionCenter';
 import { Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface CustomerFinanceTabProps {
   customerId: string;
@@ -15,10 +19,22 @@ const CustomerFinanceTab = ({ customerId, customerName }: CustomerFinanceTabProp
     financeSummary,
     debtorNotes,
     transactions,
-    loading,
+    loading: legacyLoading,
     addDebtorNote,
     addTransaction
   } = useCustomerFinance(customerId);
+
+  const {
+    invoices,
+    payments,
+    accountFlags,
+    loading: backendLoading,
+    createPayment,
+    updateInvoiceStatus,
+    resolveAccountFlag
+  } = useFinanceBackend(customerId);
+
+  const loading = legacyLoading || backendLoading;
 
   if (loading) {
     return (
@@ -51,26 +67,56 @@ const CustomerFinanceTab = ({ customerId, customerName }: CustomerFinanceTabProp
         </div>
       </div>
 
+      {/* Account Flags */}
+      <AccountFlagsPanel flags={accountFlags} onResolve={resolveAccountFlag} />
+
       {/* Account Snapshot */}
       <AccountSnapshot summary={financeSummary} />
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Debtor Notes */}
-          <DebtorNotesPanel notes={debtorNotes} onAddNote={addDebtorNote} />
+      {/* Tabs for different finance sections */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="invoices">Invoices ({invoices.length})</TabsTrigger>
+          <TabsTrigger value="payments">Payments ({payments.length})</TabsTrigger>
+        </TabsList>
 
-          {/* Transaction Ledger */}
-          <TransactionLedger transactions={transactions} />
-        </div>
+        <TabsContent value="overview" className="space-y-6 mt-6">
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              {/* Debtor Notes */}
+              <DebtorNotesPanel notes={debtorNotes} onAddNote={addDebtorNote} />
 
-        {/* Action Center Sidebar */}
-        <div className="lg:col-span-1">
-          <ActionCenter onAddTransaction={addTransaction} />
-        </div>
-      </div>
+              {/* Transaction Ledger */}
+              <TransactionLedger transactions={transactions} />
+            </div>
+
+            {/* Action Center Sidebar */}
+            <div className="lg:col-span-1">
+              <ActionCenter onAddTransaction={addTransaction} />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="invoices" className="mt-6">
+          <InvoicesTable invoices={invoices} onUpdateStatus={updateInvoiceStatus} />
+        </TabsContent>
+
+        <TabsContent value="payments" className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <TransactionLedger transactions={transactions} />
+            </div>
+            <div className="lg:col-span-1">
+              <ActionCenter onAddTransaction={addTransaction} />
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
 
 export default CustomerFinanceTab;
+

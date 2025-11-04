@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_flags: {
+        Row: {
+          created_at: string | null
+          customer_id: string
+          flag_reason: string
+          flag_type: string
+          flagged_by: string
+          id: string
+          priority: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id: string
+          flag_reason: string
+          flag_type: string
+          flagged_by: string
+          id?: string
+          priority?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string
+          flag_reason?: string
+          flag_type?: string
+          flagged_by?: string
+          id?: string
+          priority?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_flags_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_permissions: {
         Row: {
           automation_id: string
@@ -473,6 +526,7 @@ export type Database = {
           company_address: string | null
           contact_person: string | null
           created_at: string
+          credit_limit: number | null
           email: string
           id: string
           name: string
@@ -487,6 +541,7 @@ export type Database = {
           company_address?: string | null
           contact_person?: string | null
           created_at?: string
+          credit_limit?: number | null
           email: string
           id?: string
           name: string
@@ -501,6 +556,7 @@ export type Database = {
           company_address?: string | null
           contact_person?: string | null
           created_at?: string
+          credit_limit?: number | null
           email?: string
           id?: string
           name?: string
@@ -1220,6 +1276,47 @@ export type Database = {
           },
         ]
       }
+      finance_notes: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          customer_id: string
+          id: string
+          note: string
+          tag: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          customer_id: string
+          id?: string
+          note: string
+          tag?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          customer_id?: string
+          id?: string
+          note?: string
+          tag?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_notes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_submissions: {
         Row: {
           company_owner_id: string
@@ -1330,6 +1427,71 @@ export type Database = {
           version?: number | null
         }
         Relationships: []
+      }
+      invoices: {
+        Row: {
+          amount: number
+          created_at: string | null
+          customer_id: string
+          description: string | null
+          due_date: string
+          id: string
+          invoice_number: string
+          issue_date: string | null
+          notes: string | null
+          paid_date: string | null
+          status: string | null
+          tax_amount: number | null
+          terms: string | null
+          total_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          customer_id: string
+          description?: string | null
+          due_date: string
+          id?: string
+          invoice_number: string
+          issue_date?: string | null
+          notes?: string | null
+          paid_date?: string | null
+          status?: string | null
+          tax_amount?: number | null
+          terms?: string | null
+          total_amount: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          customer_id?: string
+          description?: string | null
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          issue_date?: string | null
+          notes?: string | null
+          paid_date?: string | null
+          status?: string | null
+          tax_amount?: number | null
+          terms?: string | null
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       job_completions: {
         Row: {
@@ -1506,6 +1668,69 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          customer_id: string
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          payment_date: string | null
+          payment_method: string | null
+          payment_number: string
+          reference_number: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          customer_id: string
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_number: string
+          reference_number?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          customer_id?: string
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_number?: string
+          reference_number?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       privilege_change_audit: {
         Row: {
@@ -2472,6 +2697,7 @@ export type Database = {
         }
         Returns: string
       }
+      mark_overdue_invoices: { Args: never; Returns: undefined }
       validate_invitation_token: {
         Args: { p_token: string }
         Returns: {
