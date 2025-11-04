@@ -46,7 +46,7 @@ const AccountSnapshot = ({ summary }: AccountSnapshotProps) => {
               <DollarSign className="h-4 w-4" />
               <span className="text-sm">Total Owed</span>
             </div>
-            <p className="text-2xl font-bold">${summary.total_owed.toFixed(2)}</p>
+            <p className="text-2xl font-bold">R{summary.total_owed.toFixed(2)}</p>
           </div>
 
           <div className="space-y-2">
@@ -55,7 +55,7 @@ const AccountSnapshot = ({ summary }: AccountSnapshotProps) => {
               <span className="text-sm">Last Payment</span>
             </div>
             <p className="text-2xl font-bold">
-              {summary.last_payment_amount ? `$${summary.last_payment_amount.toFixed(2)}` : 'N/A'}
+              {summary.last_payment_amount ? `R${summary.last_payment_amount.toFixed(2)}` : 'N/A'}
             </p>
             {summary.last_payment_date && (
               <p className="text-xs text-muted-foreground">
@@ -91,7 +91,7 @@ const AccountSnapshot = ({ summary }: AccountSnapshotProps) => {
 
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">Current Balance</p>
-            <p className="text-2xl font-bold">${summary.current_balance.toFixed(2)}</p>
+            <p className="text-2xl font-bold">R{summary.current_balance.toFixed(2)}</p>
           </div>
         </div>
       </CardContent>

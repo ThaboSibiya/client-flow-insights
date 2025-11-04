@@ -64,7 +64,7 @@ const CustomerFinanceTab = ({ customerId, customerName }: CustomerFinanceTabProp
         <div className="text-right">
           <p className="text-xs text-muted-foreground">Current Balance</p>
           <p className="text-2xl font-bold">
-            ${financeSummary?.current_balance.toFixed(2) || '0.00'}
+            R{financeSummary?.current_balance.toFixed(2) || '0.00'}
           </p>
           <p className={`text-xs font-medium ${
             financeSummary?.account_status === 'active' ? 'text-green-600' : 'text-red-600'

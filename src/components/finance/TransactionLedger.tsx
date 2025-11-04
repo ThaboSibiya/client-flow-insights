@@ -205,7 +205,7 @@ const TransactionLedger = ({ transactions, hasMore = false, onLoadMore, loadingM
                     </TableCell>
                     <TableCell className={`text-right font-semibold ${getAmountColor(transaction.transaction_type)}`}>
                       {transaction.transaction_type === 'payment' || transaction.transaction_type === 'credit_note' ? '-' : '+'}
-                      ${Math.abs(transaction.amount).toFixed(2)}
+                      R{Math.abs(transaction.amount).toFixed(2)}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary" className={getStatusColor(transaction.status)}>

@@ -62,7 +62,7 @@ const InvoicesTable = ({ invoices, onUpdateStatus }: InvoicesTableProps) => {
                       {format(new Date(invoice.due_date), 'MMM dd, yyyy')}
                     </TableCell>
                     <TableCell className="text-right font-semibold">
-                      ${invoice.total_amount.toFixed(2)}
+                      R{invoice.total_amount.toFixed(2)}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary" className={getStatusColor(invoice.status)}>
