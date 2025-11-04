@@ -310,6 +310,68 @@ export type Database = {
           },
         ]
       }
+      customer_finance_summary: {
+        Row: {
+          account_number: string | null
+          account_status: string | null
+          created_at: string | null
+          credit_limit: number | null
+          credit_terms: string | null
+          current_balance: number | null
+          customer_id: string
+          id: string
+          last_payment_amount: number | null
+          last_payment_date: string | null
+          next_due_date: string | null
+          risk_rating: string | null
+          total_owed: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_number?: string | null
+          account_status?: string | null
+          created_at?: string | null
+          credit_limit?: number | null
+          credit_terms?: string | null
+          current_balance?: number | null
+          customer_id: string
+          id?: string
+          last_payment_amount?: number | null
+          last_payment_date?: string | null
+          next_due_date?: string | null
+          risk_rating?: string | null
+          total_owed?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_number?: string | null
+          account_status?: string | null
+          created_at?: string | null
+          credit_limit?: number | null
+          credit_terms?: string | null
+          current_balance?: number | null
+          customer_id?: string
+          id?: string
+          last_payment_amount?: number | null
+          last_payment_date?: string | null
+          next_due_date?: string | null
+          risk_rating?: string | null
+          total_owed?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_finance_summary_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_templates: {
         Row: {
           applied_at: string | null
@@ -345,6 +407,62 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "industry_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_transactions: {
+        Row: {
+          amount: number
+          balance_after: number | null
+          created_at: string | null
+          customer_id: string
+          description: string | null
+          due_date: string | null
+          id: string
+          payment_method: string | null
+          reference_number: string
+          status: string | null
+          transaction_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after?: number | null
+          created_at?: string | null
+          customer_id: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          payment_method?: string | null
+          reference_number: string
+          status?: string | null
+          transaction_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number | null
+          created_at?: string | null
+          customer_id?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          payment_method?: string | null
+          reference_number?: string
+          status?: string | null
+          transaction_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
             referencedColumns: ["id"]
           },
         ]
@@ -393,6 +511,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      debtor_notes: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          customer_id: string
+          follow_up_date: string | null
+          id: string
+          note_content: string
+          note_type: string
+          priority: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          customer_id: string
+          follow_up_date?: string | null
+          id?: string
+          note_content: string
+          note_type: string
+          priority?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          customer_id?: string
+          follow_up_date?: string | null
+          id?: string
+          note_content?: string
+          note_type?: string
+          priority?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "debtor_notes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_attachments: {
         Row: {
@@ -1348,7 +1513,7 @@ export type Database = {
           created_at: string | null
           employee_id: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_value: boolean | null
           old_value: boolean | null
           privilege_name: string
@@ -1359,7 +1524,7 @@ export type Database = {
           created_at?: string | null
           employee_id: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_value?: boolean | null
           old_value?: boolean | null
           privilege_name: string
@@ -1370,7 +1535,7 @@ export type Database = {
           created_at?: string | null
           employee_id?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_value?: boolean | null
           old_value?: boolean | null
           privilege_name?: string
@@ -1862,7 +2027,7 @@ export type Database = {
           created_at: string | null
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           resource_id: string | null
           resource_type: string | null
@@ -1873,7 +2038,7 @@ export type Database = {
           created_at?: string | null
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource_id?: string | null
           resource_type?: string | null
@@ -1884,7 +2049,7 @@ export type Database = {
           created_at?: string | null
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource_id?: string | null
           resource_type?: string | null
@@ -2235,26 +2400,11 @@ export type Database = {
         Args: { p_created_by: string; p_email: string; p_employee_id: string }
         Returns: string
       }
-      current_employee_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      current_user_company_owner_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      current_user_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_employee_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_invitation_token: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      current_employee_id: { Args: never; Returns: string }
+      current_user_company_owner_id: { Args: never; Returns: string }
+      current_user_id: { Args: never; Returns: string }
+      generate_employee_number: { Args: never; Returns: string }
+      generate_invitation_token: { Args: never; Returns: string }
       get_email_history: {
         Args: { customer_id_param: string }
         Returns: {
@@ -2268,6 +2418,12 @@ export type Database = {
           subject: string
           user_id: string
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "email_history"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       has_role: {
         Args: {
@@ -2287,10 +2443,7 @@ export type Database = {
         }
         Returns: string
       }
-      is_company_owner: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_company_owner: { Args: never; Returns: boolean }
       is_company_owner_for_employee: {
         Args: { _employee_id: string }
         Returns: boolean
