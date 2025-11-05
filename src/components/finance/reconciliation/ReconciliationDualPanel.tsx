@@ -4,16 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Link2, Sparkles, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Layers } from "lucide-react";
+import { Link2, Sparkles, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Layers, MessageSquare } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import FloatingActionBar from './FloatingActionBar';
+import ReconciliationNotes from './ReconciliationNotes';
 import { Invoice, Payment } from '@/types/financeBackend';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useReconciliationAudit } from '@/hooks/useReconciliationAudit';
 import { cn } from "@/lib/utils";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDraggable, useDroppable } from '@dnd-kit/core';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface ReconciliationDualPanelProps {
   invoices: Invoice[];
@@ -41,6 +51,7 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { logReconciliationAction } = useReconciliationAudit();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
@@ -52,6 +63,8 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
   const [invoiceSortConfig, setInvoiceSortConfig] = useState<SortConfig>({ field: null, direction: null });
   const [paymentSortConfig, setPaymentSortConfig] = useState<SortConfig>({ field: null, direction: null });
   const [draggedItem, setDraggedItem] = useState<{ type: 'invoice' | 'payment'; data: Invoice | Payment } | null>(null);
+  const [selectedItemForNotes, setSelectedItemForNotes] = useState<{ type: 'invoice' | 'payment'; id: string } | null>(null);
+  const [isNotesDialogOpen, setIsNotesDialogOpen] = useState(false);
 
   // Filter data first (needed by handlers)
   const unallocatedPayments = payments.filter(p => !p.invoice_id);
@@ -97,6 +110,16 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
         .eq('user_id', user.id);
 
       if (error) throw error;
+
+      // Log the reconciliation action
+      await logReconciliationAction('match', {
+        invoiceId: selectedInvoice.id,
+        paymentId: selectedPayment.id,
+        customerId: selectedInvoice.customer_id,
+        invoiceNumber: selectedInvoice.invoice_number,
+        paymentNumber: selectedPayment.payment_number,
+        amount: selectedPayment.amount
+      });
 
       toast({
         title: "Success",
@@ -262,6 +285,14 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
 
       if (error) throw error;
 
+      // Log the partial payment action
+      await logReconciliationAction('partial', {
+        invoiceId: selectedInvoice.id,
+        customerId: selectedInvoice.customer_id,
+        invoiceNumber: selectedInvoice.invoice_number,
+        amount: selectedInvoice.total_amount
+      });
+
       toast({
         title: "Invoice Marked as Partial",
         description: `Invoice ${selectedInvoice.invoice_number} marked as partially paid`,
@@ -305,6 +336,16 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
         .insert(flagData);
 
       if (error) throw error;
+
+      // Log the flag action
+      await logReconciliationAction('flag', {
+        invoiceId: selectedInvoice?.id,
+        paymentId: selectedPayment?.id,
+        customerId: selectedInvoice?.customer_id || selectedPayment?.customer_id,
+        invoiceNumber: selectedInvoice?.invoice_number,
+        paymentNumber: selectedPayment?.payment_number,
+        reason: flagData.flag_reason
+      });
 
       toast({
         title: "Flagged for Review",
@@ -642,7 +683,21 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
           {format(new Date(invoice.due_date), 'MMM dd, yyyy')}
         </TableCell>
         <TableCell>
-          {getStatusBadge(invoice.status)}
+          <div className="flex items-center gap-2">
+            {getStatusBadge(invoice.status)}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 w-7 p-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedItemForNotes({ type: 'invoice', id: invoice.id });
+                setIsNotesDialogOpen(true);
+              }}
+            >
+              <MessageSquare className="h-4 w-4 text-quikle-primary" />
+            </Button>
+          </div>
         </TableCell>
       </TableRow>
     );
@@ -713,9 +768,23 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
           {format(new Date(payment.payment_date), 'MMM dd, yyyy')}
         </TableCell>
         <TableCell>
-          <Badge variant="secondary" className="bg-gray-100 text-gray-800">
-            {payment.payment_method || 'N/A'}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+              {payment.payment_method || 'N/A'}
+            </Badge>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 w-7 p-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedItemForNotes({ type: 'payment', id: payment.id });
+                setIsNotesDialogOpen(true);
+              }}
+            >
+              <MessageSquare className="h-4 w-4 text-quikle-primary" />
+            </Button>
+          </div>
         </TableCell>
       </TableRow>
     );
@@ -984,6 +1053,29 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
         </Card>
       </div>
       </div>
+
+      {/* Notes Dialog */}
+      <Dialog open={isNotesDialogOpen} onOpenChange={setIsNotesDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Notes & Comments</DialogTitle>
+            <DialogDescription>
+              {selectedItemForNotes?.type === 'invoice' 
+                ? 'View and add notes for this invoice'
+                : 'View and add notes for this payment'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-y-auto">
+            {selectedItemForNotes && (
+              <ReconciliationNotes
+                invoiceId={selectedItemForNotes.type === 'invoice' ? selectedItemForNotes.id : undefined}
+                paymentId={selectedItemForNotes.type === 'payment' ? selectedItemForNotes.id : undefined}
+                showAddButton={true}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </DndContext>
   );
 };

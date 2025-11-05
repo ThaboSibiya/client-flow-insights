@@ -9,6 +9,7 @@ import ReconciliationSummaryCard from './ReconciliationSummaryCard';
 import ReconciliationDualPanel from './ReconciliationDualPanel';
 import ReconciliationHistory from './ReconciliationHistory';
 import ReconciliationAnalyticsDashboard from './ReconciliationAnalyticsDashboard';
+import RecentReconciliationActivity from './RecentReconciliationActivity';
 import MatchSuggestions, { MatchSuggestion } from './MatchSuggestions';
 import { useReconciliationData } from '@/hooks/useReconciliationData';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -207,12 +208,13 @@ const ReconciliationPage: React.FC = () => {
                 />
               </div>
 
-              {/* Right side summary card */}
-              <div className="lg:col-span-1">
+              {/* Right side summary card and activity */}
+              <div className="lg:col-span-1 space-y-6">
                 <ReconciliationSummaryCard 
                   invoices={invoices}
                   payments={payments}
                 />
+                <RecentReconciliationActivity />
               </div>
             </div>
           )}

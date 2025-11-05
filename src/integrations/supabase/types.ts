@@ -2191,6 +2191,76 @@ export type Database = {
         }
         Relationships: []
       }
+      reconciliation_notes: {
+        Row: {
+          created_at: string
+          created_by: string
+          customer_id: string | null
+          id: string
+          invoice_id: string | null
+          is_system_generated: boolean | null
+          metadata: Json | null
+          note_content: string
+          note_type: string
+          payment_id: string | null
+          priority: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          customer_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          is_system_generated?: boolean | null
+          metadata?: Json | null
+          note_content: string
+          note_type?: string
+          payment_id?: string | null
+          priority?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          customer_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          is_system_generated?: boolean | null
+          metadata?: Json | null
+          note_content?: string
+          note_type?: string
+          payment_id?: string | null
+          priority?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_notes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliation_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliation_notes_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_change_audit: {
         Row: {
           changed_at: string | null
