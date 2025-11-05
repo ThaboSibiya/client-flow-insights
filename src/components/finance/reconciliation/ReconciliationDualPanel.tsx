@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from "@/lib/utils";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDraggable, useDroppable } from '@dnd-kit/core';
 
 interface ReconciliationDualPanelProps {
   invoices: Invoice[];
@@ -50,6 +51,7 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
   const [customerMap, setCustomerMap] = useState<CustomerMap>({});
   const [invoiceSortConfig, setInvoiceSortConfig] = useState<SortConfig>({ field: null, direction: null });
   const [paymentSortConfig, setPaymentSortConfig] = useState<SortConfig>({ field: null, direction: null });
+  const [draggedItem, setDraggedItem] = useState<{ type: 'invoice' | 'payment'; data: Invoice | Payment } | null>(null);
 
   // Filter data first (needed by handlers)
   const unallocatedPayments = payments.filter(p => !p.invoice_id);
@@ -477,26 +479,253 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
   }, [unallocatedPayments, paymentSortConfig, customerMap]);
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: any; label: string; className?: string }> = {
-      pending: { variant: 'secondary', label: 'Pending', className: 'bg-yellow-100 text-yellow-800' },
-      sent: { variant: 'default', label: 'Sent', className: 'bg-blue-100 text-blue-800' },
-      paid: { variant: 'default', label: 'Paid', className: 'bg-green-100 text-green-800' },
-      overdue: { variant: 'destructive', label: 'Overdue', className: 'bg-red-100 text-red-800' },
-      partial: { variant: 'secondary', label: 'Partial', className: 'bg-orange-100 text-orange-800' },
-      completed: { variant: 'default', label: 'Completed', className: 'bg-green-100 text-green-800' },
+    const variants: Record<string, { variant: any; label: string; className?: string; icon: string }> = {
+      pending: { variant: 'secondary', label: 'Pending', className: 'bg-yellow-100 text-yellow-800', icon: '🟡' },
+      sent: { variant: 'default', label: 'Sent', className: 'bg-blue-100 text-blue-800', icon: '🔵' },
+      paid: { variant: 'default', label: 'Paid', className: 'bg-green-100 text-green-800', icon: '🟢' },
+      overdue: { variant: 'destructive', label: 'Overdue', className: 'bg-red-100 text-red-800', icon: '🔴' },
+      partial: { variant: 'secondary', label: 'Partial', className: 'bg-orange-100 text-orange-800', icon: '🟡' },
+      completed: { variant: 'default', label: 'Completed', className: 'bg-green-100 text-green-800', icon: '🟢' },
     };
-    const config = variants[status] || { variant: 'secondary', label: status };
+    const config = variants[status] || { variant: 'secondary', label: status, icon: '⚪' };
     return (
       <Badge variant={config.variant as any} className={config.className}>
+        <span className="mr-1">{config.icon}</span>
         {config.label}
       </Badge>
     );
   };
 
+  const getMatchStatusIndicator = (invoice: Invoice) => {
+    // Check if invoice has any payments
+    const hasPayments = payments.some(p => p.invoice_id === invoice.id);
+    if (invoice.status === 'paid') {
+      return <span className="text-lg" title="Fully matched">🟢</span>;
+    } else if (invoice.status === 'partial' || hasPayments) {
+      return <span className="text-lg" title="Partial match">🟡</span>;
+    }
+    return <span className="text-lg" title="Unmatched">🔴</span>;
+  };
+
+  const getPaymentStatusIndicator = (payment: Payment) => {
+    if (payment.invoice_id) {
+      return <span className="text-lg" title="Fully matched">🟢</span>;
+    }
+    return <span className="text-lg" title="Unmatched">🔴</span>;
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const [type, id] = (active.id as string).split('-');
+    
+    if (type === 'invoice') {
+      const invoice = sortedUnpaidInvoices.find(inv => inv.id === id);
+      if (invoice) {
+        setDraggedItem({ type: 'invoice', data: invoice });
+      }
+    } else if (type === 'payment') {
+      const payment = sortedUnallocatedPayments.find(pay => pay.id === id);
+      if (payment) {
+        setDraggedItem({ type: 'payment', data: payment });
+      }
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setDraggedItem(null);
+
+    if (!over || !user) return;
+
+    const [activeType, activeId] = (active.id as string).split('-');
+    const [overType, overId] = (over.id as string).split('-');
+
+    // Only allow invoice-to-payment or payment-to-invoice drops
+    if (activeType === overType) return;
+
+    let invoiceToMatch: Invoice | undefined;
+    let paymentToMatch: Payment | undefined;
+
+    if (activeType === 'invoice') {
+      invoiceToMatch = sortedUnpaidInvoices.find(inv => inv.id === activeId);
+      paymentToMatch = sortedUnallocatedPayments.find(pay => pay.id === overId);
+    } else {
+      invoiceToMatch = sortedUnpaidInvoices.find(inv => inv.id === overId);
+      paymentToMatch = sortedUnallocatedPayments.find(pay => pay.id === activeId);
+    }
+
+    if (!invoiceToMatch || !paymentToMatch) return;
+
+    // Perform the match
+    setIsMatching(true);
+    try {
+      const { error } = await supabase
+        .from('payments')
+        .update({ invoice_id: invoiceToMatch.id })
+        .eq('id', paymentToMatch.id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Drag & Drop Match",
+        description: `Payment ${paymentToMatch.payment_number} matched to Invoice ${invoiceToMatch.invoice_number}`,
+      });
+
+      onReconcile();
+    } catch (error) {
+      console.error('Drag & drop match error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to match payment to invoice",
+        variant: "destructive",
+      });
+    } finally {
+      setIsMatching(false);
+    }
+  };
+
+  // Draggable row component
+  const DraggableInvoiceRow = ({ invoice }: { invoice: Invoice }) => {
+    const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+      id: `invoice-${invoice.id}`,
+      data: { type: 'invoice', invoice }
+    });
+
+    return (
+      <TableRow
+        ref={setNodeRef}
+        {...attributes}
+        {...listeners}
+        onClick={(e) => {
+          e.preventDefault();
+          if (batchMode) {
+            toggleInvoiceSelection(invoice.id);
+          } else {
+            setSelectedInvoice(invoice);
+          }
+        }}
+        className={cn(
+          "cursor-grab active:cursor-grabbing transition-all",
+          isDragging && "opacity-50",
+          batchMode && selectedInvoices.has(invoice.id)
+            ? "bg-blue-50 hover:bg-blue-100"
+            : !batchMode && selectedInvoice?.id === invoice.id
+            ? "bg-blue-50 hover:bg-blue-100"
+            : "hover:bg-gray-50"
+        )}
+      >
+        {batchMode && (
+          <TableCell onClick={(e) => e.stopPropagation()}>
+            <Checkbox
+              checked={selectedInvoices.has(invoice.id)}
+              onCheckedChange={() => toggleInvoiceSelection(invoice.id)}
+            />
+          </TableCell>
+        )}
+        <TableCell className="font-medium">
+          <div className="flex items-center gap-2">
+            {getMatchStatusIndicator(invoice)}
+            {!batchMode && selectedInvoice?.id === invoice.id && (
+              <CheckCircle className="h-4 w-4 text-quikle-primary" />
+            )}
+            {invoice.invoice_number}
+          </div>
+        </TableCell>
+        <TableCell>
+          {customerMap[invoice.customer_id] || 'Unknown'}
+        </TableCell>
+        <TableCell className="text-right font-semibold">
+          ${invoice.total_amount.toLocaleString()}
+        </TableCell>
+        <TableCell>
+          {format(new Date(invoice.due_date), 'MMM dd, yyyy')}
+        </TableCell>
+        <TableCell>
+          {getStatusBadge(invoice.status)}
+        </TableCell>
+      </TableRow>
+    );
+  };
+
+  const DroppablePaymentRow = ({ payment }: { payment: Payment }) => {
+    const { setNodeRef, isOver } = useDroppable({
+      id: `payment-${payment.id}`,
+      data: { type: 'payment', payment }
+    });
+    
+    const { attributes, listeners, setNodeRef: setDragNodeRef, isDragging } = useDraggable({
+      id: `payment-${payment.id}`,
+      data: { type: 'payment', payment }
+    });
+
+    return (
+      <TableRow
+        ref={(node) => {
+          setNodeRef(node);
+          setDragNodeRef(node);
+        }}
+        {...attributes}
+        {...listeners}
+        onClick={(e) => {
+          e.preventDefault();
+          if (batchMode) {
+            togglePaymentSelection(payment.id);
+          } else {
+            setSelectedPayment(payment);
+          }
+        }}
+        className={cn(
+          "cursor-grab active:cursor-grabbing transition-all",
+          isDragging && "opacity-50",
+          isOver && "ring-2 ring-quikle-primary bg-quikle-primary/10",
+          batchMode && selectedPayments.has(payment.id)
+            ? "bg-green-50 hover:bg-green-100"
+            : !batchMode && selectedPayment?.id === payment.id
+            ? "bg-green-50 hover:bg-green-100"
+            : "hover:bg-gray-50"
+        )}
+      >
+        {batchMode && (
+          <TableCell onClick={(e) => e.stopPropagation()}>
+            <Checkbox
+              checked={selectedPayments.has(payment.id)}
+              onCheckedChange={() => togglePaymentSelection(payment.id)}
+            />
+          </TableCell>
+        )}
+        <TableCell className="font-medium">
+          <div className="flex items-center gap-2">
+            {getPaymentStatusIndicator(payment)}
+            {!batchMode && selectedPayment?.id === payment.id && (
+              <CheckCircle className="h-4 w-4 text-quikle-primary" />
+            )}
+            {payment.payment_number}
+          </div>
+        </TableCell>
+        <TableCell>
+          {customerMap[payment.customer_id] || 'Unknown'}
+        </TableCell>
+        <TableCell className="text-right font-semibold">
+          ${payment.amount.toLocaleString()}
+        </TableCell>
+        <TableCell>
+          {format(new Date(payment.payment_date), 'MMM dd, yyyy')}
+        </TableCell>
+        <TableCell>
+          <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+            {payment.payment_method || 'N/A'}
+          </Badge>
+        </TableCell>
+      </TableRow>
+    );
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Floating Action Bar */}
-      <FloatingActionBar
+    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className="space-y-4">
+        {/* Floating Action Bar */}
+        <FloatingActionBar
         selectedInvoice={selectedInvoice}
         selectedPayment={selectedPayment}
         selectedInvoicesCount={selectedInvoices.size}
@@ -517,39 +746,72 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
         isProcessing={isMatching || isAutoMatching}
       />
 
-      {/* Action Buttons */}
-      <Card className="border-quikle-silver/20 shadow-sm">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-quikle-charcoal mb-1">
-                Reconciliation Actions
-              </h3>
-              <p className="text-sm text-quikle-slate">
-                Select an invoice and payment to match manually, or use AI auto-matching
-              </p>
+      {/* Action Buttons and Legend */}
+      <div className="space-y-4">
+        <Card className="border-quikle-silver/20 shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-quikle-charcoal mb-1">
+                  Reconciliation Actions
+                </h3>
+                <p className="text-sm text-quikle-slate">
+                  Select an invoice and payment to match manually, or use AI auto-matching
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleManualMatch}
+                  disabled={!selectedInvoice || !selectedPayment || isMatching}
+                  variant="outline"
+                >
+                  <Link2 className="h-4 w-4 mr-2" />
+                  {isMatching ? 'Matching...' : 'Match Selected'}
+                </Button>
+                <Button
+                  onClick={handleAutoMatch}
+                  disabled={isAutoMatching}
+                  className="bg-gradient-to-r from-quikle-primary to-quikle-secondary"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  {isAutoMatching ? 'Auto-Matching...' : 'AI Auto-Match'}
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-3">
-              <Button
-                onClick={handleManualMatch}
-                disabled={!selectedInvoice || !selectedPayment || isMatching}
-                variant="outline"
-              >
-                <Link2 className="h-4 w-4 mr-2" />
-                {isMatching ? 'Matching...' : 'Match Selected'}
-              </Button>
-              <Button
-                onClick={handleAutoMatch}
-                disabled={isAutoMatching}
-                className="bg-gradient-to-r from-quikle-primary to-quikle-secondary"
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                {isAutoMatching ? 'Auto-Matching...' : 'AI Auto-Match'}
-              </Button>
+          </CardContent>
+        </Card>
+
+        {/* Status Legend Card */}
+        <Card className="border-quikle-silver/20 shadow-sm bg-gradient-to-r from-blue-50/50 to-green-50/50">
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+              <div>
+                <h4 className="text-sm font-semibold text-quikle-charcoal mb-2 flex items-center gap-2">
+                  <Layers className="h-4 w-4" />
+                  Match Status Legend
+                </h4>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🟢</span>
+                    <span className="text-quikle-slate">Fully Matched</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🟡</span>
+                    <span className="text-quikle-slate">Partial Match</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🔴</span>
+                    <span className="text-quikle-slate">Unmatched</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-sm text-quikle-slate bg-white/60 px-4 py-2 rounded-lg border border-quikle-silver/20">
+                💡 <strong>Tip:</strong> Drag invoices onto payments to match them instantly!
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Dual Panel Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -628,53 +890,7 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
                   </TableHeader>
                   <TableBody>
                     {sortedUnpaidInvoices.map((invoice) => (
-                      <TableRow
-                        key={invoice.id}
-                        onClick={() => {
-                          if (batchMode) {
-                            toggleInvoiceSelection(invoice.id);
-                          } else {
-                            setSelectedInvoice(invoice);
-                          }
-                        }}
-                        className={cn(
-                          "cursor-pointer transition-colors",
-                          batchMode && selectedInvoices.has(invoice.id)
-                            ? "bg-blue-50 hover:bg-blue-100"
-                            : !batchMode && selectedInvoice?.id === invoice.id
-                            ? "bg-blue-50 hover:bg-blue-100"
-                            : "hover:bg-gray-50"
-                        )}
-                      >
-                        {batchMode && (
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <Checkbox
-                              checked={selectedInvoices.has(invoice.id)}
-                              onCheckedChange={() => toggleInvoiceSelection(invoice.id)}
-                            />
-                          </TableCell>
-                        )}
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            {!batchMode && selectedInvoice?.id === invoice.id && (
-                              <CheckCircle className="h-4 w-4 text-quikle-primary" />
-                            )}
-                            {invoice.invoice_number}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {customerMap[invoice.customer_id] || 'Unknown'}
-                        </TableCell>
-                        <TableCell className="text-right font-semibold">
-                          ${invoice.total_amount.toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(invoice.due_date), 'MMM dd, yyyy')}
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(invoice.status)}
-                        </TableCell>
-                      </TableRow>
+                      <DraggableInvoiceRow key={invoice.id} invoice={invoice} />
                     ))}
                   </TableBody>
                 </Table>
@@ -758,55 +974,7 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
                   </TableHeader>
                   <TableBody>
                     {sortedUnallocatedPayments.map((payment) => (
-                      <TableRow
-                        key={payment.id}
-                        onClick={() => {
-                          if (batchMode) {
-                            togglePaymentSelection(payment.id);
-                          } else {
-                            setSelectedPayment(payment);
-                          }
-                        }}
-                        className={cn(
-                          "cursor-pointer transition-colors",
-                          batchMode && selectedPayments.has(payment.id)
-                            ? "bg-green-50 hover:bg-green-100"
-                            : !batchMode && selectedPayment?.id === payment.id
-                            ? "bg-green-50 hover:bg-green-100"
-                            : "hover:bg-gray-50"
-                        )}
-                      >
-                        {batchMode && (
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <Checkbox
-                              checked={selectedPayments.has(payment.id)}
-                              onCheckedChange={() => togglePaymentSelection(payment.id)}
-                            />
-                          </TableCell>
-                        )}
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            {!batchMode && selectedPayment?.id === payment.id && (
-                              <CheckCircle className="h-4 w-4 text-quikle-primary" />
-                            )}
-                            {payment.payment_number}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {customerMap[payment.customer_id] || 'Unknown'}
-                        </TableCell>
-                        <TableCell className="text-right font-semibold">
-                          ${payment.amount.toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(payment.payment_date), 'MMM dd, yyyy')}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="bg-gray-100 text-gray-800">
-                            {payment.payment_method || 'N/A'}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
+                      <DroppablePaymentRow key={payment.id} payment={payment} />
                     ))}
                   </TableBody>
                 </Table>
@@ -815,7 +983,8 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
           </CardContent>
         </Card>
       </div>
-    </div>
+      </div>
+    </DndContext>
   );
 };
 
