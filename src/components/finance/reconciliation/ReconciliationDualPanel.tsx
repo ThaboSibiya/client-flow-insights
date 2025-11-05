@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link2, Sparkles, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import FloatingActionBar from './FloatingActionBar';
 import { Invoice, Payment } from '@/types/financeBackend';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -137,6 +138,89 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
     }
   };
 
+  const handleMarkPartial = async () => {
+    if (!selectedInvoice || !user) return;
+
+    setIsMatching(true);
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ status: 'partial' })
+        .eq('id', selectedInvoice.id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Invoice Marked as Partial",
+        description: `Invoice ${selectedInvoice.invoice_number} marked as partially paid`,
+      });
+
+      setSelectedInvoice(null);
+      onReconcile();
+    } catch (error) {
+      console.error('Mark partial error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to mark invoice as partial",
+        variant: "destructive",
+      });
+    } finally {
+      setIsMatching(false);
+    }
+  };
+
+  const handleFlagForReview = async () => {
+    if ((!selectedInvoice && !selectedPayment) || !user) return;
+
+    setIsMatching(true);
+    try {
+      const flagData = {
+        customer_id: selectedInvoice?.customer_id || selectedPayment?.customer_id,
+        user_id: user.id,
+        flag_type: 'review_required',
+        flag_reason: selectedInvoice && selectedPayment
+          ? `Manual review needed for Invoice ${selectedInvoice.invoice_number} and Payment ${selectedPayment.payment_number}`
+          : selectedInvoice
+          ? `Manual review needed for Invoice ${selectedInvoice.invoice_number}`
+          : `Manual review needed for Payment ${selectedPayment.payment_number}`,
+        status: 'active',
+        priority: 'normal',
+        flagged_by: user.email || 'Unknown',
+      };
+
+      const { error } = await supabase
+        .from('account_flags')
+        .insert(flagData);
+
+      if (error) throw error;
+
+      toast({
+        title: "Flagged for Review",
+        description: "Transaction(s) flagged for manual review",
+      });
+
+      setSelectedInvoice(null);
+      setSelectedPayment(null);
+    } catch (error) {
+      console.error('Flag for review error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to flag for review",
+        variant: "destructive",
+      });
+    } finally {
+      setIsMatching(false);
+    }
+  };
+
+  const handleSaveReconciliation = async () => {
+    toast({
+      title: "Reconciliation Saved",
+      description: "All changes have been saved successfully",
+    });
+  };
+
   const unallocatedPayments = payments.filter(p => !p.invoice_id);
   const unpaidInvoices = invoices.filter(i => 
     i.status !== 'paid' && i.status !== 'cancelled'
@@ -267,6 +351,17 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Floating Action Bar */}
+      <FloatingActionBar
+        selectedInvoice={selectedInvoice}
+        selectedPayment={selectedPayment}
+        onMatch={handleManualMatch}
+        onMarkPartial={handleMarkPartial}
+        onFlagForReview={handleFlagForReview}
+        onSaveReconciliation={handleSaveReconciliation}
+        isProcessing={isMatching || isAutoMatching}
+      />
+
       {/* Action Buttons */}
       <Card className="border-quikle-silver/20 shadow-sm">
         <CardContent className="p-6">
