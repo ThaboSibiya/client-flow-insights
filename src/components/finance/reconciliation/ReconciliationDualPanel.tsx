@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Link2, Sparkles, CheckCircle } from "lucide-react";
+import { Link2, Sparkles, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Invoice, Payment } from '@/types/financeBackend';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +22,15 @@ interface CustomerMap {
   [key: string]: string;
 }
 
+type SortField = 'invoice_number' | 'customer' | 'amount' | 'due_date' | 'status' | 'payment_number' | 'payment_date' | 'payment_method';
+type SortDirection = 'asc' | 'desc' | null;
+
+interface SortConfig {
+  field: SortField | null;
+  direction: SortDirection;
+}
+
+
 const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({ 
   invoices, 
   payments,
@@ -34,6 +43,8 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
   const [isMatching, setIsMatching] = useState(false);
   const [isAutoMatching, setIsAutoMatching] = useState(false);
   const [customerMap, setCustomerMap] = useState<CustomerMap>({});
+  const [invoiceSortConfig, setInvoiceSortConfig] = useState<SortConfig>({ field: null, direction: null });
+  const [paymentSortConfig, setPaymentSortConfig] = useState<SortConfig>({ field: null, direction: null });
 
   // Fetch customer names
   useEffect(() => {
@@ -131,6 +142,112 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
     i.status !== 'paid' && i.status !== 'cancelled'
   );
 
+  // Sorting logic
+  const handleInvoiceSort = (field: SortField) => {
+    setInvoiceSortConfig((prev) => ({
+      field,
+      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc',
+    }));
+  };
+
+  const handlePaymentSort = (field: SortField) => {
+    setPaymentSortConfig((prev) => ({
+      field,
+      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc',
+    }));
+  };
+
+  const getSortIcon = (field: SortField, sortConfig: SortConfig) => {
+    if (sortConfig.field !== field) {
+      return <ArrowUpDown className="h-4 w-4 ml-1 text-gray-400" />;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <ArrowUp className="h-4 w-4 ml-1 text-quikle-primary" />
+      : <ArrowDown className="h-4 w-4 ml-1 text-quikle-primary" />;
+  };
+
+  // Sorted invoices
+  const sortedUnpaidInvoices = useMemo(() => {
+    const sorted = [...unpaidInvoices];
+    if (invoiceSortConfig.field && invoiceSortConfig.direction) {
+      sorted.sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        switch (invoiceSortConfig.field) {
+          case 'invoice_number':
+            aValue = a.invoice_number;
+            bValue = b.invoice_number;
+            break;
+          case 'customer':
+            aValue = customerMap[a.customer_id] || '';
+            bValue = customerMap[b.customer_id] || '';
+            break;
+          case 'amount':
+            aValue = a.total_amount;
+            bValue = b.total_amount;
+            break;
+          case 'due_date':
+            aValue = new Date(a.due_date).getTime();
+            bValue = new Date(b.due_date).getTime();
+            break;
+          case 'status':
+            aValue = a.status;
+            bValue = b.status;
+            break;
+          default:
+            return 0;
+        }
+
+        if (aValue < bValue) return invoiceSortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return invoiceSortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sorted;
+  }, [unpaidInvoices, invoiceSortConfig, customerMap]);
+
+  // Sorted payments
+  const sortedUnallocatedPayments = useMemo(() => {
+    const sorted = [...unallocatedPayments];
+    if (paymentSortConfig.field && paymentSortConfig.direction) {
+      sorted.sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        switch (paymentSortConfig.field) {
+          case 'payment_number':
+            aValue = a.payment_number;
+            bValue = b.payment_number;
+            break;
+          case 'customer':
+            aValue = customerMap[a.customer_id] || '';
+            bValue = customerMap[b.customer_id] || '';
+            break;
+          case 'amount':
+            aValue = a.amount;
+            bValue = b.amount;
+            break;
+          case 'payment_date':
+            aValue = new Date(a.payment_date).getTime();
+            bValue = new Date(b.payment_date).getTime();
+            break;
+          case 'payment_method':
+            aValue = a.payment_method || '';
+            bValue = b.payment_method || '';
+            break;
+          default:
+            return 0;
+        }
+
+        if (aValue < bValue) return paymentSortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return paymentSortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sorted;
+  }, [unallocatedPayments, paymentSortConfig, customerMap]);
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: any; label: string; className?: string }> = {
       pending: { variant: 'secondary', label: 'Pending', className: 'bg-yellow-100 text-yellow-800' },
@@ -195,7 +312,7 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[600px]">
-              {unpaidInvoices.length === 0 ? (
+              {sortedUnpaidInvoices.length === 0 ? (
                 <div className="text-center py-12">
                   <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
                   <p className="text-quikle-slate">All invoices are paid</p>
@@ -204,15 +321,55 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Invoice #</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead>Due Date</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleInvoiceSort('invoice_number')}
+                      >
+                        <div className="flex items-center">
+                          Invoice #
+                          {getSortIcon('invoice_number', invoiceSortConfig)}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleInvoiceSort('customer')}
+                      >
+                        <div className="flex items-center">
+                          Customer
+                          {getSortIcon('customer', invoiceSortConfig)}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-right cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleInvoiceSort('amount')}
+                      >
+                        <div className="flex items-center justify-end">
+                          Amount
+                          {getSortIcon('amount', invoiceSortConfig)}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleInvoiceSort('due_date')}
+                      >
+                        <div className="flex items-center">
+                          Due Date
+                          {getSortIcon('due_date', invoiceSortConfig)}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleInvoiceSort('status')}
+                      >
+                        <div className="flex items-center">
+                          Status
+                          {getSortIcon('status', invoiceSortConfig)}
+                        </div>
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {unpaidInvoices.map((invoice) => (
+                    {sortedUnpaidInvoices.map((invoice) => (
                       <TableRow
                         key={invoice.id}
                         onClick={() => setSelectedInvoice(invoice)}
@@ -261,7 +418,7 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[600px]">
-              {unallocatedPayments.length === 0 ? (
+              {sortedUnallocatedPayments.length === 0 ? (
                 <div className="text-center py-12">
                   <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
                   <p className="text-quikle-slate">All payments are allocated</p>
@@ -270,15 +427,55 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Payment #</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Method</TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handlePaymentSort('payment_number')}
+                      >
+                        <div className="flex items-center">
+                          Payment #
+                          {getSortIcon('payment_number', paymentSortConfig)}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handlePaymentSort('customer')}
+                      >
+                        <div className="flex items-center">
+                          Customer
+                          {getSortIcon('customer', paymentSortConfig)}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-right cursor-pointer hover:bg-gray-50"
+                        onClick={() => handlePaymentSort('amount')}
+                      >
+                        <div className="flex items-center justify-end">
+                          Amount
+                          {getSortIcon('amount', paymentSortConfig)}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handlePaymentSort('payment_date')}
+                      >
+                        <div className="flex items-center">
+                          Date
+                          {getSortIcon('payment_date', paymentSortConfig)}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handlePaymentSort('payment_method')}
+                      >
+                        <div className="flex items-center">
+                          Method
+                          {getSortIcon('payment_method', paymentSortConfig)}
+                        </div>
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {unallocatedPayments.map((payment) => (
+                    {sortedUnallocatedPayments.map((payment) => (
                       <TableRow
                         key={payment.id}
                         onClick={() => setSelectedPayment(payment)}
