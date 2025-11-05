@@ -42,3 +42,6 @@ verify_jwt = true
 
 [functions.finance-cron-check-overdue]
 verify_jwt = false
+
+[functions.finance-ai-match-suggestions]
+verify_jwt = true

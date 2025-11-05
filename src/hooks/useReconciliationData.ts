@@ -10,6 +10,7 @@ export const useReconciliationData = (filters: ReconciliationFilters) => {
   const { user } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [customerMap, setCustomerMap] = useState<{ [key: string]: string }>({});
   const [reconciliationHistory, setReconciliationHistory] = useState<ReconciliationRecord[]>([]);
   const [summary, setSummary] = useState<ReconciliationSummaryData>({
     totalInvoices: 0,
@@ -106,6 +107,18 @@ export const useReconciliationData = (filters: ReconciliationFilters) => {
         totalPaymentAmount,
       });
 
+      // Fetch customer names
+      const { data: customersData } = await supabase
+        .from('customers')
+        .select('id, name')
+        .eq('user_id', user.id);
+
+      const map: { [key: string]: string } = {};
+      (customersData || []).forEach((customer: any) => {
+        map[customer.id] = customer.name;
+      });
+      setCustomerMap(map);
+
       // Mock reconciliation history (would come from audit logs in production)
       setReconciliationHistory([]);
     } catch (error) {
@@ -124,6 +137,7 @@ export const useReconciliationData = (filters: ReconciliationFilters) => {
     payments,
     reconciliationHistory,
     summary,
+    customerMap,
     isLoading,
     refetch: fetchData,
   };
