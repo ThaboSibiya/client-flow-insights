@@ -2261,6 +2261,67 @@ export type Database = {
           },
         ]
       }
+      reconciliations: {
+        Row: {
+          created_at: string
+          created_by: string
+          customer_id: string
+          id: string
+          invoice_id: string
+          matched_amount: number
+          metadata: Json | null
+          payment_id: string
+          reconciliation_status: Database["public"]["Enums"]["reconciliation_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          customer_id: string
+          id?: string
+          invoice_id: string
+          matched_amount: number
+          metadata?: Json | null
+          payment_id: string
+          reconciliation_status?: Database["public"]["Enums"]["reconciliation_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          customer_id?: string
+          id?: string
+          invoice_id?: string
+          matched_amount?: number
+          metadata?: Json | null
+          payment_id?: string
+          reconciliation_status?: Database["public"]["Enums"]["reconciliation_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliations_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliations_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_change_audit: {
         Row: {
           changed_at: string | null
@@ -2877,6 +2938,7 @@ export type Database = {
         | "accepted"
         | "rejected"
       quote_invoice_type: "quote" | "invoice"
+      reconciliation_status: "matched" | "partial" | "unmatched"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3029,6 +3091,7 @@ export const Constants = {
         "rejected",
       ],
       quote_invoice_type: ["quote", "invoice"],
+      reconciliation_status: ["matched", "partial", "unmatched"],
     },
   },
 } as const
