@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Link2, Sparkles, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Link2, Sparkles, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Layers } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import FloatingActionBar from './FloatingActionBar';
 import { Invoice, Payment } from '@/types/financeBackend';
 import { format } from 'date-fns';
@@ -41,11 +42,20 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
   const { user } = useAuth();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
+  const [selectedPayments, setSelectedPayments] = useState<Set<string>>(new Set());
+  const [batchMode, setBatchMode] = useState(false);
   const [isMatching, setIsMatching] = useState(false);
   const [isAutoMatching, setIsAutoMatching] = useState(false);
   const [customerMap, setCustomerMap] = useState<CustomerMap>({});
   const [invoiceSortConfig, setInvoiceSortConfig] = useState<SortConfig>({ field: null, direction: null });
   const [paymentSortConfig, setPaymentSortConfig] = useState<SortConfig>({ field: null, direction: null });
+
+  // Filter data first (needed by handlers)
+  const unallocatedPayments = payments.filter(p => !p.invoice_id);
+  const unpaidInvoices = invoices.filter(i => 
+    i.status !== 'paid' && i.status !== 'cancelled'
+  );
 
   // Fetch customer names
   useEffect(() => {
@@ -99,6 +109,105 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
       toast({
         title: "Error",
         description: "Failed to match payment to invoice",
+        variant: "destructive",
+      });
+    } finally {
+      setIsMatching(false);
+    }
+  };
+
+  const handleBatchMatch = async () => {
+    if (!user || selectedInvoices.size === 0 || selectedPayments.size === 0) return;
+
+    setIsMatching(true);
+    try {
+      const invoiceList = Array.from(selectedInvoices).map(id => 
+        unpaidInvoices.find(inv => inv.id === id)
+      ).filter(Boolean) as Invoice[];
+      
+      const paymentList = Array.from(selectedPayments).map(id => 
+        unallocatedPayments.find(pay => pay.id === id)
+      ).filter(Boolean) as Payment[];
+
+      // Smart pairing algorithm
+      const pairs: Array<{ invoiceId: string; paymentId: string }> = [];
+      const usedPayments = new Set<string>();
+
+      for (const invoice of invoiceList) {
+        // Try to find exact amount match first
+        let bestMatch = paymentList.find(payment => 
+          !usedPayments.has(payment.id) &&
+          payment.customer_id === invoice.customer_id &&
+          Math.abs(payment.amount - invoice.total_amount) < 0.01
+        );
+
+        // If no exact match, find closest amount match for same customer
+        if (!bestMatch) {
+          bestMatch = paymentList
+            .filter(payment => 
+              !usedPayments.has(payment.id) &&
+              payment.customer_id === invoice.customer_id
+            )
+            .sort((a, b) => 
+              Math.abs(a.amount - invoice.total_amount) - 
+              Math.abs(b.amount - invoice.total_amount)
+            )[0];
+        }
+
+        if (bestMatch) {
+          pairs.push({
+            invoiceId: invoice.id,
+            paymentId: bestMatch.id,
+          });
+          usedPayments.add(bestMatch.id);
+        }
+      }
+
+      if (pairs.length === 0) {
+        toast({
+          title: "No Matches Found",
+          description: "Could not find suitable invoice-payment pairs",
+          variant: "destructive",
+        });
+        setIsMatching(false);
+        return;
+      }
+
+      // Execute all matches
+      const updatePromises = pairs.map(pair => 
+        supabase
+          .from('payments')
+          .update({ invoice_id: pair.invoiceId })
+          .eq('id', pair.paymentId)
+          .eq('user_id', user.id)
+      );
+
+      const results = await Promise.all(updatePromises);
+      const errors = results.filter(r => r.error);
+
+      if (errors.length > 0) {
+        toast({
+          title: "Partial Success",
+          description: `Matched ${pairs.length - errors.length} of ${pairs.length} pairs`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Batch Match Complete",
+          description: `Successfully matched ${pairs.length} invoice-payment pairs`,
+        });
+      }
+
+      setSelectedInvoices(new Set());
+      setSelectedPayments(new Set());
+      setSelectedInvoice(null);
+      setSelectedPayment(null);
+      onReconcile();
+    } catch (error) {
+      console.error('Batch match error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to complete batch matching",
         variant: "destructive",
       });
     } finally {
@@ -221,10 +330,45 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
     });
   };
 
-  const unallocatedPayments = payments.filter(p => !p.invoice_id);
-  const unpaidInvoices = invoices.filter(i => 
-    i.status !== 'paid' && i.status !== 'cancelled'
-  );
+  const toggleInvoiceSelection = (invoiceId: string) => {
+    setSelectedInvoices(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(invoiceId)) {
+        newSet.delete(invoiceId);
+      } else {
+        newSet.add(invoiceId);
+      }
+      return newSet;
+    });
+  };
+
+  const togglePaymentSelection = (paymentId: string) => {
+    setSelectedPayments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(paymentId)) {
+        newSet.delete(paymentId);
+      } else {
+        newSet.add(paymentId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAllInvoices = () => {
+    if (selectedInvoices.size === sortedUnpaidInvoices.length) {
+      setSelectedInvoices(new Set());
+    } else {
+      setSelectedInvoices(new Set(sortedUnpaidInvoices.map(inv => inv.id)));
+    }
+  };
+
+  const toggleAllPayments = () => {
+    if (selectedPayments.size === sortedUnallocatedPayments.length) {
+      setSelectedPayments(new Set());
+    } else {
+      setSelectedPayments(new Set(sortedUnallocatedPayments.map(pay => pay.id)));
+    }
+  };
 
   // Sorting logic
   const handleInvoiceSort = (field: SortField) => {
@@ -355,10 +499,21 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
       <FloatingActionBar
         selectedInvoice={selectedInvoice}
         selectedPayment={selectedPayment}
+        selectedInvoicesCount={selectedInvoices.size}
+        selectedPaymentsCount={selectedPayments.size}
+        batchMode={batchMode}
         onMatch={handleManualMatch}
+        onBatchMatch={handleBatchMatch}
         onMarkPartial={handleMarkPartial}
         onFlagForReview={handleFlagForReview}
         onSaveReconciliation={handleSaveReconciliation}
+        onToggleBatchMode={() => {
+          setBatchMode(!batchMode);
+          if (batchMode) {
+            setSelectedInvoices(new Set());
+            setSelectedPayments(new Set());
+          }
+        }}
         isProcessing={isMatching || isAutoMatching}
       />
 
@@ -416,6 +571,14 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      {batchMode && (
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={selectedInvoices.size === sortedUnpaidInvoices.length && sortedUnpaidInvoices.length > 0}
+                            onCheckedChange={toggleAllInvoices}
+                          />
+                        </TableHead>
+                      )}
                       <TableHead 
                         className="cursor-pointer hover:bg-gray-50"
                         onClick={() => handleInvoiceSort('invoice_number')}
@@ -467,17 +630,33 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
                     {sortedUnpaidInvoices.map((invoice) => (
                       <TableRow
                         key={invoice.id}
-                        onClick={() => setSelectedInvoice(invoice)}
+                        onClick={() => {
+                          if (batchMode) {
+                            toggleInvoiceSelection(invoice.id);
+                          } else {
+                            setSelectedInvoice(invoice);
+                          }
+                        }}
                         className={cn(
                           "cursor-pointer transition-colors",
-                          selectedInvoice?.id === invoice.id
+                          batchMode && selectedInvoices.has(invoice.id)
+                            ? "bg-blue-50 hover:bg-blue-100"
+                            : !batchMode && selectedInvoice?.id === invoice.id
                             ? "bg-blue-50 hover:bg-blue-100"
                             : "hover:bg-gray-50"
                         )}
                       >
+                        {batchMode && (
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedInvoices.has(invoice.id)}
+                              onCheckedChange={() => toggleInvoiceSelection(invoice.id)}
+                            />
+                          </TableCell>
+                        )}
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
-                            {selectedInvoice?.id === invoice.id && (
+                            {!batchMode && selectedInvoice?.id === invoice.id && (
                               <CheckCircle className="h-4 w-4 text-quikle-primary" />
                             )}
                             {invoice.invoice_number}
@@ -522,6 +701,14 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      {batchMode && (
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={selectedPayments.size === sortedUnallocatedPayments.length && sortedUnallocatedPayments.length > 0}
+                            onCheckedChange={toggleAllPayments}
+                          />
+                        </TableHead>
+                      )}
                       <TableHead 
                         className="cursor-pointer hover:bg-gray-50"
                         onClick={() => handlePaymentSort('payment_number')}
@@ -573,17 +760,33 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
                     {sortedUnallocatedPayments.map((payment) => (
                       <TableRow
                         key={payment.id}
-                        onClick={() => setSelectedPayment(payment)}
+                        onClick={() => {
+                          if (batchMode) {
+                            togglePaymentSelection(payment.id);
+                          } else {
+                            setSelectedPayment(payment);
+                          }
+                        }}
                         className={cn(
                           "cursor-pointer transition-colors",
-                          selectedPayment?.id === payment.id
+                          batchMode && selectedPayments.has(payment.id)
+                            ? "bg-green-50 hover:bg-green-100"
+                            : !batchMode && selectedPayment?.id === payment.id
                             ? "bg-green-50 hover:bg-green-100"
                             : "hover:bg-gray-50"
                         )}
                       >
+                        {batchMode && (
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedPayments.has(payment.id)}
+                              onCheckedChange={() => togglePaymentSelection(payment.id)}
+                            />
+                          </TableCell>
+                        )}
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
-                            {selectedPayment?.id === payment.id && (
+                            {!batchMode && selectedPayment?.id === payment.id && (
                               <CheckCircle className="h-4 w-4 text-quikle-primary" />
                             )}
                             {payment.payment_number}
