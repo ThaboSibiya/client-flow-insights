@@ -5,6 +5,7 @@ import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ReconciliationFilters from './ReconciliationFilters';
 import ReconciliationSummary from './ReconciliationSummary';
+import ReconciliationSummaryCard from './ReconciliationSummaryCard';
 import ReconciliationDualPanel from './ReconciliationDualPanel';
 import ReconciliationHistory from './ReconciliationHistory';
 import MatchSuggestions, { MatchSuggestion } from './MatchSuggestions';
@@ -184,21 +185,31 @@ const ReconciliationPage: React.FC = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-6">
-              {/* AI Match Suggestions */}
-              <MatchSuggestions 
-                suggestions={suggestions}
-                onAccept={handleAcceptSuggestion}
-                onReject={handleRejectSuggestion}
-                isLoading={isSuggestionsLoading}
-              />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                {/* AI Match Suggestions */}
+                <MatchSuggestions 
+                  suggestions={suggestions}
+                  onAccept={handleAcceptSuggestion}
+                  onReject={handleRejectSuggestion}
+                  isLoading={isSuggestionsLoading}
+                />
 
-              {/* Dual Panel */}
-              <ReconciliationDualPanel 
-                invoices={invoices} 
-                payments={payments}
-                onReconcile={refetch}
-              />
+                {/* Dual Panel */}
+                <ReconciliationDualPanel 
+                  invoices={invoices} 
+                  payments={payments}
+                  onReconcile={refetch}
+                />
+              </div>
+
+              {/* Right side summary card */}
+              <div className="lg:col-span-1">
+                <ReconciliationSummaryCard 
+                  invoices={invoices}
+                  payments={payments}
+                />
+              </div>
             </div>
           )}
         </TabsContent>
