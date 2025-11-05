@@ -8,6 +8,7 @@ import ReconciliationSummary from './ReconciliationSummary';
 import ReconciliationSummaryCard from './ReconciliationSummaryCard';
 import ReconciliationDualPanel from './ReconciliationDualPanel';
 import ReconciliationHistory from './ReconciliationHistory';
+import ReconciliationAnalyticsDashboard from './ReconciliationAnalyticsDashboard';
 import MatchSuggestions, { MatchSuggestion } from './MatchSuggestions';
 import { useReconciliationData } from '@/hooks/useReconciliationData';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -166,9 +167,12 @@ const ReconciliationPage: React.FC = () => {
 
       {/* Main Content */}
       <Tabs defaultValue="reconcile" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-white border border-quikle-silver/20 shadow-sm">
+        <TabsList className="grid w-full grid-cols-3 bg-white border border-quikle-silver/20 shadow-sm">
           <TabsTrigger value="reconcile" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white">
             Reconcile Transactions
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white">
+            Analytics Dashboard
           </TabsTrigger>
           <TabsTrigger value="history" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white">
             Reconciliation History
@@ -212,6 +216,10 @@ const ReconciliationPage: React.FC = () => {
               </div>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-6">
+          <ReconciliationAnalyticsDashboard />
         </TabsContent>
 
         <TabsContent value="history" className="mt-6">
