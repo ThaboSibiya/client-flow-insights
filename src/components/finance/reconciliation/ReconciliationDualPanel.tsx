@@ -1,19 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, DollarSign, Link2, Sparkles, CheckCircle } from "lucide-react";
+import { Link2, Sparkles, CheckCircle } from "lucide-react";
 import { Invoice, Payment } from '@/types/financeBackend';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { cn } from "@/lib/utils";
 
 interface ReconciliationDualPanelProps {
   invoices: Invoice[];
   payments: Payment[];
   onReconcile: () => void;
+}
+
+interface CustomerMap {
+  [key: string]: string;
 }
 
 const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({ 
@@ -27,6 +33,32 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [isMatching, setIsMatching] = useState(false);
   const [isAutoMatching, setIsAutoMatching] = useState(false);
+  const [customerMap, setCustomerMap] = useState<CustomerMap>({});
+
+  // Fetch customer names
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id, name')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching customers:', error);
+        return;
+      }
+
+      const map: CustomerMap = {};
+      data.forEach((customer) => {
+        map[customer.id] = customer.name;
+      });
+      setCustomerMap(map);
+    };
+
+    fetchCustomers();
+  }, [user]);
 
   const handleManualMatch = async () => {
     if (!selectedInvoice || !selectedPayment || !user) return;
@@ -100,15 +132,20 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
   );
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: any; label: string }> = {
-      pending: { variant: 'secondary', label: 'Pending' },
-      sent: { variant: 'default', label: 'Sent' },
-      paid: { variant: 'default', label: 'Paid' },
-      overdue: { variant: 'destructive', label: 'Overdue' },
-      partial: { variant: 'secondary', label: 'Partial' },
+    const variants: Record<string, { variant: any; label: string; className?: string }> = {
+      pending: { variant: 'secondary', label: 'Pending', className: 'bg-yellow-100 text-yellow-800' },
+      sent: { variant: 'default', label: 'Sent', className: 'bg-blue-100 text-blue-800' },
+      paid: { variant: 'default', label: 'Paid', className: 'bg-green-100 text-green-800' },
+      overdue: { variant: 'destructive', label: 'Overdue', className: 'bg-red-100 text-red-800' },
+      partial: { variant: 'secondary', label: 'Partial', className: 'bg-orange-100 text-orange-800' },
+      completed: { variant: 'default', label: 'Completed', className: 'bg-green-100 text-green-800' },
     };
     const config = variants[status] || { variant: 'secondary', label: status };
-    return <Badge variant={config.variant as any}>{config.label}</Badge>;
+    return (
+      <Badge variant={config.variant as any} className={config.className}>
+        {config.label}
+      </Badge>
+    );
   };
 
   return (
@@ -147,117 +184,138 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
         </CardContent>
       </Card>
 
-      {/* Dual Panel */}
+      {/* Dual Panel Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Unpaid Invoices Panel */}
+        {/* Unpaid Invoices Table */}
         <Card className="border-quikle-silver/20 shadow-sm">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100/50">
-            <CardTitle className="flex items-center gap-2 text-quikle-charcoal">
-              <FileText className="h-5 w-5 text-blue-600" />
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100/50 border-b">
+            <CardTitle className="text-quikle-charcoal">
               Unpaid Invoices ({unpaidInvoices.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[600px]">
-              <div className="p-4 space-y-3">
-                {unpaidInvoices.length === 0 ? (
-                  <div className="text-center py-12">
-                    <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
-                    <p className="text-quikle-slate">All invoices are paid</p>
-                  </div>
-                ) : (
-                  unpaidInvoices.map((invoice) => (
-                    <div
-                      key={invoice.id}
-                      onClick={() => setSelectedInvoice(invoice)}
-                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                        selectedInvoice?.id === invoice.id
-                          ? 'border-quikle-primary bg-blue-50 shadow-md'
-                          : 'border-quikle-silver/30 hover:border-quikle-primary/50 hover:shadow-sm'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <p className="font-semibold text-quikle-charcoal">
-                            {invoice.invoice_number}
-                          </p>
-                          <p className="text-sm text-quikle-slate">
-                            Due: {format(new Date(invoice.due_date), 'MMM dd, yyyy')}
-                          </p>
-                        </div>
-                        {getStatusBadge(invoice.status)}
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <p className="text-lg font-bold text-quikle-charcoal">
-                          ${invoice.total_amount.toLocaleString()}
-                        </p>
-                        {selectedInvoice?.id === invoice.id && (
-                          <CheckCircle className="h-5 w-5 text-quikle-primary" />
+              {unpaidInvoices.length === 0 ? (
+                <div className="text-center py-12">
+                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
+                  <p className="text-quikle-slate">All invoices are paid</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Invoice #</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {unpaidInvoices.map((invoice) => (
+                      <TableRow
+                        key={invoice.id}
+                        onClick={() => setSelectedInvoice(invoice)}
+                        className={cn(
+                          "cursor-pointer transition-colors",
+                          selectedInvoice?.id === invoice.id
+                            ? "bg-blue-50 hover:bg-blue-100"
+                            : "hover:bg-gray-50"
                         )}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+                      >
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {selectedInvoice?.id === invoice.id && (
+                              <CheckCircle className="h-4 w-4 text-quikle-primary" />
+                            )}
+                            {invoice.invoice_number}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {customerMap[invoice.customer_id] || 'Unknown'}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          ${invoice.total_amount.toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(invoice.due_date), 'MMM dd, yyyy')}
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(invoice.status)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </ScrollArea>
           </CardContent>
         </Card>
 
-        {/* Unallocated Payments Panel */}
+        {/* Unallocated Payments Table */}
         <Card className="border-quikle-silver/20 shadow-sm">
-          <CardHeader className="bg-gradient-to-r from-green-50 to-green-100/50">
-            <CardTitle className="flex items-center gap-2 text-quikle-charcoal">
-              <DollarSign className="h-5 w-5 text-green-600" />
+          <CardHeader className="bg-gradient-to-r from-green-50 to-green-100/50 border-b">
+            <CardTitle className="text-quikle-charcoal">
               Unallocated Payments ({unallocatedPayments.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[600px]">
-              <div className="p-4 space-y-3">
-                {unallocatedPayments.length === 0 ? (
-                  <div className="text-center py-12">
-                    <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
-                    <p className="text-quikle-slate">All payments are allocated</p>
-                  </div>
-                ) : (
-                  unallocatedPayments.map((payment) => (
-                    <div
-                      key={payment.id}
-                      onClick={() => setSelectedPayment(payment)}
-                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                        selectedPayment?.id === payment.id
-                          ? 'border-quikle-primary bg-green-50 shadow-md'
-                          : 'border-quikle-silver/30 hover:border-quikle-primary/50 hover:shadow-sm'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <p className="font-semibold text-quikle-charcoal">
-                            {payment.payment_number}
-                          </p>
-                          <p className="text-sm text-quikle-slate">
-                            {format(new Date(payment.payment_date), 'MMM dd, yyyy')}
-                          </p>
-                        </div>
-                        <Badge variant="secondary">{payment.payment_method || 'N/A'}</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <p className="text-lg font-bold text-quikle-charcoal">
-                          ${payment.amount.toLocaleString()}
-                        </p>
-                        {selectedPayment?.id === payment.id && (
-                          <CheckCircle className="h-5 w-5 text-quikle-primary" />
+              {unallocatedPayments.length === 0 ? (
+                <div className="text-center py-12">
+                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
+                  <p className="text-quikle-slate">All payments are allocated</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Payment #</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Method</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {unallocatedPayments.map((payment) => (
+                      <TableRow
+                        key={payment.id}
+                        onClick={() => setSelectedPayment(payment)}
+                        className={cn(
+                          "cursor-pointer transition-colors",
+                          selectedPayment?.id === payment.id
+                            ? "bg-green-50 hover:bg-green-100"
+                            : "hover:bg-gray-50"
                         )}
-                      </div>
-                      {payment.reference_number && (
-                        <p className="text-xs text-quikle-slate mt-1">
-                          Ref: {payment.reference_number}
-                        </p>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
+                      >
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {selectedPayment?.id === payment.id && (
+                              <CheckCircle className="h-4 w-4 text-quikle-primary" />
+                            )}
+                            {payment.payment_number}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {customerMap[payment.customer_id] || 'Unknown'}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          ${payment.amount.toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(payment.payment_date), 'MMM dd, yyyy')}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+                            {payment.payment_method || 'N/A'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </ScrollArea>
           </CardContent>
         </Card>
