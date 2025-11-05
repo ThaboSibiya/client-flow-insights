@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Plus, TrendingUp, Settings as SettingsIcon } from "lucide-react";
+import { FileText, Plus, TrendingUp, Settings as SettingsIcon, GitCompare } from "lucide-react";
 import QuoteForm from "@/components/quotes/QuoteForm";
 import InvoiceForm from "@/components/quotes/InvoiceForm";
 import QuotePreview from "@/components/quotes/QuotePreview";
@@ -12,6 +12,7 @@ import QuoteSettings from "@/components/quotes/QuoteSettings";
 import RevenueOptimizationDashboard from "@/components/quotes/revenue/RevenueOptimizationDashboard";
 import AutoConversionSettings from "@/components/quotes/revenue/AutoConversionSettings";
 import DocumentWorkflowManager from "@/components/quotes/workflow/DocumentWorkflowManager";
+import ReconciliationPage from "@/components/finance/reconciliation/ReconciliationPage";
 import { useFetchQuotes } from '@/hooks/useFetchQuotes';
 import { useCreateQuote } from '@/hooks/mutations/useCreateQuote';
 import { useUpdateQuote } from '@/hooks/mutations/useUpdateQuote';
@@ -132,7 +133,7 @@ const QuoteInvoice: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-9 bg-white border border-quikle-silver/20 shadow-sm p-1 h-auto">
+        <TabsList className="grid w-full grid-cols-10 bg-white border border-quikle-silver/20 shadow-sm p-1 h-auto">
           <TabsTrigger value="quotes" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium">
             All Quotes
           </TabsTrigger>
@@ -149,6 +150,10 @@ const QuoteInvoice: React.FC = () => {
           <TabsTrigger value="revenue" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium flex items-center gap-1">
             <TrendingUp className="h-3 w-3" />
             Revenue
+          </TabsTrigger>
+          <TabsTrigger value="reconciliation" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium flex items-center gap-1">
+            <GitCompare className="h-3 w-3" />
+            Reconcile
           </TabsTrigger>
           <TabsTrigger value="automation" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium">
             Automation
@@ -201,6 +206,10 @@ const QuoteInvoice: React.FC = () => {
 
         <TabsContent value="revenue" className="mt-6">
           <RevenueOptimizationDashboard />
+        </TabsContent>
+
+        <TabsContent value="reconciliation" className="mt-6">
+          <ReconciliationPage />
         </TabsContent>
 
         <TabsContent value="automation" className="mt-6">
