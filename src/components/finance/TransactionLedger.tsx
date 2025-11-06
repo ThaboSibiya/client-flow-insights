@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { VirtualList } from '@/components/ui/VirtualList';
+// @ts-ignore
+import { FixedSizeList } from 'react-window';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -190,37 +191,43 @@ const TransactionLedger = ({ transactions, hasMore = false, onLoadMore, loadingM
                 </TableRow>
               </TableHeader>
             </Table>
-            <VirtualList
-              items={filteredAndSortedTransactions}
-              itemHeight={60}
-              containerHeight={500}
-              renderItem={(transaction) => (
-                <div className="flex items-center border-b px-3 hover:bg-muted/50 h-full">
-                  <div className="w-[140px] text-sm">
-                    {format(new Date(transaction.created_at), 'MMM dd, yyyy')}
+            <FixedSizeList
+              height={500}
+              itemCount={filteredAndSortedTransactions.length}
+              itemSize={60}
+              width="100%"
+              itemData={filteredAndSortedTransactions}
+            >
+              {({ index, style, data }) => {
+                const transaction = data[index];
+                return (
+                  <div style={style} className="flex items-center border-b px-3 hover:bg-muted/50">
+                    <div className="w-[140px] text-sm">
+                      {format(new Date(transaction.created_at), 'MMM dd, yyyy')}
+                    </div>
+                    <div className="w-[160px] flex items-center gap-2">
+                      {getTransactionIcon(transaction.transaction_type)}
+                      <span className="capitalize text-sm">{transaction.transaction_type.replace('_', ' ')}</span>
+                    </div>
+                    <div className="w-[180px] font-mono text-sm">
+                      {transaction.reference_number}
+                    </div>
+                    <div className={`w-[140px] text-right font-semibold ${getAmountColor(transaction.transaction_type)}`}>
+                      {transaction.transaction_type === 'payment' || transaction.transaction_type === 'credit_note' ? '-' : '+'}
+                      R{Math.abs(transaction.amount).toFixed(2)}
+                    </div>
+                    <div className="w-[120px]">
+                      <Badge variant="secondary" className={getStatusColor(transaction.status)}>
+                        {transaction.status}
+                      </Badge>
+                    </div>
+                    <div className="flex-1 text-sm">
+                      {transaction.due_date ? format(new Date(transaction.due_date), 'MMM dd, yyyy') : '-'}
+                    </div>
                   </div>
-                  <div className="w-[160px] flex items-center gap-2">
-                    {getTransactionIcon(transaction.transaction_type)}
-                    <span className="capitalize text-sm">{transaction.transaction_type.replace('_', ' ')}</span>
-                  </div>
-                  <div className="w-[180px] font-mono text-sm">
-                    {transaction.reference_number}
-                  </div>
-                  <div className={`w-[140px] text-right font-semibold ${getAmountColor(transaction.transaction_type)}`}>
-                    {transaction.transaction_type === 'payment' || transaction.transaction_type === 'credit_note' ? '-' : '+'}
-                    R{Math.abs(transaction.amount).toFixed(2)}
-                  </div>
-                  <div className="w-[120px]">
-                    <Badge variant="secondary" className={getStatusColor(transaction.status)}>
-                      {transaction.status}
-                    </Badge>
-                  </div>
-                  <div className="flex-1 text-sm">
-                    {transaction.due_date ? format(new Date(transaction.due_date), 'MMM dd, yyyy') : '-'}
-                  </div>
-                </div>
-              )}
-            />
+                );
+              }}
+            </FixedSizeList>
           </div>
         )}
         {hasMore && onLoadMore && (
