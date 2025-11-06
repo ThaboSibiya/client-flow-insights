@@ -12,9 +12,12 @@ import { format } from 'date-fns';
 interface DebtorNotesPanelProps {
   notes: DebtorNote[];
   onAddNote: (note: Partial<DebtorNote>) => void;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  loadingMore?: boolean;
 }
 
-const DebtorNotesPanel = ({ notes, onAddNote }: DebtorNotesPanelProps) => {
+const DebtorNotesPanel = ({ notes, onAddNote, hasMore = false, onLoadMore, loadingMore = false }: DebtorNotesPanelProps) => {
   const [open, setOpen] = useState(false);
   const [noteType, setNoteType] = useState<NoteType>('general');
   const [priority, setPriority] = useState<NotePriority>('normal');
@@ -176,6 +179,18 @@ const DebtorNotesPanel = ({ notes, onAddNote }: DebtorNotesPanelProps) => {
             ))
           )}
         </div>
+        {hasMore && onLoadMore && (
+          <div className="flex justify-center mt-4 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={onLoadMore}
+              disabled={loadingMore}
+              size="sm"
+            >
+              {loadingMore ? 'Loading...' : 'Load More Notes'}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

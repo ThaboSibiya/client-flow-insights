@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
-import { useCustomerFinance } from '@/hooks/useCustomerFinance';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCustomerFinancePaginated } from '@/hooks/useCustomerFinancePaginated';
+import { Card, CardContent } from '@/components/ui/card';
 import AccountSnapshot from '@/components/finance/AccountSnapshot';
 import DebtorNotesPanel from '@/components/finance/DebtorNotesPanel';
 import TransactionLedger from '@/components/finance/TransactionLedger';
@@ -14,10 +14,15 @@ const CustomerFinance = () => {
     debtorNotes,
     transactions,
     loading,
+    loadingMore,
+    hasMoreTransactions,
+    hasMoreNotes,
     addDebtorNote,
     addTransaction,
+    loadMoreTransactions,
+    loadMoreNotes,
     refreshData
-  } = useCustomerFinance(customerId || '');
+  } = useCustomerFinancePaginated(customerId || '');
 
   if (loading) {
     return (
@@ -70,10 +75,21 @@ const CustomerFinance = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {/* Debtor Notes */}
-          <DebtorNotesPanel notes={debtorNotes} onAddNote={addDebtorNote} />
+          <DebtorNotesPanel 
+            notes={debtorNotes} 
+            onAddNote={addDebtorNote}
+            hasMore={hasMoreNotes}
+            onLoadMore={loadMoreNotes}
+            loadingMore={loadingMore}
+          />
 
           {/* Transaction Ledger */}
-          <TransactionLedger transactions={transactions} />
+          <TransactionLedger 
+            transactions={transactions}
+            hasMore={hasMoreTransactions}
+            onLoadMore={loadMoreTransactions}
+            loadingMore={loadingMore}
+          />
         </div>
 
         {/* Action Center Sidebar */}
