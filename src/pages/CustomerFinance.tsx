@@ -40,8 +40,8 @@ const CustomerFinance = () => {
   }
 
   return (
-    <div className="h-screen overflow-y-auto">
-      <div className="container mx-auto p-6 space-y-6 pb-20">
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
         <div>
@@ -81,7 +81,7 @@ const CustomerFinance = () => {
           <ActionCenter customerId={customerId} onAddTransaction={addTransaction} onRefresh={refreshData} />
         </div>
       </div>
-    </div>
+      </div>
     </div>
   );
 };
