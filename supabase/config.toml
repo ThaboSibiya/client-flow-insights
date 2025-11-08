@@ -31,6 +31,9 @@ verify_jwt = true
 [functions.customer-generate-statement]
 verify_jwt = true
 
+[functions.customer-email-statement]
+verify_jwt = true
+
 [functions.finance-calculate-summary]
 verify_jwt = true
 

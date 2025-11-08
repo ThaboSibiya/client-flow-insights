@@ -5,12 +5,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { CustomerTransaction } from '@/types/finance';
-import { DollarSign, FileText, Flag, Send, RefreshCw, Bell, Calculator } from 'lucide-react';
+import { DollarSign, FileText, Flag, Send, RefreshCw, Bell, Calculator, Mail } from 'lucide-react';
 import { financeBusinessLogic } from '@/services/financeBusinessLogic';
 import { financeApiService } from '@/services/financeApiService';
 import { toast } from '@/hooks/use-toast';
 import { generateStatementPDF } from '@/utils/pdfExport';
+import { financeEmailService } from '@/services/financeEmailService';
 
 interface ActionCenterProps {
   customerId: string;
@@ -21,12 +23,14 @@ interface ActionCenterProps {
 const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterProps) => {
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [reminderDialogOpen, setReminderDialogOpen] = useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [referenceNumber, setReferenceNumber] = useState('');
   const [reminderType, setReminderType] = useState<'payment_reminder' | 'overdue_payment' | 'account_flagged'>('payment_reminder');
   const [customMessage, setCustomMessage] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [recipientEmail, setRecipientEmail] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const reminderTemplates = {
@@ -174,6 +178,33 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
     }
   };
 
+  const handleEmailStatement = async () => {
+    setIsProcessing(true);
+    try {
+      const result = await financeEmailService.emailStatement(customerId, {
+        recipientEmail: recipientEmail || undefined
+      });
+      
+      toast({
+        title: "Statement Emailed",
+        description: `Statement sent successfully to ${result.recipient}`,
+      });
+      
+      setEmailDialogOpen(false);
+      setRecipientEmail('');
+      onRefresh?.();
+    } catch (error) {
+      console.error('Email statement error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send statement email",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleFlagAccount = async () => {
     setIsProcessing(true);
     try {
@@ -266,6 +297,43 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
             <FileText className="h-4 w-4 mr-2" />
             Print Statement
           </Button>
+
+          <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+            <Button 
+              className="w-full justify-start" 
+              variant="outline"
+              onClick={() => setEmailDialogOpen(true)}
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              Email Statement
+            </Button>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Email Statement</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Recipient Email (Optional)</Label>
+                  <Input
+                    type="email"
+                    value={recipientEmail}
+                    onChange={(e) => setRecipientEmail(e.target.value)}
+                    placeholder="Leave empty to use customer's email"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    If left empty, the statement will be sent to the customer's registered email
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleEmailStatement} 
+                  className="w-full"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? 'Sending...' : 'Send Email'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           <Dialog open={reminderDialogOpen} onOpenChange={setReminderDialogOpen}>
             <Button 
