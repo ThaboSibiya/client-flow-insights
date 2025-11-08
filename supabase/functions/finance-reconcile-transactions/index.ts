@@ -1,172 +1,101 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+interface ReconcileRequest {
+  customerId: string;
+  autoMatch?: boolean;
+}
+
+serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("No authorization header");
     }
 
-    const body = await req.json();
-    const { customerId, autoMatch = true } = body;
+    const { customerId, autoMatch = true }: ReconcileRequest = await req.json();
+    console.log("Reconciling transactions for customer:", customerId);
 
-    console.log(`Reconciling transactions for customer: ${customerId}`);
+    const { data: invoices, error: invoicesError } = await supabase
+      .from("invoices")
+      .select("*")
+      .eq("customer_id", customerId)
+      .in("status", ["pending", "sent", "partial"]);
 
-    // Fetch all invoices
-    const { data: invoices } = await supabaseClient
-      .from('invoices')
-      .select('*')
-      .eq('customer_id', customerId)
-      .eq('user_id', user.id)
-      .in('status', ['pending', 'sent', 'partial', 'overdue']);
+    if (invoicesError) throw invoicesError;
 
-    // Fetch all payments
-    const { data: payments } = await supabaseClient
-      .from('payments')
-      .select('*')
-      .eq('customer_id', customerId)
-      .eq('user_id', user.id);
+    const { data: payments, error: paymentsError } = await supabase
+      .from("payments")
+      .select("*")
+      .eq("customer_id", customerId)
+      .is("invoice_id", null);
 
-    if (!invoices || !payments) {
-      return new Response(JSON.stringify({ 
-        message: 'No transactions to reconcile',
-        matched: 0,
-        unmatched: 0
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      });
-    }
+    if (paymentsError) throw paymentsError;
 
-    const reconciliationResults = {
-      matched: 0,
-      unmatched: 0,
-      auto_matched: 0,
-      manual_review_needed: [],
-      fully_paid: [],
-      partially_paid: []
-    };
+    let matched = 0;
+    let autoMatched = 0;
+    const matchedPairs: any[] = [];
 
-    // Process each invoice
-    for (const invoice of invoices) {
-      // Get all payments for this invoice
-      const invoicePayments = payments.filter(p => p.invoice_id === invoice.id);
-      const totalPaid = invoicePayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-      const invoiceAmount = parseFloat(invoice.total_amount || 0);
-
-      if (totalPaid >= invoiceAmount) {
-        // Invoice is fully paid
-        if (invoice.status !== 'paid') {
-          await supabaseClient
-            .from('invoices')
-            .update({ 
-              status: 'paid',
-              paid_date: new Date().toISOString()
-            })
-            .eq('id', invoice.id)
-            .eq('user_id', user.id);
-          
-          reconciliationResults.fully_paid.push(invoice.invoice_number);
-        }
-        reconciliationResults.matched++;
-      } else if (totalPaid > 0) {
-        // Invoice is partially paid
-        if (invoice.status !== 'partial') {
-          await supabaseClient
-            .from('invoices')
-            .update({ status: 'partial' })
-            .eq('id', invoice.id)
-            .eq('user_id', user.id);
-          
-          reconciliationResults.partially_paid.push({
-            invoice_number: invoice.invoice_number,
-            amount_due: invoiceAmount,
-            amount_paid: totalPaid,
-            remaining: invoiceAmount - totalPaid
-          });
-        }
-        reconciliationResults.matched++;
-      } else {
-        reconciliationResults.unmatched++;
-      }
-    }
-
-    // Auto-match unallocated payments if enabled
-    if (autoMatch) {
-      const unallocatedPayments = payments.filter(p => !p.invoice_id);
-      
-      for (const payment of unallocatedPayments) {
-        const paymentAmount = parseFloat(payment.amount || 0);
-        
-        // Find matching invoice by amount
-        const matchingInvoice = invoices.find(inv => {
-          const unpaidAmount = parseFloat(inv.total_amount || 0) - 
-            payments
-              .filter(p => p.invoice_id === inv.id)
-              .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-          
-          return Math.abs(unpaidAmount - paymentAmount) < 0.01; // Allow 1 cent variance
-        });
+    if (autoMatch && payments && invoices) {
+      for (const payment of payments) {
+        const matchingInvoice = invoices.find(
+          (inv) => Math.abs(inv.total_amount - payment.amount) < 0.01
+        );
 
         if (matchingInvoice) {
-          await supabaseClient
-            .from('payments')
+          const { error: updateError } = await supabase
+            .from("payments")
             .update({ invoice_id: matchingInvoice.id })
-            .eq('id', payment.id)
-            .eq('user_id', user.id);
-          
-          reconciliationResults.auto_matched++;
-          console.log(`Auto-matched payment ${payment.payment_number} to invoice ${matchingInvoice.invoice_number}`);
-        } else {
-          reconciliationResults.manual_review_needed.push({
-            payment_number: payment.payment_number,
-            amount: paymentAmount,
-            date: payment.payment_date
-          });
+            .eq("id", payment.id);
+
+          if (!updateError) {
+            autoMatched++;
+            matched++;
+            matchedPairs.push({
+              payment_id: payment.id,
+              invoice_id: matchingInvoice.id,
+              amount: payment.amount,
+            });
+          }
         }
       }
     }
 
-    // Mark overdue invoices
-    await supabaseClient.rpc('mark_overdue_invoices');
+    const result = {
+      success: true,
+      results: {
+        matched,
+        auto_matched: autoMatched,
+        total_invoices: invoices?.length || 0,
+        total_payments: payments?.length || 0,
+        matched_pairs: matchedPairs,
+      },
+    };
 
-    console.log('Transaction reconciliation complete:', reconciliationResults);
+    console.log("Reconciliation complete:", result);
 
-    return new Response(JSON.stringify({ 
-      results: reconciliationResults,
-      message: 'Transaction reconciliation completed'
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-
-  } catch (error) {
-    console.error('Error reconciling transactions:', error);
+  } catch (error: any) {
+    console.error("Error in reconcile-transactions:", error);
     return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
