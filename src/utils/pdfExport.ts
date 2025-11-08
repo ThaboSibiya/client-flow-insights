@@ -1,60 +1,54 @@
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-
 /**
- * Generate and download PDF from HTML content
+ * Generate and download PDF from HTML using browser print
  */
 export const generatePDFFromHTML = async (
   htmlContent: string,
   fileName: string = 'statement.pdf'
 ): Promise<void> => {
-  // Create a temporary container
-  const container = document.createElement('div');
-  container.innerHTML = htmlContent;
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
-  container.style.width = '210mm'; // A4 width
-  container.style.padding = '20px';
-  container.style.backgroundColor = 'white';
-  document.body.appendChild(container);
-
-  try {
-    // Convert HTML to canvas
-    const canvas = await html2canvas(container, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff'
-    });
-
-    // Calculate PDF dimensions
-    const imgWidth = 210; // A4 width in mm
-    const pageHeight = 297; // A4 height in mm
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    let heightLeft = imgHeight;
-
-    // Create PDF
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    let position = 0;
-
-    // Add image to PDF (handle multiple pages if needed)
-    const imgData = canvas.toDataURL('image/png');
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    while (heightLeft >= 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-    }
-
-    // Download the PDF
-    pdf.save(fileName);
-  } finally {
-    // Clean up
-    document.body.removeChild(container);
+  // Create a temporary iframe for printing
+  const printFrame = document.createElement('iframe');
+  printFrame.style.position = 'absolute';
+  printFrame.style.width = '0';
+  printFrame.style.height = '0';
+  printFrame.style.border = 'none';
+  
+  document.body.appendChild(printFrame);
+  
+  const frameDoc = printFrame.contentWindow?.document;
+  if (!frameDoc) {
+    document.body.removeChild(printFrame);
+    throw new Error('Could not access iframe document');
   }
+  
+  // Write HTML content with print styles
+  frameDoc.open();
+  frameDoc.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>${fileName}</title>
+        <style>
+          @media print {
+            @page { margin: 1cm; }
+            body { margin: 0; padding: 20px; }
+          }
+        </style>
+      </head>
+      <body>${htmlContent}</body>
+    </html>
+  `);
+  frameDoc.close();
+  
+  // Wait for content to load then trigger print
+  printFrame.onload = () => {
+    setTimeout(() => {
+      printFrame.contentWindow?.print();
+      // Clean up after a delay
+      setTimeout(() => {
+        document.body.removeChild(printFrame);
+      }, 1000);
+    }, 250);
+  };
 };
 
 /**
