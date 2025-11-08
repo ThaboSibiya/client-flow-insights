@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { CustomerTransaction } from '@/types/finance';
 import { DollarSign, FileText, Flag, Send, RefreshCw, Bell, Calculator } from 'lucide-react';
 import { financeBusinessLogic } from '@/services/financeBusinessLogic';
@@ -24,7 +25,26 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
   const [referenceNumber, setReferenceNumber] = useState('');
   const [reminderType, setReminderType] = useState<'payment_reminder' | 'overdue_payment' | 'account_flagged'>('payment_reminder');
   const [customMessage, setCustomMessage] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const reminderTemplates = {
+    payment_reminder: {
+      default: "This is a friendly reminder that you have an outstanding balance on your account. Please review your account and make a payment at your earliest convenience.",
+      gentle: "We wanted to reach out regarding your account balance. If you need assistance with payment arrangements, please don't hesitate to contact us.",
+      urgent: "We notice you have an outstanding balance. To avoid any service interruptions, please make a payment as soon as possible."
+    },
+    overdue_payment: {
+      default: "Your payment is now overdue. Please submit your payment immediately to avoid late fees and service interruption.",
+      firm: "This is an urgent notice regarding your overdue payment. Immediate action is required to prevent additional charges and account suspension.",
+      final: "FINAL NOTICE: Your payment is severely overdue. Please contact us immediately to resolve this matter and avoid further action."
+    },
+    account_flagged: {
+      default: "Your account has been flagged for review. Please contact our office to discuss your account status and payment options.",
+      review: "We need to discuss some concerns with your account. Please reach out to us at your earliest convenience to resolve any issues.",
+      action: "Your account requires immediate attention. Please contact us within 48 hours to prevent account restrictions."
+    }
+  };
 
   const handleAddPayment = () => {
     if (!amount || !paymentMethod || !referenceNumber) return;
@@ -97,6 +117,7 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
       });
       setReminderDialogOpen(false);
       setCustomMessage('');
+      setSelectedTemplate('');
       setReminderType('payment_reminder');
     } catch (error) {
       toast({
@@ -106,6 +127,14 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
       });
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleTemplateSelect = (template: string) => {
+    setSelectedTemplate(template);
+    const templates = reminderTemplates[reminderType];
+    if (templates && template in templates) {
+      setCustomMessage(templates[template as keyof typeof templates]);
     }
   };
 
@@ -249,7 +278,11 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
                   <label className="text-sm font-medium">Reminder Type</label>
                   <Select 
                     value={reminderType} 
-                    onValueChange={(value) => setReminderType(value as any)}
+                    onValueChange={(value) => {
+                      setReminderType(value as any);
+                      setSelectedTemplate('');
+                      setCustomMessage('');
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -262,17 +295,52 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Custom Message (Optional)</label>
-                  <Input
+                  <label className="text-sm font-medium">Message Template</label>
+                  <Select 
+                    value={selectedTemplate} 
+                    onValueChange={handleTemplateSelect}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a template (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {reminderType === 'payment_reminder' && (
+                        <>
+                          <SelectItem value="default">Friendly Reminder</SelectItem>
+                          <SelectItem value="gentle">Gentle Follow-up</SelectItem>
+                          <SelectItem value="urgent">Urgent Notice</SelectItem>
+                        </>
+                      )}
+                      {reminderType === 'overdue_payment' && (
+                        <>
+                          <SelectItem value="default">Standard Overdue</SelectItem>
+                          <SelectItem value="firm">Firm Notice</SelectItem>
+                          <SelectItem value="final">Final Notice</SelectItem>
+                        </>
+                      )}
+                      {reminderType === 'account_flagged' && (
+                        <>
+                          <SelectItem value="default">Account Review</SelectItem>
+                          <SelectItem value="review">Review Required</SelectItem>
+                          <SelectItem value="action">Action Required</SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Message</label>
+                  <Textarea
                     value={customMessage}
                     onChange={(e) => setCustomMessage(e.target.value)}
-                    placeholder="Add a personalized message..."
+                    placeholder="Add or customize your message..."
+                    rows={5}
                   />
                 </div>
                 <Button 
                   onClick={handleSendReminder} 
                   className="w-full"
-                  disabled={isProcessing}
+                  disabled={isProcessing || !customMessage}
                 >
                   {isProcessing ? 'Sending...' : 'Send Reminder'}
                 </Button>
