@@ -10,6 +10,7 @@ import { DollarSign, FileText, Flag, Send, RefreshCw, Bell, Calculator } from 'l
 import { financeBusinessLogic } from '@/services/financeBusinessLogic';
 import { financeApiService } from '@/services/financeApiService';
 import { toast } from '@/hooks/use-toast';
+import { generateStatementPDF } from '@/utils/pdfExport';
 
 interface ActionCenterProps {
   customerId: string;
@@ -147,19 +148,25 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
     }
   };
 
-  const handleSendStatement = async () => {
+  const handleDownloadStatement = async () => {
     setIsProcessing(true);
     try {
       const result = await financeApiService.generateStatement(customerId);
-      toast({
-        title: "Statement Generated",
-        description: "Customer statement generated successfully",
-      });
-      // Could download or open the statement here
+      
+      if (result?.statement_html && result?.customer_name) {
+        await generateStatementPDF(result.customer_name, result.statement_html);
+        toast({
+          title: "Statement Downloaded",
+          description: "PDF statement generated and downloaded successfully",
+        });
+      } else {
+        throw new Error('Invalid statement data received');
+      }
     } catch (error) {
+      console.error('Statement generation error:', error);
       toast({
         title: "Error",
-        description: "Failed to generate statement",
+        description: "Failed to generate statement PDF",
         variant: "destructive"
       });
     } finally {
@@ -253,11 +260,11 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
           <Button 
             className="w-full justify-start" 
             variant="outline"
-            onClick={handleSendStatement}
+            onClick={handleDownloadStatement}
             disabled={isProcessing}
           >
-            <Send className="h-4 w-4 mr-2" />
-            Send Statement
+            <FileText className="h-4 w-4 mr-2" />
+            Download Statement PDF
           </Button>
 
           <Dialog open={reminderDialogOpen} onOpenChange={setReminderDialogOpen}>
