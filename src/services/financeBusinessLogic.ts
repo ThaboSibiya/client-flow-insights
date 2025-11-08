@@ -43,9 +43,11 @@ export const financeBusinessLogic = {
   /**
    * Send automated notifications
    * Types: overdue_payment, payment_reminder, account_flagged, payment_received
+   * Also saves to reminder_history table
    */
-  async sendNotification(customerId: string, notificationType: 
-    'overdue_payment' | 'payment_reminder' | 'account_flagged' | 'payment_received',
+  async sendNotification(
+    customerId: string, 
+    notificationType: 'overdue_payment' | 'payment_reminder' | 'account_flagged' | 'payment_received',
     customMessage?: string
   ) {
     const { data, error } = await supabase.functions.invoke('finance-send-notifications', {
@@ -58,6 +60,25 @@ export const financeBusinessLogic = {
     });
 
     if (error) throw error;
+
+    // Save to reminder history
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user && customMessage) {
+        await supabase.from('reminder_history').insert({
+          customer_id: customerId,
+          user_id: user.id,
+          reminder_type: notificationType,
+          message: customMessage,
+          sent_by: user.email || 'System',
+          status: 'sent'
+        });
+      }
+    } catch (historyError) {
+      console.error('Failed to save reminder history:', historyError);
+    }
+
     return data;
   },
 

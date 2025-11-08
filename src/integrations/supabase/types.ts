@@ -2322,6 +2322,42 @@ export type Database = {
           },
         ]
       }
+      reminder_history: {
+        Row: {
+          created_at: string
+          customer_id: string
+          id: string
+          message: string
+          reminder_type: string
+          sent_at: string
+          sent_by: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          id?: string
+          message: string
+          reminder_type: string
+          sent_at?: string
+          sent_by: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          id?: string
+          message?: string
+          reminder_type?: string
+          sent_at?: string
+          sent_by?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       role_change_audit: {
         Row: {
           changed_at: string | null

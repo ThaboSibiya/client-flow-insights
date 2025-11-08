@@ -6,6 +6,7 @@ import TransactionLedger from './TransactionLedger';
 import InvoicesTable from './InvoicesTable';
 import AccountFlagsPanel from './AccountFlagsPanel';
 import ActionCenter from './ActionCenter';
+import ReminderHistoryPanel from './ReminderHistoryPanel';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -97,6 +98,9 @@ const CustomerFinanceTab = ({ customerId, customerName }: CustomerFinanceTabProp
 
               {/* Transaction Ledger */}
               <TransactionLedger transactions={transactions} />
+              
+              {/* Reminder History */}
+              <ReminderHistoryPanel customerId={customerId} />
             </div>
 
         {/* Action Center Sidebar */}
