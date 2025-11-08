@@ -18,9 +18,12 @@ interface ActionCenterProps {
 
 const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterProps) => {
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [reminderDialogOpen, setReminderDialogOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [referenceNumber, setReferenceNumber] = useState('');
+  const [reminderType, setReminderType] = useState<'payment_reminder' | 'overdue_payment' | 'account_flagged'>('payment_reminder');
+  const [customMessage, setCustomMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleAddPayment = () => {
@@ -83,11 +86,18 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
   const handleSendReminder = async () => {
     setIsProcessing(true);
     try {
-      await financeBusinessLogic.sendNotification(customerId, 'payment_reminder');
+      await financeBusinessLogic.sendNotification(
+        customerId, 
+        reminderType,
+        customMessage || undefined
+      );
       toast({
         title: "Reminder Sent",
-        description: "Payment reminder email sent successfully",
+        description: `${getReminderTypeLabel(reminderType)} sent successfully`,
       });
+      setReminderDialogOpen(false);
+      setCustomMessage('');
+      setReminderType('payment_reminder');
     } catch (error) {
       toast({
         title: "Error",
@@ -96,6 +106,15 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
       });
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const getReminderTypeLabel = (type: string) => {
+    switch (type) {
+      case 'payment_reminder': return 'Payment reminder';
+      case 'overdue_payment': return 'Overdue payment notification';
+      case 'account_flagged': return 'Account flagged notification';
+      default: return 'Notification';
     }
   };
 
@@ -212,15 +231,54 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
             Send Statement
           </Button>
 
-          <Button 
-            className="w-full justify-start" 
-            variant="outline"
-            onClick={handleSendReminder}
-            disabled={isProcessing}
-          >
-            <Bell className="h-4 w-4 mr-2" />
-            Send Reminder
-          </Button>
+          <Dialog open={reminderDialogOpen} onOpenChange={setReminderDialogOpen}>
+            <Button 
+              className="w-full justify-start" 
+              variant="outline"
+              onClick={() => setReminderDialogOpen(true)}
+            >
+              <Bell className="h-4 w-4 mr-2" />
+              Send Reminder
+            </Button>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Send Payment Reminder</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Reminder Type</label>
+                  <Select 
+                    value={reminderType} 
+                    onValueChange={(value) => setReminderType(value as any)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="payment_reminder">Payment Reminder</SelectItem>
+                      <SelectItem value="overdue_payment">Overdue Payment</SelectItem>
+                      <SelectItem value="account_flagged">Account Flagged</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Custom Message (Optional)</label>
+                  <Input
+                    value={customMessage}
+                    onChange={(e) => setCustomMessage(e.target.value)}
+                    placeholder="Add a personalized message..."
+                  />
+                </div>
+                <Button 
+                  onClick={handleSendReminder} 
+                  className="w-full"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? 'Sending...' : 'Send Reminder'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           <Button 
             className="w-full justify-start" 
