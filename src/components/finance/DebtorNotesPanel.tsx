@@ -1,6 +1,4 @@
 import { useState } from 'react';
-// @ts-ignore
-import { FixedSizeList } from 'react-window';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -154,43 +152,32 @@ const DebtorNotesPanel = ({ notes, onAddNote, hasMore = false, onLoadMore, loadi
         {notes.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">No notes yet. Add your first note above.</p>
         ) : (
-          <FixedSizeList
-            height={500}
-            itemCount={notes.length}
-            itemSize={140}
-            width="100%"
-            itemData={notes}
-          >
-            {({ index, style, data }) => {
-              const note = data[index];
-              return (
-                <div style={style} className="px-1">
-                  <div className="border rounded-lg p-4 space-y-2 h-[132px] overflow-hidden">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2">
-                        {getNoteIcon(note.note_type)}
-                        <span className="font-medium capitalize">{note.note_type.replace('_', ' ')}</span>
-                      </div>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(note.priority)}`}>
-                        {note.priority}
-                      </span>
-                    </div>
-                    <p className="text-sm line-clamp-2">{note.note_content}</p>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>By {note.created_by}</span>
-                      <span>{format(new Date(note.created_at), 'MMM dd, yyyy HH:mm')}</span>
-                    </div>
-                    {note.follow_up_date && (
-                      <div className="flex items-center gap-2 text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
-                        <Calendar className="h-3 w-3" />
-                        Follow-up: {format(new Date(note.follow_up_date), 'MMM dd, yyyy')}
-                      </div>
-                    )}
+          <div className="space-y-3 max-h-[500px] overflow-y-auto">
+            {notes.map((note) => (
+              <div key={note.id} className="border rounded-lg p-4 space-y-2">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2">
+                    {getNoteIcon(note.note_type)}
+                    <span className="font-medium capitalize">{note.note_type.replace('_', ' ')}</span>
                   </div>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(note.priority)}`}>
+                    {note.priority}
+                  </span>
                 </div>
-              );
-            }}
-          </FixedSizeList>
+                <p className="text-sm">{note.note_content}</p>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>By {note.created_by}</span>
+                  <span>{format(new Date(note.created_at), 'MMM dd, yyyy HH:mm')}</span>
+                </div>
+                {note.follow_up_date && (
+                  <div className="flex items-center gap-2 text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                    <Calendar className="h-3 w-3" />
+                    Follow-up: {format(new Date(note.follow_up_date), 'MMM dd, yyyy')}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         )}
         {hasMore && onLoadMore && (
           <div className="flex justify-center mt-4 pt-4 border-t">

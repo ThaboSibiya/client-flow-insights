@@ -1,8 +1,6 @@
 import { useState, useMemo } from 'react';
-// @ts-ignore
-import { FixedSizeList } from 'react-window';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -178,7 +176,7 @@ const TransactionLedger = ({ transactions, hasMore = false, onLoadMore, loadingM
         ) : filteredAndSortedTransactions.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">No transactions match your filters.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -190,44 +188,37 @@ const TransactionLedger = ({ transactions, hasMore = false, onLoadMore, loadingM
                   <TableHead>Due Date</TableHead>
                 </TableRow>
               </TableHeader>
-            </Table>
-            <FixedSizeList
-              height={500}
-              itemCount={filteredAndSortedTransactions.length}
-              itemSize={60}
-              width="100%"
-              itemData={filteredAndSortedTransactions}
-            >
-              {({ index, style, data }) => {
-                const transaction = data[index];
-                return (
-                  <div style={style} className="flex items-center border-b px-3 hover:bg-muted/50">
-                    <div className="w-[140px] text-sm">
+              <TableBody>
+                {filteredAndSortedTransactions.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell>
                       {format(new Date(transaction.created_at), 'MMM dd, yyyy')}
-                    </div>
-                    <div className="w-[160px] flex items-center gap-2">
-                      {getTransactionIcon(transaction.transaction_type)}
-                      <span className="capitalize text-sm">{transaction.transaction_type.replace('_', ' ')}</span>
-                    </div>
-                    <div className="w-[180px] font-mono text-sm">
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {getTransactionIcon(transaction.transaction_type)}
+                        <span className="capitalize">{transaction.transaction_type.replace('_', ' ')}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-mono">
                       {transaction.reference_number}
-                    </div>
-                    <div className={`w-[140px] text-right font-semibold ${getAmountColor(transaction.transaction_type)}`}>
+                    </TableCell>
+                    <TableCell className={`text-right font-semibold ${getAmountColor(transaction.transaction_type)}`}>
                       {transaction.transaction_type === 'payment' || transaction.transaction_type === 'credit_note' ? '-' : '+'}
                       R{Math.abs(transaction.amount).toFixed(2)}
-                    </div>
-                    <div className="w-[120px]">
+                    </TableCell>
+                    <TableCell>
                       <Badge variant="secondary" className={getStatusColor(transaction.status)}>
                         {transaction.status}
                       </Badge>
-                    </div>
-                    <div className="flex-1 text-sm">
+                    </TableCell>
+                    <TableCell>
                       {transaction.due_date ? format(new Date(transaction.due_date), 'MMM dd, yyyy') : '-'}
-                    </div>
-                  </div>
-                );
-              }}
-            </FixedSizeList>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
         {hasMore && onLoadMore && (
