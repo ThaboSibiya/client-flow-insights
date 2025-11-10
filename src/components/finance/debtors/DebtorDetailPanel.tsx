@@ -7,6 +7,7 @@ import { Mail, Phone, MapPin, AlertTriangle, FileText } from 'lucide-react';
 import { DebtorCustomer } from '@/hooks/useDebtorData';
 import DebtorNotesPanel from '@/components/finance/DebtorNotesPanel';
 import ReminderHistoryPanel from '@/components/finance/ReminderHistoryPanel';
+import ReminderWorkflow from '@/components/finance/reminders/ReminderWorkflow';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -194,6 +195,21 @@ const DebtorDetailPanel = ({ debtor, onRefresh }: DebtorDetailPanelProps) => {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Collection Workflow */}
+      {debtor.days_overdue && debtor.days_overdue > 0 && (
+        <ReminderWorkflow
+          customerId={debtor.id}
+          daysOverdue={debtor.days_overdue}
+          onSendReminder={(type) => {
+            toast({
+              title: 'Reminder Sent',
+              description: `${type.replace('_', ' ')} reminder has been sent.`,
+            });
+            onRefresh();
+          }}
+        />
       )}
 
       {/* Tabs for detailed information */}
