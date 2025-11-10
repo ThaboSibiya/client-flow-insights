@@ -15,8 +15,7 @@ import {
   FolderKanban,
   Workflow,
   Zap,
-  DollarSign,
-  CalendarCheck
+  DollarSign
 } from 'lucide-react';
 import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import UserProfile from '@/components/auth/UserProfile';
@@ -47,7 +46,6 @@ const Sidebar = () => {
         { path: '/projects', icon: FolderKanban, label: 'Projects' },
         { path: '/quotes', icon: FileText, label: 'Quotes & Invoices' },
         { path: '/finance', icon: DollarSign, label: 'Finance' },
-        { path: '/follow-ups', icon: CalendarCheck, label: 'Follow-ups' },
       ]
     },
     {

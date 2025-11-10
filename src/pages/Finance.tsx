@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import FinanceOverviewTab from '@/components/finance/overview/FinanceOverviewTab';
 import DebtorsTab from '@/components/finance/debtors/DebtorsTab';
 import RemindersTab from '@/components/finance/reminders/RemindersTab';
+import FollowUpTracker from '@/components/finance/reminders/FollowUpTracker';
 import { useDebtorData } from '@/hooks/useDebtorData';
 
 const Finance: React.FC = () => {
@@ -28,7 +29,7 @@ const Finance: React.FC = () => {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-white border border-quikle-silver/20 shadow-sm">
+        <TabsList className="grid w-full grid-cols-4 bg-white border border-quikle-silver/20 shadow-sm">
           <TabsTrigger value="overview" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white">
             Overview
           </TabsTrigger>
@@ -37,6 +38,9 @@ const Finance: React.FC = () => {
           </TabsTrigger>
           <TabsTrigger value="reminders" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white">
             Send Reminders
+          </TabsTrigger>
+          <TabsTrigger value="follow-ups" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white">
+            Follow-ups
           </TabsTrigger>
         </TabsList>
 
@@ -75,6 +79,11 @@ const Finance: React.FC = () => {
           ) : (
             <RemindersTab debtors={debtors} onRefresh={refetch} />
           )}
+        </TabsContent>
+
+        {/* Follow-ups Tab */}
+        <TabsContent value="follow-ups" className="mt-6">
+          <FollowUpTracker />
         </TabsContent>
       </Tabs>
     </div>
