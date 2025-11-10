@@ -1,5 +1,6 @@
 import { DebtorCustomer } from '@/hooks/useDebtorData';
 import BulkReminderPanel from './BulkReminderPanel';
+import ReminderAutomationSettings from './ReminderAutomationSettings';
 
 interface RemindersTabProps {
   debtors: DebtorCustomer[];
@@ -15,6 +16,8 @@ const RemindersTab = ({ debtors, onRefresh }: RemindersTabProps) => {
           Select customers and send bulk payment reminder emails with attached invoices
         </p>
       </div>
+
+      <ReminderAutomationSettings />
 
       <BulkReminderPanel debtors={debtors} onSuccess={onRefresh} />
     </div>
