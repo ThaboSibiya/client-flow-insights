@@ -1,5 +1,8 @@
 project_id = "oquiaxbnkdnpixqhqdfq"
 
+[functions.send-reminder-with-invoices]
+verify_jwt = true
+
 [api]
 enabled = true
 port = 54321

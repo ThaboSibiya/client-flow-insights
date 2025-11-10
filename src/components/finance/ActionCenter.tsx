@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -6,13 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CustomerTransaction } from '@/types/finance';
+import { QuoteInvoice } from '@/types/quote';
 import { DollarSign, FileText, Flag, Send, RefreshCw, Bell, Calculator, Mail } from 'lucide-react';
 import { financeBusinessLogic } from '@/services/financeBusinessLogic';
 import { financeApiService } from '@/services/financeApiService';
 import { toast } from '@/hooks/use-toast';
 import { generateStatementPDF } from '@/utils/pdfExport';
 import { financeEmailService } from '@/services/financeEmailService';
+import { invoiceService } from '@/services/invoiceService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ActionCenterProps {
   customerId: string;
@@ -32,6 +36,8 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [invoices, setInvoices] = useState<QuoteInvoice[]>([]);
+  const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<string[]>([]);
 
   const reminderTemplates = {
     payment_reminder: {
@@ -108,22 +114,44 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
     }
   };
 
+  useEffect(() => {
+    const fetchCustomerInvoices = async () => {
+      try {
+        const data = await invoiceService.getCustomerInvoices(customerId);
+        setInvoices(data);
+      } catch (error) {
+        console.error('Failed to fetch invoices:', error);
+      }
+    };
+
+    if (reminderDialogOpen) {
+      fetchCustomerInvoices();
+    }
+  }, [customerId, reminderDialogOpen]);
+
   const handleSendReminder = async () => {
     setIsProcessing(true);
     try {
-      await financeBusinessLogic.sendNotification(
-        customerId, 
-        reminderType,
-        customMessage || undefined
-      );
+      const { data, error } = await supabase.functions.invoke('send-reminder-with-invoices', {
+        body: {
+          customerId,
+          reminderType,
+          customMessage: customMessage || undefined,
+          invoiceIds: selectedInvoiceIds
+        }
+      });
+
+      if (error) throw error;
+
       toast({
         title: "Reminder Sent",
-        description: `${getReminderTypeLabel(reminderType)} sent successfully`,
+        description: `${getReminderTypeLabel(reminderType)} sent successfully${selectedInvoiceIds.length > 0 ? ` with ${selectedInvoiceIds.length} invoice(s) attached` : ''}`,
       });
       setReminderDialogOpen(false);
       setCustomMessage('');
       setSelectedTemplate('');
       setReminderType('payment_reminder');
+      setSelectedInvoiceIds([]);
     } catch (error) {
       toast({
         title: "Error",
@@ -412,6 +440,43 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
                     rows={5}
                   />
                 </div>
+                
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Attach Invoices (Optional)</label>
+                  {invoices.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No unpaid invoices available</p>
+                  ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto border rounded-md p-3">
+                      {invoices.map((invoice) => (
+                        <div key={invoice.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={invoice.id}
+                            checked={selectedInvoiceIds.includes(invoice.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedInvoiceIds([...selectedInvoiceIds, invoice.id]);
+                              } else {
+                                setSelectedInvoiceIds(selectedInvoiceIds.filter(id => id !== invoice.id));
+                              }
+                            }}
+                          />
+                          <label
+                            htmlFor={invoice.id}
+                            className="text-sm flex-1 cursor-pointer"
+                          >
+                            {invoice.number} - ${invoice.total.toFixed(2)} ({invoice.status})
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {selectedInvoiceIds.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {selectedInvoiceIds.length} invoice(s) will be attached as PDF
+                    </p>
+                  )}
+                </div>
+
                 <Button 
                   onClick={handleSendReminder} 
                   className="w-full"
