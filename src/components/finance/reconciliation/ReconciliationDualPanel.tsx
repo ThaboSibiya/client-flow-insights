@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Link2, Sparkles, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Layers, MessageSquare } from "lucide-react";
+import { Link2, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Layers, MessageSquare } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import FloatingActionBar from './FloatingActionBar';
 import ReconciliationNotes from './ReconciliationNotes';
@@ -58,7 +58,6 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
   const [selectedPayments, setSelectedPayments] = useState<Set<string>>(new Set());
   const [batchMode, setBatchMode] = useState(false);
   const [isMatching, setIsMatching] = useState(false);
-  const [isAutoMatching, setIsAutoMatching] = useState(false);
   const [customerMap, setCustomerMap] = useState<CustomerMap>({});
   const [invoiceSortConfig, setInvoiceSortConfig] = useState<SortConfig>({ field: null, direction: null });
   const [paymentSortConfig, setPaymentSortConfig] = useState<SortConfig>({ field: null, direction: null });
@@ -239,39 +238,6 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
       setIsMatching(false);
     }
   };
-
-  const handleAutoMatch = async () => {
-    if (!user) return;
-
-    setIsAutoMatching(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('finance-reconcile-transactions', {
-        body: { 
-          customerId: null, // Match for all customers
-          autoMatch: true 
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Auto-Match Complete",
-        description: `Matched ${data?.results?.auto_matched || 0} payments automatically`,
-      });
-
-      onReconcile();
-    } catch (error) {
-      console.error('Auto-match error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to auto-match transactions",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAutoMatching(false);
-    }
-  };
-
   const handleMarkPartial = async () => {
     if (!selectedInvoice || !user) return;
 
@@ -812,7 +778,7 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
             setSelectedPayments(new Set());
           }
         }}
-        isProcessing={isMatching || isAutoMatching}
+        isProcessing={isMatching}
       />
 
       {/* Action Buttons and Legend */}
@@ -825,25 +791,18 @@ const ReconciliationDualPanel: React.FC<ReconciliationDualPanelProps> = ({
                   Reconciliation Actions
                 </h3>
                 <p className="text-sm text-quikle-slate">
-                  Select an invoice and payment to match manually, or use AI auto-matching
+                  Select an invoice and payment to match manually
                 </p>
               </div>
               <div className="flex gap-3">
                 <Button
                   onClick={handleManualMatch}
                   disabled={!selectedInvoice || !selectedPayment || isMatching}
-                  variant="outline"
+                  variant="default"
+                  className="bg-gradient-to-r from-quikle-primary to-quikle-secondary"
                 >
                   <Link2 className="h-4 w-4 mr-2" />
                   {isMatching ? 'Matching...' : 'Match Selected'}
-                </Button>
-                <Button
-                  onClick={handleAutoMatch}
-                  disabled={isAutoMatching}
-                  className="bg-gradient-to-r from-quikle-primary to-quikle-secondary"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  {isAutoMatching ? 'Auto-Matching...' : 'AI Auto-Match'}
                 </Button>
               </div>
             </div>

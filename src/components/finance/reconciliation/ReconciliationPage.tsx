@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RefreshCw } from "lucide-react";
@@ -10,12 +10,9 @@ import ReconciliationDualPanel from './ReconciliationDualPanel';
 import ReconciliationHistory from './ReconciliationHistory';
 import ReconciliationAnalyticsDashboard from './ReconciliationAnalyticsDashboard';
 import RecentReconciliationActivity from './RecentReconciliationActivity';
-import MatchSuggestions, { MatchSuggestion } from './MatchSuggestions';
+
 import { useReconciliationData } from '@/hooks/useReconciliationData';
 import { Skeleton } from "@/components/ui/skeleton";
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 
 export interface ReconciliationFilters {
   dateFrom: Date | undefined;
@@ -25,8 +22,6 @@ export interface ReconciliationFilters {
 }
 
 const ReconciliationPage: React.FC = () => {
-  const { toast } = useToast();
-  const { user } = useAuth();
   const [filters, setFilters] = useState<ReconciliationFilters>({
     dateFrom: undefined,
     dateTo: undefined,
@@ -44,85 +39,7 @@ const ReconciliationPage: React.FC = () => {
     refetch 
   } = useReconciliationData(filters);
 
-  const [suggestions, setSuggestions] = useState<MatchSuggestion[]>([]);
-  const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
 
-  // Fetch AI suggestions when data changes
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (!user || invoices.length === 0 || payments.length === 0) {
-        setSuggestions([]);
-        return;
-      }
-
-      // Only get unallocated payments and unpaid invoices
-      const unallocatedPayments = payments.filter(p => !p.invoice_id);
-      const unpaidInvoices = invoices.filter(i => 
-        i.status !== 'paid' && i.status !== 'cancelled'
-      );
-
-      if (unallocatedPayments.length === 0 || unpaidInvoices.length === 0) {
-        setSuggestions([]);
-        return;
-      }
-
-      setIsSuggestionsLoading(true);
-      try {
-        const { data, error } = await supabase.functions.invoke('finance-ai-match-suggestions', {
-          body: {
-            invoices: unpaidInvoices,
-            payments: unallocatedPayments,
-            customerMap,
-          }
-        });
-
-        if (error) throw error;
-
-        setSuggestions(data?.suggestions || []);
-      } catch (error) {
-        console.error('Error fetching AI suggestions:', error);
-        toast({
-          title: "AI Suggestions Failed",
-          description: "Could not generate match suggestions. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsSuggestionsLoading(false);
-      }
-    };
-
-    fetchSuggestions();
-  }, [invoices, payments, customerMap, user, toast]);
-
-  const handleAcceptSuggestion = async (suggestion: MatchSuggestion) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('payments')
-        .update({ invoice_id: suggestion.invoice_id })
-        .eq('id', suggestion.payment_id)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      // Remove from suggestions
-      setSuggestions(prev => prev.filter(s => 
-        s.payment_id !== suggestion.payment_id
-      ));
-
-      refetch();
-    } catch (error) {
-      console.error('Error accepting suggestion:', error);
-      throw error;
-    }
-  };
-
-  const handleRejectSuggestion = (suggestion: MatchSuggestion) => {
-    setSuggestions(prev => prev.filter(s => 
-      s.payment_id !== suggestion.payment_id
-    ));
-  };
 
   return (
     <div className="space-y-6">
@@ -191,17 +108,9 @@ const ReconciliationPage: React.FC = () => {
             </Card>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                {/* AI Match Suggestions */}
-                <MatchSuggestions 
-                  suggestions={suggestions}
-                  onAccept={handleAcceptSuggestion}
-                  onReject={handleRejectSuggestion}
-                  isLoading={isSuggestionsLoading}
-                />
-
+              <div className="lg:col-span-2">
                 {/* Dual Panel */}
-                <ReconciliationDualPanel 
+                <ReconciliationDualPanel
                   invoices={invoices} 
                   payments={payments}
                   onReconcile={refetch}
