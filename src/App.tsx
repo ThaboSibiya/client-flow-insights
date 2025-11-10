@@ -17,6 +17,7 @@ import Onboarding from "./pages/Onboarding";
 import Pipeline from "./pages/Pipeline";
 import Analytics from "./pages/Analytics";
 import QuoteInvoice from "./pages/QuoteInvoice";
+import Finance from "./pages/Finance";
 import Employees from "./pages/Employees";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -116,6 +117,11 @@ const App = () => (
                       <Route path="quotes" element={
                         <ErrorBoundary>
                           <QuoteInvoice />
+                        </ErrorBoundary>
+                      } />
+                      <Route path="finance" element={
+                        <ErrorBoundary>
+                          <Finance />
                         </ErrorBoundary>
                       } />
                       <Route path="employees" element={

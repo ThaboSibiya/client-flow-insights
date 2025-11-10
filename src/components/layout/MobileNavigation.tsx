@@ -11,7 +11,9 @@ import {
   Menu,
   Workflow,
   Zap,
-  Bot
+  Bot,
+  DollarSign,
+  FileText
 } from 'lucide-react';
 import {
   Sheet,
@@ -39,6 +41,8 @@ const MobileNavigation = () => {
     { path: '/customers', icon: Users, label: 'Customers' },
     { path: '/conversations', icon: MessageCircle, label: 'Conversations', badge: 3 },
     { path: '/pipeline', icon: Bot, label: 'Pipeline' },
+    { path: '/quotes', icon: FileText, label: 'Quotes & Invoices' },
+    { path: '/finance', icon: DollarSign, label: 'Finance' },
     { path: '/automations', icon: Zap, label: 'Automations' },
     { path: '/integrations', icon: Workflow, label: 'Integrations' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
