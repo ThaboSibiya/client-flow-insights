@@ -34,7 +34,7 @@ const TicketsList = ({
         <TicketCard
           key={ticket.id}
           ticket={ticket}
-          onStatusUpdate={onUpdateTicketStatus}
+          onStatusUpdate={(ticketId, status) => onUpdateTicketStatus(ticketId, status)}
           onAddTimeEntry={onAddTimeEntry}
           customerEmail={customerEmail}
           customerName={customerName}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import { Customer, CustomerTicket, TicketStatus } from '@/types/customer';
 import { Badge } from '@/components/ui/badge';
 import NewTicketForm from './tickets/NewTicketForm';
 import TicketsList from './tickets/TicketsList';
+import { useTicketEvents } from '@/hooks/useTicketEvents';
 
 interface TicketManagementDialogProps {
   customer: Customer | null;
@@ -30,6 +31,23 @@ const TicketManagementDialog = ({
   onAddTimeEntry 
 }: TicketManagementDialogProps) => {
   const [showNewTicketForm, setShowNewTicketForm] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { onCustomerTicketsRefresh, onTicketCreated, onTicketStatusChanged } = useTicketEvents();
+
+  // Listen for ticket-related events to refresh the dialog
+  useEffect(() => {
+    if (!customer?.id) return;
+
+    const handleRefresh = (data: any) => {
+      if (data?.customerId === customer.id) {
+        setRefreshKey(prev => prev + 1);
+      }
+    };
+
+    onCustomerTicketsRefresh(handleRefresh);
+    onTicketCreated(handleRefresh);
+    onTicketStatusChanged(handleRefresh);
+  }, [customer?.id, onCustomerTicketsRefresh, onTicketCreated, onTicketStatusChanged]);
 
   const handleCreateTicket = (ticketData: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>) => {
     if (customer) {
@@ -81,6 +99,7 @@ const TicketManagementDialog = ({
           )}
 
           <TicketsList
+            key={refreshKey}
             tickets={customer?.activeTickets || []}
             onUpdateTicketStatus={onUpdateTicketStatus}
             onAddTimeEntry={onAddTimeEntry}

@@ -1,8 +1,9 @@
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useCRM } from '@/context/CRMContext';
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
+import { ticketEventBus, TICKET_EVENTS } from '@/stores/ticketEventBus';
 import { 
   TicketPipelineStage, 
   TicketPipelineItem, 
@@ -12,6 +13,7 @@ import {
 export const useTicketPipeline = (): TicketPipelineHookReturn => {
   const { customers, updateTicketStatus } = useCRM();
   const allTickets = customers.flatMap(c => c.activeTickets || []);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const [stages, setStages] = useState<TicketPipelineStage[]>(() => [
     {
@@ -58,6 +60,15 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
   const [isAddStageOpen, setIsAddStageOpen] = useState<boolean>(false);
   const [activeItem, setActiveItem] = useState<TicketPipelineItem | null>(null);
 
+  // Listen for ticket events to refresh pipeline
+  useEffect(() => {
+    const unsubscribe = ticketEventBus.on(TICKET_EVENTS.PIPELINE_REFRESH, () => {
+      setRefreshTrigger(prev => prev + 1);
+    });
+
+    return unsubscribe;
+  }, []);
+
   const handleTicketMove = useCallback(async (ticketId: string, fromStageId: string, toStageId: string) => {
     // Update local state immediately for responsive UI
     setStages(prevStages => {
@@ -89,6 +100,14 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
     if (newStatus) {
       // Save to Supabase
       await updateTicketStatus(ticketId, newStatus);
+      
+      // Emit ticket moved to stage event
+      ticketEventBus.emit(TICKET_EVENTS.TICKET_MOVED_TO_STAGE, { 
+        ticketId, 
+        fromStageId, 
+        toStageId,
+        newStatus
+      });
     }
   }, [updateTicketStatus]);
 

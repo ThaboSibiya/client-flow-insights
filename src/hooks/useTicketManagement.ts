@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { CustomerTicket, TicketStatus, useCRM } from '@/context/CRMContext';
 import { TimeEntry } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
+import { ticketEventBus, TICKET_EVENTS } from '@/stores/ticketEventBus';
 
 export const useTicketManagement = () => {
   const { createTicket, updateTicketStatus, addTimeEntry } = useCRM();
@@ -16,7 +17,15 @@ export const useTicketManagement = () => {
     setIsCreating(true);
     try {
       // Create the ticket
-      await createTicket(customerId, ticketData);
+      const newTicket = await createTicket(customerId, ticketData);
+      
+      // Emit ticket created event
+      ticketEventBus.emit(TICKET_EVENTS.TICKET_CREATED, { 
+        customerId, 
+        ticket: newTicket 
+      });
+      ticketEventBus.emit(TICKET_EVENTS.CUSTOMER_TICKETS_REFRESH, { customerId });
+      ticketEventBus.emit(TICKET_EVENTS.PIPELINE_REFRESH);
       
       toast({
         title: "Success",
@@ -36,10 +45,23 @@ export const useTicketManagement = () => {
     }
   };
 
-  const handleUpdateTicketStatus = async (ticketId: string, status: TicketStatus) => {
+  const handleUpdateTicketStatus = async (ticketId: string, status: TicketStatus, customerId?: string) => {
     setIsUpdating(true);
     try {
       await updateTicketStatus(ticketId, status);
+      
+      // Emit status change event
+      ticketEventBus.emit(TICKET_EVENTS.TICKET_STATUS_CHANGED, { 
+        ticketId, 
+        status,
+        customerId 
+      });
+      ticketEventBus.emit(TICKET_EVENTS.TICKET_UPDATED, { ticketId, customerId });
+      if (customerId) {
+        ticketEventBus.emit(TICKET_EVENTS.CUSTOMER_TICKETS_REFRESH, { customerId });
+      }
+      ticketEventBus.emit(TICKET_EVENTS.PIPELINE_REFRESH);
+      
       toast({
         title: "Success",
         description: `Ticket status updated to ${status}`,
@@ -58,10 +80,20 @@ export const useTicketManagement = () => {
 
   const handleAddTimeEntry = async (
     ticketId: string, 
-    timeEntryData: Omit<TimeEntry, 'id' | 'ticketId' | 'createdAt'>
+    timeEntryData: Omit<TimeEntry, 'id' | 'ticketId' | 'createdAt'>,
+    customerId?: string
   ) => {
     try {
       await addTimeEntry(ticketId, timeEntryData);
+      
+      // Emit time entry added event
+      ticketEventBus.emit(TICKET_EVENTS.TIME_ENTRY_ADDED, { 
+        ticketId, 
+        timeEntry: timeEntryData,
+        customerId 
+      });
+      ticketEventBus.emit(TICKET_EVENTS.TICKET_UPDATED, { ticketId, customerId });
+      
       toast({
         title: "Success",
         description: "Time entry added successfully",

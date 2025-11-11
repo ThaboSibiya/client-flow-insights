@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { ticketEventBus, TICKET_EVENTS } from '@/stores/ticketEventBus';
 
 export interface TicketComment {
   id: string;
@@ -40,6 +41,12 @@ export const addTicketComment = async (
       console.error('Error adding comment:', error.message);
       throw error;
     }
+
+    // Emit comment added event
+    ticketEventBus.emit(TICKET_EVENTS.COMMENT_ADDED, { 
+      ticketId, 
+      comment: data 
+    });
 
     return data;
   } catch (error: any) {
@@ -99,6 +106,9 @@ export const updateTicketComment = async (
       throw error;
     }
 
+    // Emit comment updated event
+    ticketEventBus.emit(TICKET_EVENTS.COMMENT_UPDATED, { commentId, comment });
+
     return true;
   } catch (error: any) {
     console.error('Error in updateTicketComment:', error.message);
@@ -125,6 +135,9 @@ export const deleteTicketComment = async (commentId: string): Promise<boolean> =
       console.error('Error deleting comment:', error.message);
       throw error;
     }
+
+    // Emit comment deleted event
+    ticketEventBus.emit(TICKET_EVENTS.COMMENT_DELETED, { commentId });
 
     return true;
   } catch (error: any) {
