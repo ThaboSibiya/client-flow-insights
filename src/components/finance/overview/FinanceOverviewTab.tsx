@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, TrendingUp, Users, DollarSign } from 'lucide-react';
+import QuickActions from './QuickActions';
+import { DebtorCustomer } from '@/hooks/useDebtorData';
 
 interface FinanceOverviewTabProps {
   stats: {
@@ -9,9 +11,20 @@ interface FinanceOverviewTabProps {
     criticalCount: number;
   };
   loading: boolean;
+  debtors: DebtorCustomer[];
+  onSendBulkReminders: () => void;
+  onReviewHighRisk: () => void;
+  onGenerateReport: () => void;
 }
 
-const FinanceOverviewTab = ({ stats, loading }: FinanceOverviewTabProps) => {
+const FinanceOverviewTab = ({ 
+  stats, 
+  loading, 
+  debtors,
+  onSendBulkReminders,
+  onReviewHighRisk,
+  onGenerateReport 
+}: FinanceOverviewTabProps) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -107,33 +120,13 @@ const FinanceOverviewTab = ({ stats, loading }: FinanceOverviewTabProps) => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 border rounded-lg hover:bg-accent/50 cursor-pointer transition-colors">
-              <h4 className="font-semibold text-sm">Send Bulk Reminders</h4>
-              <p className="text-xs text-muted-foreground mt-1">
-                Send payment reminders to all overdue customers
-              </p>
-            </div>
-            <div className="p-4 border rounded-lg hover:bg-accent/50 cursor-pointer transition-colors">
-              <h4 className="font-semibold text-sm">Review High Risk</h4>
-              <p className="text-xs text-muted-foreground mt-1">
-                View and manage high-risk accounts
-              </p>
-            </div>
-            <div className="p-4 border rounded-lg hover:bg-accent/50 cursor-pointer transition-colors">
-              <h4 className="font-semibold text-sm">Generate Reports</h4>
-              <p className="text-xs text-muted-foreground mt-1">
-                Export debtor aging and collection reports
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <QuickActions 
+        stats={stats}
+        debtors={debtors}
+        onSendBulkReminders={onSendBulkReminders}
+        onReviewHighRisk={onReviewHighRisk}
+        onGenerateReport={onGenerateReport}
+      />
     </div>
   );
 };

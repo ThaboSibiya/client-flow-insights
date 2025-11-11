@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import FinanceOverviewTab from '@/components/finance/overview/FinanceOverviewTab';
@@ -6,14 +6,52 @@ import DebtorsTab from '@/components/finance/debtors/DebtorsTab';
 import RemindersTab from '@/components/finance/reminders/RemindersTab';
 import FollowUpTracker from '@/components/finance/reminders/FollowUpTracker';
 import { useDebtorData } from '@/hooks/useDebtorData';
+import { generateFinanceReport, downloadReport } from '@/utils/financeReportGenerator';
+import { useToast } from '@/hooks/use-toast';
 
 const Finance: React.FC = () => {
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('overview');
   const {
     debtors,
     loading,
     stats,
     refetch
   } = useDebtorData();
+
+  const handleSendBulkReminders = () => {
+    setActiveTab('reminders');
+    toast({
+      title: 'Bulk Reminders',
+      description: 'Select customers to send payment reminders',
+    });
+  };
+
+  const handleReviewHighRisk = () => {
+    setActiveTab('debtors');
+    toast({
+      title: 'High Risk Accounts',
+      description: 'Showing high-risk and critical accounts',
+    });
+  };
+
+  const handleGenerateReport = () => {
+    try {
+      const report = generateFinanceReport(debtors);
+      downloadReport(report);
+      toast({
+        title: 'Report Generated',
+        description: 'Debtor aging report has been downloaded successfully',
+      });
+    } catch (error) {
+      console.error('Error generating report:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate report',
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -28,7 +66,7 @@ const Finance: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4 bg-white border border-quikle-silver/20 shadow-sm">
           <TabsTrigger value="overview" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white">
             Overview
@@ -54,7 +92,14 @@ const Finance: React.FC = () => {
               <Skeleton className="h-32" />
             </div>
           ) : (
-            <FinanceOverviewTab stats={stats} loading={loading} />
+            <FinanceOverviewTab 
+              stats={stats} 
+              loading={loading}
+              debtors={debtors}
+              onSendBulkReminders={handleSendBulkReminders}
+              onReviewHighRisk={handleReviewHighRisk}
+              onGenerateReport={handleGenerateReport}
+            />
           )}
         </TabsContent>
 
