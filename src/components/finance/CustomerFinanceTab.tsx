@@ -1,5 +1,6 @@
 import { useCustomerFinance } from '@/hooks/useCustomerFinance';
 import { useFinanceBackend } from '@/hooks/useFinanceBackend';
+import { useFinanceEvents } from '@/hooks/useFinanceEvents';
 import AccountSnapshot from './AccountSnapshot';
 import DebtorNotesPanel from './DebtorNotesPanel';
 import TransactionLedger from './TransactionLedger';
@@ -43,6 +44,22 @@ const CustomerFinanceTab = ({ customerId, customerName }: CustomerFinanceTabProp
     refreshLegacyData();
     refreshBackendData();
   };
+
+  // Listen for finance events and auto-refresh
+  useFinanceEvents({
+    onReminderSent: (data) => {
+      if (data?.customerId === customerId) {
+        console.log('Reminder sent for this customer - refreshing data');
+        refreshAllData();
+      }
+    },
+    onCustomerRefresh: (refreshCustomerId) => {
+      if (refreshCustomerId === customerId) {
+        console.log('Customer-specific refresh triggered');
+        refreshAllData();
+      }
+    },
+  });
 
   if (loading) {
     return (

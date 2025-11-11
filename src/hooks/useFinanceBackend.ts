@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Invoice, Payment, FinanceNote, AccountFlag } from '@/types/financeBackend';
 import { toast } from '@/hooks/use-toast';
 import { financeAuditService } from '@/services/financeAuditService';
+import { financeEventBus, FINANCE_EVENTS, useFinanceStore } from '@/stores/financeStore';
 
 export const useFinanceBackend = (customerId: string) => {
   const { user } = useAuth();
@@ -143,6 +144,12 @@ export const useFinanceBackend = (customerId: string) => {
       // Log payment action
       await financeAuditService.logPayment(data, customerId);
       
+      // Emit event for cross-page communication
+      financeEventBus.emit(FINANCE_EVENTS.PAYMENT_RECORDED, { customerId, payment: data });
+      
+      // Invalidate customer cache
+      useFinanceStore.getState().invalidateCustomer(customerId);
+      
       toast({
         title: "Success",
         description: "Payment recorded successfully"
@@ -258,6 +265,17 @@ export const useFinanceBackend = (customerId: string) => {
         );
       }
       
+      // Emit event for cross-page communication
+      financeEventBus.emit(FINANCE_EVENTS.INVOICE_UPDATED, { 
+        customerId, 
+        invoiceId, 
+        oldStatus: oldInvoice?.status, 
+        newStatus: status 
+      });
+      
+      // Invalidate customer cache
+      useFinanceStore.getState().invalidateCustomer(customerId);
+      
       await fetchInvoices();
       toast({
         title: "Success",
@@ -302,6 +320,12 @@ export const useFinanceBackend = (customerId: string) => {
           customerId
         );
       }
+      
+      // Emit event for cross-page communication
+      financeEventBus.emit(FINANCE_EVENTS.FLAG_UPDATED, { customerId, flagId, status: 'resolved' });
+      
+      // Invalidate customer cache
+      useFinanceStore.getState().invalidateCustomer(customerId);
       
       await fetchAccountFlags();
       toast({

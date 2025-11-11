@@ -9,6 +9,7 @@ import { Mail, Send } from 'lucide-react';
 import { DebtorCustomer } from '@/hooks/useDebtorData';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { financeEventBus, FINANCE_EVENTS } from '@/stores/financeStore';
 
 interface BulkReminderPanelProps {
   debtors: DebtorCustomer[];
@@ -97,6 +98,11 @@ Please contact us immediately to resolve this matter.`,
           console.error(`Error sending reminder to ${debtor.name}:`, error);
         }
       }
+
+      // Emit events for all affected customers
+      selectedDebtors.forEach(debtorId => {
+        financeEventBus.emit(FINANCE_EVENTS.REMINDER_SENT, { customerId: debtorId, reminderType });
+      });
 
       toast({
         title: 'Reminders Sent',

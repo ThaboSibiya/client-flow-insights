@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useFinanceEvents } from './useFinanceEvents';
+import { useFinanceStore } from '@/stores/financeStore';
 
 export interface DebtorCustomer {
   id: string;
@@ -117,6 +119,31 @@ export const useDebtorData = () => {
   useEffect(() => {
     fetchDebtorData();
   }, [user]);
+
+  // Listen for finance events from other pages
+  useFinanceEvents({
+    onPaymentRecorded: () => {
+      console.log('Payment recorded - refreshing debtor data');
+      fetchDebtorData();
+    },
+    onInvoiceUpdated: () => {
+      console.log('Invoice updated - refreshing debtor data');
+      fetchDebtorData();
+    },
+    onReminderSent: () => {
+      console.log('Reminder sent - refreshing debtor data');
+      fetchDebtorData();
+    },
+    onGlobalRefresh: () => {
+      console.log('Global refresh triggered - refreshing debtor data');
+      fetchDebtorData();
+    },
+  });
+
+  // Update global stats when data changes
+  useEffect(() => {
+    useFinanceStore.getState().updateStats(stats);
+  }, [stats]);
 
   return {
     debtors,
