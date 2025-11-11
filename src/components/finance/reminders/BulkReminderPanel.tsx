@@ -125,9 +125,9 @@ Please contact us immediately to resolve this matter.`,
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-ZA', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'ZAR',
     }).format(amount);
   };
 

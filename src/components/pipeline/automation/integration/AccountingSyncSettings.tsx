@@ -204,11 +204,12 @@ const AccountingSyncSettings = ({ settings, onUpdateSettings }: AccountingSyncSe
                 </div>
                 <div className="space-y-2">
                   <Label>Currency</Label>
-                  <Select defaultValue="USD">
+                  <Select defaultValue="ZAR">
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="ZAR">ZAR - South African Rand</SelectItem>
                       <SelectItem value="USD">USD - US Dollar</SelectItem>
                       <SelectItem value="EUR">EUR - Euro</SelectItem>
                       <SelectItem value="GBP">GBP - British Pound</SelectItem>

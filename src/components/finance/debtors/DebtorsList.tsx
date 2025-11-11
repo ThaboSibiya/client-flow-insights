@@ -17,9 +17,9 @@ const DebtorsList = ({ debtors, selectedDebtor, onSelectDebtor }: DebtorsListPro
   const [riskFilter, setRiskFilter] = useState<string>('all');
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-ZA', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'ZAR',
     }).format(amount);
   };
 

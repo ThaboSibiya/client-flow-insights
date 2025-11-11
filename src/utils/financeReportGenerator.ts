@@ -89,7 +89,7 @@ export const generateFinanceReport = (debtors: DebtorCustomer[]): FinanceReport 
 };
 
 export const exportReportAsCSV = (report: FinanceReport): string => {
-  const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
+  const formatCurrency = (amount: number) => `R${amount.toFixed(2)}`;
   
   let csv = 'Debtor Aging and Collection Report\n';
   csv += `Generated: ${new Date(report.generatedAt).toLocaleString()}\n\n`;
