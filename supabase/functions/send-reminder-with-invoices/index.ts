@@ -4,9 +4,20 @@ import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+const allowedOrigins = [
+  'https://e1036b92-283a-4a65-9473-d759ed300ea1.lovableproject.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+const getCorsHeaders = (origin: string | null) => {
+  const isAllowed = origin && allowedOrigins.includes(origin);
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
+  };
 };
 
 interface ReminderRequest {
@@ -52,78 +63,57 @@ const generateInvoicePDF = (invoice: any): string => {
       
       <div class="invoice-details">
         <div>
-          <h3>BILL TO</h3>
-          <p><strong>${invoice.customer_name || 'N/A'}</strong></p>
-          <p>${invoice.customer_email || ''}</p>
+          <h3>Invoice Date</h3>
+          <p>${new Date(invoice.created_at).toLocaleDateString()}</p>
         </div>
         <div>
-          <h3>INVOICE DETAILS</h3>
-          <p><strong>Issue Date:</strong> ${new Date(invoice.issue_date).toLocaleDateString()}</p>
-          <p><strong>Due Date:</strong> ${invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : 'N/A'}</p>
-          <p><strong>Status:</strong> ${invoice.status.toUpperCase()}</p>
+          <h3>Due Date</h3>
+          <p>${invoice.valid_until ? new Date(invoice.valid_until).toLocaleDateString() : 'N/A'}</p>
+        </div>
+        <div>
+          <h3>Status</h3>
+          <p style="text-transform: capitalize; font-weight: 600;">${invoice.status}</p>
         </div>
       </div>
-      
-      ${invoice.subject ? `<p style="margin-bottom: 20px;"><strong>Subject:</strong> ${invoice.subject}</p>` : ''}
-      
+
       <table>
         <thead>
           <tr>
             <th>Description</th>
-            <th class="text-right">Qty</th>
-            <th class="text-right">Rate</th>
+            <th class="text-right">Quantity</th>
+            <th class="text-right">Unit Price</th>
             <th class="text-right">Amount</th>
           </tr>
         </thead>
         <tbody>
           ${items.map((item: any) => `
             <tr>
-              <td>${item.description}</td>
-              <td class="text-right">${item.quantity}</td>
-              <td class="text-right">$${item.rate.toFixed(2)}</td>
-              <td class="text-right">$${(item.quantity * item.rate).toFixed(2)}</td>
+              <td>${item.description || 'N/A'}</td>
+              <td class="text-right">${item.quantity || 0}</td>
+              <td class="text-right">R${parseFloat(item.unit_price || 0).toFixed(2)}</td>
+              <td class="text-right">R${(parseFloat(item.unit_price || 0) * (item.quantity || 0)).toFixed(2)}</td>
             </tr>
           `).join('')}
         </tbody>
       </table>
-      
+
       <div class="totals">
         <div>
           <span>Subtotal:</span>
-          <span>$${invoice.subtotal.toFixed(2)}</span>
+          <span>R${parseFloat(invoice.subtotal || invoice.total || 0).toFixed(2)}</span>
         </div>
-        ${invoice.discount > 0 ? `
-          <div>
-            <span>Discount:</span>
-            <span>-$${invoice.discount.toFixed(2)}</span>
-          </div>
-        ` : ''}
-        ${invoice.tax > 0 ? `
-          <div>
-            <span>Tax:</span>
-            <span>$${invoice.tax.toFixed(2)}</span>
-          </div>
+        ${invoice.tax_amount ? `
+        <div>
+          <span>Tax:</span>
+          <span>R${parseFloat(invoice.tax_amount).toFixed(2)}</span>
+        </div>
         ` : ''}
         <div class="total">
           <span>Total:</span>
-          <span>$${invoice.total.toFixed(2)}</span>
+          <span>R${parseFloat(invoice.total || 0).toFixed(2)}</span>
         </div>
       </div>
-      
-      ${invoice.notes ? `
-        <div style="margin-top: 30px;">
-          <h3 style="color: #666; margin-bottom: 10px;">Notes</h3>
-          <p style="line-height: 1.6;">${invoice.notes}</p>
-        </div>
-      ` : ''}
-      
-      ${invoice.terms ? `
-        <div style="margin-top: 20px;">
-          <h3 style="color: #666; margin-bottom: 10px;">Terms & Conditions</h3>
-          <p style="line-height: 1.6; font-size: 12px;">${invoice.terms}</p>
-        </div>
-      ` : ''}
-      
+
       <div class="footer">
         <p>Thank you for your business!</p>
       </div>
@@ -133,16 +123,16 @@ const generateInvoicePDF = (invoice: any): string => {
 };
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('Starting send-reminder-with-invoices function');
-    
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       {
         global: {
           headers: { Authorization: req.headers.get("Authorization")! },
@@ -152,168 +142,144 @@ serve(async (req) => {
 
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
-      throw new Error("Unauthorized");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const { customerId, reminderType, customMessage, invoiceIds = [] }: ReminderRequest = await req.json();
-    console.log('Request params:', { customerId, reminderType, invoiceCount: invoiceIds.length });
+    const { customerId, reminderType, customMessage, invoiceIds }: ReminderRequest = await req.json();
 
-    // Fetch customer details
+    console.log("Processing reminder for customer:", customerId);
+
+    // Get customer details
     const { data: customer, error: customerError } = await supabaseClient
-      .from('customers')
-      .select('*')
-      .eq('id', customerId)
-      .eq('user_id', user.id)
+      .from("customers")
+      .select("*")
+      .eq("id", customerId)
+      .eq("user_id", user.id)
       .single();
 
     if (customerError || !customer) {
-      throw new Error('Customer not found');
+      return new Response(
+        JSON.stringify({ error: "Customer not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    console.log('Customer found:', customer.name);
-
-    // Fetch invoices if IDs provided
-    let invoices: any[] = [];
-    if (invoiceIds.length > 0) {
-      const { data: fetchedInvoices, error: invoicesError } = await supabaseClient
-        .from('quote_invoices')
-        .select('*, quote_invoice_items(*)')
-        .in('id', invoiceIds)
-        .eq('user_id', user.id);
-
-      if (invoicesError) {
-        console.error('Error fetching invoices:', invoicesError);
-      } else {
-        invoices = fetchedInvoices || [];
-        console.log('Fetched invoices:', invoices.length);
-      }
+    // Get invoices to attach (either specified ones or all unpaid)
+    let invoicesToAttach: any[] = [];
+    if (invoiceIds && invoiceIds.length > 0) {
+      const { data: invoices } = await supabaseClient
+        .from("quotes_invoices")
+        .select("*, quote_invoice_items(*)")
+        .in("id", invoiceIds)
+        .eq("customer_id", customerId)
+        .eq("user_id", user.id);
+      
+      invoicesToAttach = invoices || [];
+    } else {
+      // Get all unpaid invoices
+      const { data: invoices } = await supabaseClient
+        .from("quotes_invoices")
+        .select("*, quote_invoice_items(*)")
+        .eq("customer_id", customerId)
+        .eq("user_id", user.id)
+        .in("status", ["pending", "sent", "overdue"]);
+      
+      invoicesToAttach = invoices || [];
     }
 
-    // Generate email subject based on reminder type
-    let subject = '';
+    // Generate subject and message based on reminder type
+    let subject = "";
+    let message = customMessage || "";
+
     switch (reminderType) {
-      case 'payment_reminder':
-        subject = 'Payment Reminder';
+      case "payment_reminder":
+        subject = "Payment Reminder - Outstanding Invoice(s)";
+        if (!customMessage) {
+          message = `Dear ${customer.name},\n\nThis is a friendly reminder about your outstanding invoice(s). Please find the details attached.\n\nIf you have any questions, please don't hesitate to contact us.\n\nBest regards`;
+        }
         break;
-      case 'overdue_payment':
-        subject = 'Overdue Payment Notice';
+      case "overdue_payment":
+        subject = "URGENT: Overdue Payment Notice";
+        if (!customMessage) {
+          message = `Dear ${customer.name},\n\nWe notice that your payment is overdue. Please review the attached invoice(s) and arrange payment at your earliest convenience.\n\nIf you have already made the payment, please disregard this notice.\n\nBest regards`;
+        }
         break;
-      case 'account_flagged':
-        subject = 'Account Review Required';
+      case "account_flagged":
+        subject = "Important: Account Review Required";
+        if (!customMessage) {
+          message = `Dear ${customer.name},\n\nYour account has been flagged for review due to outstanding payments. Please contact us to discuss your account status.\n\nWe value your business and would like to work with you to resolve any issues.\n\nBest regards`;
+        }
         break;
-      default:
-        subject = 'Account Notification';
     }
 
-    // Generate email HTML
-    const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: #2563eb; color: white; padding: 20px; text-align: center; }
-          .content { padding: 30px; background: #f9fafb; }
-          .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>${subject}</h1>
-          </div>
-          <div class="content">
-            <p>Dear ${customer.name},</p>
-            <p>${customMessage || 'This is an automated reminder regarding your account.'}</p>
-            ${invoices.length > 0 ? `
-              <p style="margin-top: 20px;"><strong>Attached Invoices:</strong></p>
-              <ul>
-                ${invoices.map(inv => `
-                  <li>Invoice #${inv.number} - $${inv.total.toFixed(2)} (${inv.status})</li>
-                `).join('')}
-              </ul>
-            ` : ''}
-            <p style="margin-top: 20px;">If you have any questions, please don't hesitate to contact us.</p>
-            <p>Best regards</p>
-          </div>
-          <div class="footer">
-            <p>This is an automated message. Please do not reply directly to this email.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
+    // Generate invoice PDFs
+    const attachments = invoicesToAttach.map((invoice) => {
+      const htmlContent = generateInvoicePDF(invoice);
+      const htmlBuffer = new TextEncoder().encode(htmlContent);
+      const base64Html = btoa(String.fromCharCode(...htmlBuffer));
 
-    // Generate PDF attachments
-    const attachments = invoices.map(invoice => ({
-      filename: `Invoice_${invoice.number}.pdf`,
-      content: Buffer.from(generateInvoicePDF(invoice)).toString('base64'),
-      content_type: 'text/html'
-    }));
-
-    console.log('Sending email with', attachments.length, 'attachments');
-
-    // Send email via Resend
-    const emailResult = await resend.emails.send({
-      from: 'Reminders <onboarding@resend.dev>',
-      to: [customer.email],
-      subject: subject,
-      html: emailHtml,
-      attachments: attachments.length > 0 ? attachments : undefined
+      return {
+        filename: `invoice-${invoice.number}.html`,
+        content: base64Html,
+        type: 'text/html',
+      };
     });
 
-    console.log('Email sent successfully:', emailResult.id);
+    // Send email via Resend
+    const emailData = {
+      from: "noreply@yourdomain.com", // Configure this with your verified domain
+      to: customer.email,
+      subject: subject,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>${subject}</h2>
+          <div style="white-space: pre-line; margin: 20px 0;">
+            ${message}
+          </div>
+          ${invoicesToAttach.length > 0 ? `
+          <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+            <h3 style="margin-top: 0;">Attached Invoices:</h3>
+            <ul>
+              ${invoicesToAttach.map(inv => `
+                <li>Invoice #${inv.number} - R${parseFloat(inv.total || 0).toFixed(2)} (${inv.status})</li>
+              `).join('')}
+            </ul>
+          </div>
+          ` : ''}
+        </div>
+      `,
+      attachments: attachments,
+    };
 
-    // Log in email_history
-    await supabaseClient
-      .from('email_history')
-      .insert({
-        user_id: user.id,
-        customer_id: customerId,
-        subject: subject,
-        message: customMessage || 'Automated reminder',
-        sender: 'system',
-        status: 'sent',
-        attachments: invoices.map(inv => `Invoice_${inv.number}.pdf`)
-      });
+    const emailResult = await resend.emails.send(emailData);
 
-    // Log in reminder_history if table exists
-    try {
-      await supabaseClient
-        .from('reminder_history')
-        .insert({
-          customer_id: customerId,
-          user_id: user.id,
-          reminder_type: reminderType,
-          message: customMessage || 'Automated reminder',
-          sent_at: new Date().toISOString()
-        });
-    } catch (err) {
-      console.log('reminder_history table may not exist:', err);
-    }
+    // Log the reminder in reminder_history
+    await supabaseClient.from("reminder_history").insert({
+      user_id: user.id,
+      customer_id: customerId,
+      reminder_type: reminderType,
+      message: message,
+      sent_at: new Date().toISOString(),
+      sent_by: user.email,
+      status: "sent",
+    });
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        emailId: emailResult.id,
-        attachmentCount: attachments.length
+        emailId: emailResult.data?.id,
+        invoicesAttached: invoicesToAttach.length 
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
-  } catch (error: any) {
-    console.error("Error in send-reminder-with-invoices:", error);
+  } catch (error) {
+    console.error("Error sending reminder:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

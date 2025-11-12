@@ -1,9 +1,20 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+const allowedOrigins = [
+  'https://e1036b92-283a-4a65-9473-d759ed300ea1.lovableproject.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+const getCorsHeaders = (origin: string | null) => {
+  const isAllowed = origin && allowedOrigins.includes(origin);
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
+  };
 };
 
 interface ReconcileRequest {
@@ -12,6 +23,8 @@ interface ReconcileRequest {
 }
 
 serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -29,73 +42,65 @@ serve(async (req: Request) => {
     const { customerId, autoMatch = true }: ReconcileRequest = await req.json();
     console.log("Reconciling transactions for customer:", customerId);
 
-    const { data: invoices, error: invoicesError } = await supabase
+    // Get pending invoices
+    const { data: invoices, error: invError } = await supabase
       .from("invoices")
       .select("*")
       .eq("customer_id", customerId)
       .in("status", ["pending", "sent", "partial"]);
 
-    if (invoicesError) throw invoicesError;
+    if (invError) {
+      throw invError;
+    }
 
-    const { data: payments, error: paymentsError } = await supabase
+    // Get unassigned payments
+    const { data: payments, error: payError } = await supabase
       .from("payments")
       .select("*")
       .eq("customer_id", customerId)
       .is("invoice_id", null);
 
-    if (paymentsError) throw paymentsError;
+    if (payError) {
+      throw payError;
+    }
 
-    let matched = 0;
-    let autoMatched = 0;
-    const matchedPairs: any[] = [];
+    let matchedCount = 0;
+    let autoMatchedCount = 0;
 
-    if (autoMatch && payments && invoices) {
+    if (autoMatch && invoices && payments) {
+      // Auto-match by amount
       for (const payment of payments) {
         const matchingInvoice = invoices.find(
-          (inv) => Math.abs(inv.total_amount - payment.amount) < 0.01
+          (inv) => Math.abs(parseFloat(inv.total_amount) - parseFloat(payment.amount)) < 0.01
         );
 
         if (matchingInvoice) {
-          const { error: updateError } = await supabase
+          await supabase
             .from("payments")
             .update({ invoice_id: matchingInvoice.id })
             .eq("id", payment.id);
 
-          if (!updateError) {
-            autoMatched++;
-            matched++;
-            matchedPairs.push({
-              payment_id: payment.id,
-              invoice_id: matchingInvoice.id,
-              amount: payment.amount,
-            });
-          }
+          autoMatchedCount++;
+          matchedCount++;
         }
       }
     }
 
-    const result = {
-      success: true,
-      results: {
-        matched,
-        auto_matched: autoMatched,
-        total_invoices: invoices?.length || 0,
-        total_payments: payments?.length || 0,
-        matched_pairs: matchedPairs,
-      },
-    };
-
-    console.log("Reconciliation complete:", result);
-
-    return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        matchedCount,
+        autoMatchedCount,
+        unmatchedInvoices: (invoices?.length || 0) - matchedCount,
+        unmatchedPayments: (payments?.length || 0) - matchedCount,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (error: any) {
-    console.error("Error in reconcile-transactions:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    console.error("Error in finance-reconcile-transactions:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 });

@@ -1,9 +1,20 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+const allowedOrigins = [
+  'https://e1036b92-283a-4a65-9473-d759ed300ea1.lovableproject.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+const getCorsHeaders = (origin: string | null) => {
+  const isAllowed = origin && allowedOrigins.includes(origin);
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
+  };
 };
 
 interface NotificationRequest {
@@ -13,6 +24,8 @@ interface NotificationRequest {
 }
 
 serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -28,73 +41,75 @@ serve(async (req: Request) => {
     }
 
     const { customerId, notificationType, customMessage }: NotificationRequest = await req.json();
-    console.log("Sending notification:", { customerId, notificationType });
 
+    console.log("Sending notification:", notificationType, "to customer:", customerId);
+
+    // Get customer details
     const { data: customer, error: customerError } = await supabase
       .from("customers")
       .select("*")
       .eq("id", customerId)
       .single();
 
-    if (customerError) throw customerError;
+    if (customerError) {
+      throw new Error(`Failed to fetch customer: ${customerError.message}`);
+    }
 
+    // Get finance summary
     const { data: financeSummary } = await supabase
       .from("customer_finance_summary")
       .select("*")
       .eq("customer_id", customerId)
       .single();
 
+    // Prepare notification content
     let subject = "";
     let message = customMessage || "";
 
     switch (notificationType) {
       case "payment_reminder":
         subject = "Payment Reminder";
-        if (!message) {
-          message = `Dear ${customer.name}, this is a friendly reminder about your outstanding balance of R${financeSummary?.current_balance || 0}.`;
+        if (!customMessage) {
+          message = `Dear ${customer.name},\n\nThis is a friendly reminder about your outstanding balance of R${financeSummary?.current_balance || 0}.\n\nPlease arrange payment at your earliest convenience.\n\nBest regards`;
         }
         break;
       case "overdue_payment":
         subject = "Overdue Payment Notice";
-        if (!message) {
-          message = `Dear ${customer.name}, your payment is now overdue. Please submit payment immediately to avoid late fees.`;
+        if (!customMessage) {
+          message = `Dear ${customer.name},\n\nYour account has an overdue balance of R${financeSummary?.current_balance || 0}.\n\nImmediate payment is required to avoid service disruption.\n\nBest regards`;
         }
         break;
       case "account_flagged":
         subject = "Account Review Required";
-        if (!message) {
-          message = `Dear ${customer.name}, your account has been flagged for review. Please contact us to discuss your account status.`;
+        if (!customMessage) {
+          message = `Dear ${customer.name},\n\nYour account has been flagged for review. Please contact us to discuss your account status.\n\nBest regards`;
         }
         break;
       case "payment_received":
         subject = "Payment Received - Thank You";
-        if (!message) {
-          message = `Dear ${customer.name}, we have received your payment. Thank you for your business!`;
+        if (!customMessage) {
+          message = `Dear ${customer.name},\n\nThank you for your payment. Your current balance is R${financeSummary?.current_balance || 0}.\n\nBest regards`;
         }
         break;
     }
 
-    console.log("Notification prepared:", { to: customer.email, subject, message });
+    console.log("Notification prepared:", { subject, message });
 
-    const result = {
-      success: true,
-      notification: {
-        customer_id: customerId,
-        type: notificationType,
-        sent_at: new Date().toISOString(),
-        recipient: customer.email,
-      },
-    };
+    // In a production environment, you would send the actual email here
+    // For now, we'll just log the notification
 
-    return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        notification: { subject, message, recipient: customer.email } 
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (error: any) {
-    console.error("Error in send-notifications:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    console.error("Error in finance-send-notifications:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 });
