@@ -190,13 +190,13 @@ function generateStatementHTML(customer: any, summary: any, invoices: any[], pay
           <td>${inv.invoice_number}</td>
           <td>${new Date(inv.issue_date).toLocaleDateString()}</td>
           <td>${new Date(inv.due_date).toLocaleDateString()}</td>
-          <td>$${parseFloat(inv.total_amount).toFixed(2)}</td>
+          <td>R${parseFloat(inv.total_amount).toFixed(2)}</td>
           <td>${inv.status}</td>
         </tr>
       `).join('')}
       <tr class="total-row">
         <td colspan="3">Total Invoiced</td>
-        <td>$${totalInvoiced.toFixed(2)}</td>
+        <td>R${totalInvoiced.toFixed(2)}</td>
         <td></td>
       </tr>
     </tbody>
@@ -219,13 +219,13 @@ function generateStatementHTML(customer: any, summary: any, invoices: any[], pay
           <td>${pay.payment_number}</td>
           <td>${new Date(pay.payment_date).toLocaleDateString()}</td>
           <td>${pay.payment_method || 'N/A'}</td>
-          <td>$${parseFloat(pay.amount).toFixed(2)}</td>
+          <td>R${parseFloat(pay.amount).toFixed(2)}</td>
           <td>${pay.status}</td>
         </tr>
       `).join('')}
       <tr class="total-row">
         <td colspan="3">Total Paid</td>
-        <td>$${totalPaid.toFixed(2)}</td>
+        <td>R${totalPaid.toFixed(2)}</td>
         <td></td>
       </tr>
     </tbody>
@@ -233,9 +233,9 @@ function generateStatementHTML(customer: any, summary: any, invoices: any[], pay
 
   <div class="summary">
     <h2>Account Summary</h2>
-    <div class="info-row"><strong>Total Invoiced:</strong> $${totalInvoiced.toFixed(2)}</div>
-    <div class="info-row"><strong>Total Paid:</strong> $${totalPaid.toFixed(2)}</div>
-    <div class="info-row"><strong>Current Balance:</strong> $${balance.toFixed(2)}</div>
+    <div class="info-row"><strong>Total Invoiced:</strong> R${totalInvoiced.toFixed(2)}</div>
+    <div class="info-row"><strong>Total Paid:</strong> R${totalPaid.toFixed(2)}</div>
+    <div class="info-row"><strong>Current Balance:</strong> R${balance.toFixed(2)}</div>
     <div class="info-row"><strong>Credit Terms:</strong> ${summary?.credit_terms || 'Net 30'}</div>
     <div class="info-row"><strong>Account Status:</strong> ${summary?.account_status || 'Active'}</div>
   </div>
