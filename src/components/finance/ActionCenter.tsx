@@ -464,7 +464,7 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
                             htmlFor={invoice.id}
                             className="text-sm flex-1 cursor-pointer"
                           >
-                            {invoice.number} - ${invoice.total.toFixed(2)} ({invoice.status})
+                            {invoice.number} - R{invoice.total.toFixed(2)} ({invoice.status})
                           </label>
                         </div>
                       ))}

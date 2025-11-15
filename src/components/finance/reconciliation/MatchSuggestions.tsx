@@ -190,7 +190,7 @@ const MatchSuggestions: React.FC<MatchSuggestionsProps> = ({
                     <p className="text-sm text-quikle-charcoal font-medium">{suggestion.reason}</p>
                     {!amountMatch && amountDiff > 0 && (
                       <p className="text-xs text-orange-600 mt-1">
-                        Amount difference: ${amountDiff.toFixed(2)}
+                        Amount difference: R{amountDiff.toFixed(2)}
                       </p>
                     )}
                   </div>
