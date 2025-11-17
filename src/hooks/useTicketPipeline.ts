@@ -92,6 +92,9 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
   }, []);
 
   const handleTicketMove = useCallback(async (ticketId: string, fromStageId: string, toStageId: string) => {
+    // Early return if moving to same stage
+    if (fromStageId === toStageId) return;
+
     // Update local state immediately for responsive UI
     setStages(prevStages => {
       const newStages = [...prevStages];
