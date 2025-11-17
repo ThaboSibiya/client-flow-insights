@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,7 +38,7 @@ interface EnhancedPipelineStageProps {
   type: 'customer' | 'ticket';
 }
 
-const EnhancedPipelineStage = ({ 
+const EnhancedPipelineStage = memo(({ 
   stage, 
   onCustomerMove, 
   onStageEdit, 
@@ -291,6 +291,8 @@ const EnhancedPipelineStage = ({
       />
     </div>
   );
-};
+});
+
+EnhancedPipelineStage.displayName = 'EnhancedPipelineStage';
 
 export default EnhancedPipelineStage;

@@ -71,6 +71,9 @@ export const useCustomerPipeline = (): CustomerPipelineHookReturn => {
   const [activeItem, setActiveItem] = useState<CustomerPipelineItem | null>(null);
 
   const handleCustomerMove = useCallback(async (customerId: string, fromStageId: string, toStageId: string) => {
+    // Early return if moving to same stage
+    if (fromStageId === toStageId) return;
+
     // Map stage IDs to customer status
     const statusMap: Record<string, any> = {
       'new': 'new',
