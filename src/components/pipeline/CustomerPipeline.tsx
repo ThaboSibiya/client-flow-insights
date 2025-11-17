@@ -75,7 +75,7 @@ const CustomerPipeline = () => {
 
       <DndContext 
         sensors={sensors} 
-        collisionDetection={closestCenter} 
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >

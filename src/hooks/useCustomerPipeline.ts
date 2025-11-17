@@ -91,14 +91,13 @@ export const useCustomerPipeline = (): CustomerPipelineHookReturn => {
     
     if (active.id.toString().startsWith('customer-')) {
       const customerId = active.id.toString().replace('customer-', '');
-      const customer = stages
-        .flatMap(stage => stage.customers || [])
-        .find(c => c.id === customerId);
-      setActiveItem(customer);
+      // Search through customers array directly instead of stages
+      const customer = customers.find(c => c.id === customerId);
+      setActiveItem(customer || null);
     } else {
       setActiveItem(null);
     }
-  }, [stages]);
+  }, [customers]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -110,12 +109,21 @@ export const useCustomerPipeline = (): CustomerPipelineHookReturn => {
       const customerId = active.id.toString().replace('customer-', '');
       const targetStageId = over.id.toString();
 
-      const sourceStage = stages.find(stage => 
-        (stage.customers || []).some(c => c.id === customerId)
-      );
+      // Find source stage from customers array
+      const customer = customers.find(c => c.id === customerId);
+      if (!customer) return;
 
-      if (sourceStage && sourceStage.id !== targetStageId) {
-        handleCustomerMove(customerId, sourceStage.id, targetStageId);
+      const statusToStageMap: Record<string, string> = {
+        'new': 'new',
+        'pending': 'contacted',
+        'existing': 'qualified',
+        'finalised': 'closed'
+      };
+      
+      const sourceStageId = statusToStageMap[customer.status || 'new'];
+
+      if (sourceStageId !== targetStageId) {
+        handleCustomerMove(customerId, sourceStageId, targetStageId);
       }
       return;
     }
@@ -127,7 +135,7 @@ export const useCustomerPipeline = (): CustomerPipelineHookReturn => {
         return arrayMove(items, oldIndex, newIndex);
       });
     }
-  }, [stages, handleCustomerMove]);
+  }, [customers, handleCustomerMove]);
 
   const addStage = (stageName: string, color: string): void => {
     const newStage: CustomerPipelineStage = {
