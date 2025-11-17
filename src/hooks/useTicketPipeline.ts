@@ -15,12 +15,12 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
   const allTickets = customers.flatMap(c => c.activeTickets || []);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const [stages, setStages] = useState<TicketPipelineStage[]>(() => [
+  const [stages, setStages] = useState<TicketPipelineStage[]>([
     {
       id: 'open',
       name: 'New Tickets',
       color: '#DC2626',
-      tickets: allTickets.filter(t => t.status === 'open'),
+      tickets: [],
       automationEnabled: false,
       target: 20
     },
@@ -28,7 +28,7 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
       id: 'in-progress',
       name: 'In Progress',
       color: '#6B7280',
-      tickets: allTickets.filter(t => t.status === 'in-progress'),
+      tickets: [],
       automationEnabled: false,
       target: 15
     },
@@ -44,7 +44,7 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
       id: 'resolved',
       name: 'Resolved',
       color: '#059669',
-      tickets: allTickets.filter(t => t.status === 'resolved'),
+      tickets: [],
       automationEnabled: false,
       target: 10
     },
@@ -52,10 +52,32 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
       id: 'closed',
       name: 'Closed',
       color: '#1F2937',
-      tickets: allTickets.filter(t => t.status === 'closed'),
+      tickets: [],
       automationEnabled: false
     }
   ]);
+
+  // Sync tickets with stages whenever allTickets changes
+  useEffect(() => {
+    setStages(prevStages => prevStages.map(stage => {
+      let stageTickets;
+      
+      if (stage.id === 'open') {
+        stageTickets = allTickets.filter(t => t.status === 'open');
+      } else if (stage.id === 'in-progress') {
+        stageTickets = allTickets.filter(t => t.status === 'in-progress');
+      } else if (stage.id === 'resolved') {
+        stageTickets = allTickets.filter(t => t.status === 'resolved');
+      } else if (stage.id === 'closed') {
+        stageTickets = allTickets.filter(t => t.status === 'closed');
+      } else {
+        // For 'review' or custom stages
+        stageTickets = stage.tickets;
+      }
+      
+      return { ...stage, tickets: stageTickets };
+    }));
+  }, [allTickets, refreshTrigger]);
 
   const [isAddStageOpen, setIsAddStageOpen] = useState<boolean>(false);
   const [activeItem, setActiveItem] = useState<TicketPipelineItem | null>(null);
@@ -111,19 +133,19 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
     }
   }, [updateTicketStatus]);
 
+
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     
     if (active.id.toString().startsWith('ticket-')) {
       const ticketId = active.id.toString().replace('ticket-', '');
-      const ticket = stages
-        .flatMap(stage => stage.tickets || [])
-        .find(t => t.id === ticketId);
-      setActiveItem(ticket);
+      // Search through allTickets array directly instead of stages
+      const ticket = allTickets.find(t => t.id === ticketId);
+      setActiveItem(ticket || null);
     } else {
       setActiveItem(null);
     }
-  }, [stages]);
+  }, [allTickets]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -135,12 +157,21 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
       const ticketId = active.id.toString().replace('ticket-', '');
       const targetStageId = over.id.toString();
 
-      const sourceStage = stages.find(stage => 
-        (stage.tickets || []).some(t => t.id === ticketId)
-      );
+      // Find source stage from allTickets array
+      const ticket = allTickets.find(t => t.id === ticketId);
+      if (!ticket) return;
 
-      if (sourceStage && sourceStage.id !== targetStageId) {
-        handleTicketMove(ticketId, sourceStage.id, targetStageId);
+      const statusToStageMap: Record<string, string> = {
+        'open': 'open',
+        'in-progress': 'in-progress',
+        'resolved': 'resolved',
+        'closed': 'closed'
+      };
+      
+      const sourceStageId = statusToStageMap[ticket.status || 'open'];
+
+      if (sourceStageId !== targetStageId) {
+        handleTicketMove(ticketId, sourceStageId, targetStageId);
       }
       return;
     }
@@ -152,7 +183,7 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
         return arrayMove(items, oldIndex, newIndex);
       });
     }
-  }, [stages, handleTicketMove]);
+  }, [allTickets, handleTicketMove]);
 
   const addStage = (stageName: string, color: string): void => {
     const newStage: TicketPipelineStage = {
