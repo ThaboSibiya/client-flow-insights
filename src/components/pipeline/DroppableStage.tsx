@@ -1,10 +1,10 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import EnhancedPipelineStage from './EnhancedPipelineStage';
 import { PipelineStageProps } from '@/types/pipeline';
 
-const DroppableStage = ({ stage, onCustomerMove, onStageEdit, onStageDelete, onAddItem, onSetTarget, onSetAutomation, type }: PipelineStageProps) => {
+const DroppableStage = memo(({ stage, onCustomerMove, onStageEdit, onStageDelete, onAddItem, onSetTarget, onSetAutomation, type }: PipelineStageProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   });
@@ -23,6 +23,8 @@ const DroppableStage = ({ stage, onCustomerMove, onStageEdit, onStageDelete, onA
       />
     </div>
   );
-};
+});
+
+DroppableStage.displayName = 'DroppableStage';
 
 export default DroppableStage;

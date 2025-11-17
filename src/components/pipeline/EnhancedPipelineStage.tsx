@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -72,16 +72,22 @@ const EnhancedPipelineStage = ({
   const items = type === 'customer' ? (stage.customers || []) : (stage.tickets || []);
   const itemCount = items.length;
   
-  // Filter items based on search term
-  const filteredItems = items.filter(item => {
-    const searchableText = type === 'customer' 
-      ? `${item.name} ${item.email}`.toLowerCase()
-      : `${item.subject} ${item.ticketNumber}`.toLowerCase();
-    return searchableText.includes(searchTerm.toLowerCase());
-  });
+  // Filter items based on search term - memoized
+  const filteredItems = useMemo(() => {
+    if (!searchTerm) return items;
+    return items.filter(item => {
+      const searchableText = type === 'customer' 
+        ? `${item.name} ${item.email}`.toLowerCase()
+        : `${item.subject} ${item.ticketNumber}`.toLowerCase();
+      return searchableText.includes(searchTerm.toLowerCase());
+    });
+  }, [items, searchTerm, type]);
 
-  // Calculate progress if target is set
-  const progressPercentage = stage.target ? Math.min((itemCount / stage.target) * 100, 100) : null;
+  // Calculate progress if target is set - memoized
+  const progressPercentage = useMemo(() => 
+    stage.target ? Math.min((itemCount / stage.target) * 100, 100) : null,
+    [stage.target, itemCount]
+  );
 
   return (
     <div

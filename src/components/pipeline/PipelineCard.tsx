@@ -1,5 +1,5 @@
 
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,11 +24,11 @@ const PipelineCard = ({ item, type, stageId, onMove }: PipelineCardProps) => {
     },
   });
 
-  const style = transform ? {
+  const style = useMemo(() => transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
     opacity: isDragging ? 0.8 : 1,
     zIndex: isDragging ? 1000 : 1,
-  } : undefined;
+  } : undefined, [transform, isDragging]);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
