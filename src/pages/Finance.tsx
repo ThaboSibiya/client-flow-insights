@@ -54,7 +54,7 @@ const Finance: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 pb-20 md:pb-6 space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-lg">
@@ -67,17 +67,17 @@ const Finance: React.FC = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-white border border-quikle-silver/20 shadow-sm">
-          <TabsTrigger value="overview" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white">
+        <TabsList className="w-full bg-white border border-quikle-silver/20 shadow-sm overflow-x-auto flex md:grid md:grid-cols-4">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white whitespace-nowrap flex-shrink-0">
             Overview
           </TabsTrigger>
-          <TabsTrigger value="debtors" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white">
+          <TabsTrigger value="debtors" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white whitespace-nowrap flex-shrink-0">
             Debtors ({debtors.length})
           </TabsTrigger>
-          <TabsTrigger value="reminders" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white">
+          <TabsTrigger value="reminders" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white whitespace-nowrap flex-shrink-0">
             Send Reminders
           </TabsTrigger>
-          <TabsTrigger value="follow-ups" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white">
+          <TabsTrigger value="follow-ups" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white whitespace-nowrap flex-shrink-0">
             Follow-ups
           </TabsTrigger>
         </TabsList>

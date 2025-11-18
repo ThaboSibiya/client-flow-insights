@@ -2,24 +2,32 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCheck } from 'lucide-react';
+import { CheckCheck, ArrowLeft } from 'lucide-react';
 import ConversationActions from './ConversationActions';
 
 interface MessageThreadHeaderProps {
   conversation: any;
   unreadCount: number;
   onMarkAllAsRead: () => void;
+  onBack?: () => void;
 }
 
 const MessageThreadHeader = ({ 
   conversation, 
   unreadCount, 
-  onMarkAllAsRead 
+  onMarkAllAsRead,
+  onBack
 }: MessageThreadHeaderProps) => {
   return (
     <div className="bg-white border-b border-quikle-silver/30 p-4">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-3">
+          {onBack && (
+            <Button variant="ghost" size="sm" onClick={onBack} className="md:hidden">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          )}
+          <div>
           <h2 className="text-lg font-semibold text-quikle-charcoal">
             {conversation?.subject || 'Conversation'}
           </h2>
@@ -32,6 +40,7 @@ const MessageThreadHeader = ({
                 {unreadCount} unread
               </Badge>
             )}
+          </div>
           </div>
         </div>
         <div className="flex items-center gap-2">

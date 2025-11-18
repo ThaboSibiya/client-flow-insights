@@ -28,6 +28,7 @@ interface MessageThreadViewProps {
   onSendMessage: (attachments?: any[]) => void;
   onMarkAllAsRead: () => void;
   conversationId: string;
+  onBack?: () => void;
 }
 
 const MessageThreadView = ({
@@ -50,6 +51,7 @@ const MessageThreadView = ({
   onSendMessage,
   onMarkAllAsRead,
   conversationId,
+  onBack,
 }: MessageThreadViewProps) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -82,6 +84,7 @@ const MessageThreadView = ({
         conversation={conversation} 
         unreadCount={unreadCount}
         onMarkAllAsRead={onMarkAllAsRead}
+        onBack={onBack}
       />
       
       <MessageSearch

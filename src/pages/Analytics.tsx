@@ -27,7 +27,7 @@ const Analytics: React.FC<AnalyticsProps> = () => {
     calculateSummary(reportData), 
     [reportData]
   );
-  return <div className="space-y-6">
+  return <div className="space-y-6 pb-20 md:pb-6">
       <div className="mb-6">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-1.5">
           <div>
@@ -42,22 +42,26 @@ const Analytics: React.FC<AnalyticsProps> = () => {
       </div>
 
       <Tabs defaultValue="customers" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="customers" className="flex items-center gap-2">
+        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-4">
+          <TabsTrigger value="customers" className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
             <Users className="h-4 w-4" />
-            Customer Analytics
+            <span className="hidden sm:inline">Customer Analytics</span>
+            <span className="sm:hidden">Customers</span>
           </TabsTrigger>
-          <TabsTrigger value="tickets" className="flex items-center gap-2">
+          <TabsTrigger value="tickets" className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
             <Ticket className="h-4 w-4" />
-            Ticket Analytics
+            <span className="hidden sm:inline">Ticket Analytics</span>
+            <span className="sm:hidden">Tickets</span>
           </TabsTrigger>
-          <TabsTrigger value="advanced" className="flex items-center gap-2">
+          <TabsTrigger value="advanced" className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
             <TrendingUp className="h-4 w-4" />
-            Advanced Analytics
+            <span className="hidden sm:inline">Advanced Analytics</span>
+            <span className="sm:hidden">Advanced</span>
           </TabsTrigger>
-          <TabsTrigger value="interactive" className="flex items-center gap-2">
+          <TabsTrigger value="interactive" className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
             <FileBarChart className="h-4 w-4" />
-            Interactive Reports
+            <span className="hidden sm:inline">Interactive Reports</span>
+            <span className="sm:hidden">Reports</span>
           </TabsTrigger>
         </TabsList>
 

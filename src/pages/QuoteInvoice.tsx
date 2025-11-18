@@ -108,7 +108,7 @@ const QuoteInvoice: React.FC = () => {
   const handlePreview = useCallback((): void => {
     setActiveTab('preview');
   }, []);
-  return <div className="space-y-8">
+  return <div className="space-y-8 pb-20 md:pb-8">
       <div className="mb-6">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
@@ -119,7 +119,7 @@ const QuoteInvoice: React.FC = () => {
               Create professional quotes and invoices with automated workflow management
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <Button onClick={() => handleCreateNew('quote')} size="sm">
               <Plus className="h-4 w-4 mr-2" />
               New Quote
@@ -133,35 +133,35 @@ const QuoteInvoice: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-9 bg-white border border-quikle-silver/20 shadow-sm p-1 h-auto">
-          <TabsTrigger value="quotes" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium">
+        <TabsList className="w-full bg-white border border-quikle-silver/20 shadow-sm p-1 h-auto overflow-x-auto flex md:grid md:grid-cols-9">
+          <TabsTrigger value="quotes" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium whitespace-nowrap flex-shrink-0">
             All Quotes
           </TabsTrigger>
-          <TabsTrigger value="create-quote" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium">
+          <TabsTrigger value="create-quote" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium whitespace-nowrap flex-shrink-0">
             Create Quote
           </TabsTrigger>
-          <TabsTrigger value="create-invoice" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium">
+          <TabsTrigger value="create-invoice" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium whitespace-nowrap flex-shrink-0">
             Create Invoice
           </TabsTrigger>
-          <TabsTrigger value="workflow" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium flex items-center gap-1">
+          <TabsTrigger value="workflow" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium flex items-center gap-1 whitespace-nowrap flex-shrink-0">
             <FileText className="h-3 w-3" />
             Workflow
           </TabsTrigger>
-          <TabsTrigger value="revenue" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium flex items-center gap-1">
+          <TabsTrigger value="revenue" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium flex items-center gap-1 whitespace-nowrap flex-shrink-0">
             <TrendingUp className="h-3 w-3" />
             Revenue
           </TabsTrigger>
-          <TabsTrigger value="automation" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium">
+          <TabsTrigger value="automation" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium whitespace-nowrap flex-shrink-0">
             Automation
           </TabsTrigger>
-          <TabsTrigger value="revenue-settings" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium flex items-center gap-1">
+          <TabsTrigger value="revenue-settings" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium flex items-center gap-1 whitespace-nowrap flex-shrink-0">
             <SettingsIcon className="h-3 w-3" />
             Rev Settings
           </TabsTrigger>
-          <TabsTrigger value="settings" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium">
+          <TabsTrigger value="settings" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium whitespace-nowrap flex-shrink-0">
             Settings
           </TabsTrigger>
-          <TabsTrigger value="preview" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium">
+          <TabsTrigger value="preview" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium whitespace-nowrap flex-shrink-0">
             Preview
           </TabsTrigger>
         </TabsList>

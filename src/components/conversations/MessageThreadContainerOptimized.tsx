@@ -12,9 +12,10 @@ import type { Message } from '@/types/conversations';
 
 interface MessageThreadContainerOptimizedProps {
   conversationId: string;
+  onBack?: () => void;
 }
 
-const MessageThreadContainerOptimized = ({ conversationId }: MessageThreadContainerOptimizedProps) => {
+const MessageThreadContainerOptimized = ({ conversationId, onBack }: MessageThreadContainerOptimizedProps) => {
   const { user } = useAuth();
   const { conversation, messages, loading, sendMessage, sendingMessage, error } = useMessagesOptimized(conversationId);
   const { 
@@ -130,6 +131,7 @@ const MessageThreadContainerOptimized = ({ conversationId }: MessageThreadContai
         onSendMessage={handleSendMessage}
         onMarkAllAsRead={handleMarkAllAsRead}
         conversationId={conversationId}
+        onBack={onBack}
       />
     </ConversationErrorBoundary>
   );
