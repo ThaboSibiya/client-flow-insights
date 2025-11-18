@@ -57,8 +57,8 @@ const Conversations = () => {
   ];
 
   return (
-    <div className="h-full bg-gradient-to-br from-quikle-crystal to-white">
-      <div className="flex flex-col h-full">
+    <div className="h-full bg-gradient-to-br from-quikle-crystal to-white pb-20 md:pb-0">
+      <div className="flex flex-col h-full overflow-hidden md:overflow-auto">
         {/* Header */}
         <div className="bg-white/95 border-b border-quikle-silver/30 p-6 shadow-sm">
           <div className="flex items-center justify-between">
@@ -103,9 +103,9 @@ const Conversations = () => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
           {/* Sidebar */}
-          <div className="w-80 bg-white border-r border-quikle-silver/30 flex flex-col">
+          <div className="hidden md:flex w-80 bg-white border-r border-quikle-silver/30 flex-col">
             {/* Type Tabs */}
             <div className="p-4 border-b border-quikle-silver/20">
               <Tabs value={filters.type} onValueChange={(value) => updateFilter('type', value)}>
@@ -144,8 +144,55 @@ const Conversations = () => {
             </ScrollArea>
           </div>
 
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col">
+          {/* Mobile Conversations List - Shows when no conversation selected */}
+          <div className="md:hidden flex-1 overflow-hidden">
+            {!selectedConversation ? (
+              <div className="h-full flex flex-col">
+                {/* Type Tabs */}
+                <div className="p-4 border-b border-quikle-silver/20 bg-white">
+                  <Tabs value={filters.type} onValueChange={(value) => updateFilter('type', value)}>
+                    <TabsList className="w-full overflow-x-auto flex">
+                      {conversationTypes.map((type) => (
+                        <TabsTrigger key={type.id} value={type.id} className="text-xs whitespace-nowrap flex-shrink-0">
+                          <type.icon className="h-3 w-3 mr-1" />
+                          {type.label}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </Tabs>
+                </div>
+
+                {/* Search */}
+                <div className="p-4 border-b border-quikle-silver/20 bg-white">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-quikle-neutral" />
+                    <Input
+                      placeholder="Search conversations..."
+                      value={filters.searchQuery}
+                      onChange={(e) => updateFilter('searchQuery', e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
+
+                {/* Conversations List */}
+                <ScrollArea className="flex-1">
+                  <ConversationsListOptimized
+                    conversations={conversations}
+                    selectedId={selectedConversation}
+                    onSelect={setSelectedConversation}
+                    loading={loading}
+                    searchQuery={filters.searchQuery}
+                  />
+                </ScrollArea>
+              </div>
+            ) : (
+              <MessageThread conversationId={selectedConversation} onBack={() => setSelectedConversation(null)} />
+            )}
+          </div>
+
+          {/* Main Content - Desktop only */}
+          <div className="hidden md:flex flex-1 flex-col">
             {selectedConversation ? (
               <MessageThread conversationId={selectedConversation} />
             ) : (
