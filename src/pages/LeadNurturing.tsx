@@ -20,22 +20,22 @@ const LeadNurturing = () => {
 
       {/* Main Content */}
       <Tabs defaultValue="assignment" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="assignment" className="flex items-center gap-2">
+        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-4">
+          <TabsTrigger value="assignment" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <Users className="h-4 w-4" />
-            Auto-Assignment
+            <span className="hidden sm:inline">Auto-</span>Assignment
           </TabsTrigger>
-          <TabsTrigger value="followup" className="flex items-center gap-2">
+          <TabsTrigger value="followup" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <Calendar className="h-4 w-4" />
             Follow-up
           </TabsTrigger>
-          <TabsTrigger value="progression" className="flex items-center gap-2">
+          <TabsTrigger value="progression" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <TrendingUp className="h-4 w-4" />
-            Status Alerts
+            <span className="hidden sm:inline">Status </span>Alerts
           </TabsTrigger>
-          <TabsTrigger value="tasks" className="flex items-center gap-2">
+          <TabsTrigger value="tasks" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <Settings className="h-4 w-4" />
-            Task Creation
+            <span className="hidden sm:inline">Task </span>Creation
           </TabsTrigger>
         </TabsList>
 

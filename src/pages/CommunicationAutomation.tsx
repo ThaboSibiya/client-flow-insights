@@ -21,31 +21,31 @@ const CommunicationAutomation = () => {
 
       {/* Main Content */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="email" className="flex items-center gap-2">
+        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-7">
+          <TabsTrigger value="overview" className="flex-1 md:flex-initial whitespace-nowrap">Overview</TabsTrigger>
+          <TabsTrigger value="email" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <Mail className="h-4 w-4" />
-            Email
+            <span className="hidden sm:inline">Email</span>
           </TabsTrigger>
-          <TabsTrigger value="sms" className="flex items-center gap-2">
+          <TabsTrigger value="sms" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <MessageSquare className="h-4 w-4" />
-            SMS
+            <span className="hidden sm:inline">SMS</span>
           </TabsTrigger>
-          <TabsTrigger value="whatsapp" className="flex items-center gap-2">
+          <TabsTrigger value="whatsapp" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <Send className="h-4 w-4" />
-            WhatsApp
+            <span className="hidden sm:inline">WhatsApp</span>
           </TabsTrigger>
-          <TabsTrigger value="calls" className="flex items-center gap-2">
+          <TabsTrigger value="calls" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <Phone className="h-4 w-4" />
-            Calls
+            <span className="hidden sm:inline">Calls</span>
           </TabsTrigger>
-          <TabsTrigger value="routing" className="flex items-center gap-2">
+          <TabsTrigger value="routing" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <Settings className="h-4 w-4" />
-            Ticket Routing
+            <span className="hidden sm:inline">Routing</span>
           </TabsTrigger>
-          <TabsTrigger value="sla" className="flex items-center gap-2">
+          <TabsTrigger value="sla" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <Clock className="h-4 w-4" />
-            SLA Management
+            <span className="hidden sm:inline">SLA</span>
           </TabsTrigger>
         </TabsList>
 

@@ -109,7 +109,7 @@ const Conversations = () => {
             {/* Type Tabs */}
             <div className="p-4 border-b border-quikle-silver/20">
               <Tabs value={filters.type} onValueChange={(value) => updateFilter('type', value)}>
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-5">
                   {conversationTypes.map((type) => (
                     <TabsTrigger key={type.id} value={type.id} className="text-xs">
                       <type.icon className="h-3 w-3" />

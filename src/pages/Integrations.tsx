@@ -20,14 +20,14 @@ const Integrations = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="integrations" className="flex items-center gap-2">
+        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-2">
+          <TabsTrigger value="integrations" className="flex items-center gap-2 flex-1 md:flex-initial">
             <Database className="h-4 w-4" />
-            Integrations
+            <span className="whitespace-nowrap">Integrations</span>
           </TabsTrigger>
-          <TabsTrigger value="webhooks" className="flex items-center gap-2">
+          <TabsTrigger value="webhooks" className="flex items-center gap-2 flex-1 md:flex-initial">
             <Webhook className="h-4 w-4" />
-            Webhooks
+            <span className="whitespace-nowrap">Webhooks</span>
           </TabsTrigger>
         </TabsList>
 
