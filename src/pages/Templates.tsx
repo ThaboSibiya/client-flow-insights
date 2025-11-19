@@ -31,14 +31,14 @@ const Templates = () => {
       </div>
 
       <Tabs defaultValue="industry" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
-          <TabsTrigger value="industry" className="flex items-center gap-2">
+        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-2 max-w-md">
+          <TabsTrigger value="industry" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <Building className="w-4 h-4" />
-            Industry Templates
+            Industry
           </TabsTrigger>
-          <TabsTrigger value="custom" className="flex items-center gap-2">
+          <TabsTrigger value="custom" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <Palette className="w-4 h-4" />
-            Custom Templates
+            Custom
           </TabsTrigger>
         </TabsList>
 

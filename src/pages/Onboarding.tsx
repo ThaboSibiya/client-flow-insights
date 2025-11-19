@@ -21,18 +21,18 @@ const Onboarding: React.FC<OnboardingProps> = () => {
           
 
           <Tabs defaultValue="individual" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
-              <TabsTrigger value="individual" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
+            <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-3 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
+              <TabsTrigger value="individual" className="flex items-center gap-2 flex-1 md:flex-initial data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white whitespace-nowrap">
                 <User className="h-4 w-4" />
-                Individual Customer
+                Individual
               </TabsTrigger>
-              <TabsTrigger value="bulk" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
+              <TabsTrigger value="bulk" className="flex items-center gap-2 flex-1 md:flex-initial data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white whitespace-nowrap">
                 <FileSpreadsheet className="h-4 w-4" />
-                Bulk Import
+                Bulk
               </TabsTrigger>
-              <TabsTrigger value="templates" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white">
+              <TabsTrigger value="templates" className="flex items-center gap-2 flex-1 md:flex-initial data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white whitespace-nowrap">
                 <Palette className="h-4 w-4" />
-                Custom Templates
+                Templates
               </TabsTrigger>
             </TabsList>
             

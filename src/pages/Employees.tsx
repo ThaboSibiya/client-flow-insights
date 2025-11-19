@@ -110,7 +110,7 @@ const Employees: React.FC = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-quikle-crystal/50 to-quikle-crystal/30 border border-quikle-silver/30 p-1">
+              <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-2 bg-gradient-to-r from-quikle-crystal/50 to-quikle-crystal/30 border border-quikle-silver/30 p-1">
                 <TabsTrigger 
                   value="list" 
                   className="flex items-center gap-2 text-quikle-slate/70 font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-quikle-primary/20 data-[state=active]:font-semibold hover:text-quikle-primary hover:bg-white/50"

@@ -49,18 +49,18 @@ const Pipeline: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="customers" className="flex items-center gap-2">
+        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-3">
+          <TabsTrigger value="customers" className="flex items-center gap-2 flex-1 md:flex-initial">
             <Users className="h-4 w-4" />
-            Customers
+            <span className="hidden sm:inline">Customers</span>
           </TabsTrigger>
-          <TabsTrigger value="tickets" className="flex items-center gap-2">
+          <TabsTrigger value="tickets" className="flex items-center gap-2 flex-1 md:flex-initial">
             <Ticket className="h-4 w-4" />
-            Tickets
+            <span className="hidden sm:inline">Tickets</span>
           </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
+          <TabsTrigger value="settings" className="flex items-center gap-2 flex-1 md:flex-initial">
             <Settings className="h-4 w-4" />
-            Settings
+            <span className="hidden sm:inline">Settings</span>
           </TabsTrigger>
         </TabsList>
 
