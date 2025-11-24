@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Button } from "@/components/ui/button";
 import { Plus, Settings } from "lucide-react";
@@ -39,9 +39,15 @@ const CustomerPipeline = () => {
   } = useCustomerPipeline();
 
   const sensors = useSensors(
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    }),
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // Require 8px movement before drag starts
+        distance: 8,
       },
     }),
     useSensor(KeyboardSensor, {
