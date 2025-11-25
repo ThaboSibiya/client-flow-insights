@@ -21,7 +21,7 @@ const Onboarding: React.FC<OnboardingProps> = () => {
           
 
           <Tabs defaultValue="individual" className="w-full">
-            <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-3 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30">
+            <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-3 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
               <TabsTrigger value="individual" className="flex items-center gap-2 flex-1 md:flex-initial data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white whitespace-nowrap">
                 <User className="h-4 w-4" />
                 Individual

@@ -42,7 +42,7 @@ const Analytics: React.FC<AnalyticsProps> = () => {
       </div>
 
       <Tabs defaultValue="customers" className="space-y-4">
-        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-4">
+        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-4 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
           <TabsTrigger value="customers" className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
             <Users className="h-4 w-4" />
             <span className="hidden sm:inline">Customer Analytics</span>

@@ -21,7 +21,7 @@ const CommunicationAutomation = () => {
 
       {/* Main Content */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-7">
+        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-7 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
           <TabsTrigger value="overview" className="flex-1 md:flex-initial whitespace-nowrap">Overview</TabsTrigger>
           <TabsTrigger value="email" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <Mail className="h-4 w-4" />

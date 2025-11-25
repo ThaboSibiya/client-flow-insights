@@ -20,7 +20,7 @@ const Integrations = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-2">
+        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-2 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
           <TabsTrigger value="integrations" className="flex items-center gap-2 flex-1 md:flex-initial">
             <Database className="h-4 w-4" />
             <span className="whitespace-nowrap">Integrations</span>
