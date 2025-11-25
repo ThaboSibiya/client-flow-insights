@@ -270,7 +270,7 @@ const Auth: React.FC = () => {
           </CardHeader>
           
           <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-3">
+            <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-3 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
               <TabsTrigger value="login" className="flex-1 md:flex-initial">Login</TabsTrigger>
               <TabsTrigger value="register" className="flex-1 md:flex-initial">Register</TabsTrigger>
               <TabsTrigger value="forgot">Reset</TabsTrigger>

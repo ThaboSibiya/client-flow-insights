@@ -67,7 +67,7 @@ const Finance: React.FC = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full bg-white border border-quikle-silver/20 shadow-sm overflow-x-auto flex md:grid md:grid-cols-4">
+        <TabsList className="w-full bg-white border border-quikle-silver/20 shadow-sm overflow-x-auto flex md:grid md:grid-cols-4 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
           <TabsTrigger value="overview" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white whitespace-nowrap flex-shrink-0">
             Overview
           </TabsTrigger>

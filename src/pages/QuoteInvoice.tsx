@@ -133,7 +133,7 @@ const QuoteInvoice: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full bg-white border border-quikle-silver/20 shadow-sm p-1 h-auto overflow-x-auto flex md:grid md:grid-cols-9">
+        <TabsList className="w-full bg-white border border-quikle-silver/20 shadow-sm p-1 h-auto overflow-x-auto flex md:grid md:grid-cols-9 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
           <TabsTrigger value="quotes" className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white text-xs px-2 py-2.5 font-medium whitespace-nowrap flex-shrink-0">
             All Quotes
           </TabsTrigger>

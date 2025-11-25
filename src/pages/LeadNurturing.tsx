@@ -20,7 +20,7 @@ const LeadNurturing = () => {
 
       {/* Main Content */}
       <Tabs defaultValue="assignment" className="space-y-6">
-        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-4">
+        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-4 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
           <TabsTrigger value="assignment" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <Users className="h-4 w-4" />
             <span className="hidden sm:inline">Auto-</span>Assignment

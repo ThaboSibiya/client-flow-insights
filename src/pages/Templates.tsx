@@ -31,7 +31,7 @@ const Templates = () => {
       </div>
 
       <Tabs defaultValue="industry" className="space-y-6">
-        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-2 max-w-md">
+        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-2 max-w-md [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
           <TabsTrigger value="industry" className="flex items-center gap-2 flex-1 md:flex-initial whitespace-nowrap">
             <Building className="w-4 h-4" />
             Industry

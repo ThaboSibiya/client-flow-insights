@@ -109,7 +109,7 @@ const Conversations = () => {
             {/* Type Tabs */}
             <div className="p-4 border-b border-quikle-silver/20">
               <Tabs value={filters.type} onValueChange={(value) => updateFilter('type', value)}>
-                <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-5">
+                <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-5 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
                   {conversationTypes.map((type) => (
                     <TabsTrigger key={type.id} value={type.id} className="text-xs">
                       <type.icon className="h-3 w-3" />
@@ -151,7 +151,7 @@ const Conversations = () => {
                 {/* Type Tabs */}
                 <div className="p-4 border-b border-quikle-silver/20 bg-white">
                   <Tabs value={filters.type} onValueChange={(value) => updateFilter('type', value)}>
-                    <TabsList className="w-full overflow-x-auto flex">
+                    <TabsList className="w-full overflow-x-auto flex [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
                       {conversationTypes.map((type) => (
                         <TabsTrigger key={type.id} value={type.id} className="text-xs whitespace-nowrap flex-shrink-0">
                           <type.icon className="h-3 w-3 mr-1" />
