@@ -111,7 +111,7 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
             </TabsList>
             
             <TabsContent value="details" className="mt-6 flex-1 overflow-hidden">
-              <ScrollArea className="h-full pr-4">
+              <ScrollArea className="h-[calc(90vh-280px)] pr-4">
                 <CustomerDetailsForm 
                   customer={customer}
                   onClose={onClose}
@@ -120,7 +120,7 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
             </TabsContent>
             
             <TabsContent value="custom-data" className="mt-6 flex-1 overflow-hidden">
-              <ScrollArea className="h-full pr-4">
+              <ScrollArea className="h-[calc(90vh-280px)] pr-4">
                 <BusinessInformationForm 
                   customer={customer}
                   onClose={onClose}
@@ -129,7 +129,7 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
             </TabsContent>
             
             <TabsContent value="equipment" className="mt-6 flex-1 overflow-hidden">
-              <ScrollArea className="h-full pr-4">
+              <ScrollArea className="h-[calc(90vh-280px)] pr-4">
                 <EquipmentDisplay customerId={customer.id} />
               </ScrollArea>
             </TabsContent>
