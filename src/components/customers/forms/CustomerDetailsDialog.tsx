@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Customer } from '@/types/customer';
 import CustomerDetailsForm from './CustomerDetailsForm';
+import BusinessInformationForm from './BusinessInformationForm';
 import CustomDataDisplay from '../CustomDataDisplay';
 import EquipmentDisplay from '../equipment/EquipmentDisplay';
 import CustomerFinanceTab from '@/components/finance/CustomerFinanceTab';
@@ -120,7 +121,10 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
             
             <TabsContent value="custom-data" className="mt-6 flex-1 overflow-hidden">
               <ScrollArea className="h-full pr-4">
-                <CustomDataDisplay customerId={customer.id} />
+                <BusinessInformationForm 
+                  customer={customer}
+                  onClose={onClose}
+                />
               </ScrollArea>
             </TabsContent>
             
