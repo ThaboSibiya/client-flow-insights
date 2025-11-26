@@ -29,8 +29,6 @@ const CustomerDetailsForm = ({ customer, onClose }: CustomerDetailsFormProps) =>
       contact_person: customer.contact_person || '',
       email: customer.email || '',
       phone: customer.phone || '',
-      name: customer.name || '',
-      company_address: customer.company_address || '',
       status: customer.status || 'new',
       notes: customer.notes || '',
     },
@@ -45,17 +43,17 @@ const CustomerDetailsForm = ({ customer, onClose }: CustomerDetailsFormProps) =>
     <div className="space-y-6">
       <div className="bg-gradient-to-br from-quikle-crystal to-white rounded-lg p-6 border border-quikle-silver/20">
         <h3 className="text-lg font-semibold text-quikle-charcoal mb-4 flex items-center gap-2">
-          Business Information
+          Personal Details
         </h3>
         
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="contact_person" className="text-quikle-charcoal font-medium">Contact Person</Label>
+              <Label htmlFor="contact_person" className="text-quikle-charcoal font-medium">Name</Label>
               <Input
                 id="contact_person"
                 {...form.register('contact_person')}
-                placeholder="Contact person name"
+                placeholder="Full name"
                 className="border-quikle-silver/50 focus:border-quikle-primary"
               />
             </div>
@@ -66,7 +64,7 @@ const CustomerDetailsForm = ({ customer, onClose }: CustomerDetailsFormProps) =>
                 id="email"
                 type="email"
                 {...form.register('email')}
-                placeholder="contact@company.com"
+                placeholder="email@example.com"
                 className="border-quikle-silver/50 focus:border-quikle-primary"
               />
             </div>
@@ -80,26 +78,6 @@ const CustomerDetailsForm = ({ customer, onClose }: CustomerDetailsFormProps) =>
                 className="border-quikle-silver/50 focus:border-quikle-primary"
               />
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-quikle-charcoal font-medium">Company Name</Label>
-              <Input
-                id="name"
-                {...form.register('name')}
-                placeholder="Company name"
-                className="border-quikle-silver/50 focus:border-quikle-primary"
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="company_address" className="text-quikle-charcoal font-medium">Company Address</Label>
-            <Input
-              id="company_address"
-              {...form.register('company_address')}
-              placeholder="123 Business Street, City, Province, Postal Code"
-              className="border-quikle-silver/50 focus:border-quikle-primary"
-            />
           </div>
           
           <div className="space-y-2">
