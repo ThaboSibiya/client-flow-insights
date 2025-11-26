@@ -76,43 +76,73 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
           <TabsContent value="details">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-quikle-charcoal font-medium">Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Customer name" {...field} className="border-quikle-silver focus:border-quikle-accent" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="contact_person"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-quikle-charcoal font-medium">Contact Person</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Contact person name" {...field} className="border-quikle-silver focus:border-quikle-accent" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-quikle-charcoal font-medium">Email Address</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="contact@company.com" {...field} className="border-quikle-silver focus:border-quikle-accent" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-quikle-charcoal font-medium">Phone Number</FormLabel>
+                          <FormControl>
+                            <Input placeholder="+27 12 345 6789" {...field} className="border-quikle-silver focus:border-quikle-accent" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-quikle-charcoal font-medium">Company Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Company name" {...field} className="border-quikle-silver focus:border-quikle-accent" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   
                   <FormField
                     control={form.control}
-                    name="email"
+                    name="company_address"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-quikle-charcoal font-medium">Email</FormLabel>
+                        <FormLabel className="text-quikle-charcoal font-medium">Company Address</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="Email address" {...field} className="border-quikle-silver focus:border-quikle-accent" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-quikle-charcoal font-medium">Phone</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Phone number" {...field} className="border-quikle-silver focus:border-quikle-accent" />
+                          <Input placeholder="123 Business Street, City, Province, Postal Code" {...field} className="border-quikle-silver focus:border-quikle-accent" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
