@@ -9,7 +9,8 @@ interface QuotePreviewItemsTableProps {
 export const QuotePreviewItemsTable = ({ items }: QuotePreviewItemsTableProps) => {
   return (
     <div className="mb-8">
-      <table className="w-full border-collapse">
+      {/* Desktop table */}
+      <table className="w-full border-collapse hidden md:table">
         <thead>
           <tr className="border-b border-quikle-silver">
             <th className="text-left py-2 text-quikle-charcoal">Description</th>
@@ -29,6 +30,20 @@ export const QuotePreviewItemsTable = ({ items }: QuotePreviewItemsTableProps) =
           ))}
         </tbody>
       </table>
+
+      {/* Mobile card view */}
+      <div className="md:hidden space-y-3">
+        {items.map((item) => (
+          <div key={item.id} className="border border-quikle-silver/30 rounded-lg p-3 space-y-2">
+            <p className="text-quikle-charcoal font-medium text-sm">{item.description || 'N/A'}</p>
+            <div className="flex justify-between text-xs text-quikle-charcoal">
+              <span>Qty: {item.quantity || 0}</span>
+              <span>Rate: R{(item.rate || 0).toFixed(2)}</span>
+              <span className="font-semibold">R{((item.quantity || 0) * (item.rate || 0)).toFixed(2)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
