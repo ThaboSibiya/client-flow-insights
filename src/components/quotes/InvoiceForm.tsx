@@ -367,9 +367,9 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSave, initialData, disabled
         <CardContent>
           <div className="space-y-4">
             {items.map((item, index) => (
-              <div key={item.id} className="grid grid-cols-12 gap-4 items-end">
-                <div className="col-span-5">
-                  <Label className="text-quikle-charcoal">Description *</Label>
+              <div key={item.id} className="flex flex-col md:grid md:grid-cols-12 gap-3 md:gap-4 md:items-end p-3 md:p-0 border md:border-0 rounded-lg md:rounded-none border-quikle-silver/30">
+                <div className="md:col-span-5">
+                  <Label className="text-quikle-charcoal text-xs md:text-sm">Description *</Label>
                   <Input
                     value={item.description}
                     onChange={(e) => updateItem(item.id, 'description', e.target.value)}
@@ -377,36 +377,38 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSave, initialData, disabled
                     className="border-quikle-silver"
                   />
                 </div>
-                <div className="col-span-2">
-                  <Label className="text-quikle-charcoal">Quantity</Label>
-                  <Input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 0)}
-                    min="1"
-                    className="border-quikle-silver"
-                  />
+                <div className="grid grid-cols-3 gap-2 md:contents">
+                  <div className="md:col-span-2">
+                    <Label className="text-quikle-charcoal text-xs md:text-sm">Qty</Label>
+                    <Input
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 0)}
+                      min="1"
+                      className="border-quikle-silver"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label className="text-quikle-charcoal text-xs md:text-sm">Rate (R)</Label>
+                    <Input
+                      type="number"
+                      value={item.rate}
+                      onChange={(e) => updateItem(item.id, 'rate', parseFloat(e.target.value) || 0)}
+                      min="0"
+                      step="0.01"
+                      className="border-quikle-silver"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label className="text-quikle-charcoal text-xs md:text-sm">Amount</Label>
+                    <Input
+                      value={`R${item.amount.toFixed(2)}`}
+                      readOnly
+                      className="bg-quikle-crystal border-quikle-silver"
+                    />
+                  </div>
                 </div>
-                <div className="col-span-2">
-                  <Label className="text-quikle-charcoal">Rate (R)</Label>
-                  <Input
-                    type="number"
-                    value={item.rate}
-                    onChange={(e) => updateItem(item.id, 'rate', parseFloat(e.target.value) || 0)}
-                    min="0"
-                    step="0.01"
-                    className="border-quikle-silver"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label className="text-quikle-charcoal">Amount</Label>
-                  <Input
-                    value={`R${item.amount.toFixed(2)}`}
-                    readOnly
-                    className="bg-quikle-crystal border-quikle-silver"
-                  />
-                </div>
-                <div className="col-span-1">
+                <div className="md:col-span-1 flex justify-end md:justify-start">
                   <Button
                     variant="outline"
                     size="sm"
@@ -415,6 +417,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSave, initialData, disabled
                     className="border-red-300 text-red-600 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
+                    <span className="md:hidden ml-2">Remove</span>
                   </Button>
                 </div>
               </div>
