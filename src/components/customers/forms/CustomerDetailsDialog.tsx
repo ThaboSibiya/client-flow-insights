@@ -48,8 +48,8 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
         <DialogDescription className="sr-only">
           View and edit customer details, business information, and equipment
         </DialogDescription>
-        <DialogHeader className="border-b border-quikle-silver/20 pb-4 px-6 pt-6 flex-shrink-0">
-          <DialogTitle className="text-2xl bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">
+        <DialogHeader className="border-b border-quikle-silver/20 pb-4 px-3 sm:px-6 pt-4 sm:pt-6 flex-shrink-0">
+          <DialogTitle className="text-lg sm:text-2xl bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent truncate">
             {customer ? `${customer.name}` : 'Customer Details'}
           </DialogTitle>
           {customer && !loading && appliedTemplates.length > 0 && (
@@ -65,47 +65,50 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
         </DialogHeader>
         
         {customer && (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col overflow-hidden px-6 pb-6">
-            <TabsList className="grid w-full grid-cols-4 bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30 mt-4 flex-shrink-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col overflow-hidden px-3 sm:px-6 pb-6">
+            <TabsList className="flex w-full overflow-x-auto bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30 mt-4 flex-shrink-0 gap-1 p-1">
               <TabsTrigger 
                 value="details" 
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
               >
-                <User className="h-4 w-4" />
-                Personal Details
+                <User className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Personal Details</span>
+                <span className="sm:hidden">Personal</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="custom-data" 
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
               >
-                <FileText className="h-4 w-4" />
-                Business Information
+                <FileText className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Business Info</span>
+                <span className="sm:hidden">Business</span>
                 {!loading && appliedTemplates.length > 0 && (
                   <>
-                    <Badge variant="secondary" className="bg-white/20 text-white text-xs ml-1">
+                    <Badge variant="secondary" className="bg-white/20 text-white text-[10px] sm:text-xs ml-1 flex-shrink-0">
                       {appliedTemplates.length}
                     </Badge>
                     {hasIncompleteRequired && (
-                      <AlertCircle className="h-3 w-3 text-amber-300" />
+                      <AlertCircle className="h-3 w-3 text-amber-300 flex-shrink-0" />
                     )}
                     {!hasIncompleteRequired && requiredFields.length > 0 && (
-                      <CheckCircle className="h-3 w-3 text-green-300" />
+                      <CheckCircle className="h-3 w-3 text-green-300 flex-shrink-0" />
                     )}
                   </>
                 )}
               </TabsTrigger>
               <TabsTrigger 
                 value="equipment" 
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
               >
-                <Printer className="h-4 w-4" />
-                Equipment
+                <Printer className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Equipment</span>
+                <span className="sm:hidden">Equip</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="finance" 
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
               >
-                <DollarSign className="h-4 w-4" />
+                <DollarSign className="h-4 w-4 flex-shrink-0" />
                 Finance
               </TabsTrigger>
             </TabsList>
