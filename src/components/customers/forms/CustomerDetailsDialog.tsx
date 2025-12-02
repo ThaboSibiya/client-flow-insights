@@ -66,7 +66,7 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
         
         {customer && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col overflow-hidden px-3 sm:px-6 pb-6">
-            <TabsList className="flex w-full overflow-x-auto bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30 mt-4 flex-shrink-0 gap-1 p-1">
+            <TabsList className="flex w-full overflow-x-auto sm:overflow-x-visible bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30 mt-4 flex-shrink-0 gap-1 p-1">
               <TabsTrigger 
                 value="details" 
                 className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
