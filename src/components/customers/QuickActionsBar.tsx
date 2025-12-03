@@ -25,30 +25,32 @@ const QuickActionsBar = ({
   shortcuts 
 }: QuickActionsBarProps) => {
   return (
-    <div className="flex items-center justify-between p-3 bg-gray-50 border rounded-lg mb-4">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 border rounded-lg mb-4 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
         <span className="text-sm font-medium text-gray-700">Quick Actions:</span>
         
-        <Button variant="outline" size="sm" onClick={onExportCSV}>
-          <Download className="h-4 w-4 mr-2" />
-          Export CSV
-        </Button>
-        
-        <Button variant="outline" size="sm" onClick={onExportJSON}>
-          <FileText className="h-4 w-4 mr-2" />
-          Export JSON
-        </Button>
-        
-        <Button variant="outline" size="sm" onClick={onExportExcel}>
-          <Settings className="h-4 w-4 mr-2" />
-          Export Excel
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={onExportCSV} className="text-xs sm:text-sm">
+            <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
+            <span className="hidden xs:inline">Export</span> CSV
+          </Button>
+          
+          <Button variant="outline" size="sm" onClick={onExportJSON} className="text-xs sm:text-sm">
+            <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
+            <span className="hidden xs:inline">Export</span> JSON
+          </Button>
+          
+          <Button variant="outline" size="sm" onClick={onExportExcel} className="text-xs sm:text-sm">
+            <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
+            <span className="hidden xs:inline">Export</span> Excel
+          </Button>
+        </div>
       </div>
 
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="ghost" size="sm">
-            <Keyboard className="h-4 w-4 mr-2" />
+          <Button variant="ghost" size="sm" className="self-start sm:self-auto text-xs sm:text-sm">
+            <Keyboard className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
             Shortcuts
           </Button>
         </DialogTrigger>

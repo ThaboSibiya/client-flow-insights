@@ -256,25 +256,25 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header with stats */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Customer Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold">Customer Management</h1>
+          <p className="text-sm text-muted-foreground">
             Manage your {customers.length} customers efficiently
           </p>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Upload className="h-4 w-4 mr-2" />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+            <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
             Import
           </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
+          <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+            <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
             Export
           </Button>
-          <Button size="sm" onClick={() => navigate('/customers/new')}>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button size="sm" onClick={() => navigate('/customers/new')} className="text-xs sm:text-sm">
+            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
             Add Customer
           </Button>
         </div>
@@ -285,26 +285,26 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
 
       {/* Search and filters */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="flex flex-col space-y-4">
             {/* Search bar */}
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search customers by name, email, phone, or contact person..."
+                placeholder="Search customers..."
                 value={searchState.query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 text-sm"
               />
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               <Select 
                 value={searchState.filters.status || ''} 
                 onValueChange={(value) => value ? setFilter('status', value) : removeFilter('status')}
               >
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-[120px] sm:w-[140px] text-xs sm:text-sm">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -322,7 +322,7 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
                   value ? setFilter('hasTickets', value === 'true') : removeFilter('hasTickets')
                 }
               >
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-[120px] sm:w-[140px] text-xs sm:text-sm">
                   <SelectValue placeholder="Tickets" />
                 </SelectTrigger>
                 <SelectContent>
@@ -336,7 +336,7 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
                 value={searchState.sortBy || ''} 
                 onValueChange={(value) => value && setSort(value, searchState.sortOrder)}
               >
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-[120px] sm:w-[140px] text-xs sm:text-sm">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -348,7 +348,7 @@ export const OptimizedCustomerManager: React.FC<OptimizedCustomerManagerProps> =
               </Select>
 
               {Object.keys(searchState.filters).length > 0 && (
-                <Button variant="outline" size="sm" onClick={clearFilters}>
+                <Button variant="outline" size="sm" onClick={clearFilters} className="text-xs sm:text-sm">
                   Clear Filters
                 </Button>
               )}

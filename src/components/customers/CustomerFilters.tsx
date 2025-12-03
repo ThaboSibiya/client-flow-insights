@@ -24,15 +24,15 @@ const CustomerFilters = ({
   onSearchQueryChange 
 }: CustomerFiltersProps) => {
   return (
-    <div className="p-6 bg-gradient-to-r from-white via-gray-50 to-white border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Filter by status:</span>
+    <div className="p-4 sm:p-6 bg-gradient-to-r from-white via-gray-50 to-white border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4">
+        <div className="flex flex-col xs:flex-row items-start xs:items-center gap-2">
+          <span className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Filter by status:</span>
           <Select
             value={statusFilter}
             onValueChange={(value) => onStatusFilterChange(value)}
           >
-            <SelectTrigger className="w-[180px] bg-white shadow-sm hover:shadow transform hover:translate-y-[-1px] transition-all">
+            <SelectTrigger className="w-full xs:w-[140px] sm:w-[180px] bg-white shadow-sm hover:shadow transform hover:translate-y-[-1px] transition-all text-xs sm:text-sm">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -45,12 +45,12 @@ const CustomerFilters = ({
           </Select>
         </div>
         
-        <div className="flex gap-2 w-full sm:w-auto relative">
+        <div className="relative w-full sm:w-auto sm:max-w-[300px]">
           <Input
             placeholder="Search customers..."
             value={searchQuery}
             onChange={(e) => onSearchQueryChange(e.target.value)}
-            className="pl-9 max-w-[300px] bg-white shadow-sm hover:shadow focus:shadow-md transition-all"
+            className="pl-9 w-full bg-white shadow-sm hover:shadow focus:shadow-md transition-all text-sm"
           />
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
         </div>

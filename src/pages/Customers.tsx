@@ -29,29 +29,32 @@ const Customers: React.FC = () => {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-lg">Client Management</h1>
             <p className="text-quikle-charcoal/70 font-medium">View, manage, and communicate with your clients</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button 
               onClick={() => setIsOnSiteUpdateOpen(true)}
               variant="outline"
-              className="flex items-center gap-2 quikle-button-secondary shadow-md"
+              size="sm"
+              className="flex items-center gap-1.5 quikle-button-secondary shadow-md text-xs sm:text-sm"
             >
-              <MapPin className="h-4 w-4" />
-              Job Complete
+              <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Job</span> Complete
             </Button>
             <Button 
               onClick={() => setIsSessionOpen(true)}
               variant="outline"
-              className="flex items-center gap-2 quikle-button-secondary shadow-md"
+              size="sm"
+              className="flex items-center gap-1.5 quikle-button-secondary shadow-md text-xs sm:text-sm"
             >
-              <Phone className="h-4 w-4" />
+              <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               AI Agent
             </Button>
             <Button 
               onClick={handleOnboardNewCustomer} 
-              className="flex items-center gap-2 quikle-button-primary shadow-md"
+              size="sm"
+              className="flex items-center gap-1.5 quikle-button-primary shadow-md text-xs sm:text-sm"
             >
-              <UserPlus className="h-4 w-4" />
-              New Client
+              <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">New</span> Client
             </Button>
           </div>
         </div>
