@@ -23,13 +23,13 @@ const CustomerActivityChart = ({ data }: ChartProps) => {
   
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow quikle-card">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-gradient-quikle">Monthly Activity</CardTitle>
-        <div className="flex gap-2">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <CardTitle className="text-gradient-quikle text-base sm:text-lg">Monthly Activity</CardTitle>
+        <div className="flex flex-wrap gap-2">
           <Tabs defaultValue="stacked" onValueChange={(value) => setChartType(value as 'stacked' | 'grouped')}>
-            <TabsList className="grid grid-cols-2 h-8 w-40">
-              <TabsTrigger value="stacked">Stacked</TabsTrigger>
-              <TabsTrigger value="grouped">Grouped</TabsTrigger>
+            <TabsList className="grid grid-cols-2 h-8 w-32 sm:w-40">
+              <TabsTrigger value="stacked" className="text-xs sm:text-sm">Stacked</TabsTrigger>
+              <TabsTrigger value="grouped" className="text-xs sm:text-sm">Grouped</TabsTrigger>
             </TabsList>
           </Tabs>
           
@@ -37,7 +37,7 @@ const CustomerActivityChart = ({ data }: ChartProps) => {
             value={viewOption}
             onValueChange={(value) => setViewOption(value as 'all' | 'new' | 'existing' | 'pending' | 'finalised')}
           >
-            <SelectTrigger className="w-[180px] bg-white border-quikle-primary/20 shadow-sm h-8">
+            <SelectTrigger className="w-[120px] sm:w-[180px] bg-white border-quikle-primary/20 shadow-sm h-8 text-xs sm:text-sm">
               <SelectValue placeholder="Select view" />
             </SelectTrigger>
             <SelectContent>
