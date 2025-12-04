@@ -152,8 +152,8 @@ const ProjectManagement: React.FC = () => {
       )}
 
       {/* View Tabs */}
-      <Tabs value={activeView} onValueChange={handleTabChange}>
-        <div className="flex items-center justify-between">
+      <Tabs value={activeView} onValueChange={handleTabChange} className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <TabsList className="grid w-fit grid-cols-5">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
