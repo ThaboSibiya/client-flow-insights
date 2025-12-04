@@ -45,8 +45,8 @@ const QuickActions = ({
               <Mail className="h-4 w-4 md:h-5 md:w-5 text-primary flex-shrink-0" />
               <h4 className="font-semibold text-xs md:text-sm text-left truncate">Bulk Reminders</h4>
             </div>
-            <p className="text-[10px] md:text-xs text-muted-foreground text-left break-words line-clamp-2">
-              Send reminders to {stats.totalDebtors} overdue customer{stats.totalDebtors !== 1 ? 's' : ''}
+            <p className="text-[10px] md:text-xs text-muted-foreground text-left line-clamp-2 w-full">
+              {stats.totalDebtors} overdue
             </p>
           </Button>
 
