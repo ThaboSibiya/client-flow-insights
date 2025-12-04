@@ -4,57 +4,8 @@ import { useProjectErrorHandling } from './useProjectErrorHandling';
 import { useProjectPerformance } from './useProjectPerformance';
 import { validateProject, sanitizeProjectInput, sanitizeNumericInput } from '@/utils/project-validation';
 import { projectService } from '@/services/projectService';
-
-// Mock data for demonstration
-const mockTeamMembers: TeamMember[] = [
-  { id: '1', name: 'John Smith', email: 'john@company.com', role: 'Project Manager', department: 'Management', avatar: undefined },
-  { id: '2', name: 'Sarah Johnson', email: 'sarah@company.com', role: 'Developer', department: 'Engineering', avatar: undefined },
-  { id: '3', name: 'Mike Wilson', email: 'mike@company.com', role: 'Designer', department: 'Design', avatar: undefined },
-  { id: '4', name: 'Lisa Brown', email: 'lisa@company.com', role: 'QA Engineer', department: 'Engineering', avatar: undefined },
-];
-
-const mockProjects: Project[] = [
-  {
-    id: 'proj-1',
-    name: 'CRM Dashboard Redesign',
-    description: 'Complete redesign of the main dashboard interface',
-    status: 'in-progress',
-    type: 'design',
-    priority: 'high',
-    startDate: new Date('2024-01-15'),
-    dueDate: new Date('2024-03-15'),
-    budget: 450000,
-    spent: 216000,
-    progress: 65,
-    owner: mockTeamMembers[0],
-    team: mockTeamMembers,
-    tasks: [],
-    tags: ['ui-ux', 'frontend', 'dashboard'],
-    client: 'Internal',
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-02-01'),
-  },
-  {
-    id: 'proj-2',
-    name: 'Mobile App Development',
-    description: 'Native mobile app for iOS and Android',
-    status: 'not-started',
-    type: 'development',
-    priority: 'medium',
-    startDate: new Date('2024-02-01'),
-    dueDate: new Date('2024-06-01'),
-    budget: 900000,
-    spent: 0,
-    progress: 0,
-    owner: mockTeamMembers[1],
-    team: [mockTeamMembers[1], mockTeamMembers[3]],
-    tasks: [],
-    tags: ['mobile', 'react-native', 'app'],
-    client: 'External Client',
-    createdAt: new Date('2024-01-20'),
-    updatedAt: new Date('2024-01-25'),
-  },
-];
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface UseProjectManagementReturn extends ProjectEventHandlers {
   projects: Project[];
@@ -78,7 +29,9 @@ export interface UseProjectManagementReturn extends ProjectEventHandlers {
 }
 
 export const useProjectManagement = (): UseProjectManagementReturn => {
+  const { user } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [filters, setFilters] = useState<ProjectFilters>({
@@ -92,6 +45,73 @@ export const useProjectManagement = (): UseProjectManagementReturn => {
 
   const { logError, errors, clearErrors } = useProjectErrorHandling();
   const { startMeasure } = useProjectPerformance();
+
+  // Load team members from profile and employees
+  useEffect(() => {
+    const loadTeamMembers = async () => {
+      if (!user) return;
+      
+      try {
+        const members: TeamMember[] = [];
+        
+        // Add current user from profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, email, avatar_url, role')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile) {
+          const userName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.email || 'Current User';
+          members.push({
+            id: profile.id,
+            name: userName,
+            email: profile.email || user.email || '',
+            role: profile.role || 'Owner',
+            department: 'Management',
+            avatar: profile.avatar_url || undefined,
+          });
+        }
+        
+        // Add employees
+        const { data: employees } = await supabase
+          .from('employees')
+          .select('id, first_name, last_name, email, title, department')
+          .eq('company_owner_id', user.id)
+          .eq('status', 'active');
+        
+        if (employees) {
+          employees.forEach(emp => {
+            members.push({
+              id: emp.id,
+              name: `${emp.first_name} ${emp.last_name}`,
+              email: emp.email,
+              role: emp.title || 'Employee',
+              department: emp.department || 'General',
+              avatar: undefined,
+            });
+          });
+        }
+        
+        setTeamMembers(members);
+      } catch (error) {
+        console.error('Failed to load team members:', error);
+        // Set current user as fallback
+        if (user) {
+          setTeamMembers([{
+            id: user.id,
+            name: user.email || 'Current User',
+            email: user.email || '',
+            role: 'Owner',
+            department: 'Management',
+            avatar: undefined,
+          }]);
+        }
+      }
+    };
+    
+    loadTeamMembers();
+  }, [user]);
 
   // Load projects from database on mount
   useEffect(() => {
@@ -351,7 +371,7 @@ export const useProjectManagement = (): UseProjectManagementReturn => {
     setSelectedProject,
     filters,
     setFilters,
-    teamMembers: mockTeamMembers,
+    teamMembers,
     updateProjectStatus,
     updateTaskStatus,
     addProject,
