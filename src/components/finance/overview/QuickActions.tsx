@@ -41,9 +41,9 @@ const QuickActions = ({
             className="h-auto p-3 md:p-4 flex flex-col items-start gap-1.5 md:gap-2 hover:bg-primary/5 hover:border-primary transition-colors min-h-[80px]"
             onClick={onSendBulkReminders}
           >
-            <div className="flex items-center gap-2 w-full">
+            <div className="flex items-center gap-2 w-full min-w-0">
               <Mail className="h-4 w-4 md:h-5 md:w-5 text-primary flex-shrink-0" />
-              <h4 className="font-semibold text-xs md:text-sm text-left break-words">Send Bulk Reminders</h4>
+              <h4 className="font-semibold text-xs md:text-sm text-left truncate">Bulk Reminders</h4>
             </div>
             <p className="text-[10px] md:text-xs text-muted-foreground text-left break-words line-clamp-2">
               Send reminders to {stats.totalDebtors} overdue customer{stats.totalDebtors !== 1 ? 's' : ''}
