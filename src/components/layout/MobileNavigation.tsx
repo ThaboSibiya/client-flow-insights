@@ -25,6 +25,8 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import WorkstationQuickPanel from '@/components/sidebar/WorkstationQuickPanel';
 
 const MobileNavigation = () => {
   const location = useLocation();
@@ -96,39 +98,50 @@ const MobileNavigation = () => {
               </SheetTitle>
             </SheetHeader>
             
-            <nav className="space-y-2">
-              {drawerNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
-                
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setIsOpen(false)}
-                    className={cn(
-                      "flex items-center justify-between px-4 py-4 text-base font-medium transition-colors rounded-lg touch-target",
-                      isActive 
-                        ? "bg-quikle-crystal text-quikle-primary border border-quikle-primary/20" 
-                        : "text-quikle-charcoal hover:bg-quikle-crystal/50"
-                    )}
-                  >
-                    <div className="flex items-center gap-4">
-                      <Icon className="h-5 w-5 flex-shrink-0" />
-                      <span>{item.label}</span>
-                    </div>
-                    {item.badge && (
-                      <Badge 
-                        variant="destructive" 
-                        className="bg-red-500 text-white text-xs min-w-[20px] h-5 flex items-center justify-center"
-                      >
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
+            <ScrollArea className="h-[calc(100vh-120px)]">
+              {/* Workstation Quick Panel */}
+              <div className="mb-4 px-2">
+                <WorkstationQuickPanel variant="mobile" onItemClick={() => setIsOpen(false)} />
+              </div>
+
+              {/* Divider */}
+              <div className="h-px bg-quikle-silver/30 mx-4 mb-4" />
+
+              {/* Navigation Items */}
+              <nav className="space-y-2 px-2">
+                {drawerNavItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.path;
+                  
+                  return (
+                    <Link
+                      key={`${item.path}-${item.label}`}
+                      to={item.path}
+                      onClick={() => setIsOpen(false)}
+                      className={cn(
+                        "flex items-center justify-between px-4 py-4 text-base font-medium transition-colors rounded-lg touch-target",
+                        isActive 
+                          ? "bg-quikle-crystal text-quikle-primary border border-quikle-primary/20" 
+                          : "text-quikle-charcoal hover:bg-quikle-crystal/50"
+                      )}
+                    >
+                      <div className="flex items-center gap-4">
+                        <Icon className="h-5 w-5 flex-shrink-0" />
+                        <span>{item.label}</span>
+                      </div>
+                      {item.badge && (
+                        <Badge 
+                          variant="destructive" 
+                          className="bg-red-500 text-white text-xs min-w-[20px] h-5 flex items-center justify-center"
+                        >
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </ScrollArea>
           </SheetContent>
         </Sheet>
       </div>
