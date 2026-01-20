@@ -21,6 +21,7 @@ import {
 import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import UserProfile from '@/components/auth/UserProfile';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import WorkstationQuickPanel from '@/components/sidebar/WorkstationQuickPanel';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -103,8 +104,11 @@ const Sidebar = () => {
           <NotificationBell />
         </div>
         
+        {/* Workstation Quick Access Panel */}
+        <WorkstationQuickPanel />
+
         {/* Navigation Menu with Enhanced Hover Scrollbar */}
-        <nav className="flex-1 mt-4 px-3 overflow-y-auto hover-scrollbar">
+        <nav className="flex-1 px-3 overflow-y-auto hover-scrollbar">
           <div className="space-y-3 pb-4">
             {menuGroups.map((group, groupIndex) => (
               <div key={group.label} className="space-y-1.5">
