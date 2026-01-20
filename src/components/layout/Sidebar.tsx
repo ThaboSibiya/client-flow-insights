@@ -15,7 +15,8 @@ import {
   FolderKanban,
   Workflow,
   Zap,
-  DollarSign
+  DollarSign,
+  Bell
 } from 'lucide-react';
 import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import UserProfile from '@/components/auth/UserProfile';
@@ -53,6 +54,7 @@ const Sidebar = () => {
       label: 'Team & Security',
       items: [
         { path: '/employees', icon: Users, label: 'Team' },
+        { path: '/notifications', icon: Bell, label: 'Notifications' },
         ...(employee?.role === 'admin' ? [{ path: '/audit-log', icon: ShieldCheck, label: 'Audit Log' }] : []),
       ]
     },

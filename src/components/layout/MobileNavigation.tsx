@@ -13,7 +13,8 @@ import {
   Zap,
   Bot,
   DollarSign,
-  FileText
+  FileText,
+  Bell
 } from 'lucide-react';
 import {
   Sheet,
@@ -45,6 +46,7 @@ const MobileNavigation = () => {
     { path: '/finance', icon: DollarSign, label: 'Finance' },
     { path: '/automations', icon: Zap, label: 'Automations' },
     { path: '/integrations', icon: Workflow, label: 'Integrations' },
+    { path: '/notifications', icon: Bell, label: 'Notifications' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/onboarding', icon: UserPlus, label: 'Add Customer' },
   ];
