@@ -8,6 +8,8 @@ import RealtimeActivityFeed from '@/components/dashboard/RealtimeActivityFeed';
 import QuickActions from '@/components/dashboard/QuickActions';
 import InteractiveMetrics from '@/components/dashboard/InteractiveMetrics';
 import WelcomeHeader from '@/components/dashboard/WelcomeHeader';
+import UserWorkstation from '@/components/workstation/UserWorkstation';
+import FirstTimeOnboardingModal from '@/components/onboarding/FirstTimeOnboardingModal';
 import { Users, Clock, CircleCheck, Database } from 'lucide-react';
 import { generateMonthlyActivityData } from '@/utils/chart-utils';
 
@@ -26,8 +28,10 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* First-time onboarding modal */}
+      <FirstTimeOnboardingModal />
+      
       <WelcomeHeader subtitle="Monitor your business performance at a glance" />
-
 
       <DashboardLayoutManager 
         isEditMode={isEditMode} 
@@ -61,13 +65,13 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Interactive Widgets Row */}
+        {/* User Workstation + Chart Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div className="lg:col-span-2">
             <CustomerActivityChart data={chartData} />
           </div>
           <div>
-            <InteractiveMetrics />
+            <UserWorkstation />
           </div>
         </div>
 
