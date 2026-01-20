@@ -4,11 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useEmployeeAuth } from '@/hooks/useEmployeeAuth';
 import { 
   Users, 
   BarChart3, 
   LayoutDashboard, 
-  ArrowRight 
+  ArrowRight,
+  Sparkles 
 } from 'lucide-react';
 import {
   Carousel,
@@ -21,8 +23,23 @@ import {
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { employeeProfile, isCompanyOwner } = useEmployeeAuth();
   const backgroundRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
+
+  const getUserFirstName = () => {
+    if (employeeProfile?.first_name) {
+      return employeeProfile.first_name;
+    }
+    if (user?.email) {
+      const emailName = user.email.split('@')[0];
+      return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    }
+    return null;
+  };
+
+  const userName = getUserFirstName();
+
   
   // Effect for parallax background movement
   useEffect(() => {
@@ -110,12 +127,17 @@ const Index = () => {
       <div className="container max-w-6xl mx-auto px-4 py-16 relative z-10">
         <div className="flex flex-col items-center text-center mb-16">
           <img src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" alt="Quikle Logo" className="h-24 w-24 mb-4" />
+          <div className="flex items-center justify-center gap-2 mb-2">
+            {userName && (
+              <Sparkles className="h-6 w-6 text-amber-400 animate-pulse" />
+            )}
+          </div>
           <h1 
             ref={titleRef}
             className="text-5xl md:text-6xl font-bold luxury-text leading-tight transition-transform duration-300 mb-4"
             style={{ transformStyle: 'preserve-3d' }}
           >
-            Welcome to QUIKLE
+            {userName ? `Welcome back, ${userName}!` : 'Welcome to QUIKLE'}
           </h1>
           <p className="text-xl mt-2 text-quikle-slate max-w-3xl leading-relaxed min-h-[96px]">
             {subtitle}
