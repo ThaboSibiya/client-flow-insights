@@ -6,9 +6,9 @@ import RecentActivity from '@/components/dashboard/RecentActivity';
 import DashboardLayoutManager from '@/components/dashboard/DashboardLayoutManager';
 import RealtimeActivityFeed from '@/components/dashboard/RealtimeActivityFeed';
 import QuickActions from '@/components/dashboard/QuickActions';
-import InteractiveMetrics from '@/components/dashboard/InteractiveMetrics';
 import WelcomeHeader from '@/components/dashboard/WelcomeHeader';
 import UserWorkstation from '@/components/workstation/UserWorkstation';
+import ProfileCompletionTracker from '@/components/workstation/ProfileCompletionTracker';
 import FirstTimeOnboardingModal from '@/components/onboarding/FirstTimeOnboardingModal';
 import { Users, Clock, CircleCheck, Database } from 'lucide-react';
 import { generateMonthlyActivityData } from '@/utils/chart-utils';
@@ -70,7 +70,8 @@ const Dashboard = () => {
           <div className="lg:col-span-2">
             <CustomerActivityChart data={chartData} />
           </div>
-          <div>
+          <div className="space-y-4">
+            <ProfileCompletionTracker />
             <UserWorkstation />
           </div>
         </div>
