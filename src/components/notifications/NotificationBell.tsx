@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, FolderKanban, Clock, AtSign, Info, Check, X } from 'lucide-react';
+import { Bell, FolderKanban, Clock, AtSign, Info, Check, X, Users, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -8,17 +8,17 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useUserNotifications, UserNotification } from '@/hooks/useUserNotifications';
+import { useRealtimeNotifications, RealtimeNotification } from '@/hooks/useRealtimeNotifications';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
 const NotificationBell: React.FC = () => {
-  const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotification } = useUserNotifications();
+  const { notifications, unreadCount, loading, markAsRead, markAllAsRead, clearNotification } = useRealtimeNotifications();
   const navigate = useNavigate();
   const [open, setOpen] = React.useState(false);
 
-  const getNotificationIcon = (type: UserNotification['type']) => {
+  const getNotificationIcon = (type: RealtimeNotification['type']) => {
     switch (type) {
       case 'project_assignment':
         return <FolderKanban className="h-4 w-4 text-quikle-primary" />;
@@ -26,14 +26,18 @@ const NotificationBell: React.FC = () => {
         return <Clock className="h-4 w-4 text-amber-500" />;
       case 'mention':
         return <AtSign className="h-4 w-4 text-quikle-secondary" />;
+      case 'customer':
+        return <Users className="h-4 w-4 text-emerald-500" />;
+      case 'ticket':
+        return <Ticket className="h-4 w-4 text-orange-500" />;
       case 'system':
       default:
         return <Info className="h-4 w-4 text-quikle-slate" />;
     }
   };
 
-  const handleNotificationClick = (notification: UserNotification) => {
-    markAsRead(notification.id);
+  const handleNotificationClick = async (notification: RealtimeNotification) => {
+    await markAsRead(notification.id);
     if (notification.link) {
       navigate(notification.link);
       setOpen(false);
@@ -47,6 +51,7 @@ const NotificationBell: React.FC = () => {
           variant="ghost" 
           size="icon" 
           className="relative h-9 w-9 rounded-full hover:bg-quikle-crystal/50 transition-colors"
+          data-tour="notification-bell"
         >
           <Bell className="h-5 w-5 text-quikle-slate" />
           {unreadCount > 0 && (

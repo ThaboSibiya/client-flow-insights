@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CRMProvider } from "./context/CRMContext";
 import { AuthProvider } from "./context/AuthContext";
 import ErrorBoundary from "./components/error/ErrorBoundary";
+import { TourProvider } from "./components/tour/FeatureTour";
 
 import Layout from "./components/layout/Layout";
 import Index from "./pages/Index";
@@ -59,100 +60,102 @@ const App = () => (
           <ErrorBoundary>
             <CRMProvider>
               <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <ErrorBoundary>
-                  <Routes>
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/employee-setup" element={<EmployeeSetup />} />
-                    <Route path="/" element={<ProtectedRoute element={<Layout />} />}>
-                      <Route index element={<Index />} />
-                      <Route path="dashboard" element={
-                        <ErrorBoundary>
-                          <Dashboard />
-                        </ErrorBoundary>
-                      } />
-                      <Route path="customers" element={
-                        <ErrorBoundary>
-                          <Customers />
-                        </ErrorBoundary>
-                      } />
-                      <Route path="conversations" element={
-                        <ErrorBoundary>
-                          <Conversations />
-                        </ErrorBoundary>
-                      } />
-                      <Route path="email" element={
-                        <ErrorBoundary>
-                          <EmailIntegration />
-                        </ErrorBoundary>
-                      } />
-                      <Route path="onboarding" element={
-                        <ErrorBoundary>
-                          <Onboarding />
-                        </ErrorBoundary>
-                      } />
-                      <Route path="pipeline" element={
-                        <ErrorBoundary>
-                          <Pipeline />
-                        </ErrorBoundary>
-                      } />
-                      <Route path="analytics" element={
-                        <ErrorBoundary>
-                          <Analytics />
-                        </ErrorBoundary>
-                      } />
-                      <Route path="projects" element={
-                        <ErrorBoundary>
-                           <React.Suspense fallback={
-                             <div className="flex items-center justify-center h-64" role="status" aria-live="polite">
-                               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" aria-hidden="true"></div>
-                               <span className="sr-only">Loading project management...</span>
-                             </div>
-                           }>
-                            <ProjectManagement />
-                          </React.Suspense>
-                        </ErrorBoundary>
-                      } />
-                      <Route path="quotes" element={
-                        <ErrorBoundary>
-                          <QuoteInvoice />
-                        </ErrorBoundary>
-                      } />
-                      <Route path="finance" element={
-                        <ErrorBoundary>
-                          <Finance />
-                        </ErrorBoundary>
-                      } />
-                      <Route path="employees" element={
-                        <ErrorBoundary>
-                          <Employees />
-                        </ErrorBoundary>
-                      } />
-                      <Route path="documentation" element={
-                        <ErrorBoundary>
-                          <Documentation />
-                        </ErrorBoundary>
-                      } />
-                      <Route path="audit-log" element={
-                        <ErrorBoundary>
-                          <AdminProtectedRoute element={<AuditLog />} />
-                        </ErrorBoundary>
-                      } />
-                      <Route path="integrations" element={
-                        <ErrorBoundary>
-                          <Integrations />
-                        </ErrorBoundary>
-                      } />
-                      <Route path="automations" element={
-                        <ErrorBoundary>
-                          <Automations />
-                        </ErrorBoundary>
-                      } />
-                    </Route>
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </ErrorBoundary>
+                <TourProvider>
+                  <Toaster />
+                  <Sonner />
+                  <ErrorBoundary>
+                    <Routes>
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/employee-setup" element={<EmployeeSetup />} />
+                      <Route path="/" element={<ProtectedRoute element={<Layout />} />}>
+                        <Route index element={<Index />} />
+                        <Route path="dashboard" element={
+                          <ErrorBoundary>
+                            <Dashboard />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="customers" element={
+                          <ErrorBoundary>
+                            <Customers />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="conversations" element={
+                          <ErrorBoundary>
+                            <Conversations />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="email" element={
+                          <ErrorBoundary>
+                            <EmailIntegration />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="onboarding" element={
+                          <ErrorBoundary>
+                            <Onboarding />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="pipeline" element={
+                          <ErrorBoundary>
+                            <Pipeline />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="analytics" element={
+                          <ErrorBoundary>
+                            <Analytics />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="projects" element={
+                          <ErrorBoundary>
+                            <React.Suspense fallback={
+                              <div className="flex items-center justify-center h-64" role="status" aria-live="polite">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" aria-hidden="true"></div>
+                                <span className="sr-only">Loading project management...</span>
+                              </div>
+                            }>
+                              <ProjectManagement />
+                            </React.Suspense>
+                          </ErrorBoundary>
+                        } />
+                        <Route path="quotes" element={
+                          <ErrorBoundary>
+                            <QuoteInvoice />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="finance" element={
+                          <ErrorBoundary>
+                            <Finance />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="employees" element={
+                          <ErrorBoundary>
+                            <Employees />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="documentation" element={
+                          <ErrorBoundary>
+                            <Documentation />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="audit-log" element={
+                          <ErrorBoundary>
+                            <AdminProtectedRoute element={<AuditLog />} />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="integrations" element={
+                          <ErrorBoundary>
+                            <Integrations />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="automations" element={
+                          <ErrorBoundary>
+                            <Automations />
+                          </ErrorBoundary>
+                        } />
+                      </Route>
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </ErrorBoundary>
+                </TourProvider>
               </TooltipProvider>
             </CRMProvider>
           </ErrorBoundary>

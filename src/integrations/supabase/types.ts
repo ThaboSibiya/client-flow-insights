@@ -2888,6 +2888,17 @@ export type Database = {
         Args: { p_created_by: string; p_email: string; p_employee_id: string }
         Returns: string
       }
+      create_notification: {
+        Args: {
+          p_link?: string
+          p_message: string
+          p_metadata?: Json
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       current_employee_id: { Args: never; Returns: string }
       current_user_company_owner_id: { Args: never; Returns: string }
       current_user_id: { Args: never; Returns: string }

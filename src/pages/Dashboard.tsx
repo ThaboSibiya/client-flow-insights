@@ -10,6 +10,7 @@ import WelcomeHeader from '@/components/dashboard/WelcomeHeader';
 import UserWorkstation from '@/components/workstation/UserWorkstation';
 import ProfileCompletionTracker from '@/components/workstation/ProfileCompletionTracker';
 import FirstTimeOnboardingModal from '@/components/onboarding/FirstTimeOnboardingModal';
+import TourTrigger from '@/components/tour/TourTrigger';
 import { Users, Clock, CircleCheck, Database } from 'lucide-react';
 import { generateMonthlyActivityData } from '@/utils/chart-utils';
 
@@ -31,14 +32,17 @@ const Dashboard = () => {
       {/* First-time onboarding modal */}
       <FirstTimeOnboardingModal />
       
-      <WelcomeHeader subtitle="Monitor your business performance at a glance" />
+      <div className="flex items-center justify-between" data-tour="welcome-header">
+        <WelcomeHeader subtitle="Monitor your business performance at a glance" />
+        <TourTrigger tourId="dashboard" variant="button" />
+      </div>
 
       <DashboardLayoutManager 
         isEditMode={isEditMode} 
         onToggleEditMode={() => setIsEditMode(!isEditMode)}
       >
         {/* Status Cards Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" data-tour="status-cards">
           <StatusCard 
             title="New Customers" 
             count={newCustomers} 
@@ -67,12 +71,16 @@ const Dashboard = () => {
 
         {/* User Workstation + Chart Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2" data-tour="activity-chart">
             <CustomerActivityChart data={chartData} />
           </div>
           <div className="space-y-4">
-            <ProfileCompletionTracker />
-            <UserWorkstation />
+            <div data-tour="profile-tracker">
+              <ProfileCompletionTracker />
+            </div>
+            <div data-tour="workstation">
+              <UserWorkstation />
+            </div>
           </div>
         </div>
 
