@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, FolderKanban, Clock, AtSign, Info, Check, X, Users, Ticket } from 'lucide-react';
+import { Bell, FolderKanban, Clock, AtSign, Info, Check, X, Users, Ticket, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -12,6 +12,7 @@ import { useRealtimeNotifications, RealtimeNotification } from '@/hooks/useRealt
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import NotificationSettingsSheet from './NotificationSettingsSheet';
 
 const NotificationBell: React.FC = () => {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead, clearNotification } = useRealtimeNotifications();
@@ -70,17 +71,26 @@ const NotificationBell: React.FC = () => {
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-quikle-silver/20 bg-gradient-to-r from-quikle-crystal/30 to-transparent">
           <h3 className="font-semibold text-quikle-charcoal">Notifications</h3>
-          {unreadCount > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={markAllAsRead}
-              className="text-xs text-quikle-primary hover:text-quikle-primary/80 h-7 px-2"
-            >
-              <Check className="h-3 w-3 mr-1" />
-              Mark all read
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {unreadCount > 0 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={markAllAsRead}
+                className="text-xs text-quikle-primary hover:text-quikle-primary/80 h-7 px-2"
+              >
+                <Check className="h-3 w-3 mr-1" />
+                Mark all read
+              </Button>
+            )}
+            <NotificationSettingsSheet
+              trigger={
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-quikle-slate hover:text-quikle-charcoal">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              }
+            />
+          </div>
         </div>
 
         <ScrollArea className="max-h-80">
