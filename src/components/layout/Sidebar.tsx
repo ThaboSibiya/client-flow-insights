@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import UserProfile from '@/components/auth/UserProfile';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -77,24 +78,27 @@ const Sidebar = () => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(59,130,246,0.03),transparent_50%)]" />
       
       <div className="flex-1 relative z-10 flex flex-col overflow-hidden">
-        {/* Premium Logo Section */}
-        <div className="p-6 flex items-center gap-3 border-b border-quikle-silver/20 bg-gradient-to-r from-white/95 to-quikle-crystal/40 backdrop-blur-sm flex-shrink-0">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-quikle-primary/20 to-quikle-secondary/20 rounded-xl blur-lg" />
-            <img 
-              src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" 
-              alt="Quikle Logo" 
-              className="h-11 w-11 relative z-10 drop-shadow-md transition-transform duration-300 hover:scale-110" 
-            />
+        {/* Premium Logo Section with Notification Bell */}
+        <div className="p-6 flex items-center justify-between border-b border-quikle-silver/20 bg-gradient-to-r from-white/95 to-quikle-crystal/40 backdrop-blur-sm flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-quikle-primary/20 to-quikle-secondary/20 rounded-xl blur-lg" />
+              <img 
+                src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" 
+                alt="Quikle Logo" 
+                className="h-11 w-11 relative z-10 drop-shadow-md transition-transform duration-300 hover:scale-110" 
+              />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-primary bg-clip-text text-transparent">
+                Quikle
+              </h1>
+              <p className="text-[10px] font-medium text-quikle-slate/70 tracking-widest uppercase -mt-0.5">
+                Innovation Suite
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-primary bg-clip-text text-transparent">
-              Quikle
-            </h1>
-            <p className="text-[10px] font-medium text-quikle-slate/70 tracking-widest uppercase -mt-0.5">
-              Innovation Suite
-            </p>
-          </div>
+          <NotificationBell />
         </div>
         
         {/* Navigation Menu with Enhanced Hover Scrollbar */}

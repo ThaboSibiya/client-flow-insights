@@ -7,6 +7,7 @@ import DashboardLayoutManager from '@/components/dashboard/DashboardLayoutManage
 import RealtimeActivityFeed from '@/components/dashboard/RealtimeActivityFeed';
 import QuickActions from '@/components/dashboard/QuickActions';
 import InteractiveMetrics from '@/components/dashboard/InteractiveMetrics';
+import WelcomeHeader from '@/components/dashboard/WelcomeHeader';
 import { Users, Clock, CircleCheck, Database } from 'lucide-react';
 import { generateMonthlyActivityData } from '@/utils/chart-utils';
 
@@ -25,10 +26,8 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-lg">Dashboard Overview</h1>
-        <p className="text-quikle-charcoal/70 font-medium">Monitor your business performance at a glance</p>
-      </div>
+      <WelcomeHeader subtitle="Monitor your business performance at a glance" />
+
 
       <DashboardLayoutManager 
         isEditMode={isEditMode} 
