@@ -30,6 +30,7 @@ import AuditLog from "./pages/AuditLog";
 import EmailIntegration from "./pages/EmailIntegration";
 import Integrations from "./pages/Integrations";
 import Automations from "./pages/Automations";
+import NotificationHistory from "./pages/NotificationHistory";
 import AdminProtectedRoute from "./components/auth/AdminProtectedRoute";
 
 const queryClient = new QueryClient({
@@ -149,6 +150,11 @@ const App = () => (
                         <Route path="automations" element={
                           <ErrorBoundary>
                             <Automations />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="notifications" element={
+                          <ErrorBoundary>
+                            <NotificationHistory />
                           </ErrorBoundary>
                         } />
                       </Route>
