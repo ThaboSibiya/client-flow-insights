@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
-import { useWorkstationData } from '@/hooks/useWorkstationData';
+import { useWorkstationData, WorkstationTask } from '@/hooks/useWorkstationData';
 import { useProjectManagement } from '@/hooks/useProjectManagement';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
@@ -21,6 +21,7 @@ import {
   HoverCardTrigger,
 } from '@/components/ui/hover-card';
 import { useToast } from '@/hooks/use-toast';
+import { projectService } from '@/services/projectService';
 import NotificationsPreview from './workstation/NotificationsPreview';
 import ProjectsPreview from './workstation/ProjectsPreview';
 import TasksPreview from './workstation/TasksPreview';
@@ -67,6 +68,27 @@ const WorkstationQuickPanel = ({ variant = 'sidebar', onItemClick }: Workstation
     // Refetch to update counts
     setTimeout(() => refetch(), 500);
   }, [updateTaskStatus, toast, refetch]);
+
+  const handleReorderTasks = useCallback(async (reorderedTasks: WorkstationTask[]) => {
+    try {
+      await projectService.updateTaskPriorities(
+        reorderedTasks.map(t => ({ id: t.id, priority: t.priority }))
+      );
+      toast({
+        title: "Task priorities updated",
+        duration: 2000,
+      });
+      // Refetch to sync with database
+      setTimeout(() => refetch(), 500);
+    } catch (error) {
+      console.error('Failed to update task priorities:', error);
+      toast({
+        title: "Failed to update priorities",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  }, [toast, refetch]);
 
   const getCountBadgeClass = (type: 'warning' | 'info' | 'default' | 'urgent', count: number) => {
     if (count === 0) return 'bg-muted text-muted-foreground';
@@ -120,6 +142,7 @@ const WorkstationQuickPanel = ({ variant = 'sidebar', onItemClick }: Workstation
         <TasksPreview 
           tasks={recentTasks}
           onCompleteTask={handleCompleteTask}
+          onReorderTasks={handleReorderTasks}
           onItemClick={onItemClick}
         />
       )
