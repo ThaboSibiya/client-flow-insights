@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Project, Task } from '@/types/project';
 import { projectService } from '@/services/projectService';
 
-interface WorkstationTask {
+export interface WorkstationTask {
   id: string;
   title: string;
   project: string;
@@ -14,7 +14,7 @@ interface WorkstationTask {
   status: 'todo' | 'in-progress' | 'review' | 'done';
 }
 
-interface WorkstationProject {
+export interface WorkstationProject {
   id: string;
   name: string;
   role: string;

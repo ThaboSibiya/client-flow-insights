@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
@@ -8,20 +8,23 @@ import {
   Calendar,
   ChevronDown,
   ChevronRight,
-  Briefcase,
-  ExternalLink,
-  Clock
+  Briefcase
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useWorkstationData } from '@/hooks/useWorkstationData';
+import { useProjectManagement } from '@/hooks/useProjectManagement';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from '@/components/ui/hover-card';
-import { formatDistanceToNow } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
+import NotificationsPreview from './workstation/NotificationsPreview';
+import ProjectsPreview from './workstation/ProjectsPreview';
+import TasksPreview from './workstation/TasksPreview';
+import SchedulePreview from './workstation/SchedulePreview';
 
 interface WorkstationQuickPanelProps {
   variant?: 'sidebar' | 'mobile';
@@ -30,8 +33,10 @@ interface WorkstationQuickPanelProps {
 
 const WorkstationQuickPanel = ({ variant = 'sidebar', onItemClick }: WorkstationQuickPanelProps) => {
   const [isOpen, setIsOpen] = useState(true);
-  const { notifications, unreadCount } = useRealtimeNotifications();
-  const { myProjects, myTasks, stats, loading } = useWorkstationData();
+  const { notifications, unreadCount, markAsRead } = useRealtimeNotifications();
+  const { myProjects, myTasks, stats, loading, refetch } = useWorkstationData();
+  const { updateTaskStatus } = useProjectManagement();
+  const { toast } = useToast();
 
   const pendingTasksCount = myTasks.filter(t => t.status !== 'done').length;
   const activeProjectsCount = stats.projectsActive;
@@ -44,6 +49,24 @@ const WorkstationQuickPanel = ({ variant = 'sidebar', onItemClick }: Workstation
   const upcomingTasks = myTasks.filter(t => 
     t.dueDate === 'Today' || t.dueDate === 'Tomorrow' || t.dueDate === 'Overdue'
   ).slice(0, 3);
+
+  const handleMarkNotificationAsRead = useCallback((id: string) => {
+    markAsRead(id);
+    toast({
+      title: "Notification marked as read",
+      duration: 2000,
+    });
+  }, [markAsRead, toast]);
+
+  const handleCompleteTask = useCallback((projectId: string, taskId: string) => {
+    updateTaskStatus(projectId, taskId, 'done');
+    toast({
+      title: "Task marked as done",
+      duration: 2000,
+    });
+    // Refetch to update counts
+    setTimeout(() => refetch(), 500);
+  }, [updateTaskStatus, toast, refetch]);
 
   const getCountBadgeClass = (type: 'warning' | 'info' | 'default' | 'urgent', count: number) => {
     if (count === 0) return 'bg-muted text-muted-foreground';
@@ -59,135 +82,6 @@ const WorkstationQuickPanel = ({ variant = 'sidebar', onItemClick }: Workstation
     }
   };
 
-  const NotificationsPreview = () => (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-muted-foreground uppercase">Recent Notifications</span>
-        <Link to="/notifications" className="text-xs text-primary hover:underline flex items-center gap-1" onClick={onItemClick}>
-          View all <ExternalLink className="h-3 w-3" />
-        </Link>
-      </div>
-      {recentNotifications.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-2">No notifications</p>
-      ) : (
-        recentNotifications.map((n) => (
-          <div key={n.id} className={cn(
-            "p-2 rounded-md border text-xs",
-            !n.read && "bg-primary/5 border-primary/20"
-          )}>
-            <p className="font-medium truncate">{n.title}</p>
-            <p className="text-muted-foreground truncate">{n.message}</p>
-            <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-            </p>
-          </div>
-        ))
-      )}
-    </div>
-  );
-
-  const ProjectsPreview = () => (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-muted-foreground uppercase">Active Projects</span>
-        <Link to="/projects" className="text-xs text-primary hover:underline flex items-center gap-1" onClick={onItemClick}>
-          View all <ExternalLink className="h-3 w-3" />
-        </Link>
-      </div>
-      {recentProjects.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-2">No active projects</p>
-      ) : (
-        recentProjects.map((p) => (
-          <div key={p.id} className="p-2 rounded-md border text-xs">
-            <div className="flex items-center justify-between">
-              <p className="font-medium truncate">{p.name}</p>
-              <Badge variant="outline" className="text-[10px] h-4">{p.role}</Badge>
-            </div>
-            <div className="mt-1.5 flex items-center gap-2">
-              <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary rounded-full transition-all" 
-                  style={{ width: `${p.progress}%` }}
-                />
-              </div>
-              <span className="text-[10px] text-muted-foreground">{p.progress}%</span>
-            </div>
-          </div>
-        ))
-      )}
-    </div>
-  );
-
-  const TasksPreview = () => (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-muted-foreground uppercase">Pending Tasks</span>
-        <Link to="/projects" className="text-xs text-primary hover:underline flex items-center gap-1" onClick={onItemClick}>
-          View all <ExternalLink className="h-3 w-3" />
-        </Link>
-      </div>
-      {recentTasks.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-2">No pending tasks</p>
-      ) : (
-        recentTasks.map((t) => (
-          <div key={t.id} className="p-2 rounded-md border text-xs">
-            <p className="font-medium truncate">{t.title}</p>
-            <div className="flex items-center justify-between mt-1">
-              <span className="text-muted-foreground truncate">{t.project}</span>
-              <Badge 
-                variant="outline" 
-                className={cn("text-[10px] h-4", {
-                  'bg-red-500/10 text-red-600 border-red-500/20': t.priority === 'urgent' || t.priority === 'high',
-                  'bg-orange-500/10 text-orange-600 border-orange-500/20': t.priority === 'medium',
-                  'bg-green-500/10 text-green-600 border-green-500/20': t.priority === 'low',
-                })}
-              >
-                {t.dueDate}
-              </Badge>
-            </div>
-          </div>
-        ))
-      )}
-    </div>
-  );
-
-  const SchedulePreview = () => (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-muted-foreground uppercase">Today's Schedule</span>
-        <Link to="/dashboard" className="text-xs text-primary hover:underline flex items-center gap-1" onClick={onItemClick}>
-          View all <ExternalLink className="h-3 w-3" />
-        </Link>
-      </div>
-      {upcomingTasks.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-2">No upcoming deadlines</p>
-      ) : (
-        upcomingTasks.map((t) => (
-          <div key={t.id} className={cn(
-            "p-2 rounded-md border text-xs",
-            t.dueDate === 'Overdue' && "bg-red-500/5 border-red-500/20"
-          )}>
-            <p className="font-medium truncate">{t.title}</p>
-            <div className="flex items-center justify-between mt-1">
-              <span className="text-muted-foreground truncate">{t.project}</span>
-              <Badge 
-                variant="outline" 
-                className={cn("text-[10px] h-4", {
-                  'bg-red-500/10 text-red-600 border-red-500/20': t.dueDate === 'Overdue',
-                  'bg-orange-500/10 text-orange-600 border-orange-500/20': t.dueDate === 'Today',
-                  'bg-yellow-500/10 text-yellow-600 border-yellow-500/20': t.dueDate === 'Tomorrow',
-                })}
-              >
-                {t.dueDate}
-              </Badge>
-            </div>
-          </div>
-        ))
-      )}
-    </div>
-  );
-
   const quickAccessItems = [
     { 
       path: '/notifications', 
@@ -195,7 +89,13 @@ const WorkstationQuickPanel = ({ variant = 'sidebar', onItemClick }: Workstation
       label: 'Notifications', 
       count: unreadCount,
       countType: 'warning' as const,
-      preview: <NotificationsPreview />
+      preview: (
+        <NotificationsPreview 
+          notifications={recentNotifications}
+          onMarkAsRead={handleMarkNotificationAsRead}
+          onItemClick={onItemClick}
+        />
+      )
     },
     { 
       path: '/projects', 
@@ -203,7 +103,12 @@ const WorkstationQuickPanel = ({ variant = 'sidebar', onItemClick }: Workstation
       label: 'My Projects', 
       count: activeProjectsCount,
       countType: 'info' as const,
-      preview: <ProjectsPreview />
+      preview: (
+        <ProjectsPreview 
+          projects={recentProjects}
+          onItemClick={onItemClick}
+        />
+      )
     },
     { 
       path: '/projects', 
@@ -211,7 +116,13 @@ const WorkstationQuickPanel = ({ variant = 'sidebar', onItemClick }: Workstation
       label: 'My Tasks', 
       count: pendingTasksCount,
       countType: 'default' as const,
-      preview: <TasksPreview />
+      preview: (
+        <TasksPreview 
+          tasks={recentTasks}
+          onCompleteTask={handleCompleteTask}
+          onItemClick={onItemClick}
+        />
+      )
     },
     { 
       path: '/dashboard', 
@@ -219,7 +130,13 @@ const WorkstationQuickPanel = ({ variant = 'sidebar', onItemClick }: Workstation
       label: "Today's Schedule", 
       count: todayDeadlines,
       countType: todayDeadlines > 0 ? 'urgent' as const : 'default' as const,
-      preview: <SchedulePreview />
+      preview: (
+        <SchedulePreview 
+          tasks={upcomingTasks}
+          onCompleteTask={handleCompleteTask}
+          onItemClick={onItemClick}
+        />
+      )
     },
   ];
 
