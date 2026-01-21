@@ -167,6 +167,7 @@ const WorkstationQuickPanel = ({ variant = 'sidebar', onItemClick }: Workstation
         <SchedulePreview 
           tasks={upcomingTasks}
           onCompleteTask={handleCompleteTask}
+          onReorderTasks={handleReorderTasks}
           onItemClick={onItemClick}
         />
       )
