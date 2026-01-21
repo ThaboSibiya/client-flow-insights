@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import ImageUploadDropzone from './ImageUploadDropzone';
 import { 
   CheckCircle2, 
   Circle, 
@@ -254,11 +255,13 @@ const ProfileCompletionStep: React.FC<ProfileCompletionStepProps> = ({
               </div>
             )}
 
-            {/* Image upload hint */}
+            {/* Image upload with drag-and-drop */}
             {isImageField && (
-              <p className="text-xs text-quikle-slate italic">
-                Go to Settings → Profile to upload images
-              </p>
+              <ImageUploadDropzone
+                field={step.field as 'avatar_url' | 'company_logo_url'}
+                currentValue={currentValue}
+                onUploadComplete={(url) => onSave(step.field, url)}
+              />
             )}
           </div>
         </div>
