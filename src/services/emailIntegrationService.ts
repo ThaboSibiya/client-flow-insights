@@ -108,23 +108,18 @@ export class EmailIntegrationService {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const baseUrl = 'https://oquiaxbnkdnpixqhqdfq.supabase.co';
-      const redirectUri = `${baseUrl}/functions/v1/email-oauth-callback`;
-
-      const { error } = await supabase
-        .from('user_oauth_apps')
-        .upsert({
-          user_id: user.id,
+      // Use secure edge function to store OAuth credentials in Supabase Vault
+      const { data, error } = await supabase.functions.invoke('secure-oauth-credentials', {
+        body: {
+          action: 'store',
           provider_id: providerId,
           client_id: clientId,
-          client_secret: clientSecret,
-          redirect_uri: redirectUri,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,provider_id'
-        });
+          client_secret: clientSecret
+        }
+      });
 
       if (error) throw error;
+      if (!data?.success) throw new Error('Failed to store OAuth credentials securely');
     } catch (error: any) {
       console.error('Error saving OAuth app config:', error);
       throw new Error(error.message || 'Failed to save OAuth app configuration');

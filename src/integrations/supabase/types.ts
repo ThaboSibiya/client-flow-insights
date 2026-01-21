@@ -2997,6 +2997,16 @@ export type Database = {
           is_valid: boolean
         }[]
       }
+      vault_delete_secret: { Args: { secret_name: string }; Returns: boolean }
+      vault_insert_secret: {
+        Args: { new_description?: string; new_name: string; new_secret: string }
+        Returns: string
+      }
+      vault_read_secret: { Args: { secret_name: string }; Returns: string }
+      vault_update_secret: {
+        Args: { new_secret: string; secret_name: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "manager" | "employee"
