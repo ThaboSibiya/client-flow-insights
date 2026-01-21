@@ -7,45 +7,73 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Retrieve OAuth credentials securely from vault
+const getSecureCredentials = async (
+  userId: string,
+  providerId: string,
+  supabase: any
+): Promise<{ clientId: string; clientSecret: string; redirectUri: string }> => {
+  // First check for user-specific OAuth app configuration
+  const { data: userOAuthApp } = await supabase
+    .from('user_oauth_apps')
+    .select('client_id, redirect_uri')
+    .eq('user_id', userId)
+    .eq('provider_id', providerId)
+    .single();
+
+  if (userOAuthApp) {
+    // Retrieve client_secret from vault using the secure function
+    const secretName = `oauth_secret_${userId}_${providerId}`;
+    const { data: clientSecret, error: vaultError } = await supabase.rpc(
+      'vault_read_secret',
+      { secret_name: secretName }
+    );
+
+    if (vaultError || !clientSecret) {
+      console.error('Failed to retrieve secret from vault:', vaultError);
+      throw new Error('Failed to retrieve OAuth credentials');
+    }
+
+    return {
+      clientId: userOAuthApp.client_id,
+      clientSecret: clientSecret,
+      redirectUri: userOAuthApp.redirect_uri
+    };
+  }
+
+  // Fall back to system configuration
+  let clientId: string;
+  let clientSecret: string;
+  
+  if (providerId === 'google-gmail') {
+    clientId = Deno.env.get('GOOGLE_OAUTH_CLIENT_ID') || '';
+    clientSecret = Deno.env.get('GOOGLE_OAUTH_CLIENT_SECRET') || '';
+  } else if (providerId === 'microsoft-outlook') {
+    clientId = Deno.env.get('MICROSOFT_OAUTH_CLIENT_ID') || '';
+    clientSecret = Deno.env.get('MICROSOFT_OAUTH_CLIENT_SECRET') || '';
+  } else {
+    throw new Error('Unsupported provider');
+  }
+
+  if (!clientId || !clientSecret) {
+    throw new Error('OAuth credentials not configured');
+  }
+
+  return {
+    clientId,
+    clientSecret,
+    redirectUri: `${Deno.env.get('SUPABASE_URL')}/functions/v1/email-oauth-callback`
+  };
+};
+
 const exchangeCodeForTokens = async (
   code: string, 
   providerId: string, 
   userId: string,
   supabase: any
 ) => {
-  // Check for user-specific OAuth app configuration
-  const { data: userOAuthApp } = await supabase
-    .from('user_oauth_apps')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('provider_id', providerId)
-    .single();
-
-  let clientId: string;
-  let clientSecret: string;
-  let redirectUri: string;
-
-  if (userOAuthApp) {
-    clientId = userOAuthApp.client_id;
-    clientSecret = userOAuthApp.client_secret;
-    redirectUri = userOAuthApp.redirect_uri;
-  } else {
-    // Fall back to system configuration
-    if (providerId === 'google-gmail') {
-      clientId = Deno.env.get('GOOGLE_OAUTH_CLIENT_ID') || '';
-      clientSecret = Deno.env.get('GOOGLE_OAUTH_CLIENT_SECRET') || '';
-    } else if (providerId === 'microsoft-outlook') {
-      clientId = Deno.env.get('MICROSOFT_OAUTH_CLIENT_ID') || '';
-      clientSecret = Deno.env.get('MICROSOFT_OAUTH_CLIENT_SECRET') || '';
-    } else {
-      throw new Error('Unsupported provider');
-    }
-    redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/email-oauth-callback`;
-  }
-
-  if (!clientId || !clientSecret) {
-    throw new Error('OAuth credentials not configured');
-  }
+  const credentials = await getSecureCredentials(userId, providerId, supabase);
+  const { clientId, clientSecret, redirectUri } = credentials;
   
   if (providerId === 'google-gmail') {
     const response = await fetch('https://oauth2.googleapis.com/token', {
