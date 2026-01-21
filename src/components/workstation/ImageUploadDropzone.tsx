@@ -10,10 +10,11 @@ import {
   Loader2, 
   X,
   CheckCircle2,
-  Crop
+  Video
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ImageCropperModal from './ImageCropperModal';
+import WebcamCaptureModal from './WebcamCaptureModal';
 
 interface ImageUploadDropzoneProps {
   field: 'avatar_url' | 'company_logo_url';
@@ -53,6 +54,7 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
   const [cropperOpen, setCropperOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [webcamOpen, setWebcamOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const bucket = BUCKET_MAP[field];
@@ -232,6 +234,11 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
 
   const Icon = field === 'avatar_url' ? Camera : ImageIcon;
   const isCircularCrop = field === 'avatar_url';
+  const showWebcamOption = field === 'avatar_url';
+
+  const handleWebcamCapture = (file: File) => {
+    handleFileSelected(file);
+  };
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -313,6 +320,7 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
             </p>
             <p className="text-[9px] text-quikle-slate/70 mt-0.5">
               JPG, PNG, GIF up to 5MB
+              {showWebcamOption && ' • Or use webcam'}
             </p>
           </div>
 
@@ -328,7 +336,22 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
         </div>
       </div>
 
-      {/* Remove button */}
+      {/* Webcam Button for Avatar */}
+      {showWebcamOption && !preview && !isUploading && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            setWebcamOpen(true);
+          }}
+          className="h-7 text-[10px] gap-1.5 border-quikle-primary/30 text-quikle-primary hover:bg-quikle-primary/10"
+        >
+          <Video className="h-3 w-3" />
+          Take photo with webcam
+        </Button>
+      )}
+
       {/* Image Cropper Modal */}
       {imageToCrop && (
         <ImageCropperModal
@@ -340,6 +363,13 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
           circularCrop={isCircularCrop}
         />
       )}
+
+      {/* Webcam Capture Modal */}
+      <WebcamCaptureModal
+        isOpen={webcamOpen}
+        onClose={() => setWebcamOpen(false)}
+        onCapture={handleWebcamCapture}
+      />
 
       {preview && !isUploading && (
         <Button
