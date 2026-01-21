@@ -9,15 +9,18 @@ import {
   Camera, 
   Loader2, 
   X,
-  CheckCircle2
+  CheckCircle2,
+  Crop
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ImageCropperModal from './ImageCropperModal';
 
 interface ImageUploadDropzoneProps {
   field: 'avatar_url' | 'company_logo_url';
   currentValue?: string;
   onUploadComplete: (url: string) => void;
   className?: string;
+  enableCropping?: boolean;
 }
 
 const BUCKET_MAP = {
@@ -30,21 +33,31 @@ const LABELS = {
   company_logo_url: 'Company Logo',
 };
 
+const ASPECT_RATIOS = {
+  avatar_url: 1, // Square for avatars
+  company_logo_url: 16 / 9, // Wider for logos
+};
+
 const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
   field,
   currentValue,
   onUploadComplete,
   className,
+  enableCropping = true,
 }) => {
   const { user } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentValue || null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const bucket = BUCKET_MAP[field];
   const label = LABELS[field];
+  const aspectRatio = ASPECT_RATIOS[field];
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -58,7 +71,29 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
     setIsDragging(false);
   }, []);
 
-  const uploadFile = async (file: File) => {
+  const validateFile = (file: File): boolean => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please upload an image file (JPG, PNG, GIF, WebP).',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Please upload an image smaller than 5MB.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleFileSelected = (file: File) => {
     if (!user) {
       toast({
         title: 'Not authenticated',
@@ -68,25 +103,24 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
       return;
     }
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: 'Invalid file type',
-        description: 'Please upload an image file (JPG, PNG, GIF, WebP).',
-        variant: 'destructive',
-      });
-      return;
-    }
+    if (!validateFile(file)) return;
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: 'File too large',
-        description: 'Please upload an image smaller than 5MB.',
-        variant: 'destructive',
-      });
-      return;
+    if (enableCropping) {
+      // Open cropper
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImageToCrop(e.target?.result as string);
+        setPendingFile(file);
+        setCropperOpen(true);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      uploadFile(file);
     }
+  };
+
+  const uploadFile = async (fileOrBlob: File | Blob) => {
+    if (!user) return;
 
     setIsUploading(true);
     setUploadProgress(0);
@@ -97,10 +131,10 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
       reader.onload = (e) => {
         setPreview(e.target?.result as string);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(fileOrBlob);
 
       // Generate unique filename
-      const fileExt = file.name.split('.').pop();
+      const fileExt = fileOrBlob instanceof File ? fileOrBlob.name.split('.').pop() : 'jpg';
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
       // Simulate progress
@@ -111,7 +145,7 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
         .from(bucket)
-        .upload(fileName, file, {
+        .upload(fileName, fileOrBlob, {
           cacheControl: '3600',
           upsert: true,
         });
@@ -148,6 +182,22 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
     }
   };
 
+  const handleCropComplete = (croppedBlob: Blob) => {
+    setCropperOpen(false);
+    setImageToCrop(null);
+    setPendingFile(null);
+    uploadFile(croppedBlob);
+  };
+
+  const handleCropCancel = () => {
+    setCropperOpen(false);
+    setImageToCrop(null);
+    setPendingFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
@@ -156,16 +206,16 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
 
       const files = e.dataTransfer.files;
       if (files.length > 0) {
-        uploadFile(files[0]);
+        handleFileSelected(files[0]);
       }
     },
-    [user, bucket]
+    [user, bucket, enableCropping]
   );
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      uploadFile(files[0]);
+      handleFileSelected(files[0]);
     }
   };
 
@@ -181,6 +231,7 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
   };
 
   const Icon = field === 'avatar_url' ? Camera : ImageIcon;
+  const isCircularCrop = field === 'avatar_url';
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -278,6 +329,18 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
       </div>
 
       {/* Remove button */}
+      {/* Image Cropper Modal */}
+      {imageToCrop && (
+        <ImageCropperModal
+          isOpen={cropperOpen}
+          onClose={handleCropCancel}
+          imageSrc={imageToCrop}
+          onCropComplete={handleCropComplete}
+          aspectRatio={aspectRatio}
+          circularCrop={isCircularCrop}
+        />
+      )}
+
       {preview && !isUploading && (
         <Button
           variant="ghost"
