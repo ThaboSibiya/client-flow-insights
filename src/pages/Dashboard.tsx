@@ -8,7 +8,7 @@ import RealtimeActivityFeed from '@/components/dashboard/RealtimeActivityFeed';
 import QuickActions from '@/components/dashboard/QuickActions';
 import WelcomeHeader from '@/components/dashboard/WelcomeHeader';
 import UserWorkstation from '@/components/workstation/UserWorkstation';
-import ProfileCompletionTracker from '@/components/workstation/ProfileCompletionTracker';
+import EnhancedProfileCompletionTracker from '@/components/workstation/EnhancedProfileCompletionTracker';
 import FirstTimeOnboardingModal from '@/components/onboarding/FirstTimeOnboardingModal';
 import TourTrigger from '@/components/tour/TourTrigger';
 import { Users, Clock, CircleCheck, Database } from 'lucide-react';
@@ -76,7 +76,7 @@ const Dashboard = () => {
           </div>
           <div className="space-y-4">
             <div data-tour="profile-tracker">
-              <ProfileCompletionTracker />
+              <EnhancedProfileCompletionTracker />
             </div>
             <div data-tour="workstation">
               <UserWorkstation />
