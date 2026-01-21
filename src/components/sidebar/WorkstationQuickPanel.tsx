@@ -34,7 +34,7 @@ interface WorkstationQuickPanelProps {
 
 const WorkstationQuickPanel = ({ variant = 'sidebar', onItemClick }: WorkstationQuickPanelProps) => {
   const [isOpen, setIsOpen] = useState(true);
-  const { notifications, unreadCount, markAsRead } = useRealtimeNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useRealtimeNotifications();
   const { myProjects, myTasks, stats, loading, refetch } = useWorkstationData();
   const { updateTaskStatus } = useProjectManagement();
   const { toast } = useToast();
@@ -58,6 +58,14 @@ const WorkstationQuickPanel = ({ variant = 'sidebar', onItemClick }: Workstation
       duration: 2000,
     });
   }, [markAsRead, toast]);
+
+  const handleMarkAllNotificationsAsRead = useCallback(() => {
+    markAllAsRead();
+    toast({
+      title: "All notifications marked as read",
+      duration: 2000,
+    });
+  }, [markAllAsRead, toast]);
 
   const handleCompleteTask = useCallback((projectId: string, taskId: string) => {
     updateTaskStatus(projectId, taskId, 'done');
@@ -115,6 +123,8 @@ const WorkstationQuickPanel = ({ variant = 'sidebar', onItemClick }: Workstation
         <NotificationsPreview 
           notifications={recentNotifications}
           onMarkAsRead={handleMarkNotificationAsRead}
+          onMarkAllAsRead={handleMarkAllNotificationsAsRead}
+          hasUnread={unreadCount > 0}
           onItemClick={onItemClick}
         />
       )
