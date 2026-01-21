@@ -13,6 +13,8 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -32,10 +34,38 @@ interface TasksPreviewProps {
 
 interface SortableTaskItemProps {
   task: WorkstationTask;
+  displayPriority: string;
+  isBeingDragged: boolean;
   onComplete: (e: React.MouseEvent) => void;
 }
 
-const SortableTaskItem = ({ task, onComplete }: SortableTaskItemProps) => {
+const getPriorityFromIndex = (index: number): string => {
+  if (index <= 1) return 'urgent';
+  if (index <= 3) return 'high';
+  if (index <= 6) return 'medium';
+  return 'low';
+};
+
+const getPriorityStyles = (priority: string) => {
+  switch (priority) {
+    case 'urgent':
+      return 'bg-red-500/15 text-red-600 border-red-500/30';
+    case 'high':
+      return 'bg-orange-500/15 text-orange-600 border-orange-500/30';
+    case 'medium':
+      return 'bg-yellow-500/15 text-yellow-700 border-yellow-500/30';
+    case 'low':
+      return 'bg-green-500/15 text-green-600 border-green-500/30';
+    default:
+      return 'bg-muted text-muted-foreground';
+  }
+};
+
+const getPriorityLabel = (priority: string) => {
+  return priority.charAt(0).toUpperCase() + priority.slice(1);
+};
+
+const SortableTaskItem = ({ task, displayPriority, isBeingDragged, onComplete }: SortableTaskItemProps) => {
   const {
     attributes,
     listeners,
@@ -50,13 +80,16 @@ const SortableTaskItem = ({ task, onComplete }: SortableTaskItemProps) => {
     transition,
   };
 
+  const priorityChanged = displayPriority !== task.priority;
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        "p-2 rounded-md border text-xs group bg-background",
-        isDragging && "opacity-50 shadow-lg ring-2 ring-primary/20"
+        "p-2 rounded-md border text-xs group bg-background transition-all",
+        isDragging && "opacity-50 shadow-lg ring-2 ring-primary/20",
+        priorityChanged && isBeingDragged && "ring-1 ring-primary/40"
       )}
     >
       <div className="flex items-start gap-1.5">
@@ -70,14 +103,25 @@ const SortableTaskItem = ({ task, onComplete }: SortableTaskItemProps) => {
         </button>
         <div className="flex-1 min-w-0">
           <p className="font-medium truncate">{task.title}</p>
-          <div className="flex items-center justify-between mt-1">
-            <span className="text-muted-foreground truncate">{task.project}</span>
+          <div className="flex items-center justify-between mt-1 gap-1">
+            <span className="text-muted-foreground truncate flex-1">{task.project}</span>
             <Badge 
               variant="outline" 
-              className={cn("text-[10px] h-4", {
-                'bg-red-500/10 text-red-600 border-red-500/20': task.priority === 'urgent' || task.priority === 'high',
-                'bg-orange-500/10 text-orange-600 border-orange-500/20': task.priority === 'medium',
-                'bg-green-500/10 text-green-600 border-green-500/20': task.priority === 'low',
+              className={cn(
+                "text-[10px] h-4 transition-all duration-200 shrink-0",
+                getPriorityStyles(displayPriority),
+                priorityChanged && "animate-pulse"
+              )}
+            >
+              {getPriorityLabel(displayPriority)}
+            </Badge>
+            <Badge 
+              variant="outline" 
+              className={cn("text-[10px] h-4 shrink-0", {
+                'bg-red-500/10 text-red-600 border-red-500/20': task.dueDate === 'Overdue',
+                'bg-orange-500/10 text-orange-600 border-orange-500/20': task.dueDate === 'Today',
+                'bg-yellow-500/10 text-yellow-700 border-yellow-500/20': task.dueDate === 'Tomorrow',
+                'bg-muted text-muted-foreground': !['Overdue', 'Today', 'Tomorrow'].includes(task.dueDate),
               })}
             >
               {task.dueDate}
@@ -100,6 +144,7 @@ const SortableTaskItem = ({ task, onComplete }: SortableTaskItemProps) => {
 
 const TasksPreview = ({ tasks, onCompleteTask, onReorderTasks, onItemClick }: TasksPreviewProps) => {
   const [localTasks, setLocalTasks] = React.useState(tasks);
+  const [isDragging, setIsDragging] = React.useState(false);
 
   React.useEffect(() => {
     setLocalTasks(tasks);
@@ -116,7 +161,11 @@ const TasksPreview = ({ tasks, onCompleteTask, onReorderTasks, onItemClick }: Ta
     })
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragStart = (_event: DragStartEvent) => {
+    setIsDragging(true);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -125,8 +174,25 @@ const TasksPreview = ({ tasks, onCompleteTask, onReorderTasks, onItemClick }: Ta
       
       const reordered = arrayMove(localTasks, oldIndex, newIndex);
       setLocalTasks(reordered);
-      onReorderTasks?.(reordered);
     }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setIsDragging(false);
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      // Final reorder already done in onDragOver, just persist
+      onReorderTasks?.(localTasks);
+    } else {
+      // Persist current order even if dropped in same position
+      onReorderTasks?.(localTasks);
+    }
+  };
+
+  const handleDragCancel = () => {
+    setIsDragging(false);
+    setLocalTasks(tasks); // Reset to original
   };
 
   const handleComplete = (e: React.MouseEvent, task: WorkstationTask) => {
@@ -149,17 +215,22 @@ const TasksPreview = ({ tasks, onCompleteTask, onReorderTasks, onItemClick }: Ta
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
         >
           <SortableContext
             items={localTasks.map(t => t.id)}
             strategy={verticalListSortingStrategy}
           >
             <div className="space-y-1.5">
-              {localTasks.map((task) => (
+              {localTasks.map((task, index) => (
                 <SortableTaskItem
                   key={task.id}
                   task={task}
+                  displayPriority={getPriorityFromIndex(index)}
+                  isBeingDragged={isDragging}
                   onComplete={(e) => handleComplete(e, task)}
                 />
               ))}
