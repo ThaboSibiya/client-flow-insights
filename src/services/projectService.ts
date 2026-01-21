@@ -307,5 +307,32 @@ export const projectService = {
       .eq('user_id', user.user.id);
 
     if (error) throw error;
+  },
+
+  async updateTaskPriorities(tasks: { id: string; priority: string }[]): Promise<void> {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) throw new Error('User not authenticated');
+
+    // Update each task's priority based on new order
+    const updates = tasks.map((task, index) => {
+      // Map position to priority: 0-1 = urgent, 2-3 = high, 4-6 = medium, 7+ = low
+      let priority: string;
+      if (index <= 1) priority = 'urgent';
+      else if (index <= 3) priority = 'high';
+      else if (index <= 6) priority = 'medium';
+      else priority = 'low';
+
+      return supabase
+        .from('project_tasks')
+        .update({ priority })
+        .eq('id', task.id)
+        .eq('user_id', user.user!.id);
+    });
+
+    const results = await Promise.all(updates);
+    const errors = results.filter(r => r.error);
+    if (errors.length > 0) {
+      throw new Error('Failed to update some task priorities');
+    }
   }
 };
