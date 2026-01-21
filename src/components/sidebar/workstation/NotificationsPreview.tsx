@@ -9,23 +9,44 @@ import type { RealtimeNotification } from '@/hooks/useRealtimeNotifications';
 interface NotificationsPreviewProps {
   notifications: RealtimeNotification[];
   onMarkAsRead: (id: string) => void;
+  onMarkAllAsRead: () => void;
+  hasUnread: boolean;
   onItemClick?: () => void;
 }
 
-const NotificationsPreview = ({ notifications, onMarkAsRead, onItemClick }: NotificationsPreviewProps) => {
+const NotificationsPreview = ({ notifications, onMarkAsRead, onMarkAllAsRead, hasUnread, onItemClick }: NotificationsPreviewProps) => {
   const handleMarkAsRead = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     e.stopPropagation();
     onMarkAsRead(id);
   };
 
+  const handleMarkAllAsRead = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onMarkAllAsRead();
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-muted-foreground uppercase">Recent Notifications</span>
-        <Link to="/notifications" className="text-xs text-primary hover:underline flex items-center gap-1" onClick={onItemClick}>
-          View all <ExternalLink className="h-3 w-3" />
-        </Link>
+        <div className="flex items-center gap-2">
+          {hasUnread && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 text-[10px] px-1.5 text-primary hover:text-primary"
+              onClick={handleMarkAllAsRead}
+            >
+              <Check className="h-3 w-3 mr-1" />
+              Mark all read
+            </Button>
+          )}
+          <Link to="/notifications" className="text-xs text-primary hover:underline flex items-center gap-1" onClick={onItemClick}>
+            View all <ExternalLink className="h-3 w-3" />
+          </Link>
+        </div>
       </div>
       {notifications.length === 0 ? (
         <p className="text-xs text-muted-foreground py-2">No notifications</p>
