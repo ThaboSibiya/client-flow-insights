@@ -1,12 +1,14 @@
 /**
  * Form Submission Service with PII Encryption
  * Handles secure storage and retrieval of form submissions with encrypted PII
+ * Includes validation and sanitization for all form data
  */
 
 import { supabase } from '@/integrations/supabase/client';
 import { encryptPII, decryptPII, encryptPIIFields, decryptPIIFields } from '@/utils/piiEncryption';
 import { logSecureSecurityEvent } from '@/services/secureSecurityService';
-import type { Database } from '@/integrations/supabase/types';
+import { validateAndSanitizeFormSubmission, redactFormDataForLogging } from '@/utils/formDataSanitization';
+import type { Database, Json } from '@/integrations/supabase/types';
 
 export interface FormSubmissionData {
   id?: string;
@@ -15,7 +17,7 @@ export interface FormSubmissionData {
   customer_name?: string | null;
   customer_email?: string | null;
   customer_phone?: string | null;
-  form_data: any;
+  form_data: Json;
   source_url?: string | null;
   ip_address?: string | null;
   user_agent?: string | null;
@@ -24,11 +26,11 @@ export interface FormSubmissionData {
 }
 
 /**
- * Creates a new form submission with encrypted PII
+ * Creates a new form submission with validation, sanitization, and encrypted PII
  */
 export async function createFormSubmission(
   submission: Omit<FormSubmissionData, 'id' | 'created_at'>
-): Promise<{ data: FormSubmissionData | null; error: Error | null }> {
+): Promise<{ data: FormSubmissionData | null; error: Error | null; validationErrors?: string[] }> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -36,8 +38,30 @@ export async function createFormSubmission(
       throw new Error('User not authenticated');
     }
 
-    // Encrypt PII fields
-    const encryptedData = await encryptPIIFields(submission, [
+    // Validate and sanitize the submission (including form_data)
+    const { data: validatedData, encryptedFields, errors } = await validateAndSanitizeFormSubmission(submission);
+    
+    if (errors) {
+      const errorMessages = errors.errors.map(e => e.message);
+      logSecureSecurityEvent({
+        action: 'form_submission_validation_rejected',
+        resource_type: 'form_submission',
+        success: false,
+        metadata: { errors: errorMessages }
+      });
+      return { 
+        data: null, 
+        error: new Error('Validation failed: ' + errorMessages.join(', ')),
+        validationErrors: errorMessages
+      };
+    }
+
+    if (!validatedData) {
+      throw new Error('Form validation failed with no specific errors');
+    }
+
+    // Encrypt additional PII fields (customer_name, customer_email, customer_phone)
+    const encryptedData = await encryptPIIFields(validatedData, [
       'customer_name',
       'customer_email',
       'customer_phone'
@@ -45,10 +69,16 @@ export async function createFormSubmission(
 
     const { data, error } = await supabase
       .from('form_submissions')
-      .insert({
-        ...encryptedData,
+      .insert([{
+        form_name: encryptedData.form_name,
+        customer_name: encryptedData.customer_name || null,
+        customer_email: encryptedData.customer_email || null,
+        customer_phone: encryptedData.customer_phone || null,
+        form_data: (encryptedData.form_data || {}) as Json,
+        source_url: encryptedData.source_url || null,
+        processed: encryptedData.processed || false,
         company_owner_id: user.id,
-      })
+      }])
       .select()
       .single();
 
@@ -66,10 +96,16 @@ export async function createFormSubmission(
       resource_type: 'form_submission',
       resource_id: data?.id,
       success: true,
-      metadata: { form_name: submission.form_name }
+      metadata: { 
+        form_name: submission.form_name,
+        encrypted_fields_in_form_data: encryptedFields.length,
+        form_data_redacted: submission.form_data && typeof submission.form_data === 'object' && !Array.isArray(submission.form_data)
+          ? redactFormDataForLogging(submission.form_data as Record<string, unknown>) 
+          : {}
+      }
     });
 
-    return { data: decryptedData, error: null };
+    return { data: decryptedData as FormSubmissionData, error: null };
   } catch (error) {
     console.error('Error creating form submission:', error);
     logSecureSecurityEvent({
@@ -137,7 +173,7 @@ export async function getFormSubmissions(
       metadata: { count: data?.length || 0 }
     });
 
-    return { data: decryptedData, error: null };
+    return { data: decryptedData as FormSubmissionData[], error: null };
   } catch (error) {
     console.error('Error retrieving form submissions:', error);
     logSecureSecurityEvent({
@@ -171,9 +207,15 @@ export async function updateFormSubmission(
       'customer_phone'
     ]);
 
+    // Convert form_data to Json type if present
+    const updatePayload = {
+      ...encryptedUpdates,
+      ...(encryptedUpdates.form_data ? { form_data: encryptedUpdates.form_data as Json } : {}),
+    };
+
     const { data, error } = await supabase
       .from('form_submissions')
-      .update(encryptedUpdates)
+      .update(updatePayload)
       .eq('id', id)
       .eq('company_owner_id', user.id)
       .select()
@@ -195,7 +237,7 @@ export async function updateFormSubmission(
       success: true
     });
 
-    return { data: decryptedData, error: null };
+    return { data: decryptedData as FormSubmissionData, error: null };
   } catch (error) {
     console.error('Error updating form submission:', error);
     logSecureSecurityEvent({
