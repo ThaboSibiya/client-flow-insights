@@ -65,11 +65,15 @@ export const useProfileCompletion = () => {
   const completionSteps: CompletionStep[] = useMemo(() => {
     if (!profile) return [];
 
+    const hasFirstName = !!profile.first_name?.trim();
+    const hasLastName = !!profile.last_name?.trim();
+
     return [
       {
         id: 'name',
         label: 'Add your name',
-        completed: !!(profile.first_name && profile.last_name),
+        // Treat a single-part name as valid (users may not have/enter a last name).
+        completed: hasFirstName || hasLastName,
         field: 'name',
         priority: 'required'
       },
@@ -152,7 +156,8 @@ export const useProfileCompletion = () => {
       });
   }, [completionSteps]);
 
-  const isComplete = completionPercentage === 100;
+  // More robust than relying on a rounded percentage.
+  const isComplete = completionSteps.length > 0 && completionSteps.every(step => step.completed);
 
   return {
     profile,
