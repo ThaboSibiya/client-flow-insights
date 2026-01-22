@@ -58,16 +58,23 @@ const EnhancedProfileCompletionTracker: React.FC = () => {
         
         if (crossedMilestone === 100) {
           setShowConfetti(true);
-          // Auto-dismiss after celebration (3 seconds)
-          setTimeout(() => {
-            setIsDismissed(true);
-            localStorage.setItem('profileCompletionDismissed', 'true');
-          }, 3000);
         }
       }
     }
     setPreviousPercentage(completionPercentage);
   }, [completionPercentage, previousPercentage]);
+
+  // Auto-dismiss when profile is complete (separate effect for reliability)
+  useEffect(() => {
+    if (isComplete && !isDismissed) {
+      setShowConfetti(true);
+      const timer = setTimeout(() => {
+        setIsDismissed(true);
+        localStorage.setItem('profileCompletionDismissed', 'true');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isComplete, isDismissed]);
 
   const handleInlineSave = useCallback(async (field: string, value: string) => {
     if (!user) return;
