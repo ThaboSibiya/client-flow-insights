@@ -39,6 +39,9 @@ const EnhancedProfileCompletionTracker: React.FC = () => {
   const [previousPercentage, setPreviousPercentage] = useState(0);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showMilestoneAnimation, setShowMilestoneAnimation] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(() => {
+    return localStorage.getItem('profileCompletionDismissed') === 'true';
+  });
 
   // Track percentage changes for celebrations
   useEffect(() => {
@@ -55,6 +58,11 @@ const EnhancedProfileCompletionTracker: React.FC = () => {
         
         if (crossedMilestone === 100) {
           setShowConfetti(true);
+          // Auto-dismiss after celebration (3 seconds)
+          setTimeout(() => {
+            setIsDismissed(true);
+            localStorage.setItem('profileCompletionDismissed', 'true');
+          }, 3000);
         }
       }
     }
@@ -129,7 +137,13 @@ const EnhancedProfileCompletionTracker: React.FC = () => {
     );
   }
 
-  if (isComplete) {
+  // Hide panel completely if dismissed or if already complete on mount
+  if (isDismissed || (isComplete && !showConfetti)) {
+    return null;
+  }
+
+  // Show celebration card briefly when profile just completed
+  if (isComplete && showConfetti) {
     return (
       <>
         <ProfileCompletionConfetti isActive={showConfetti} onComplete={() => setShowConfetti(false)} />
