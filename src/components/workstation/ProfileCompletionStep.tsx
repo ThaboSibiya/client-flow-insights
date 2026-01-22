@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -89,6 +89,11 @@ const ProfileCompletionStep: React.FC<ProfileCompletionStepProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(currentValue);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Sync local value state when currentValue prop changes
+  useEffect(() => {
+    setValue(currentValue);
+  }, [currentValue]);
 
   const Icon = FIELD_ICONS[step.field] || User;
   

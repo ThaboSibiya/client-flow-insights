@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
@@ -29,34 +29,38 @@ export const useProfileCompletion = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+  const fetchProfile = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('first_name, last_name, email, phone, company, avatar_url, company_logo_url, company_address, company_email, company_phone, industry')
-          .eq('id', user.id)
-          .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email, phone, company, avatar_url, company_logo_url, company_address, company_email, company_phone, industry')
+        .eq('id', user.id)
+        .single();
 
-        if (error) {
-          console.error('Error fetching profile:', error);
-        } else {
-          setProfile(data);
-        }
-      } catch (error) {
+      if (error) {
         console.error('Error fetching profile:', error);
-      } finally {
-        setLoading(false);
+      } else {
+        setProfile(data);
       }
-    };
-
-    fetchProfile();
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  const refetch = useCallback(async () => {
+    await fetchProfile();
+  }, [fetchProfile]);
 
   const completionSteps: CompletionStep[] = useMemo(() => {
     if (!profile) return [];
@@ -156,6 +160,7 @@ export const useProfileCompletion = () => {
     completionSteps,
     completionPercentage,
     incompleteSteps,
-    isComplete
+    isComplete,
+    refetch
   };
 };

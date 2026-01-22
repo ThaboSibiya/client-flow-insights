@@ -30,7 +30,8 @@ const EnhancedProfileCompletionTracker: React.FC = () => {
     completionPercentage, 
     completionSteps,
     incompleteSteps, 
-    isComplete 
+    isComplete,
+    refetch
   } = useProfileCompletion();
 
   const [expandedStep, setExpandedStep] = useState<string | null>(null);
@@ -66,8 +67,8 @@ const EnhancedProfileCompletionTracker: React.FC = () => {
     try {
       // Handle special case for 'name' field
       if (field === 'name') {
-        const parts = value.split(' ');
-        const first_name = parts[0];
+        const parts = value.trim().split(/\s+/);
+        const first_name = parts[0] || '';
         const last_name = parts.slice(1).join(' ') || '';
         
         const { error } = await supabase
@@ -90,8 +91,8 @@ const EnhancedProfileCompletionTracker: React.FC = () => {
         description: 'Your changes have been saved.',
       });
 
-      // Force a page refresh to update the hook data
-      window.location.reload();
+      // Refetch profile data instead of full page reload
+      await refetch();
     } catch (error: any) {
       console.error('Failed to update profile:', error);
       toast({
@@ -101,7 +102,7 @@ const EnhancedProfileCompletionTracker: React.FC = () => {
       });
       throw error;
     }
-  }, [user]);
+  }, [user, refetch]);
 
   const getFieldValue = (field: string): string => {
     if (!profile) return '';
