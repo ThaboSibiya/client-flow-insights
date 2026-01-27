@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import LoadingSpinner from './LoadingSpinner';
 import { useAuth } from '@/context/AuthContext';
+import { useEmployeeAuth } from '@/hooks/useEmployeeAuth';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AdminProtectedRouteProps {
@@ -15,6 +16,7 @@ const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({
   redirectTo = '/dashboard'
 }) => {
   const { loading: authLoading, user } = useAuth();
+  const { isCompanyOwner, loading: ownerLoading } = useEmployeeAuth();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -50,7 +52,7 @@ const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({
     checkAdminRole();
   }, [user]);
 
-  if (authLoading || loading) {
+  if (authLoading || loading || ownerLoading) {
     return <LoadingSpinner />;
   }
 
@@ -58,7 +60,8 @@ const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({
     return <Navigate to="/auth" replace />;
   }
   
-  if (!isAdmin) {
+  // Allow access if user is admin OR company owner
+  if (!isAdmin && !isCompanyOwner) {
     return <Navigate to={redirectTo} replace />;
   }
 
