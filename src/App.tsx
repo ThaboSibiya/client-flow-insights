@@ -32,6 +32,21 @@ import Integrations from "./pages/Integrations";
 import Automations from "./pages/Automations";
 import NotificationHistory from "./pages/NotificationHistory";
 import AdminProtectedRoute from "./components/auth/AdminProtectedRoute";
+import OwnerProtectedRoute from "./components/auth/OwnerProtectedRoute";
+import Settings from "./pages/Settings";
+
+// Settings sections
+import GeneralSettings from "./components/settings/sections/GeneralSettings";
+import NotificationSettings from "./components/settings/sections/NotificationSettings";
+import AppearanceSettings from "./components/settings/sections/AppearanceSettings";
+import CompanySettings from "./components/settings/sections/CompanySettings";
+import QuoteSettings from "./components/settings/sections/QuoteSettings";
+import EmployeeSettings from "./components/settings/sections/EmployeeSettings";
+import AiAgentSettingsSection from "./components/settings/sections/AiAgentSettingsSection";
+import AutomationSettings from "./components/settings/sections/AutomationSettings";
+import WebhookSettings from "./components/settings/sections/WebhookSettings";
+import SecuritySettings from "./components/settings/sections/SecuritySettings";
+import BillingSettings from "./components/settings/sections/BillingSettings";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -157,6 +172,41 @@ const App = () => (
                             <NotificationHistory />
                           </ErrorBoundary>
                         } />
+                        
+                        {/* Settings Routes */}
+                        <Route path="settings" element={
+                          <ErrorBoundary>
+                            <Settings />
+                          </ErrorBoundary>
+                        }>
+                          <Route path="general" element={<GeneralSettings />} />
+                          <Route path="notifications" element={<NotificationSettings />} />
+                          <Route path="appearance" element={<AppearanceSettings />} />
+                          <Route path="company" element={
+                            <AdminProtectedRoute element={<CompanySettings />} redirectTo="/settings/general" />
+                          } />
+                          <Route path="quotes" element={
+                            <AdminProtectedRoute element={<QuoteSettings />} redirectTo="/settings/general" />
+                          } />
+                          <Route path="employees" element={
+                            <AdminProtectedRoute element={<EmployeeSettings />} redirectTo="/settings/general" />
+                          } />
+                          <Route path="ai-agent" element={
+                            <AdminProtectedRoute element={<AiAgentSettingsSection />} redirectTo="/settings/general" />
+                          } />
+                          <Route path="automations" element={
+                            <AdminProtectedRoute element={<AutomationSettings />} redirectTo="/settings/general" />
+                          } />
+                          <Route path="webhooks" element={
+                            <AdminProtectedRoute element={<WebhookSettings />} redirectTo="/settings/general" />
+                          } />
+                          <Route path="security" element={
+                            <AdminProtectedRoute element={<SecuritySettings />} redirectTo="/settings/general" />
+                          } />
+                          <Route path="billing" element={
+                            <OwnerProtectedRoute element={<BillingSettings />} redirectTo="/settings/general" />
+                          } />
+                        </Route>
                       </Route>
                       <Route path="*" element={<NotFound />} />
                     </Routes>
