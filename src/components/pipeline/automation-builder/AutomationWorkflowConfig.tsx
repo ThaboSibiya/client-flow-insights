@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { ReactFlowProvider } from '@xyflow/react';
 import WorkflowEngine from '../workflow/WorkflowEngine';
 import { CustomNode } from '../workflow/types';
 import { Edge } from '@xyflow/react';
@@ -20,11 +21,13 @@ const AutomationWorkflowConfig = ({
 
   return (
     <div className="h-full">
-      <WorkflowEngine
-        onWorkflowChange={handleWorkflowChange}
-        initialNodes={workflow.nodes}
-        initialEdges={workflow.edges}
-      />
+      <ReactFlowProvider>
+        <WorkflowEngine
+          onWorkflowChange={handleWorkflowChange}
+          initialNodes={workflow.nodes}
+          initialEdges={workflow.edges}
+        />
+      </ReactFlowProvider>
     </div>
   );
 };

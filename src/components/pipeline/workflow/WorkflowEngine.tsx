@@ -1,11 +1,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import {
-  ReactFlow,
   addEdge,
-  MiniMap,
-  Controls,
-  Background,
   useNodesState,
   useEdgesState,
   Node,
@@ -18,11 +14,12 @@ import '@xyflow/react/dist/style.css';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GitBranch } from "lucide-react";
 
-import { CustomNode, WorkflowNodeType } from './types';
-import { getDefaultNodeName } from './workflowUtils';
+import { CustomNode, WorkflowNodeType, NodeCategory } from './types';
+import { getDefaultNodeName, getDefaultCategory } from './workflowUtils';
 import WorkflowNodeComponent from './WorkflowNodeComponent';
 import WorkflowToolbar from './WorkflowToolbar';
 import WorkflowNodeConfigPanel from './WorkflowNodeConfigPanel';
+import WorkflowCanvas from './WorkflowCanvas';
 
 const nodeTypes = {
   workflowNode: WorkflowNodeComponent,
@@ -45,7 +42,7 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = []
   }, [nodes, edges, onWorkflowChange]);
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: '#6b7280' } }, eds)),
+    (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: 'hsl(var(--muted-foreground))' } }, eds)),
     [setEdges]
   );
   
@@ -61,6 +58,7 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = []
       data: {
         type,
         name: getDefaultNodeName(type),
+        category: getDefaultCategory(type),
         config: {},
       }
     };
@@ -71,7 +69,6 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = []
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
-          // This ensures deep data properties are merged correctly.
           const updatedNode = { 
             ...node, 
             ...updates,
@@ -97,7 +94,6 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = []
 
   const simulateExecution = async () => {
     setIsExecuting(true);
-    // Simulate workflow execution with delays
     for (let i = 0; i < nodes.length; i++) {
       await new Promise(resolve => setTimeout(resolve, 1000));
       console.log(`Executing node: ${nodes[i].data.name}`);
@@ -123,7 +119,7 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = []
           />
 
           <div className="border-2 border-dashed rounded-lg h-[600px] bg-muted/20 relative">
-            <ReactFlow
+            <WorkflowCanvas
               nodes={nodes}
               edges={edges}
               onNodesChange={onNodesChange}
@@ -131,20 +127,9 @@ const WorkflowEngine = ({ onWorkflowChange, initialNodes = [], initialEdges = []
               onConnect={onConnect}
               onNodeClick={onNodeClick}
               onPaneClick={() => setSelectedNode(null)}
-              nodeTypes={nodeTypes}
-              fitView
-            >
-              <Controls />
-              <Background />
-              <MiniMap />
-            </ReactFlow>
-            {nodes.length === 0 && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-muted-foreground pointer-events-none">
-                <GitBranch className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No workflow nodes yet</p>
-                <p className="text-sm">Add conditional branches, loops, or approval steps to get started</p>
-              </div>
-            )}
+              onDrop={() => {}}
+              onDragOver={(e) => e.preventDefault()}
+            />
           </div>
         </CardContent>
       </Card>
