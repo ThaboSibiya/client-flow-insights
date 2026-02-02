@@ -39,47 +39,49 @@ const Pipeline: React.FC = () => {
   return (
     <PipelineErrorBoundary>
       <div className="space-y-6">
-        <div className="mb-6">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-lg">
-          Pipeline Management
-        </h1>
-        <p className="text-quikle-charcoal/70 font-medium">
-          Manage customer and ticket pipelines with automation
-        </p>
-      </div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              Pipeline Management
+            </h1>
+            <p className="text-muted-foreground">
+              Manage customer and ticket pipelines with drag-and-drop
+            </p>
+          </div>
+        </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-3 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
-          <TabsTrigger value="customers" className="flex items-center gap-2 flex-1 md:flex-initial">
-            <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">Customers</span>
-          </TabsTrigger>
-          <TabsTrigger value="tickets" className="flex items-center gap-2 flex-1 md:flex-initial">
-            <Ticket className="h-4 w-4" />
-            <span className="hidden sm:inline">Tickets</span>
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2 flex-1 md:flex-initial">
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Settings</span>
-          </TabsTrigger>
-        </TabsList>
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="customers" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Customers</span>
+            </TabsTrigger>
+            <TabsTrigger value="tickets" className="flex items-center gap-2">
+              <Ticket className="h-4 w-4" />
+              <span className="hidden sm:inline">Tickets</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Settings</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="customers" className="mt-6">
-          <PipelineErrorBoundary>
-            <CustomerPipeline />
-          </PipelineErrorBoundary>
-        </TabsContent>
+          <TabsContent value="customers" className="mt-6">
+            <PipelineErrorBoundary>
+              <CustomerPipeline />
+            </PipelineErrorBoundary>
+          </TabsContent>
 
-        <TabsContent value="tickets" className="mt-6">
-          <PipelineErrorBoundary>
-            <TicketPipeline />
-          </PipelineErrorBoundary>
-        </TabsContent>
+          <TabsContent value="tickets" className="mt-6">
+            <PipelineErrorBoundary>
+              <TicketPipeline />
+            </PipelineErrorBoundary>
+          </TabsContent>
 
-        <TabsContent value="settings" className="mt-6">
-          <PipelineSettings />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="settings" className="mt-6">
+            <PipelineSettings />
+          </TabsContent>
+        </Tabs>
       </div>
     </PipelineErrorBoundary>
   );

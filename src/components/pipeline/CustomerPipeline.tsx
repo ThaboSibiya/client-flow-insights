@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Button } from "@/components/ui/button";
-import { Plus, Settings } from "lucide-react";
+import { Plus, Settings, Loader2 } from "lucide-react";
 import AddStageDialog from './AddStageDialog';
-import PipelineMetrics from './PipelineMetrics';
+import EnhancedPipelineMetrics from './EnhancedPipelineMetrics';
 import { useCustomerPipeline } from '@/hooks/useCustomerPipeline';
 import DroppableStage from './DroppableStage';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -15,7 +14,6 @@ const CustomerPipeline = () => {
   const location = useLocation();
   
   const handlePipelineSettingsClick = () => {
-    // Navigate to settings tab on the pipeline page
     const currentPath = location.pathname;
     const searchParams = new URLSearchParams(location.search);
     searchParams.set('tab', 'settings');
@@ -57,31 +55,30 @@ const CustomerPipeline = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-quikle-charcoal">Customer Pipeline</h2>
-          <p className="text-quikle-slate">Drag customers between stages to update their status</p>
+          <h2 className="text-2xl font-bold">Customer Pipeline</h2>
+          <p className="text-muted-foreground">Drag customers between stages to update their status</p>
         </div>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
             onClick={handlePipelineSettingsClick}
-            className="flex items-center gap-2 border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal hover:border-quikle-slate"
+            className="flex items-center gap-2"
           >
             <Settings className="h-4 w-4" />
-            Pipeline Settings
+            <span className="hidden sm:inline">Settings</span>
           </Button>
           <Button 
             onClick={() => setIsAddStageOpen(true)}
-            className="bg-quikle-primary text-white hover:bg-quikle-primary/90"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 mr-1" />
             Add Stage
           </Button>
         </div>
       </div>
 
-      <PipelineMetrics type="customer" stages={stages} />
+      <EnhancedPipelineMetrics type="customer" stages={stages} />
 
       <DndContext 
         sensors={sensors} 
@@ -90,7 +87,7 @@ const CustomerPipeline = () => {
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={stages.map(s => s.id)}>
-          <div className="flex gap-4 overflow-x-auto pb-4">
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4">
             {stages.map((stage) => (
               <DroppableStage
                 key={stage.id}
@@ -109,9 +106,9 @@ const CustomerPipeline = () => {
         
         <DragOverlay>
           {activeItem ? (
-            <div className="bg-white p-3 rounded-lg shadow-lg border border-quikle-silver/30 opacity-90">
-              <p className="font-medium text-quikle-charcoal">{activeItem.name}</p>
-              <p className="text-sm text-quikle-slate">{activeItem.email}</p>
+            <div className="bg-background p-3 rounded-lg shadow-xl border opacity-95 rotate-2 scale-105">
+              <p className="font-medium">{activeItem.name}</p>
+              <p className="text-sm text-muted-foreground">{activeItem.email}</p>
             </div>
           ) : null}
         </DragOverlay>
