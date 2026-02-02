@@ -51,3 +51,6 @@ verify_jwt = false
 
 [functions.finance-ai-match-suggestions]
 verify_jwt = true
+
+[functions.webhook-receiver]
+verify_jwt = false
