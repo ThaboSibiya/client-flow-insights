@@ -67,6 +67,54 @@ export type Database = {
           },
         ]
       }
+      api_triggers: {
+        Row: {
+          auth_type: string
+          created_at: string | null
+          description: string | null
+          endpoint_key: string
+          id: string
+          is_active: boolean | null
+          last_triggered_at: string | null
+          method: string
+          name: string
+          sample_payload: Json | null
+          trigger_count: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          auth_type?: string
+          created_at?: string | null
+          description?: string | null
+          endpoint_key?: string
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          method?: string
+          name: string
+          sample_payload?: Json | null
+          trigger_count?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          auth_type?: string
+          created_at?: string | null
+          description?: string | null
+          endpoint_key?: string
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          method?: string
+          name?: string
+          sample_payload?: Json | null
+          trigger_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       automation_permissions: {
         Row: {
           automation_id: string
@@ -564,6 +612,60 @@ export type Database = {
           phone?: string | null
           status?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      data_sync_rules: {
+        Row: {
+          config: Json | null
+          created_at: string | null
+          data_type: string
+          frequency: Database["public"]["Enums"]["sync_frequency"]
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          name: string
+          source_system: string
+          status: Database["public"]["Enums"]["integration_status"] | null
+          sync_count: number | null
+          sync_direction: Database["public"]["Enums"]["sync_direction"]
+          target_system: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string | null
+          data_type: string
+          frequency?: Database["public"]["Enums"]["sync_frequency"]
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          name: string
+          source_system: string
+          status?: Database["public"]["Enums"]["integration_status"] | null
+          sync_count?: number | null
+          sync_direction?: Database["public"]["Enums"]["sync_direction"]
+          target_system: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string | null
+          data_type?: string
+          frequency?: Database["public"]["Enums"]["sync_frequency"]
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          name?: string
+          source_system?: string
+          status?: Database["public"]["Enums"]["integration_status"] | null
+          sync_count?: number | null
+          sync_direction?: Database["public"]["Enums"]["sync_direction"]
+          target_system?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -2867,6 +2969,105 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_connections: {
+        Row: {
+          connected_apps: string[] | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_triggered_at: string | null
+          name: string
+          platform: Database["public"]["Enums"]["integration_platform"]
+          trigger_count: number | null
+          updated_at: string | null
+          user_id: string
+          webhook_url: string
+        }
+        Insert: {
+          connected_apps?: string[] | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          name: string
+          platform?: Database["public"]["Enums"]["integration_platform"]
+          trigger_count?: number | null
+          updated_at?: string | null
+          user_id: string
+          webhook_url: string
+        }
+        Update: {
+          connected_apps?: string[] | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          name?: string
+          platform?: Database["public"]["Enums"]["integration_platform"]
+          trigger_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+          webhook_url?: string
+        }
+        Relationships: []
+      }
+      webhook_logs: {
+        Row: {
+          connection_id: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          request_method: string | null
+          request_payload: Json | null
+          response_body: string | null
+          response_status: number | null
+          success: boolean | null
+          trigger_id: string | null
+          user_id: string
+        }
+        Insert: {
+          connection_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          request_method?: string | null
+          request_payload?: Json | null
+          response_body?: string | null
+          response_status?: number | null
+          success?: boolean | null
+          trigger_id?: string | null
+          user_id: string
+        }
+        Update: {
+          connection_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          request_method?: string | null
+          request_payload?: Json | null
+          response_body?: string | null
+          response_status?: number | null
+          success?: boolean | null
+          trigger_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_logs_trigger_id_fkey"
+            columns: ["trigger_id"]
+            isOneToOne: false
+            referencedRelation: "api_triggers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -3023,6 +3224,8 @@ export type Database = {
         | "finance_manager"
         | "sales_view_only"
         | "none"
+      integration_platform: "zapier" | "make" | "n8n" | "custom"
+      integration_status: "active" | "inactive" | "error" | "syncing"
       quote_invoice_status:
         | "draft"
         | "sent"
@@ -3032,6 +3235,8 @@ export type Database = {
         | "rejected"
       quote_invoice_type: "quote" | "invoice"
       reconciliation_status: "matched" | "partial" | "unmatched"
+      sync_direction: "push" | "pull" | "bidirectional"
+      sync_frequency: "real-time" | "hourly" | "daily" | "manual"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3175,6 +3380,8 @@ export const Constants = {
         "sales_view_only",
         "none",
       ],
+      integration_platform: ["zapier", "make", "n8n", "custom"],
+      integration_status: ["active", "inactive", "error", "syncing"],
       quote_invoice_status: [
         "draft",
         "sent",
@@ -3185,6 +3392,8 @@ export const Constants = {
       ],
       quote_invoice_type: ["quote", "invoice"],
       reconciliation_status: ["matched", "partial", "unmatched"],
+      sync_direction: ["push", "pull", "bidirectional"],
+      sync_frequency: ["real-time", "hourly", "daily", "manual"],
     },
   },
 } as const
