@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
 import {
   Dialog,
@@ -39,17 +39,6 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
   const { updateCustomer } = useCRM();
   const [activeTab, setActiveTab] = useState('details');
   const [isSaving, setIsSaving] = useState(false);
-
-  // Debug marker to detect legacy dialog still being used anywhere
-  useEffect(() => {
-    if (isOpen) {
-      // eslint-disable-next-line no-console
-      console.info('[CustomerDetailsDialog:legacy-modal] opened', {
-        customerId: customer?.id,
-        customerName: customer?.name,
-      });
-    }
-  }, [isOpen, customer?.id, customer?.name]);
   
   const form = useForm<Partial<Customer>>({
     defaultValues: customer || {},
