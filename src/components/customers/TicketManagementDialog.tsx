@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -32,22 +32,20 @@ const TicketManagementDialog = ({
 }: TicketManagementDialogProps) => {
   const [showNewTicketForm, setShowNewTicketForm] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const { onCustomerTicketsRefresh, onTicketCreated, onTicketStatusChanged } = useTicketEvents();
 
-  // Listen for ticket-related events to refresh the dialog
-  useEffect(() => {
-    if (!customer?.id) return;
+  // Create stable callback for handling refresh
+  const handleRefresh = useCallback((data: any) => {
+    if (data?.customerId === customer?.id) {
+      setRefreshKey(prev => prev + 1);
+    }
+  }, [customer?.id]);
 
-    const handleRefresh = (data: any) => {
-      if (data?.customerId === customer.id) {
-        setRefreshKey(prev => prev + 1);
-      }
-    };
-
-    onCustomerTicketsRefresh(handleRefresh);
-    onTicketCreated(handleRefresh);
-    onTicketStatusChanged(handleRefresh);
-  }, [customer?.id, onCustomerTicketsRefresh, onTicketCreated, onTicketStatusChanged]);
+  // Subscribe to ticket events using the refactored hook
+  useTicketEvents({
+    onCustomerTicketsRefresh: handleRefresh,
+    onTicketCreated: handleRefresh,
+    onTicketStatusChanged: handleRefresh,
+  });
 
   const handleCreateTicket = (ticketData: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>) => {
     if (customer) {
