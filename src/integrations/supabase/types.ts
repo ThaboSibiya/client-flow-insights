@@ -359,12 +359,15 @@ export type Database = {
           customer_id: string
           equipment_type: string
           id: string
+          last_service_date: string | null
           model: string | null
+          next_service_due: string | null
           notes: string | null
           purchase_date: string | null
           serial_number: string | null
           status: string | null
           technical_issues: string | null
+          total_services: number | null
           updated_at: string
           user_id: string
           warranty_expiry: string | null
@@ -375,12 +378,15 @@ export type Database = {
           customer_id: string
           equipment_type?: string
           id?: string
+          last_service_date?: string | null
           model?: string | null
+          next_service_due?: string | null
           notes?: string | null
           purchase_date?: string | null
           serial_number?: string | null
           status?: string | null
           technical_issues?: string | null
+          total_services?: number | null
           updated_at?: string
           user_id: string
           warranty_expiry?: string | null
@@ -391,12 +397,15 @@ export type Database = {
           customer_id?: string
           equipment_type?: string
           id?: string
+          last_service_date?: string | null
           model?: string | null
+          next_service_due?: string | null
           notes?: string | null
           purchase_date?: string | null
           serial_number?: string | null
           status?: string | null
           technical_issues?: string | null
+          total_services?: number | null
           updated_at?: string
           user_id?: string
           warranty_expiry?: string | null
@@ -1345,6 +1354,84 @@ export type Database = {
             columns: ["manager_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_service_history: {
+        Row: {
+          created_at: string
+          customer_id: string
+          description: string
+          equipment_id: string
+          id: string
+          labor_cost: number | null
+          next_service_due: string | null
+          parts_cost: number | null
+          parts_used: string[] | null
+          performed_by: string | null
+          resolution: string | null
+          service_date: string
+          service_type: string
+          status: string | null
+          ticket_id: string | null
+          total_cost: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          description: string
+          equipment_id: string
+          id?: string
+          labor_cost?: number | null
+          next_service_due?: string | null
+          parts_cost?: number | null
+          parts_used?: string[] | null
+          performed_by?: string | null
+          resolution?: string | null
+          service_date?: string
+          service_type?: string
+          status?: string | null
+          ticket_id?: string | null
+          total_cost?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          description?: string
+          equipment_id?: string
+          id?: string
+          labor_cost?: number | null
+          next_service_due?: string | null
+          parts_cost?: number | null
+          parts_used?: string[] | null
+          performed_by?: string | null
+          resolution?: string | null
+          service_date?: string
+          service_type?: string
+          status?: string | null
+          ticket_id?: string | null
+          total_cost?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_service_history_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_service_history_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "customer_equipment"
             referencedColumns: ["id"]
           },
         ]
