@@ -1894,6 +1894,108 @@ export type Database = {
           },
         ]
       }
+      pipeline_activity: {
+        Row: {
+          action_type: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          from_stage_id: string | null
+          id: string
+          metadata: Json | null
+          pipeline_type: Database["public"]["Enums"]["pipeline_type"]
+          to_stage_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          from_stage_id?: string | null
+          id?: string
+          metadata?: Json | null
+          pipeline_type: Database["public"]["Enums"]["pipeline_type"]
+          to_stage_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          from_stage_id?: string | null
+          id?: string
+          metadata?: Json | null
+          pipeline_type?: Database["public"]["Enums"]["pipeline_type"]
+          to_stage_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_activity_from_stage_id_fkey"
+            columns: ["from_stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_activity_to_stage_id_fkey"
+            columns: ["to_stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pipeline_stages: {
+        Row: {
+          automation_enabled: boolean
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          pipeline_type: Database["public"]["Enums"]["pipeline_type"]
+          position: number
+          status_mapping: string | null
+          target: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          automation_enabled?: boolean
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          pipeline_type: Database["public"]["Enums"]["pipeline_type"]
+          position?: number
+          status_mapping?: string | null
+          target?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          automation_enabled?: boolean
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          pipeline_type?: Database["public"]["Enums"]["pipeline_type"]
+          position?: number
+          status_mapping?: string | null
+          target?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       privilege_change_audit: {
         Row: {
           changed_by: string
@@ -2612,6 +2714,62 @@ export type Database = {
         }
         Relationships: []
       }
+      stage_automations: {
+        Row: {
+          actions: Json
+          conditions: Json | null
+          created_at: string
+          execution_count: number
+          id: string
+          is_active: boolean
+          last_executed_at: string | null
+          name: string
+          stage_id: string
+          trigger_config: Json | null
+          trigger_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actions?: Json
+          conditions?: Json | null
+          created_at?: string
+          execution_count?: number
+          id?: string
+          is_active?: boolean
+          last_executed_at?: string | null
+          name: string
+          stage_id: string
+          trigger_config?: Json | null
+          trigger_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json | null
+          created_at?: string
+          execution_count?: number
+          id?: string
+          is_active?: boolean
+          last_executed_at?: string | null
+          name?: string
+          stage_id?: string
+          trigger_config?: Json | null
+          trigger_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_automations_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       template_fields: {
         Row: {
           created_at: string | null
@@ -3226,6 +3384,7 @@ export type Database = {
         | "none"
       integration_platform: "zapier" | "make" | "n8n" | "custom"
       integration_status: "active" | "inactive" | "error" | "syncing"
+      pipeline_type: "customer" | "ticket"
       quote_invoice_status:
         | "draft"
         | "sent"
@@ -3382,6 +3541,7 @@ export const Constants = {
       ],
       integration_platform: ["zapier", "make", "n8n", "custom"],
       integration_status: ["active", "inactive", "error", "syncing"],
+      pipeline_type: ["customer", "ticket"],
       quote_invoice_status: [
         "draft",
         "sent",

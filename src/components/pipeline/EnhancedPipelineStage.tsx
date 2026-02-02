@@ -1,31 +1,40 @@
-
-import React, { useState, useMemo, memo } from 'react';
+import React, { useState, useMemo, memo, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MoreHorizontal, User, Ticket, Clock, Zap, Search, Plus, TrendingUp } from "lucide-react";
+import { 
+  MoreHorizontal, User, Ticket, Zap, Search, Plus, 
+  TrendingUp, ChevronDown, ChevronUp, GripVertical
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
-import PipelineCard from './PipelineCard';
+import ModernPipelineCard from './ModernPipelineCard';
 import EditStageDialog from './dialogs/EditStageDialog';
 import SetTargetDialog from './dialogs/SetTargetDialog';
 import SetAutomationDialog from './dialogs/SetAutomationDialog';
+import { Customer, CustomerTicket } from '@/types/customer';
 
 interface EnhancedPipelineStageProps {
   stage: {
     id: string;
     name: string;
     color: string;
-    customers?: any[];
-    tickets?: any[];
+    customers?: Customer[];
+    tickets?: CustomerTicket[];
     automationEnabled: boolean;
     target?: number;
   };
@@ -50,6 +59,7 @@ const EnhancedPipelineStage = memo(({
 }: EnhancedPipelineStageProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isHovered, setIsHovered] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [targetDialogOpen, setTargetDialogOpen] = useState(false);
   const [automationDialogOpen, setAutomationDialogOpen] = useState(false);
@@ -72,14 +82,22 @@ const EnhancedPipelineStage = memo(({
   const items = type === 'customer' ? (stage.customers || []) : (stage.tickets || []);
   const itemCount = items.length;
   
+  // Create stages array for the card's move menu
+  const allStages = useMemo(() => [
+    { id: stage.id, name: stage.name }
+  ], [stage.id, stage.name]);
+  
   // Filter items based on search term - memoized
   const filteredItems = useMemo(() => {
     if (!searchTerm) return items;
     return items.filter(item => {
-      const searchableText = type === 'customer' 
-        ? `${item.name} ${item.email}`.toLowerCase()
-        : `${item.subject} ${item.ticketNumber}`.toLowerCase();
-      return searchableText.includes(searchTerm.toLowerCase());
+      if (type === 'customer') {
+        const customer = item as Customer;
+        return `${customer.name} ${customer.email}`.toLowerCase().includes(searchTerm.toLowerCase());
+      } else {
+        const ticket = item as CustomerTicket;
+        return `${ticket.subject} ${ticket.ticketNumber}`.toLowerCase().includes(searchTerm.toLowerCase());
+      }
     });
   }, [items, searchTerm, type]);
 
@@ -234,11 +252,12 @@ const EnhancedPipelineStage = memo(({
           </Button>
           
           {filteredItems.map((item) => (
-            <PipelineCard
+            <ModernPipelineCard
               key={item.id}
               item={item}
               type={type}
               stageId={stage.id}
+              stages={allStages}
               onMove={onCustomerMove}
             />
           ))}
