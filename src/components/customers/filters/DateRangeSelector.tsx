@@ -23,15 +23,18 @@ interface DateRangeSelectorProps {
 const DateRangeSelector = ({ dateRange, onDateRangeChange }: DateRangeSelectorProps) => {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm font-medium text-quikle-charcoal min-w-fit">Created:</span>
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="w-[140px] justify-start text-left font-normal border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal">
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {dateRange.start ? format(dateRange.start, 'MMM dd') : 'From'}
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="h-9 justify-start text-left font-normal border-quikle-silver/30 text-quikle-slate hover:bg-quikle-crystal/50"
+          >
+            <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+            {dateRange.start ? format(dateRange.start, 'MMM d') : 'Start date'}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-white border-quikle-silver/30 z-50">
+        <PopoverContent className="w-auto p-0 bg-white border-quikle-silver/20 z-50" align="start">
           <Calendar
             mode="single"
             selected={dateRange.start || undefined}
@@ -41,16 +44,20 @@ const DateRangeSelector = ({ dateRange, onDateRangeChange }: DateRangeSelectorPr
         </PopoverContent>
       </Popover>
       
-      <span className="text-quikle-slate">to</span>
+      <span className="text-quikle-slate/60 text-sm">→</span>
       
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="w-[140px] justify-start text-left font-normal border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal">
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {dateRange.end ? format(dateRange.end, 'MMM dd') : 'To'}
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="h-9 justify-start text-left font-normal border-quikle-silver/30 text-quikle-slate hover:bg-quikle-crystal/50"
+          >
+            <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+            {dateRange.end ? format(dateRange.end, 'MMM d') : 'End date'}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-white border-quikle-silver/30 z-50">
+        <PopoverContent className="w-auto p-0 bg-white border-quikle-silver/20 z-50" align="start">
           <Calendar
             mode="single"
             selected={dateRange.end || undefined}
@@ -65,9 +72,9 @@ const DateRangeSelector = ({ dateRange, onDateRangeChange }: DateRangeSelectorPr
           size="sm" 
           variant="ghost" 
           onClick={() => onDateRangeChange({ start: null, end: null })}
-          className="text-quikle-slate hover:text-red-600 hover:bg-red-50"
+          className="h-8 w-8 p-0 text-quikle-slate hover:text-red-600 hover:bg-red-50"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
         </Button>
       )}
     </div>

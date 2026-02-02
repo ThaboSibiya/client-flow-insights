@@ -2,28 +2,14 @@
 import React from 'react';
 import { Customer } from '@/types/customer';
 import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Table, TableBody, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Eye, 
-  Ticket, 
-  MoreHorizontal,
-  Edit,
-  Trash2
-} from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Table, TableBody, TableHeader } from '@/components/ui/table';
 import { useCustomerActions, CustomerActionDialogs } from '../actions/CustomerActions';
-import { useDynamicTableColumns } from '@/hooks/useDynamicTableColumns';
-import DynamicTableHeader from './DynamicTableHeader';
-import DynamicTableCell from './DynamicTableCell';
+import CustomerTableRow from './CustomerTableRow';
 import CustomerTableSkeleton from './CustomerTableSkeleton';
+import CustomerEmptyState from './CustomerEmptyState';
+import { cn } from '@/lib/utils';
 
 interface CustomerTableContentProps {
   paginatedCustomers: Customer[];
@@ -37,6 +23,7 @@ interface CustomerTableContentProps {
   onSort: (field: string) => void;
   currentPage: number;
   totalPages: number;
+  totalCount: number;
   onPageChange: (page: number) => void;
   isLoading: boolean;
 }
@@ -53,6 +40,7 @@ const CustomerTableContent = ({
   onSort,
   currentPage,
   totalPages,
+  totalCount,
   onPageChange,
   isLoading,
 }: CustomerTableContentProps) => {
@@ -71,137 +59,116 @@ const CustomerTableContent = ({
     closeTicketDialog,
   } = useCustomerActions();
 
-  const { columns, getColumnValue, getVisibleColumns } = useDynamicTableColumns(paginatedCustomers);
-  
-  // Detect screen size (simplified)
-  const [screenSize, setScreenSize] = React.useState<'mobile' | 'tablet' | 'desktop'>('desktop');
-  
-  React.useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      if (width < 768) setScreenSize('mobile');
-      else if (width < 1024) setScreenSize('tablet');
-      else setScreenSize('desktop');
-    };
-    
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const visibleColumns = getVisibleColumns(screenSize);
+  const itemsPerPage = 10;
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, totalCount);
 
   if (isLoading) {
     return <CustomerTableSkeleton />;
   }
 
+  const SortableHeader = ({ 
+    field, 
+    children, 
+    className 
+  }: { 
+    field: string; 
+    children: React.ReactNode; 
+    className?: string;
+  }) => (
+    <TableHead 
+      className={cn(
+        "text-xs font-medium text-quikle-slate uppercase tracking-wide cursor-pointer hover:text-quikle-charcoal transition-colors select-none",
+        sortBy === field && "text-quikle-primary",
+        className
+      )}
+      onClick={() => onSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {sortBy === field && (
+          <span className="text-quikle-primary">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+        )}
+      </div>
+    </TableHead>
+  );
+
   return (
     <>
-      <div className="bg-white rounded-lg border border-quikle-silver/30 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <DynamicTableHeader
-                columns={visibleColumns}
-                sortBy={sortBy}
-                sortOrder={sortOrder}
-                onSort={onSort}
-                isAllSelected={isAllSelected}
-                onSelectAll={onSelectAll}
-                screenSize={screenSize}
-              />
-            </TableHeader>
-            <TableBody>
-              {paginatedCustomers.map((customer) => (
-                <tr key={customer.id} className="border-b border-quikle-silver/20 hover:bg-quikle-crystal/20 transition-colors">
-                  <td className="px-4 py-3 w-12">
-                    <Checkbox
-                      checked={selectedCustomers.has(customer.id)}
-                      onCheckedChange={(checked) => 
-                        onSelectCustomer(customer.id, checked as boolean)
-                      }
-                      className="border-quikle-silver data-[state=checked]:bg-quikle-primary"
-                    />
-                  </td>
-                  
-                  {visibleColumns.map((column) => (
-                    <DynamicTableCell
-                      key={column.key}
+      <div className="bg-white rounded-lg border border-quikle-silver/20 shadow-sm overflow-hidden">
+        {paginatedCustomers.length === 0 ? (
+          <CustomerEmptyState />
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-quikle-crystal/30 border-b border-quikle-silver/20 hover:bg-quikle-crystal/30">
+                    <TableHead className="w-10 px-3">
+                      <Checkbox
+                        checked={isAllSelected}
+                        onCheckedChange={onSelectAll}
+                        className="border-quikle-silver data-[state=checked]:bg-quikle-primary"
+                        aria-label="Select all customers"
+                      />
+                    </TableHead>
+                    <SortableHeader field="name">Name</SortableHeader>
+                    <SortableHeader field="email">Contact</SortableHeader>
+                    <SortableHeader field="status">Status</SortableHeader>
+                    <TableHead className="text-xs font-medium text-quikle-slate uppercase tracking-wide">Tickets</TableHead>
+                    <SortableHeader field="createdAt" className="hidden lg:table-cell">Added</SortableHeader>
+                    <TableHead className="w-32 text-right text-xs font-medium text-quikle-slate uppercase tracking-wide pr-4">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedCustomers.map((customer, index) => (
+                    <CustomerTableRow
+                      key={customer.id}
                       customer={customer}
-                      columnKey={column.key}
-                      columnType={column.type}
-                      value={getColumnValue(customer, column.key)}
+                      isSelected={selectedCustomers.has(customer.id)}
+                      onSelect={(id, checked) => onSelectCustomer(id, checked)}
+                      onEdit={handleOpenCustomerDetails}
+                      onDelete={handleDeleteCustomer}
                       onStatusChange={handleStatusChange}
+                      onManageTickets={handleManageTickets}
+                      rowIndex={index}
                     />
                   ))}
-                  
-                  <td className="px-4 py-3 w-16">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-quikle-crystal">
-                          <MoreHorizontal className="h-4 w-4 text-quikle-slate" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-white border-quikle-silver/30 shadow-lg">
-                        <DropdownMenuItem onClick={() => handleOpenCustomerDetails(customer)}>
-                          <Eye className="mr-2 h-4 w-4 text-quikle-primary" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleOpenCustomerDetails(customer)}>
-                          <Edit className="mr-2 h-4 w-4 text-quikle-secondary" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleManageTickets(customer)}>
-                          <Ticket className="mr-2 h-4 w-4 text-quikle-accent" />
-                          Manage Tickets
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDeleteCustomer(customer.id)}
-                          className="text-red-600 hover:bg-red-50"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
-                </tr>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                </TableBody>
+              </Table>
+            </div>
 
-        {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-quikle-silver/30 bg-quikle-crystal/20">
-          <div className="text-sm text-quikle-slate">
-            Showing {((currentPage - 1) * 10) + 1} to {Math.min(currentPage * 10, paginatedCustomers.length)} of {paginatedCustomers.length} results
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-            <span className="text-sm text-quikle-charcoal font-medium">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal"
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+            {/* Minimal Pagination */}
+            <div className="flex items-center justify-between px-4 py-3 border-t border-quikle-silver/20 bg-quikle-crystal/10">
+              <p className="text-xs text-quikle-slate">
+                {startIndex}–{endIndex} of {totalCount}
+              </p>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onPageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="h-7 px-2 text-quikle-slate hover:text-quikle-charcoal disabled:opacity-40"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-xs text-quikle-charcoal font-medium px-2">
+                  {currentPage} / {totalPages || 1}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onPageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="h-7 px-2 text-quikle-slate hover:text-quikle-charcoal disabled:opacity-40"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <CustomerActionDialogs
