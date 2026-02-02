@@ -257,7 +257,7 @@ class RevenueOptimizationService {
         <p>Please follow up with these customers for payment collection.</p>
       `;
 
-      const { data, error } = await supabase.functions.invoke('send-email', {
+      const { data, error } = await supabase.functions.invoke('send-transactional-email', {
         body: {
           to: 'finance@company.com', // This should be configurable
           subject: `Overdue Invoice Alert - ${overdueInvoices.length} invoices`,
