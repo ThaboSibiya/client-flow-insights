@@ -4,11 +4,9 @@ import { useCustomerData } from '@/hooks/useCustomerData';
 import { useCustomerFilters } from '@/hooks/useCustomerFilters';
 import { useTableSelection } from '@/hooks/useTableSelection';
 import { useCustomerExport } from '@/hooks/useCustomerExport';
-import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-
 import CustomerTableContent from './CustomerTableContent';
-import CustomerTableFilters from './CustomerTableFilters';
-import QuickActionsBar from '../QuickActionsBar';
+import UnifiedToolbar from '../filters/UnifiedToolbar';
+import BulkActionsBar from './BulkActionsBar';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 import { toast } from '@/hooks/use-toast';
 
@@ -66,48 +64,10 @@ const CustomerTableContainer = React.memo(() => {
     selectedCustomers,
   });
 
-  const shortcuts = useKeyboardShortcuts([
-    {
-      key: 'f',
-      ctrlKey: true,
-      action: () => {
-        const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
-        if (searchInput) {
-          searchInput.focus();
-        }
-      },
-      description: 'Focus search'
-    },
-    {
-      key: 'a',
-      ctrlKey: true,
-      action: () => {
-        handleSelectAll(!isAllSelected);
-      },
-      description: 'Select all customers'
-    },
-    {
-      key: 'e',
-      ctrlKey: true,
-      action: () => {
-        handleExportCSV();
-      },
-      description: 'Export as CSV'
-    },
-    {
-      key: 'Escape',
-      action: () => {
-        if (selectedCustomers.size > 0) {
-          clearSelection();
-          toast({
-            title: "Selection cleared",
-            description: "All customer selections have been cleared",
-          });
-        }
-      },
-      description: 'Clear selection'
-    }
-  ]);
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, dateRange, ticketCountFilter]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -122,52 +82,40 @@ const CustomerTableContainer = React.memo(() => {
     handleSelectItem(customerId, checked);
   };
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      await fetchCustomers();
-      toast({
-        title: "Data refreshed",
-        description: "Customer data has been updated.",
-      });
-    } catch (error) {
-      toast({
-        title: "Refresh failed",
-        description: "An error occurred while trying to refresh.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
   return (
     <ErrorBoundary>
-      <div className="space-y-6">
-        <QuickActionsBar
-          onExportCSV={handleExportCSV}
-          onExportJSON={handleExportJSON}
-          onExportExcel={handleExportExcel}
-          shortcuts={shortcuts}
-        />
-        
+      <div className="space-y-4">
+        {/* Unified Toolbar */}
         <ErrorBoundary>
-          <CustomerTableFilters
+          <UnifiedToolbar
             searchQuery={searchQuery}
             onSearchQueryChange={setSearchQuery}
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
             dateRange={dateRange}
             onDateRangeChange={setDateRange}
-            ticketCountFilter={ticketCountFilter}
-            onTicketCountFilterChange={setTicketCountFilter}
+            ticketFilter={ticketCountFilter}
+            onTicketFilterChange={setTicketCountFilter}
             savedPresets={savedPresets}
             onApplyPreset={applyPreset}
             onSavePreset={saveCurrentAsPreset}
             onQuickDateRange={getQuickDateRange}
+            onExportCSV={handleExportCSV}
+            onExportJSON={handleExportJSON}
+            onExportExcel={handleExportExcel}
           />
         </ErrorBoundary>
+
+        {/* Bulk Actions Bar - Shows when items selected */}
+        {selectedCustomers.size > 0 && (
+          <BulkActionsBar
+            selectedCount={selectedCustomers.size}
+            onClearSelection={clearSelection}
+            onExport={handleExportCSV}
+          />
+        )}
         
+        {/* Table Content */}
         <ErrorBoundary>
           <CustomerTableContent
             paginatedCustomers={paginatedCustomers}
@@ -181,6 +129,7 @@ const CustomerTableContainer = React.memo(() => {
             onSort={handleSort}
             currentPage={currentPage}
             totalPages={totalPages}
+            totalCount={filteredCustomers.length}
             onPageChange={setCurrentPage}
             isLoading={isLoading || isRefreshing}
           />

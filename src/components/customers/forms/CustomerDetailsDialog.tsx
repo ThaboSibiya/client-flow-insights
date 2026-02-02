@@ -1,23 +1,22 @@
 
 import React, { useState } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Customer } from '@/types/customer';
 import CustomerDetailsForm from './CustomerDetailsForm';
 import BusinessInformationForm from './BusinessInformationForm';
-import CustomDataDisplay from '../CustomDataDisplay';
 import EquipmentDisplay from '../equipment/EquipmentDisplay';
-import CustomerFinanceTab from '@/components/finance/CustomerFinanceTab';
-import { FileText, User, AlertCircle, CheckCircle, Printer, DollarSign } from 'lucide-react';
+import { User, Briefcase, Printer, AlertCircle, CheckCircle } from 'lucide-react';
 import { useCustomerCustomData } from '@/hooks/useCustomerCustomData';
+import { cn } from '@/lib/utils';
 
 interface CustomerDetailsDialogProps {
   customer: Customer | null;
@@ -42,110 +41,133 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
   });
   const hasIncompleteRequired = requiredFields.length > completedRequiredFields.length;
 
+  // Reset tab when dialog closes
+  React.useEffect(() => {
+    if (!isOpen) {
+      setActiveTab('details');
+    }
+  }, [isOpen]);
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[1000px] max-h-[90vh] p-0 bg-gradient-to-br from-white via-quikle-crystal to-quikle-platinum border-quikle-silver/30 shadow-luxury flex flex-col overflow-hidden">
-        <DialogDescription className="sr-only">
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent 
+        side="right" 
+        className="w-full sm:max-w-lg p-0 flex flex-col bg-gradient-to-b from-white to-quikle-crystal/20"
+      >
+        <SheetDescription className="sr-only">
           View and edit customer details, business information, and equipment
-        </DialogDescription>
-        <DialogHeader className="border-b border-quikle-silver/20 pb-4 px-3 sm:px-6 pt-4 sm:pt-6 flex-shrink-0">
-          <DialogTitle className="text-lg sm:text-2xl bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent truncate">
-            {customer ? `${customer.name}` : 'Customer Details'}
-          </DialogTitle>
-          {customer && !loading && appliedTemplates.length > 0 && (
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-sm text-quikle-slate">Applied Templates:</span>
-              {appliedTemplates.map(template => (
-                <Badge key={template.id} variant="secondary" className="bg-quikle-primary/10 text-quikle-primary text-xs">
-                  {template.industry}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </DialogHeader>
+        </SheetDescription>
+        
+        {/* Header */}
+        <SheetHeader className="border-b border-quikle-silver/20 p-4 sm:p-6 flex-shrink-0">
+          <div className="pr-8">
+            <SheetTitle className="text-xl font-semibold text-quikle-charcoal truncate">
+              {customer?.name || 'Customer Details'}
+            </SheetTitle>
+            {customer?.email && (
+              <p className="text-sm text-quikle-slate mt-0.5 truncate">{customer.email}</p>
+            )}
+            {customer && !loading && appliedTemplates.length > 0 && (
+              <div className="flex items-center gap-2 mt-2">
+                {appliedTemplates.map(template => (
+                  <Badge 
+                    key={template.id} 
+                    variant="secondary" 
+                    className="bg-quikle-primary/10 text-quikle-primary text-xs"
+                  >
+                    {template.industry || 'Template'}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </SheetHeader>
         
         {customer && (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col overflow-hidden px-3 sm:px-6 pb-6">
-            <TabsList className="flex w-full overflow-x-auto sm:overflow-x-visible bg-gradient-to-r from-quikle-crystal to-quikle-platinum border border-quikle-silver/30 mt-4 flex-shrink-0 gap-1 p-1">
+          <Tabs 
+            value={activeTab} 
+            onValueChange={setActiveTab} 
+            className="flex-1 flex flex-col overflow-hidden"
+          >
+            {/* Compact Tab List */}
+            <TabsList className="flex w-full bg-quikle-crystal/50 border-b border-quikle-silver/20 rounded-none p-1 gap-1 flex-shrink-0">
               <TabsTrigger 
                 value="details" 
-                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-md transition-all",
+                  "data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-quikle-primary"
+                )}
               >
-                <User className="h-4 w-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Personal Details</span>
-                <span className="sm:hidden">Personal</span>
+                <User className="h-3.5 w-3.5" />
+                <span>Personal</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="custom-data" 
-                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
+                value="business" 
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-md transition-all",
+                  "data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-quikle-primary"
+                )}
               >
-                <FileText className="h-4 w-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Business Info</span>
-                <span className="sm:hidden">Business</span>
+                <Briefcase className="h-3.5 w-3.5" />
+                <span>Business</span>
                 {!loading && appliedTemplates.length > 0 && (
                   <>
-                    <Badge variant="secondary" className="bg-white/20 text-white text-[10px] sm:text-xs ml-1 flex-shrink-0">
-                      {appliedTemplates.length}
-                    </Badge>
-                    {hasIncompleteRequired && (
-                      <AlertCircle className="h-3 w-3 text-amber-300 flex-shrink-0" />
-                    )}
-                    {!hasIncompleteRequired && requiredFields.length > 0 && (
-                      <CheckCircle className="h-3 w-3 text-green-300 flex-shrink-0" />
-                    )}
+                    {hasIncompleteRequired ? (
+                      <AlertCircle className="h-3 w-3 text-amber-500" />
+                    ) : requiredFields.length > 0 ? (
+                      <CheckCircle className="h-3 w-3 text-emerald-500" />
+                    ) : null}
                   </>
                 )}
               </TabsTrigger>
               <TabsTrigger 
                 value="equipment" 
-                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-md transition-all",
+                  "data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-quikle-primary"
+                )}
               >
-                <Printer className="h-4 w-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Equipment</span>
-                <span className="sm:hidden">Equip</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="finance" 
-                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white"
-              >
-                <DollarSign className="h-4 w-4 flex-shrink-0" />
-                Finance
+                <Printer className="h-3.5 w-3.5" />
+                <span>Equipment</span>
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="details" className="mt-6 flex-1 overflow-hidden">
-              <ScrollArea className="h-[calc(90vh-280px)] pr-4">
-                <CustomerDetailsForm 
-                  customer={customer}
-                  onClose={onClose}
-                />
-              </ScrollArea>
-            </TabsContent>
-            
-            <TabsContent value="custom-data" className="mt-6 flex-1 overflow-hidden">
-              <ScrollArea className="h-[calc(90vh-280px)] pr-4">
-                <BusinessInformationForm 
-                  customer={customer}
-                  onClose={onClose}
-                />
-              </ScrollArea>
-            </TabsContent>
-            
-            <TabsContent value="equipment" className="mt-6 flex-1 overflow-hidden">
-              <ScrollArea className="h-[calc(90vh-280px)] pr-4">
-                <EquipmentDisplay customerId={customer.id} />
-              </ScrollArea>
-            </TabsContent>
-            
-            <TabsContent value="finance" className="mt-6 flex-1 overflow-hidden">
-              <ScrollArea className="h-[calc(90vh-280px)] pr-4">
-                <CustomerFinanceTab customerId={customer.id} customerName={customer.name} />
-              </ScrollArea>
-            </TabsContent>
+            {/* Tab Content */}
+            <div className="flex-1 overflow-hidden">
+              <TabsContent value="details" className="h-full m-0">
+                <ScrollArea className="h-full">
+                  <div className="p-4 sm:p-6">
+                    <CustomerDetailsForm 
+                      customer={customer}
+                      onClose={onClose}
+                    />
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+              
+              <TabsContent value="business" className="h-full m-0">
+                <ScrollArea className="h-full">
+                  <div className="p-4 sm:p-6">
+                    <BusinessInformationForm 
+                      customer={customer}
+                      onClose={onClose}
+                    />
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+              
+              <TabsContent value="equipment" className="h-full m-0">
+                <ScrollArea className="h-full">
+                  <div className="p-4 sm:p-6">
+                    <EquipmentDisplay customerId={customer.id} />
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            </div>
           </Tabs>
         )}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };
 

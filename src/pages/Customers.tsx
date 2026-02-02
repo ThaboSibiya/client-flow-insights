@@ -2,89 +2,142 @@
 import React, { useState } from 'react';
 import CustomerTable from '@/components/customers/CustomerTable';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Phone, MapPin } from 'lucide-react';
+import { UserPlus, Phone, MapPin, Settings2, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AiVoiceSessionDialog from '@/components/voice/AiVoiceSessionDialog';
-import KnowledgeBaseManager from '@/components/settings/KnowledgeBaseManager';
-import { AiAgentSettings } from '@/components/settings/AiAgentSettings';
 import OnSiteStatusUpdate from '@/components/customers/OnSiteStatusUpdate';
 import CustomerErrorBoundary from '@/components/error/CustomerErrorBoundary';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const Customers: React.FC = () => {
   const navigate = useNavigate();
   const [isSessionOpen, setIsSessionOpen] = useState<boolean>(false);
   const [isOnSiteUpdateOpen, setIsOnSiteUpdateOpen] = useState<boolean>(false);
+  const [isAiConfigOpen, setIsAiConfigOpen] = useState<boolean>(false);
   
   const handleOnboardNewCustomer = (): void => {
     navigate('/onboarding');
   };
   
+  // Lazy load AI config components only when needed
+  const KnowledgeBaseManager = React.lazy(() => import('@/components/settings/KnowledgeBaseManager'));
+  const AiAgentSettings = React.lazy(() => import('@/components/settings/AiAgentSettings').then(m => ({ default: m.AiAgentSettings })));
+  
   return (
     <CustomerErrorBoundary>
-      <div className="space-y-8">
-        {/* Header Section */}
-      <div className="mb-6">
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-1.5">
+      <div className="space-y-6">
+        {/* Clean Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-lg">Client Management</h1>
-            <p className="text-quikle-charcoal/70 font-medium">View, manage, and communicate with your clients</p>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent">
+              Clients
+            </h1>
+            <p className="text-sm text-quikle-slate mt-0.5">
+              Manage your client relationships
+            </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              onClick={() => setIsOnSiteUpdateOpen(true)}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1.5 quikle-button-secondary shadow-md text-xs sm:text-sm"
-            >
-              <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="hidden xs:inline">Job</span> Complete
-            </Button>
-            <Button 
-              onClick={() => setIsSessionOpen(true)}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1.5 quikle-button-secondary shadow-md text-xs sm:text-sm"
-            >
-              <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              AI Agent
-            </Button>
+          
+          <div className="flex items-center gap-2">
+            {/* Secondary actions in dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="border-quikle-silver/50 text-quikle-slate hover:bg-quikle-crystal"
+                >
+                  <Settings2 className="h-4 w-4 mr-1.5" />
+                  More
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setIsOnSiteUpdateOpen(true)}>
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Job Complete
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsSessionOpen(true)}>
+                  <Phone className="h-4 w-4 mr-2" />
+                  AI Voice Agent
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsAiConfigOpen(!isAiConfigOpen)}>
+                  <Settings2 className="h-4 w-4 mr-2" />
+                  AI Configuration
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Primary CTA */}
             <Button 
               onClick={handleOnboardNewCustomer} 
               size="sm"
-              className="flex items-center gap-1.5 quikle-button-primary shadow-md text-xs sm:text-sm"
+              className="quikle-button-primary shadow-md"
             >
-              <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="hidden xs:inline">New</span> Client
+              <UserPlus className="h-4 w-4 mr-1.5" />
+              New Client
             </Button>
           </div>
         </div>
-      </div>
 
-        {/* Customer Table Section */}
-        <div className="quikle-card p-6 rounded-xl">
+        {/* Customer Table Section - Main Content */}
+        <div className="quikle-card rounded-xl overflow-hidden">
           <CustomerErrorBoundary>
             <CustomerTable />
           </CustomerErrorBoundary>
         </div>
 
-      {/* AI Configuration Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="quikle-card p-6 rounded-xl">
-          <h2 className="text-xl font-semibold text-quikle-charcoal mb-4">AI Agent Configuration</h2>
-          <AiAgentSettings />
-        </div>
-        
-        <div className="quikle-card p-6 rounded-xl">
-          <h2 className="text-xl font-semibold text-quikle-charcoal mb-4">Knowledge Base</h2>
-          <KnowledgeBaseManager />
-        </div>
-      </div>
+        {/* Collapsible AI Configuration Section */}
+        <Collapsible open={isAiConfigOpen} onOpenChange={setIsAiConfigOpen}>
+          <CollapsibleTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full justify-between text-quikle-slate hover:bg-quikle-crystal/50 border border-dashed border-quikle-silver/30"
+            >
+              <span className="flex items-center gap-2">
+                <Settings2 className="h-4 w-4" />
+                AI Configuration
+              </span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${isAiConfigOpen ? 'rotate-180' : ''}`} />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-4">
+            <React.Suspense fallback={
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="h-64 bg-quikle-crystal/50 rounded-xl animate-pulse" />
+                <div className="h-64 bg-quikle-crystal/50 rounded-xl animate-pulse" />
+              </div>
+            }>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="quikle-card p-6 rounded-xl">
+                  <h2 className="text-lg font-semibold text-quikle-charcoal mb-4">AI Agent Configuration</h2>
+                  <AiAgentSettings />
+                </div>
+                
+                <div className="quikle-card p-6 rounded-xl">
+                  <h2 className="text-lg font-semibold text-quikle-charcoal mb-4">Knowledge Base</h2>
+                  <KnowledgeBaseManager />
+                </div>
+              </div>
+            </React.Suspense>
+          </CollapsibleContent>
+        </Collapsible>
 
-      {/* Voice Session Dialog */}
-      <AiVoiceSessionDialog isOpen={isSessionOpen} onOpenChange={setIsSessionOpen} />
-      
-      {/* On-Site Status Update Dialog */}
-      <OnSiteStatusUpdate isOpen={isOnSiteUpdateOpen} onClose={() => setIsOnSiteUpdateOpen(false)} />
+        {/* Voice Session Dialog */}
+        <AiVoiceSessionDialog isOpen={isSessionOpen} onOpenChange={setIsSessionOpen} />
+        
+        {/* On-Site Status Update Dialog */}
+        <OnSiteStatusUpdate isOpen={isOnSiteUpdateOpen} onClose={() => setIsOnSiteUpdateOpen(false)} />
       </div>
     </CustomerErrorBoundary>
   );
