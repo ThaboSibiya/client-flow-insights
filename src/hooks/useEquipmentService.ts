@@ -62,11 +62,24 @@ export const useEquipmentService = (customerId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
+      // Sanitize date fields - convert empty strings to null
+      const sanitizedData = {
+        equipment_type: formData.equipment_type,
+        brand: formData.brand || null,
+        model: formData.model || null,
+        serial_number: formData.serial_number || null,
+        status: formData.status,
+        purchase_date: formData.purchase_date || null,
+        warranty_expiry: formData.warranty_expiry || null,
+        notes: formData.notes || null,
+        technical_issues: formData.technical_issues || null
+      };
+
       if (editingId) {
         const { error } = await supabase
           .from('customer_equipment')
           .update({
-            ...formData,
+            ...sanitizedData,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingId);
@@ -77,7 +90,7 @@ export const useEquipmentService = (customerId: string) => {
         const { error } = await supabase
           .from('customer_equipment')
           .insert({
-            ...formData,
+            ...sanitizedData,
             customer_id: customerId,
             user_id: user.id,
             total_services: 0
