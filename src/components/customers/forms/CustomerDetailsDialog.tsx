@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -27,6 +27,17 @@ interface CustomerDetailsDialogProps {
 const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDialogProps) => {
   const [activeTab, setActiveTab] = useState('details');
   const { appliedTemplates, templateFields, customData, loading } = useCustomerCustomData(customer?.id || '');
+
+  // Debug marker to verify which CustomerDetailsDialog implementation is rendering
+  useEffect(() => {
+    if (isOpen) {
+      // eslint-disable-next-line no-console
+      console.info('[CustomerDetailsDialog:sheet-v2] opened', {
+        customerId: customer?.id,
+        customerName: customer?.name,
+      });
+    }
+  }, [isOpen, customer?.id, customer?.name]);
 
   // Calculate completion stats for the tab indicator
   const getFieldValue = (fieldId: string): string => {
