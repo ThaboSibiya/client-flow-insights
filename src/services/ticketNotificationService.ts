@@ -23,7 +23,7 @@ export interface TicketNotification {
  */
 export const sendTicketNotification = async (notification: TicketNotification) => {
   try {
-    const { data, error } = await supabase.functions.invoke('send-email', {
+    const { data, error } = await supabase.functions.invoke('send-transactional-email', {
       body: {
         to: notification.customerEmail,
         subject: getEmailSubject(notification),

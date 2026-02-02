@@ -46,7 +46,7 @@ export const useQuoteEmail = () => {
                                       .replace(/\[Quote\/Invoice Number\]/g, quote.number)
                                       .replace(/\n/g, '<br>');
 
-            const { data, error } = await supabase.functions.invoke('send-email', {
+            const { data, error } = await supabase.functions.invoke('send-transactional-email', {
                 body: {
                     to: quote.customer_email,
                     subject: emailSubject,
