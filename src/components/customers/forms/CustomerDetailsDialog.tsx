@@ -13,7 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Customer } from '@/types/customer';
 import CustomerDetailsForm from './CustomerDetailsForm';
 import BusinessInformationForm from './BusinessInformationForm';
-import EquipmentDisplay from '../equipment/EquipmentDisplay';
+import EquipmentManager from '../equipment/EquipmentManager';
 import { User, Briefcase, Printer, AlertCircle, CheckCircle } from 'lucide-react';
 import { useCustomerCustomData } from '@/hooks/useCustomerCustomData';
 import { cn } from '@/lib/utils';
@@ -159,7 +159,7 @@ const CustomerDetailsDialog = ({ customer, isOpen, onClose }: CustomerDetailsDia
               <TabsContent value="equipment" className="h-full m-0">
                 <ScrollArea className="h-full">
                   <div className="p-4 sm:p-6">
-                    <EquipmentDisplay customerId={customer.id} />
+                    <EquipmentManager customerId={customer.id} />
                   </div>
                 </ScrollArea>
               </TabsContent>
