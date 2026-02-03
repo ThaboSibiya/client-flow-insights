@@ -147,7 +147,7 @@ const AutomationManager = () => {
   // If builder is open, show it full-screen
   if (isBuilderOpen) {
     return (
-      <div className="h-[calc(100vh-12rem)] -mx-6 -mt-6">
+      <div className="fixed inset-0 z-50 bg-background">
         <ReactFlowProvider>
           <ModernAutomationBuilder 
             onClose={handleCloseBuilder}

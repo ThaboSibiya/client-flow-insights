@@ -194,9 +194,9 @@ const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomation
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="p-3 border-b flex items-center justify-between bg-background">
+      <div className="p-3 border-b flex items-center justify-between bg-background flex-shrink-0">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onClose}>
             <ArrowLeft className="h-4 w-4" />
@@ -235,14 +235,14 @@ const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomation
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Left Sidebar - Node Palette */}
-        <div className="w-72 flex-shrink-0">
+        <div className="w-64 flex-shrink-0 overflow-hidden">
           <NodePalette onDragStart={handleDragStart} />
         </div>
 
         {/* Center - Canvas */}
-        <div ref={reactFlowWrapper} className="flex-1 min-w-0">
+        <div ref={reactFlowWrapper} className="flex-1 min-w-0 h-full">
           <WorkflowCanvas
             nodes={nodes}
             edges={edges}
@@ -258,12 +258,14 @@ const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomation
 
         {/* Right Sidebar - Config Panel */}
         {selectedNode && (
-          <NodeConfigPanel
-            node={selectedNode}
-            onClose={() => setSelectedNode(null)}
-            onUpdate={handleUpdateNode}
-            onDelete={handleDeleteNode}
-          />
+          <div className="w-80 flex-shrink-0 overflow-hidden">
+            <NodeConfigPanel
+              node={selectedNode}
+              onClose={() => setSelectedNode(null)}
+              onUpdate={handleUpdateNode}
+              onDelete={handleDeleteNode}
+            />
+          </div>
         )}
       </div>
     </div>
