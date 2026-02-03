@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Upload, 
   FileSpreadsheet, 
@@ -14,11 +13,29 @@ import {
   CheckCircle2, 
   AlertCircle,
   FileJson,
-  FileText,
   Link2,
-  Loader2
+  Loader2,
+  Eye,
+  Trash2
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { parseCSV, parseJSON, parseExcel, detectFileType } from '@/utils/file-parser';
+import { useAnalytics } from '@/context/AnalyticsContext';
+import { ImportedDataset } from '@/hooks/useAnalyticsData';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ImportSource {
   id: string;
@@ -60,23 +77,16 @@ const importSources: ImportSource[] = [
 ];
 
 interface ImportHubProps {
-  onImportComplete?: (data: any) => void;
+  onImportComplete?: (data: ImportedDataset) => void;
 }
 
 const ImportHub: React.FC<ImportHubProps> = ({ onImportComplete }) => {
   const [selectedSource, setSelectedSource] = useState<string>('file');
   const [isImporting, setIsImporting] = useState(false);
-  const [importHistory, setImportHistory] = useState<Array<{
-    id: string;
-    name: string;
-    date: Date;
-    status: 'success' | 'error';
-    rows: number;
-  }>>([
-    { id: '1', name: 'customers_jan.csv', date: new Date(2025, 0, 15), status: 'success', rows: 1250 },
-    { id: '2', name: 'tickets_export.xlsx', date: new Date(2025, 0, 28), status: 'success', rows: 856 },
-    { id: '3', name: 'revenue_data.json', date: new Date(2025, 1, 1), status: 'error', rows: 0 }
-  ]);
+  const [previewDataset, setPreviewDataset] = useState<ImportedDataset | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  
+  const { importedDatasets, addImportedDataset, removeImportedDataset, setActiveDataset } = useAnalytics();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -86,26 +96,87 @@ const ImportHub: React.FC<ImportHubProps> = ({ onImportComplete }) => {
 
     setIsImporting(true);
     
-    // Simulate import process
-    setTimeout(() => {
-      const newImport = {
-        id: Date.now().toString(),
+    try {
+      const fileType = detectFileType(file);
+      let parsedData;
+
+      if (fileType === 'csv') {
+        const content = await file.text();
+        parsedData = parseCSV(content);
+      } else if (fileType === 'json') {
+        const content = await file.text();
+        parsedData = parseJSON(content);
+      } else if (fileType === 'excel') {
+        parsedData = await parseExcel(file);
+      } else {
+        throw new Error('Unsupported file type. Please use CSV, JSON, or Excel files.');
+      }
+
+      if (parsedData.errors.length > 0) {
+        toast({
+          title: "Import Warning",
+          description: parsedData.errors.join(', '),
+          variant: "destructive"
+        });
+      }
+
+      if (parsedData.data.length === 0) {
+        throw new Error('No data found in file');
+      }
+
+      const dataset: ImportedDataset = {
+        id: `import-${Date.now()}`,
         name: file.name,
-        date: new Date(),
-        status: 'success' as const,
-        rows: Math.floor(Math.random() * 1000) + 100
+        data: parsedData.data,
+        columns: parsedData.columns,
+        importedAt: new Date(),
+        rowCount: parsedData.rowCount
       };
-      
-      setImportHistory(prev => [newImport, ...prev]);
-      setIsImporting(false);
+
+      addImportedDataset(dataset);
       
       toast({
         title: "Import Successful",
-        description: `${file.name} imported with ${newImport.rows} rows`,
+        description: `${file.name} imported with ${dataset.rowCount} rows and ${dataset.columns.length} columns`,
       });
       
-      onImportComplete?.(newImport);
-    }, 2000);
+      onImportComplete?.(dataset);
+      
+    } catch (error) {
+      console.error('Import error:', error);
+      toast({
+        title: "Import Failed",
+        description: error instanceof Error ? error.message : 'Failed to import file',
+        variant: "destructive"
+      });
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handlePreview = (dataset: ImportedDataset) => {
+    setPreviewDataset(dataset);
+    setShowPreview(true);
+  };
+
+  const handleSetActive = (dataset: ImportedDataset) => {
+    setActiveDataset(dataset);
+    toast({
+      title: "Dataset Activated",
+      description: `${dataset.name} is now the active dataset for analysis`,
+    });
+  };
+
+  const handleRemove = (id: string) => {
+    removeImportedDataset(id);
+    toast({
+      title: "Dataset Removed",
+      description: "The imported dataset has been removed",
+    });
   };
 
   return (
@@ -152,7 +223,7 @@ const ImportHub: React.FC<ImportHubProps> = ({ onImportComplete }) => {
                 {isImporting ? (
                   <div className="flex flex-col items-center gap-3">
                     <Loader2 className="h-10 w-10 text-primary animate-spin" />
-                    <p className="text-sm text-muted-foreground">Importing data...</p>
+                    <p className="text-sm text-muted-foreground">Parsing and importing data...</p>
                   </div>
                 ) : (
                   <>
@@ -240,35 +311,87 @@ const ImportHub: React.FC<ImportHubProps> = ({ onImportComplete }) => {
         </CardContent>
       </Card>
 
-      {/* Import History */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium">Recent Imports</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {importHistory.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-              >
-                {item.status === 'success' ? (
+      {/* Imported Datasets */}
+      {importedDatasets.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium">Imported Datasets</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {importedDatasets.map((dataset) => (
+                <div
+                  key={dataset.id}
+                  className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                >
                   <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{item.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {item.date.toLocaleDateString()} • {item.rows.toLocaleString()} rows
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{dataset.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {dataset.importedAt.toLocaleDateString()} • {dataset.rowCount.toLocaleString()} rows • {dataset.columns.length} columns
+                    </p>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => handlePreview(dataset)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleSetActive(dataset)}>
+                      Use
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleRemove(dataset.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
-                <Button variant="ghost" size="sm">View</Button>
-              </div>
-            ))}
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Data Preview: {previewDataset?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto">
+            {previewDataset && (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {previewDataset.columns.slice(0, 10).map((col) => (
+                      <TableHead key={col} className="whitespace-nowrap">{col}</TableHead>
+                    ))}
+                    {previewDataset.columns.length > 10 && (
+                      <TableHead>+{previewDataset.columns.length - 10} more</TableHead>
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {previewDataset.data.slice(0, 20).map((row, idx) => (
+                    <TableRow key={idx}>
+                      {previewDataset.columns.slice(0, 10).map((col) => (
+                        <TableCell key={col} className="max-w-[200px] truncate">
+                          {String(row[col] ?? '')}
+                        </TableCell>
+                      ))}
+                      {previewDataset.columns.length > 10 && (
+                        <TableCell>...</TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+            {previewDataset && previewDataset.data.length > 20 && (
+              <p className="text-sm text-muted-foreground text-center py-2">
+                Showing first 20 of {previewDataset.data.length} rows
+              </p>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

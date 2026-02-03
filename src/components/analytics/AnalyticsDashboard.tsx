@@ -1,188 +1,289 @@
 
 import React, { useMemo } from 'react';
-import { Users, Ticket, TrendingUp, DollarSign, Clock, CheckCircle2 } from 'lucide-react';
+import { Users, Ticket, TrendingUp, DollarSign, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import KPIWidget from './widgets/KPIWidget';
 import ChartWidget from './widgets/ChartWidget';
 import TableWidget from './widgets/TableWidget';
 import ProgressWidget from './widgets/ProgressWidget';
+import { useAnalytics } from '@/context/AnalyticsContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useCRM } from '@/context/CRMContext';
 
 const AnalyticsDashboard: React.FC = () => {
-  const { customers } = useCRM();
+  const { 
+    isLoading, 
+    error, 
+    metrics, 
+    customerTimeSeries, 
+    revenueTimeSeries, 
+    ticketTimeSeries,
+    customerStatusData,
+    activeDataset,
+    importedDatasets
+  } = useAnalytics();
 
-  // Generate summary stats
-  const stats = useMemo(() => {
-    const totalCustomers = customers.length;
-    const activeCustomers = customers.filter(c => c.status === 'existing' || c.status === 'new').length;
-    const totalTickets = customers.reduce((sum, c) => sum + (c.ticketCount || 0), 0);
+  // Compute imported data analytics if an active dataset is selected
+  const importedDataMetrics = useMemo(() => {
+    if (!activeDataset) return null;
+    
+    const { data, columns } = activeDataset;
+    
+    // Auto-detect numeric columns for aggregation
+    const numericColumns = columns.filter(col => {
+      const sampleValues = data.slice(0, 10).map(row => row[col]);
+      return sampleValues.some(v => typeof v === 'number' || !isNaN(Number(v)));
+    });
+    
+    // Calculate sums for numeric columns
+    const sums: Record<string, number> = {};
+    numericColumns.forEach(col => {
+      sums[col] = data.reduce((sum, row) => {
+        const val = Number(row[col]);
+        return sum + (isNaN(val) ? 0 : val);
+      }, 0);
+    });
+    
+    // Find potential category columns (strings with limited unique values)
+    const categoryColumns = columns.filter(col => {
+      const uniqueValues = new Set(data.map(row => String(row[col])));
+      return uniqueValues.size <= 20 && uniqueValues.size > 1;
+    });
+    
+    // Generate distribution for first category column
+    const distribution: { name: string; value: number }[] = [];
+    if (categoryColumns.length > 0) {
+      const catCol = categoryColumns[0];
+      const counts: Record<string, number> = {};
+      data.forEach(row => {
+        const key = String(row[catCol] ?? 'Unknown');
+        counts[key] = (counts[key] || 0) + 1;
+      });
+      Object.entries(counts).forEach(([name, value]) => {
+        distribution.push({ name, value });
+      });
+    }
     
     return {
-      totalCustomers,
-      activeCustomers,
-      totalTickets,
-      avgTicketsPerCustomer: totalCustomers > 0 ? (totalTickets / totalCustomers).toFixed(1) : 0
+      totalRows: data.length,
+      numericColumns,
+      sums,
+      categoryColumns,
+      distribution
     };
-  }, [customers]);
+  }, [activeDataset]);
 
-  // Chart data
-  const revenueData = [
-    { name: 'Jan', value: 12400 },
-    { name: 'Feb', value: 14200 },
-    { name: 'Mar', value: 13800 },
-    { name: 'Apr', value: 16500 },
-    { name: 'May', value: 18200 },
-    { name: 'Jun', value: 17800 }
-  ];
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Loading analytics...</span>
+      </div>
+    );
+  }
 
-  const ticketData = [
-    { name: 'Mon', value: 24 },
-    { name: 'Tue', value: 32 },
-    { name: 'Wed', value: 28 },
-    { name: 'Thu', value: 35 },
-    { name: 'Fri', value: 29 },
-    { name: 'Sat', value: 12 },
-    { name: 'Sun', value: 8 }
-  ];
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <AlertCircle className="h-10 w-10 text-destructive" />
+            <p className="font-medium">Failed to load analytics</p>
+            <p className="text-sm text-muted-foreground">{error}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const statusData = [
-    { name: 'Active', value: stats.activeCustomers },
-    { name: 'Inactive', value: stats.totalCustomers - stats.activeCustomers }
-  ];
-
-  // Top performers table data
-  const topPerformers = [
-    { name: 'Sarah Johnson', role: 'Account Manager', deals: 24, revenue: '$48,500' },
-    { name: 'Mike Chen', role: 'Sales Rep', deals: 21, revenue: '$42,200' },
-    { name: 'Emily Davis', role: 'Sales Rep', deals: 18, revenue: '$36,800' },
-    { name: 'James Wilson', role: 'Account Manager', deals: 16, revenue: '$32,100' },
-    { name: 'Lisa Park', role: 'Sales Rep', deals: 15, revenue: '$29,500' }
-  ];
-
-  const tableColumns = [
-    { key: 'name', header: 'Name' },
-    { key: 'role', header: 'Role' },
-    { key: 'deals', header: 'Deals', align: 'center' as const },
-    { 
-      key: 'revenue', 
-      header: 'Revenue', 
-      align: 'right' as const,
-      render: (value: string) => <span className="font-medium text-green-600">{value}</span>
-    }
-  ];
+  // Use real metrics if available, otherwise show empty state
+  const displayMetrics = metrics || {
+    totalCustomers: 0,
+    activeCustomers: 0,
+    newCustomers: 0,
+    pendingCustomers: 0,
+    finalisedCustomers: 0,
+    totalTickets: 0,
+    openTickets: 0,
+    resolvedTickets: 0,
+    totalRevenue: 0,
+    avgResponseTime: 0,
+    customerGrowthRate: 0,
+    ticketResolutionRate: 0
+  };
 
   return (
     <div className="space-y-6">
-      {/* KPI Row */}
+      {/* Active Dataset Banner */}
+      {activeDataset && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardContent className="py-3">
+            <div className="flex items-center gap-3">
+              <Badge variant="default">Imported Data</Badge>
+              <span className="font-medium">{activeDataset.name}</span>
+              <span className="text-sm text-muted-foreground">
+                {activeDataset.rowCount} rows • {activeDataset.columns.length} columns
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* KPI Row - Real Data */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KPIWidget
           title="Total Customers"
-          value={stats.totalCustomers.toLocaleString()}
+          value={displayMetrics.totalCustomers.toLocaleString()}
           icon={<Users className="h-5 w-5" />}
           color="default"
-          trend={{ value: 12, direction: 'up', label: 'vs last month' }}
+          trend={{ 
+            value: displayMetrics.customerGrowthRate, 
+            direction: displayMetrics.customerGrowthRate >= 0 ? 'up' : 'down', 
+            label: 'vs last 30 days' 
+          }}
         />
         <KPIWidget
           title="Active Customers"
-          value={stats.activeCustomers.toLocaleString()}
+          value={displayMetrics.activeCustomers.toLocaleString()}
           icon={<CheckCircle2 className="h-5 w-5" />}
           color="success"
-          trend={{ value: 8, direction: 'up', label: 'vs last month' }}
         />
         <KPIWidget
           title="Total Tickets"
-          value={stats.totalTickets.toLocaleString()}
+          value={displayMetrics.totalTickets.toLocaleString()}
           icon={<Ticket className="h-5 w-5" />}
           color="warning"
-          trend={{ value: -5, direction: 'down', label: 'vs last month' }}
+          trend={{ 
+            value: displayMetrics.ticketResolutionRate, 
+            direction: 'up', 
+            label: 'resolution rate' 
+          }}
         />
         <KPIWidget
-          title="Avg Response Time"
-          value="2.4h"
-          icon={<Clock className="h-5 w-5" />}
+          title="Total Revenue"
+          value={`$${displayMetrics.totalRevenue.toLocaleString()}`}
+          icon={<DollarSign className="h-5 w-5" />}
           color="default"
-          trend={{ value: -12, direction: 'down', label: 'faster' }}
         />
       </div>
 
-      {/* Charts Row */}
+      {/* Charts Row - Real Data */}
       <div className="grid lg:grid-cols-2 gap-4">
         <ChartWidget
-          title="Revenue Trend"
-          subtitle="Monthly revenue performance"
-          data={revenueData}
+          title="Customer Acquisition"
+          subtitle="New customers over the past 6 months"
+          data={customerTimeSeries.length > 0 ? customerTimeSeries : []}
           type="area"
           dataKey="value"
           height={220}
         />
         <ChartWidget
-          title="Weekly Tickets"
-          subtitle="Support tickets by day"
-          data={ticketData}
+          title="Revenue Trend"
+          subtitle="Monthly revenue from paid invoices"
+          data={revenueTimeSeries.length > 0 ? revenueTimeSeries : []}
           type="bar"
           dataKey="value"
           height={220}
         />
       </div>
 
-      {/* Mixed Row */}
-      <div className="grid lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
-          <TableWidget
-            title="Top Performers"
-            subtitle="This month's leading team members"
-            columns={tableColumns}
-            data={topPerformers}
-            maxRows={5}
-          />
+      {/* Imported Data Analysis */}
+      {activeDataset && importedDataMetrics && (
+        <div className="grid lg:grid-cols-2 gap-4">
+          {importedDataMetrics.distribution.length > 0 && (
+            <ChartWidget
+              title="Data Distribution"
+              subtitle={`Based on: ${activeDataset.columns[0] || 'category'}`}
+              data={importedDataMetrics.distribution.slice(0, 10)}
+              type="pie"
+              dataKey="value"
+              height={220}
+            />
+          )}
+          {importedDataMetrics.numericColumns.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium">Numeric Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {importedDataMetrics.numericColumns.slice(0, 5).map(col => (
+                    <div key={col} className="flex justify-between items-center py-2 border-b border-border/50 last:border-0">
+                      <span className="text-sm text-muted-foreground">{col}</span>
+                      <span className="font-medium">
+                        {typeof importedDataMetrics.sums[col] === 'number'
+                          ? importedDataMetrics.sums[col].toLocaleString(undefined, { maximumFractionDigits: 2 })
+                          : '—'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
-        <div className="space-y-4">
-          <ProgressWidget
-            title="Monthly Target"
-            value={78500}
-            max={100000}
-            target={85000}
-            subtitle="Revenue goal progress"
-          />
-          <ProgressWidget
-            title="Customer Satisfaction"
-            value={92}
-            max={100}
-            subtitle="Based on 1,250 reviews"
-            color="success"
-          />
-          <ProgressWidget
-            title="SLA Compliance"
-            value={88}
-            max={100}
-            target={95}
-            subtitle="Response time target"
-            color="warning"
-          />
-        </div>
-      </div>
+      )}
 
       {/* Status Distribution */}
       <div className="grid lg:grid-cols-3 gap-4">
         <ChartWidget
           title="Customer Status"
-          subtitle="Active vs Inactive breakdown"
-          data={statusData}
+          subtitle="Distribution by status"
+          data={customerStatusData.length > 0 ? customerStatusData : []}
           type="pie"
           dataKey="value"
           height={180}
         />
         <div className="lg:col-span-2">
           <ChartWidget
-            title="Customer Growth"
-            subtitle="New customers over time"
-            data={revenueData.map(d => ({ ...d, value: Math.floor(d.value / 100) }))}
+            title="Ticket Volume"
+            subtitle="Support tickets over time"
+            data={ticketTimeSeries.length > 0 ? ticketTimeSeries : []}
             type="line"
             dataKey="value"
             height={180}
           />
         </div>
       </div>
+
+      {/* Progress Metrics */}
+      <div className="grid lg:grid-cols-3 gap-4">
+        <ProgressWidget
+          title="Ticket Resolution"
+          value={displayMetrics.resolvedTickets}
+          max={displayMetrics.totalTickets || 1}
+          subtitle={`${displayMetrics.resolvedTickets} of ${displayMetrics.totalTickets} tickets resolved`}
+          color="success"
+        />
+        <ProgressWidget
+          title="Customer Conversion"
+          value={displayMetrics.finalisedCustomers}
+          max={displayMetrics.totalCustomers || 1}
+          subtitle="New to finalised conversion"
+          color="default"
+        />
+        <ProgressWidget
+          title="Active Rate"
+          value={displayMetrics.activeCustomers}
+          max={displayMetrics.totalCustomers || 1}
+          subtitle="Percentage of active customers"
+          color="warning"
+        />
+      </div>
+
+      {/* Empty State for imported datasets suggestion */}
+      {importedDatasets.length === 0 && displayMetrics.totalCustomers === 0 && (
+        <Card>
+          <CardContent className="py-8">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <TrendingUp className="h-10 w-10 text-muted-foreground" />
+              <p className="font-medium">No data available yet</p>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Add customers to see analytics, or import external data via the Data Center tab to analyze your own datasets.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
