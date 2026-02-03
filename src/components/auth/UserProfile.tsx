@@ -1,130 +1,124 @@
-
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
 import { useEmployeeAuth } from '@/hooks/useEmployeeAuth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { LogOut, User, Crown, Shield } from 'lucide-react';
+import { LogOut, Crown, Shield, User } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const UserProfile: React.FC = () => {
   const { user, signOut } = useAuth();
-  const { employeeProfile, isCompanyOwner, loading } = useEmployeeAuth();
+  const { profile, loading: profileLoading } = useProfile();
+  const { employeeProfile, isCompanyOwner, loading: employeeLoading } = useEmployeeAuth();
+  
+  const loading = profileLoading || employeeLoading;
   
   if (!user) return null;
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
-  };
-
-  const getUserDisplayName = () => {
+  // Get display name from profile first, then employee, then email
+  const getDisplayName = () => {
+    if (profile?.first_name || profile?.last_name) {
+      return `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+    }
     if (employeeProfile) {
       return `${employeeProfile.first_name} ${employeeProfile.last_name}`;
     }
     return user.email?.split('@')[0] || 'User';
   };
 
-  const getRoleIcon = () => {
-    if (isCompanyOwner) return <Crown className="h-3 w-3" />;
-    if (employeeProfile?.role === 'admin') return <Shield className="h-3 w-3" />;
-    return <User className="h-3 w-3" />;
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
-  const getRoleDisplay = () => {
-    if (isCompanyOwner) return 'Company Owner';
-    return employeeProfile?.role ? employeeProfile.role.charAt(0).toUpperCase() + employeeProfile.role.slice(1) : 'User';
+  const getRoleConfig = () => {
+    if (isCompanyOwner) {
+      return {
+        label: 'Owner',
+        icon: Crown,
+        className: 'bg-primary/10 text-primary border-primary/20'
+      };
+    }
+    if (employeeProfile?.role === 'admin') {
+      return {
+        label: 'Admin',
+        icon: Shield,
+        className: 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+      };
+    }
+    return {
+      label: employeeProfile?.role || 'Member',
+      icon: User,
+      className: 'bg-muted text-muted-foreground border-border'
+    };
   };
 
-  const getRoleBadgeVariant = () => {
-    if (isCompanyOwner) return 'default';
-    if (employeeProfile?.role === 'admin') return 'secondary';
-    return 'outline';
-  };
+  const displayName = getDisplayName();
+  const avatarUrl = profile?.avatar_url || '';
+  const roleConfig = getRoleConfig();
+  const RoleIcon = roleConfig.icon;
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center space-y-3 border-t border-quikle-silver/20 pt-4 animate-pulse">
-        <div className="w-12 h-12 rounded-full bg-quikle-crystal"></div>
-        <div className="text-center space-y-2">
-          <div className="h-4 w-32 bg-quikle-crystal rounded"></div>
-          <div className="h-3 w-20 bg-quikle-crystal rounded"></div>
+      <div className="p-3 animate-pulse">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-full bg-muted" />
+          <div className="flex-1 space-y-1.5">
+            <div className="h-3.5 w-24 bg-muted rounded" />
+            <div className="h-2.5 w-16 bg-muted rounded" />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="premium-surface rounded-xl p-4 mx-2 mb-2 border border-quikle-silver/20">
-      {/* Premium Header */}
-      <div className="flex items-center space-x-3 mb-4">
-        <Avatar className="h-12 w-12 ring-2 ring-quikle-primary/20 ring-offset-2">
-          <AvatarImage src="" alt={getUserDisplayName()} />
-          <AvatarFallback className="bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white font-semibold text-sm">
-            {getInitials(getUserDisplayName())}
-          </AvatarFallback>
-        </Avatar>
-        
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-quikle-charcoal truncate text-sm">
-            {getUserDisplayName()}
-          </p>
-          <p className="text-xs text-quikle-slate truncate">
-            {user.email}
-          </p>
-        </div>
-      </div>
-
-      {/* Role and Details */}
-      <div className="space-y-3 mb-4">
-        <div className="flex items-center justify-between">
-          <Badge variant={getRoleBadgeVariant()} className="text-xs font-medium">
-            {getRoleIcon()}
-            <span className="ml-1">{getRoleDisplay()}</span>
-          </Badge>
-        </div>
-
-        {employeeProfile && (
-          <div className="space-y-2 text-xs">
-            {employeeProfile.title && (
-              <div className="flex justify-between items-center">
-                <span className="text-quikle-slate">Title:</span>
-                <span className="font-medium text-quikle-charcoal truncate max-w-24">
-                  {employeeProfile.title}
-                </span>
-              </div>
-            )}
-            
-            {employeeProfile.department && (
-              <div className="flex justify-between items-center">
-                <span className="text-quikle-slate">Department:</span>
-                <span className="font-medium text-quikle-charcoal truncate max-w-24">
-                  {employeeProfile.department}
-                </span>
-              </div>
-            )}
-            
-            {employeeProfile.employee_number && (
-              <div className="flex justify-between items-center">
-                <span className="text-quikle-slate">ID:</span>
-                <span className="font-medium text-quikle-charcoal">
-                  {employeeProfile.employee_number}
-                </span>
-              </div>
-            )}
+    <div className="p-2">
+      {/* Compact Profile Card */}
+      <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+        {/* User Info Row */}
+        <div className="p-3 flex items-center gap-3">
+          <Avatar className="h-9 w-9 ring-2 ring-primary/10 ring-offset-1 ring-offset-background">
+            <AvatarImage src={avatarUrl} alt={displayName} />
+            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-xs font-semibold">
+              {getInitials(displayName)}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-sm text-foreground truncate leading-tight">
+              {displayName}
+            </p>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className={cn(
+                "inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full border",
+                roleConfig.className
+              )}>
+                <RoleIcon className="h-2.5 w-2.5" />
+                {roleConfig.label}
+              </span>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Premium Sign Out Button */}
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={signOut} 
-        className="w-full text-xs border-quikle-silver/30 hover:bg-quikle-crystal/50 hover:border-quikle-primary/30 transition-all duration-300 group"
-      >
-        <LogOut className="mr-2 h-3 w-3 group-hover:text-quikle-primary transition-colors" />
-        Sign Out
-      </Button>
+        {/* Sign Out - Subtle Divider */}
+        <div className="border-t border-border/30">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={signOut} 
+            className="w-full h-8 rounded-none text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+          >
+            <LogOut className="mr-1.5 h-3 w-3" />
+            Sign out
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
