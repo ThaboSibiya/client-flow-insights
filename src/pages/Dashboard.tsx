@@ -1,22 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useCRM } from '@/context/CRMContext';
-import StatusCard from '@/components/dashboard/StatusCard';
-import CustomerActivityChart from '@/components/dashboard/CustomerActivityChart';
-import RecentActivity from '@/components/dashboard/RecentActivity';
-import DashboardLayoutManager from '@/components/dashboard/DashboardLayoutManager';
-import RealtimeActivityFeed from '@/components/dashboard/RealtimeActivityFeed';
-import QuickActions from '@/components/dashboard/QuickActions';
-import WelcomeHeader from '@/components/dashboard/WelcomeHeader';
-import UserWorkstation from '@/components/workstation/UserWorkstation';
+import CompactMetricsBar from '@/components/dashboard/CompactMetricsBar';
+import CompactWelcomeHeader from '@/components/dashboard/CompactWelcomeHeader';
+import StreamlinedChart from '@/components/dashboard/StreamlinedChart';
+import UnifiedActivityStream from '@/components/dashboard/UnifiedActivityStream';
+import CompactQuickActions from '@/components/dashboard/CompactQuickActions';
 import EnhancedProfileCompletionTracker from '@/components/workstation/EnhancedProfileCompletionTracker';
+import UserWorkstation from '@/components/workstation/UserWorkstation';
 import FirstTimeOnboardingModal from '@/components/onboarding/FirstTimeOnboardingModal';
-import TourTrigger from '@/components/tour/TourTrigger';
-import { Users, Clock, CircleCheck, Database } from 'lucide-react';
 import { generateMonthlyActivityData } from '@/utils/chart-utils';
 
 const Dashboard = () => {
   const { customers } = useCRM();
-  const [isEditMode, setIsEditMode] = useState(false);
   
   // Count customers by status
   const newCustomers = customers.filter(c => c.status === 'new').length;
@@ -28,75 +23,47 @@ const Dashboard = () => {
   const chartData = generateMonthlyActivityData(customers);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-1">
       {/* First-time onboarding modal */}
       <FirstTimeOnboardingModal />
       
-      <div className="flex items-center justify-between" data-tour="welcome-header">
-        <WelcomeHeader subtitle="Monitor your business performance at a glance" />
-        <TourTrigger tourId="dashboard" variant="button" />
+      {/* Compact Welcome Header */}
+      <CompactWelcomeHeader />
+
+      {/* Compact Metrics Bar with Sparklines */}
+      <CompactMetricsBar
+        newCustomers={newCustomers}
+        existingCustomers={existingCustomers}
+        pendingCustomers={pendingCustomers}
+        finalisedCustomers={finalisedCustomers}
+      />
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Chart - Takes 2 columns */}
+        <div className="lg:col-span-2">
+          <StreamlinedChart data={chartData} />
+        </div>
+        
+        {/* Quick Actions - Takes 1 column */}
+        <div>
+          <CompactQuickActions />
+        </div>
       </div>
 
-      <DashboardLayoutManager 
-        isEditMode={isEditMode} 
-        onToggleEditMode={() => setIsEditMode(!isEditMode)}
-      >
-        {/* Status Cards Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" data-tour="status-cards">
-          <StatusCard 
-            title="New Customers" 
-            count={newCustomers} 
-            icon={<Users size={24} className="text-white" />} 
-            color="bg-gradient-to-br from-quikle-primary to-quikle-accent"
-          />
-          <StatusCard 
-            title="Existing Customers" 
-            count={existingCustomers} 
-            icon={<Database size={24} className="text-white" />} 
-            color="bg-gradient-to-br from-quikle-blue to-quikle-secondary"
-          />
-          <StatusCard 
-            title="Pending Customers" 
-            count={pendingCustomers} 
-            icon={<Clock size={24} className="text-white" />} 
-            color="bg-gradient-to-br from-quikle-purple to-quikle-accent"
-          />
-          <StatusCard 
-            title="Finalised Deals" 
-            count={finalisedCustomers} 
-            icon={<CircleCheck size={24} className="text-white" />} 
-            color="bg-gradient-to-br from-quikle-success to-emerald-600"
-          />
+      {/* Activity and Tools Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Unified Activity Stream - Takes 2 columns */}
+        <div className="lg:col-span-2">
+          <UnifiedActivityStream customers={customers} />
         </div>
-
-        {/* User Workstation + Chart Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <div className="lg:col-span-2" data-tour="activity-chart">
-            <CustomerActivityChart data={chartData} />
-          </div>
-          <div className="space-y-4">
-            <div data-tour="profile-tracker">
-              <EnhancedProfileCompletionTracker />
-            </div>
-            <div data-tour="workstation">
-              <UserWorkstation />
-            </div>
-          </div>
+        
+        {/* Profile + Workstation - Takes 1 column */}
+        <div className="space-y-4">
+          <EnhancedProfileCompletionTracker />
+          <UserWorkstation />
         </div>
-
-        {/* Activity and Actions Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <div>
-            <RealtimeActivityFeed />
-          </div>
-          <div>
-            <RecentActivity customers={customers} />
-          </div>
-          <div>
-            <QuickActions />
-          </div>
-        </div>
-      </DashboardLayoutManager>
+      </div>
     </div>
   );
 };
