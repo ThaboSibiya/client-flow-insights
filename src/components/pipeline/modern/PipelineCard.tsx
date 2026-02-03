@@ -67,15 +67,25 @@ const PipelineCard = memo(({
     }
   };
 
-  const getTimeAgo = (date: Date | string) => {
-    return formatDistanceToNow(new Date(date), { addSuffix: true });
+  const getTimeAgo = (date: Date | string | undefined) => {
+    if (!date) return 'Unknown';
+    try {
+      return formatDistanceToNow(new Date(date), { addSuffix: true });
+    } catch {
+      return 'Unknown';
+    }
+  };
+
+  const getInitials = (name: string | undefined): string => {
+    if (!name || typeof name !== 'string') return '??';
+    return name.split(' ').map((n: string) => n[0] || '').join('').toUpperCase().slice(0, 2) || '??';
   };
 
   const otherStages = stages.filter(s => s.id !== stageId);
 
   if (type === 'customer') {
     const customer = item as Customer;
-    const isStale = customer.createdAt && 
+    const isStale = customer?.createdAt && 
       new Date().getTime() - new Date(customer.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000;
 
     return (
@@ -141,32 +151,32 @@ const PipelineCard = memo(({
           <div className="flex items-center gap-3 mb-2 ml-5">
             <Avatar className="h-9 w-9">
               <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                {customer.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+                {getInitials(customer?.name)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">{customer.name}</p>
+              <p className="font-medium text-sm truncate">{customer?.name || 'Unknown'}</p>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Mail className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">{customer.email}</span>
+                <span className="truncate">{customer?.email || 'No email'}</span>
               </div>
             </div>
           </div>
           
           <div className="flex items-center justify-between text-xs ml-5 mb-2">
-            {customer.phone && (
+            {customer?.phone && (
               <div className="flex items-center gap-1 text-muted-foreground">
                 <Phone className="h-3 w-3" />
                 <span>{customer.phone}</span>
               </div>
             )}
             <Badge variant="outline" className="text-xs">
-              {customer.ticketCount || 0} tickets
+              {customer?.ticketCount || 0} tickets
             </Badge>
           </div>
           
           <div className="flex items-center justify-between text-xs text-muted-foreground ml-5">
-            <span>{getTimeAgo(customer.createdAt)}</span>
+            <span>{getTimeAgo(customer?.createdAt)}</span>
             {isStale && (
               <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px]">
                 Stale
@@ -242,20 +252,20 @@ const PipelineCard = memo(({
       <CardContent className="p-3 pt-2">
         <div className="flex items-start justify-between mb-2 ml-5">
           <div className="flex-1 min-w-0 pr-6">
-            <p className="font-medium text-sm truncate">{ticket.subject}</p>
+            <p className="font-medium text-sm truncate">{ticket?.subject || 'No Subject'}</p>
             <p className="text-xs text-muted-foreground">
-              #{ticket.ticketNumber}
+              #{ticket?.ticketNumber || 'N/A'}
             </p>
           </div>
         </div>
         
         <div className="flex items-center gap-2 mb-2 ml-5 flex-wrap">
-          <Badge className={`text-xs ${getPriorityClasses(ticket.priority)}`}>
-            {ticket.priority}
+          <Badge className={`text-xs ${getPriorityClasses(ticket?.priority || 'medium')}`}>
+            {ticket?.priority || 'medium'}
           </Badge>
-          {ticket.assignedTo && (
+          {ticket?.assignedTo && (
             <Badge variant="secondary" className="text-xs">
-              {ticket.assignedTo.name}
+              {ticket.assignedTo.name || 'Unassigned'}
             </Badge>
           )}
         </div>
@@ -263,9 +273,9 @@ const PipelineCard = memo(({
         <div className="flex items-center justify-between text-xs text-muted-foreground ml-5">
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            <span>{Math.round(ticket.totalTimeSpent / 60)}h</span>
+            <span>{Math.round((ticket?.totalTimeSpent || 0) / 60)}h</span>
           </div>
-          <span>{getTimeAgo(ticket.createdAt)}</span>
+          <span>{getTimeAgo(ticket?.createdAt)}</span>
         </div>
       </CardContent>
     </Card>
