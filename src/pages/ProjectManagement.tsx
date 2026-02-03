@@ -1,12 +1,11 @@
-
 import React from 'react';
-import ProjectManagement from '@/components/project-management/ProjectManagement';
+import ModernProjectManagement from '@/components/project-management/ModernProjectManagement';
 import ProjectErrorBoundary from '@/components/error/ProjectErrorBoundary';
 
 const ProjectManagementPage: React.FC = () => {
   return (
     <ProjectErrorBoundary>
-      <ProjectManagement />
+      <ModernProjectManagement />
     </ProjectErrorBoundary>
   );
 };
