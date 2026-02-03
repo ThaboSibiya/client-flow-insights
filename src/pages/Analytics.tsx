@@ -1,94 +1,66 @@
 import React, { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import CustomerChart from '@/components/analytics/CustomerChart';
-import CustomerMetricsSummary from '@/components/analytics/CustomerMetricsSummary';
-import StatusDistribution from '@/components/analytics/StatusDistribution';
-import MonthlyTrends from '@/components/analytics/MonthlyTrends';
-import WeeklySummary from '@/components/analytics/WeeklySummary';
-import TicketAnalyticsDashboard from '@/components/analytics/TicketAnalyticsDashboard';
-import AdvancedAnalyticsDashboard from '@/components/analytics/AdvancedAnalyticsDashboard';
+import { Button } from '@/components/ui/button';
+import { LayoutDashboard, Database, FileBarChart, Settings2 } from 'lucide-react';
+import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
+import DataCenter from '@/components/analytics/data-center/DataCenter';
 import InteractiveReports from '@/components/analytics/InteractiveReports';
-import { Users, Ticket, TrendingUp, FileBarChart } from 'lucide-react';
-import { useCRM } from '@/context/CRMContext';
-import { generateReportData, calculateSummary, type ReportData, type ReportSummary } from '@/utils/customer-analytics';
-interface AnalyticsProps {}
+import AdvancedAnalyticsDashboard from '@/components/analytics/AdvancedAnalyticsDashboard';
 
-const Analytics: React.FC<AnalyticsProps> = () => {
-  const { customers } = useCRM();
-  const [timeframe, setTimeframe] = useState<'monthly' | 'yearly'>('monthly');
-
-  // Generate analytics data from customer data with memoization
-  const reportData: ReportData[] = useMemo(() => 
-    generateReportData(customers, timeframe), 
-    [customers, timeframe]
-  );
-  
-  const summary: ReportSummary = useMemo(() => 
-    calculateSummary(reportData), 
-    [reportData]
-  );
-  return <div className="space-y-6 pb-20 md:pb-6">
-      <div className="mb-6">
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-1.5">
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-lg">
-              Analytics & Reports
-            </h1>
-            <p className="text-quikle-charcoal/70 font-medium">
-              Comprehensive insights into customer & ticket performance
-            </p>
-          </div>
+const Analytics: React.FC = () => {
+  return (
+    <div className="space-y-6 pb-20 md:pb-6">
+      {/* Minimalist Header */}
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">
+            Analytics
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Insights, reports, and data management
+          </p>
         </div>
       </div>
 
-      <Tabs defaultValue="customers" className="space-y-4">
-        <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-4 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
-          <TabsTrigger value="customers" className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
-            <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">Customer Analytics</span>
-            <span className="sm:hidden">Customers</span>
+      {/* Simplified Tab Structure */}
+      <Tabs defaultValue="dashboard" className="space-y-6">
+        <TabsList className="bg-muted/50 p-1 h-auto">
+          <TabsTrigger value="dashboard" className="gap-2 data-[state=active]:bg-background">
+            <LayoutDashboard className="h-4 w-4" />
+            <span className="hidden sm:inline">Dashboard</span>
           </TabsTrigger>
-          <TabsTrigger value="tickets" className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
-            <Ticket className="h-4 w-4" />
-            <span className="hidden sm:inline">Ticket Analytics</span>
-            <span className="sm:hidden">Tickets</span>
-          </TabsTrigger>
-          <TabsTrigger value="advanced" className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
-            <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">Advanced Analytics</span>
-            <span className="sm:hidden">Advanced</span>
-          </TabsTrigger>
-          <TabsTrigger value="interactive" className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+          <TabsTrigger value="reports" className="gap-2 data-[state=active]:bg-background">
             <FileBarChart className="h-4 w-4" />
-            <span className="hidden sm:inline">Interactive Reports</span>
-            <span className="sm:hidden">Reports</span>
+            <span className="hidden sm:inline">Reports</span>
+          </TabsTrigger>
+          <TabsTrigger value="advanced" className="gap-2 data-[state=active]:bg-background">
+            <Settings2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Advanced</span>
+          </TabsTrigger>
+          <TabsTrigger value="data" className="gap-2 data-[state=active]:bg-background">
+            <Database className="h-4 w-4" />
+            <span className="hidden sm:inline">Data Center</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="customers" className="space-y-6">
-          <CustomerMetricsSummary summary={summary} />
-          <div className="grid gap-6 md:grid-cols-2">
-            <CustomerChart reportData={reportData} timeframe={timeframe} />
-            <StatusDistribution customers={customers} />
-          </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            <MonthlyTrends customers={customers} />
-            <WeeklySummary customers={customers} />
-          </div>
+        <TabsContent value="dashboard" className="mt-6">
+          <AnalyticsDashboard />
         </TabsContent>
 
-        <TabsContent value="tickets" className="space-y-6">
-          <TicketAnalyticsDashboard />
+        <TabsContent value="reports" className="mt-6">
+          <InteractiveReports />
         </TabsContent>
 
-        <TabsContent value="advanced" className="space-y-6">
+        <TabsContent value="advanced" className="mt-6">
           <AdvancedAnalyticsDashboard />
         </TabsContent>
 
-        <TabsContent value="interactive" className="space-y-6">
-          <InteractiveReports />
+        <TabsContent value="data" className="mt-6">
+          <DataCenter />
         </TabsContent>
       </Tabs>
-    </div>;
+    </div>
+  );
 };
+
 export default Analytics;
