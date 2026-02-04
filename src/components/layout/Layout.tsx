@@ -15,7 +15,7 @@ const Layout = () => {
       <div className="min-h-screen flex flex-col w-full bg-background overflow-y-auto overflow-x-hidden">
         <MobileNavigation />
 
-        <main className="flex-1 p-4 pb-20">
+        <main className="flex-1 pb-20 ios-scroll">
           <Outlet />
         </main>
 

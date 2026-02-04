@@ -1,5 +1,7 @@
 import React from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useCRM } from '@/context/CRMContext';
+import { MobileDashboard } from '@/components/dashboard/mobile';
 import CompactMetricsBar from '@/components/dashboard/CompactMetricsBar';
 import CompactWelcomeHeader from '@/components/dashboard/CompactWelcomeHeader';
 import StreamlinedChart from '@/components/dashboard/StreamlinedChart';
@@ -11,7 +13,13 @@ import FirstTimeOnboardingModal from '@/components/onboarding/FirstTimeOnboardin
 import { generateMonthlyActivityData } from '@/utils/chart-utils';
 
 const Dashboard = () => {
+  const isMobile = useIsMobile();
   const { customers } = useCRM();
+  
+  // Mobile layout
+  if (isMobile) {
+    return <MobileDashboard />;
+  }
   
   // Count customers by status
   const newCustomers = customers.filter(c => c.status === 'new').length;

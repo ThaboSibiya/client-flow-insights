@@ -5,15 +5,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { List, Network, Users } from 'lucide-react';
 import { useTeamData, TeamMember } from '@/hooks/useTeamData';
 import { useCompanyProfile } from '@/hooks/useCompanyProfile';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import TeamTable from './TeamTable';
 import TeamDetailPanel from './TeamDetailPanel';
 import TeamOrgChart from './TeamOrgChart';
 import TeamBulkActions from './TeamBulkActions';
+import { MobileTeamLayout } from '../mobile';
 import EmployeeForm from '@/components/employees/EmployeeForm';
 import EmployeeAccessChecker from '@/components/employees/EmployeeAccessChecker';
 import LoadingSpinner from '@/components/auth/LoadingSpinner';
 
 const TeamLayout: React.FC = () => {
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  
   const {
     members,
     filteredMembers,
@@ -80,6 +84,11 @@ const TeamLayout: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  // Mobile layout
+  if (isMobile) {
+    return <MobileTeamLayout />;
   }
 
   return (
