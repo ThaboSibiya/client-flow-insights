@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useMemo } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, 
@@ -14,7 +13,10 @@ import {
   Bot,
   DollarSign,
   FileText,
-  Bell
+  Bell,
+  X,
+  Settings,
+  LogOut
 } from 'lucide-react';
 import {
   Sheet,
@@ -26,37 +28,55 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import WorkstationQuickPanel from '@/components/sidebar/WorkstationQuickPanel';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { useConversationsOptimized } from '@/hooks/useConversationsOptimized';
+import { useAuth } from '@/context/AuthContext';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 const MobileNavigation = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = React.useState(false);
+  const { user, signOut } = useAuth();
+  const { unreadCount: notificationCount } = useRealtimeNotifications();
+  const { unreadCount: conversationCount } = useConversationsOptimized();
 
-  const bottomNavItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/customers', icon: Users, label: 'Customers' },
-    { path: '/conversations', icon: MessageCircle, label: 'Chat', badge: 3 },
-    { path: '/analytics', icon: BarChart3, label: 'Analytics' },
-  ];
+  // Dynamic bottom nav - always show core 4 plus most contextual
+  const bottomNavItems = useMemo(() => [
+    { path: '/dashboard', icon: LayoutDashboard, label: 'Home' },
+    { path: '/customers', icon: Users, label: 'Clients' },
+    { path: '/conversations', icon: MessageCircle, label: 'Chat', badge: conversationCount || undefined },
+    { path: '/pipeline', icon: Bot, label: 'Pipeline' },
+  ], [conversationCount]);
 
   const drawerNavItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/customers', icon: Users, label: 'Customers' },
-    { path: '/conversations', icon: MessageCircle, label: 'Conversations', badge: 3 },
+    { path: '/conversations', icon: MessageCircle, label: 'Conversations', badge: conversationCount || undefined },
     { path: '/pipeline', icon: Bot, label: 'Pipeline' },
     { path: '/quotes', icon: FileText, label: 'Quotes & Invoices' },
     { path: '/finance', icon: DollarSign, label: 'Finance' },
+    { path: '/employees', icon: Users, label: 'Team' },
     { path: '/automations', icon: Zap, label: 'Automations' },
     { path: '/integrations', icon: Workflow, label: 'Integrations' },
-    { path: '/notifications', icon: Bell, label: 'Notifications' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/onboarding', icon: UserPlus, label: 'Add Customer' },
   ];
 
+  const handleSignOut = async () => {
+    setIsOpen(false);
+    await signOut();
+    navigate('/auth');
+  };
+
+  const userInitials = user?.email?.slice(0, 2).toUpperCase() || 'U';
+
   return (
     <>
       {/* Mobile Top Header */}
-      <div className="md:hidden bg-white border-b border-quikle-silver/20 px-4 py-3 flex justify-between items-center sticky top-0 z-40 backdrop-blur-lg bg-white/95">
+      <div className="md:hidden bg-background/95 backdrop-blur-lg border-b border-border/50 px-4 py-3 flex justify-between items-center sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <img 
             src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" 
@@ -64,91 +84,134 @@ const MobileNavigation = () => {
             className="h-8 w-8" 
           />
           <div>
-            <h1 className="text-lg font-bold text-quikle-primary">QUIKLE</h1>
-            <p className="text-xs text-quikle-neutral -mt-1">Innovation Suite</p>
+            <h1 className="text-lg font-bold text-foreground">QUIKLE</h1>
+            <p className="text-[10px] text-muted-foreground -mt-0.5">Innovation Suite</p>
           </div>
         </div>
 
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="touch-target h-10 w-10 p-0 hover:bg-quikle-crystal"
-              aria-label="Open navigation menu"
+        <div className="flex items-center gap-1">
+          {/* Notification Bell */}
+          <NotificationBell />
+
+          {/* Menu Trigger */}
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-10 w-10 rounded-full"
+                aria-label="Open navigation menu"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent 
+              side="right" 
+              className="w-[85vw] max-w-sm bg-background border-l border-border p-0"
             >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent 
-            side="right" 
-            className="w-80 bg-white border-l border-quikle-silver/20"
-          >
-            <SheetHeader className="border-b border-quikle-silver/20 pb-4 mb-6">
-              <SheetTitle className="flex items-center gap-3 text-left">
-                <img 
-                  src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" 
-                  alt="Quikle Logo" 
-                  className="h-8 w-8" 
-                />
-                <div>
-                  <div className="text-lg font-bold text-quikle-primary">QUIKLE</div>
-                  <div className="text-xs text-quikle-neutral">Innovation Suite</div>
+              {/* Header with User Info */}
+              <SheetHeader className="p-4 border-b border-border bg-muted/30">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={undefined} />
+                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                      {userInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <SheetTitle className="text-left text-base truncate">
+                      {user?.email || 'Guest'}
+                    </SheetTitle>
+                    <p className="text-xs text-muted-foreground">Account Owner</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
-              </SheetTitle>
-            </SheetHeader>
-            
-            <ScrollArea className="h-[calc(100vh-120px)]">
-              {/* Workstation Quick Panel */}
-              <div className="mb-4 px-2">
-                <WorkstationQuickPanel variant="mobile" onItemClick={() => setIsOpen(false)} />
+              </SheetHeader>
+              
+              <ScrollArea className="h-[calc(100vh-180px)]">
+                {/* Workstation Quick Panel */}
+                <div className="p-3 border-b border-border/50">
+                  <WorkstationQuickPanel variant="mobile" onItemClick={() => setIsOpen(false)} />
+                </div>
+
+                {/* Navigation Items */}
+                <nav className="p-2">
+                  <p className="text-xs font-medium text-muted-foreground px-3 py-2">Navigation</p>
+                  {drawerNavItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.path;
+                    
+                    return (
+                      <Link
+                        key={`${item.path}-${item.label}`}
+                        to={item.path}
+                        onClick={() => setIsOpen(false)}
+                        className={cn(
+                          "flex items-center justify-between px-3 py-3.5 text-sm font-medium transition-colors rounded-lg my-0.5",
+                          "min-h-[48px]", // Touch target
+                          isActive 
+                            ? "bg-primary/10 text-primary" 
+                            : "text-foreground hover:bg-accent"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className="h-5 w-5 flex-shrink-0" />
+                          <span>{item.label}</span>
+                        </div>
+                        {item.badge && item.badge > 0 && (
+                          <Badge 
+                            variant="destructive" 
+                            className="text-[10px] min-w-[20px] h-5 flex items-center justify-center"
+                          >
+                            {item.badge > 9 ? '9+' : item.badge}
+                          </Badge>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </ScrollArea>
+
+              {/* Footer Actions */}
+              <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-border bg-background">
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate('/settings');
+                    }}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Settings
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-
-              {/* Divider */}
-              <div className="h-px bg-quikle-silver/30 mx-4 mb-4" />
-
-              {/* Navigation Items */}
-              <nav className="space-y-2 px-2">
-                {drawerNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location.pathname === item.path;
-                  
-                  return (
-                    <Link
-                      key={`${item.path}-${item.label}`}
-                      to={item.path}
-                      onClick={() => setIsOpen(false)}
-                      className={cn(
-                        "flex items-center justify-between px-4 py-4 text-base font-medium transition-colors rounded-lg touch-target",
-                        isActive 
-                          ? "bg-quikle-crystal text-quikle-primary border border-quikle-primary/20" 
-                          : "text-quikle-charcoal hover:bg-quikle-crystal/50"
-                      )}
-                    >
-                      <div className="flex items-center gap-4">
-                        <Icon className="h-5 w-5 flex-shrink-0" />
-                        <span>{item.label}</span>
-                      </div>
-                      {item.badge && (
-                        <Badge 
-                          variant="destructive" 
-                          className="bg-red-500 text-white text-xs min-w-[20px] h-5 flex items-center justify-center"
-                        >
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </Link>
-                  );
-                })}
-              </nav>
-            </ScrollArea>
-          </SheetContent>
-        </Sheet>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-quikle-silver/20 px-2 py-2 z-50 backdrop-blur-lg bg-white/95">
-        <div className="flex items-center justify-around">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border/50 z-50 pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-around py-1">
           {bottomNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -158,29 +221,35 @@ const MobileNavigation = () => {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex flex-col items-center justify-center p-2 min-w-[64px] touch-target relative transition-colors rounded-lg",
+                  "flex flex-col items-center justify-center py-2 px-3 min-w-[64px] min-h-[56px] relative transition-all rounded-lg",
                   isActive 
-                    ? "text-quikle-primary bg-quikle-crystal/50" 
-                    : "text-quikle-slate hover:text-quikle-primary hover:bg-quikle-crystal/30"
+                    ? "text-primary" 
+                    : "text-muted-foreground"
                 )}
                 aria-label={item.label}
               >
                 <div className="relative">
-                  <Icon className="h-5 w-5 mb-1" />
-                  {item.badge && (
+                  <Icon className={cn(
+                    "h-5 w-5 transition-transform",
+                    isActive && "scale-110"
+                  )} />
+                  {item.badge && item.badge > 0 && (
                     <Badge 
                       variant="destructive" 
-                      className="absolute -top-2 -right-2 bg-red-500 text-white text-xs min-w-[18px] h-4 flex items-center justify-center p-0 rounded-full"
+                      className="absolute -top-1.5 -right-2 text-[9px] min-w-[16px] h-4 flex items-center justify-center p-0 rounded-full"
                     >
-                      {item.badge}
+                      {item.badge > 9 ? '9+' : item.badge}
                     </Badge>
                   )}
                 </div>
-                <span className="text-xs font-medium truncate max-w-[60px]">
+                <span className={cn(
+                  "text-[10px] font-medium mt-1 transition-colors",
+                  isActive ? "text-primary" : "text-muted-foreground"
+                )}>
                   {item.label}
                 </span>
                 {isActive && (
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-quikle-primary rounded-full" />
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
                 )}
               </Link>
             );

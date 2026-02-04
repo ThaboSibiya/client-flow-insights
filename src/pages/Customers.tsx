@@ -1,6 +1,7 @@
-
 import React, { useState } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import CustomerTable from '@/components/customers/CustomerTable';
+import { MobileCustomersView } from '@/components/customers/mobile';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Phone, MapPin, Settings2, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -21,6 +22,7 @@ import {
 
 const Customers: React.FC = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [isSessionOpen, setIsSessionOpen] = useState<boolean>(false);
   const [isOnSiteUpdateOpen, setIsOnSiteUpdateOpen] = useState<boolean>(false);
   const [isAiConfigOpen, setIsAiConfigOpen] = useState<boolean>(false);
@@ -32,7 +34,19 @@ const Customers: React.FC = () => {
   // Lazy load AI config components only when needed
   const KnowledgeBaseManager = React.lazy(() => import('@/components/settings/KnowledgeBaseManager'));
   const AiAgentSettings = React.lazy(() => import('@/components/settings/AiAgentSettings').then(m => ({ default: m.AiAgentSettings })));
+
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <CustomerErrorBoundary>
+        <MobileCustomersView />
+        <AiVoiceSessionDialog isOpen={isSessionOpen} onOpenChange={setIsSessionOpen} />
+        <OnSiteStatusUpdate isOpen={isOnSiteUpdateOpen} onClose={() => setIsOnSiteUpdateOpen(false)} />
+      </CustomerErrorBoundary>
+    );
+  }
   
+  // Desktop Layout
   return (
     <CustomerErrorBoundary>
       <div className="space-y-6">
