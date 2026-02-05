@@ -19,7 +19,7 @@ const Index = () => {
    const quickLinks = [
      { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', description: 'View your business overview' },
      { label: 'Customers', icon: Users, path: '/customers', description: 'Manage your clients' },
-     { label: 'Invoicing', icon: FileText, path: '/invoicing', description: 'Create and track invoices' },
+     { label: 'Quotes', icon: FileText, path: '/quotes', description: 'Quotes and invoices' },
      { label: 'Settings', icon: Settings, path: '/settings', description: 'Configure your account' },
    ];
  
