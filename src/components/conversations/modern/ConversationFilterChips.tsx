@@ -1,10 +1,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, MessageCircle, FileText, Inbox } from 'lucide-react';
+import { Mail, Phone, MessageCircle, FileText, Inbox, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type ConversationType = 'all' | 'email' | 'whatsapp' | 'internal_chat' | 'form_submission';
+export type ConversationType = 'all' | 'email' | 'whatsapp' | 'telegram' | 'internal_chat' | 'form_submission';
 
 interface FilterOption {
   id: ConversationType;
@@ -20,6 +20,7 @@ interface ConversationFilterChipsProps {
     all: number;
     email: number;
     whatsapp: number;
+    telegram: number;
     internal_chat: number;
     form_submission: number;
     unread: number;
@@ -35,6 +36,7 @@ const ConversationFilterChips = ({
     { id: 'all', label: 'All', icon: <Inbox className="h-3.5 w-3.5" />, count: counts.all },
     { id: 'email', label: 'Email', icon: <Mail className="h-3.5 w-3.5" />, count: counts.email },
     { id: 'whatsapp', label: 'WhatsApp', icon: <Phone className="h-3.5 w-3.5" />, count: counts.whatsapp },
+    { id: 'telegram', label: 'Telegram', icon: <Send className="h-3.5 w-3.5" />, count: counts.telegram },
     { id: 'internal_chat', label: 'Internal', icon: <MessageCircle className="h-3.5 w-3.5" />, count: counts.internal_chat },
     { id: 'form_submission', label: 'Forms', icon: <FileText className="h-3.5 w-3.5" />, count: counts.form_submission },
   ];
