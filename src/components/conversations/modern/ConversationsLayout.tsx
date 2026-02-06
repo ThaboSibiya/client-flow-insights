@@ -45,6 +45,7 @@ const ConversationsLayout = () => {
     all: conversations?.length || 0,
     email: conversations?.filter(c => c.type === 'email').length || 0,
     whatsapp: conversations?.filter(c => c.type === 'whatsapp').length || 0,
+    telegram: conversations?.filter(c => c.type === 'telegram').length || 0,
     internal_chat: conversations?.filter(c => c.type === 'internal_chat').length || 0,
     form_submission: conversations?.filter(c => c.type === 'form_submission').length || 0,
     unread: unreadCount,

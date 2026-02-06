@@ -60,3 +60,9 @@ verify_jwt = true
 
 [functions.webhook-receiver]
 verify_jwt = false
+
+[functions.send-telegram]
+verify_jwt = true
+
+[functions.send-whatsapp]
+verify_jwt = true

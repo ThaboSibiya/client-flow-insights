@@ -15,7 +15,7 @@ export interface Message {
 
 export interface Conversation {
   id: string;
-  type: 'email' | 'whatsapp' | 'internal_chat' | 'form_submission';
+  type: 'email' | 'whatsapp' | 'telegram' | 'internal_chat' | 'form_submission';
   subject?: string | null;
   status: 'active' | 'closed' | 'archived';
   last_message_at: string | null;
