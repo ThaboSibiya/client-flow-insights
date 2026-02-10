@@ -11,6 +11,7 @@ import WebhookConnectionCard from './webhook-workflows/WebhookConnectionCard';
 import CreateApiTriggerSheet from './webhook-workflows/CreateApiTriggerSheet';
 import CreateWebhookSheet from './webhook-workflows/CreateWebhookSheet';
 import IntegrationsEmptyState from './webhook-workflows/IntegrationsEmptyState';
+import IntegrationsGuide from './webhook-workflows/IntegrationsGuide';
 
 type FilterType = 'all' | 'api-triggers' | 'webhooks';
 
@@ -109,6 +110,9 @@ const WebhookWorkflowsManager = () => {
           </button>
         ))}
       </div>
+
+      {/* Quick Start Guide */}
+      <IntegrationsGuide />
 
       {/* Content */}
       {isLoading ? (
