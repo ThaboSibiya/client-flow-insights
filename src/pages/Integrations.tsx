@@ -24,6 +24,7 @@ import { useDataSyncRules } from '@/hooks/useDataSyncRules';
 import IntegrationCard from '@/components/integrations/IntegrationCard';
 import IntegrationEmptyState from '@/components/integrations/IntegrationEmptyState';
 import CreateWebhookDialog from '@/components/integrations/CreateWebhookDialog';
+import IntegrationsGuide from '@/components/pipeline/automation/webhook-workflows/IntegrationsGuide';
 import CreateApiTriggerDialog from '@/components/integrations/CreateApiTriggerDialog';
 import CreateSyncRuleDialog from '@/components/integrations/CreateSyncRuleDialog';
 
@@ -186,6 +187,9 @@ const Integrations = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Quick Start Guide */}
+      <IntegrationsGuide />
 
       {/* Search & Tabs */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
