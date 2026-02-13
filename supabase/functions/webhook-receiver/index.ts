@@ -52,14 +52,6 @@ serve(async (req) => {
       );
     }
 
-    // Validate method
-    if (req.method !== trigger.method && trigger.method !== 'ANY') {
-      return new Response(
-        JSON.stringify({ error: `Method ${req.method} not allowed. Expected ${trigger.method}` }),
-        { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     // Parse request body
     let payload: any = null;
     if (req.method !== 'GET') {
@@ -76,120 +68,29 @@ serve(async (req) => {
 
     console.log('Payload received:', JSON.stringify(payload));
 
-    // ─── PROCESS THE PAYLOAD: Insert into customers table ───
-    let customerResult: { id: string | null; created: boolean; error: string | null } = {
-      id: null,
-      created: false,
-      error: null,
-    };
+    // ─── ROUTE by trigger name / endpoint_key ───
+    const triggerName = (trigger.name || '').toLowerCase();
 
-    if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
-      // Extract fields with case-insensitive mapping
-      const normalized = normalizePayload(payload);
+    let result: any;
 
-      const customerName = normalized.name;
-      const customerEmail = normalized.email;
-
-      if (customerName && customerEmail) {
-        // Check for duplicate by email under this user
-        const { data: existing } = await supabase
-          .from('customers')
-          .select('id')
-          .eq('user_id', trigger.user_id)
-          .eq('email', customerEmail)
-          .maybeSingle();
-
-        if (existing) {
-          // Update existing customer with any new data
-          const updateFields: Record<string, any> = {};
-          if (normalized.phone) updateFields.phone = normalized.phone;
-          if (normalized.status) updateFields.status = normalized.status;
-          if (normalized.address) updateFields.address = normalized.address;
-          if (normalized.notes) {
-            updateFields.notes = `[Webhook ${new Date().toISOString()}] Source: ${normalized.source || 'API'}\n${normalized.notes}`;
-          }
-          if (normalized.contact_person) updateFields.contact_person = normalized.contact_person;
-
-          if (Object.keys(updateFields).length > 0) {
-            await supabase
-              .from('customers')
-              .update(updateFields)
-              .eq('id', existing.id);
-          }
-
-          customerResult = { id: existing.id, created: false, error: null };
-          console.log(`Updated existing customer: ${existing.id}`);
-        } else {
-          // Insert new customer
-          const { data: newCustomer, error: insertError } = await supabase
-            .from('customers')
-            .insert({
-              user_id: trigger.user_id,
-              name: customerName,
-              email: customerEmail,
-              phone: normalized.phone || null,
-              status: normalized.status || 'active',
-              address: normalized.address || null,
-              contact_person: normalized.contact_person || null,
-              notes: normalized.source
-                ? `Lead source: ${normalized.source}`
-                : 'Created via webhook',
-            })
-            .select('id')
-            .single();
-
-          if (insertError) {
-            console.error('Customer insert failed:', insertError);
-            customerResult = { id: null, created: false, error: insertError.message };
-          } else {
-            customerResult = { id: newCustomer.id, created: true, error: null };
-            console.log(`Created new customer: ${newCustomer.id}`);
-
-            // ─── Place customer into the first pipeline stage ───
-            const { data: defaultStage } = await supabase
-              .from('pipeline_stages')
-              .select('id')
-              .eq('user_id', trigger.user_id)
-              .eq('pipeline_type', 'customer')
-              .order('position', { ascending: true })
-              .limit(1)
-              .maybeSingle();
-
-            if (defaultStage) {
-              await supabase.from('pipeline_activity').insert({
-                user_id: trigger.user_id,
-                entity_id: newCustomer.id,
-                entity_type: 'customer',
-                action_type: 'created_via_webhook',
-                pipeline_type: 'customer',
-                to_stage_id: defaultStage.id,
-                metadata: {
-                  source: normalized.source || 'webhook',
-                  trigger_name: trigger.name,
-                  endpoint_key: endpointKey,
-                },
-              });
-              console.log(`Pipeline activity logged for stage: ${defaultStage.id}`);
-            }
-          }
-        }
-      } else {
-        customerResult.error = 'Missing required fields: "name" and "email" are required.';
-        console.warn('Payload missing name or email:', JSON.stringify(payload));
-      }
+    if (triggerName.includes('find') || triggerName.includes('search') || triggerName.includes('lookup')) {
+      result = await handleFindContact(supabase, trigger, payload);
+    } else if (triggerName.includes('update') || triggerName.includes('edit') || triggerName.includes('modify')) {
+      result = await handleUpdateContact(supabase, trigger, payload);
+    } else {
+      result = await handleCreateContact(supabase, trigger, payload, endpointKey);
     }
 
     // ─── Log the webhook call ───
-    const webhookSuccess = customerResult.error === null && (customerResult.id !== null || !payload);
     await supabase.from('webhook_logs').insert({
       user_id: trigger.user_id,
       trigger_id: trigger.id,
       request_method: req.method,
       request_payload: payload,
-      response_status: webhookSuccess ? 200 : 422,
-      response_body: customerResult.error || null,
-      success: webhookSuccess,
-      error_message: customerResult.error || null,
+      response_status: result.status,
+      response_body: result.error || null,
+      success: result.success,
+      error_message: result.error || null,
     });
 
     // Update trigger stats
@@ -201,41 +102,9 @@ serve(async (req) => {
       })
       .eq('id', trigger.id);
 
-    // ─── Build response ───
-    if (customerResult.error) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: customerResult.error,
-          hint: 'Ensure your payload includes "name" (string) and "email" (string). Optional: "phone", "status", "source", "address", "contact_person", "notes".',
-          expected_schema: {
-            name: 'string (required)',
-            email: 'string (required)',
-            phone: 'string (optional)',
-            status: 'string (optional, default: "active")',
-            source: 'string (optional)',
-            address: 'string (optional)',
-            contact_person: 'string (optional)',
-            notes: 'string (optional)',
-          },
-        }),
-        { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: customerResult.created
-          ? 'Lead created successfully and added to pipeline'
-          : customerResult.id
-            ? 'Existing lead updated with new data'
-            : 'Webhook received (no actionable data)',
-        customer_id: customerResult.id,
-        trigger_name: trigger.name,
-        received_at: new Date().toISOString(),
-      }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify(result.body),
+      { status: result.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
@@ -247,12 +116,415 @@ serve(async (req) => {
   }
 });
 
-/**
- * Normalize payload keys to lowercase for case-insensitive field mapping.
- * Supports both flat and nested ({ record: {...}, data: {...} }) payloads.
- */
+// ────────────────────────────────────────────────
+// HANDLER: Find Contact (SELECT)
+// ────────────────────────────────────────────────
+async function handleFindContact(supabase: any, trigger: any, payload: any) {
+  if (!payload || typeof payload !== 'object') {
+    return {
+      success: false,
+      status: 400,
+      error: 'Payload required with at least one search field',
+      body: {
+        success: false,
+        error: 'Payload required',
+        hint: 'Send JSON with at least one of: email, phone, name, customer_id',
+        expected_schema: {
+          email: 'string (optional)',
+          phone: 'string (optional)',
+          name: 'string (optional)',
+          customer_id: 'string (optional, UUID)',
+        },
+      },
+    };
+  }
+
+  const normalized = normalizeSearchPayload(payload);
+  console.log('Find contact search params:', JSON.stringify(normalized));
+
+  let query = supabase
+    .from('customers')
+    .select('id, name, email, phone, status, address, contact_person, notes, created_at, updated_at')
+    .eq('user_id', trigger.user_id);
+
+  // Search by customer_id first (exact match)
+  if (normalized.customer_id) {
+    query = query.eq('id', normalized.customer_id);
+  } else if (normalized.email) {
+    query = query.ilike('email', normalized.email);
+  } else if (normalized.phone) {
+    query = query.ilike('phone', `%${normalized.phone}%`);
+  } else if (normalized.name) {
+    query = query.ilike('name', `%${normalized.name}%`);
+  } else {
+    return {
+      success: false,
+      status: 400,
+      error: 'At least one search field required',
+      body: {
+        success: false,
+        error: 'No search criteria provided',
+        hint: 'Provide at least one of: email, phone, name, customer_id',
+      },
+    };
+  }
+
+  const { data: customers, error: searchError } = await query.limit(10);
+
+  if (searchError) {
+    console.error('Search error:', searchError);
+    return {
+      success: false,
+      status: 500,
+      error: searchError.message,
+      body: { success: false, error: 'Search failed', details: searchError.message },
+    };
+  }
+
+  const count = customers?.length || 0;
+  console.log(`Find contact returned ${count} result(s)`);
+
+  return {
+    success: true,
+    status: 200,
+    error: null,
+    body: {
+      success: true,
+      count,
+      customers: customers || [],
+      ...(count === 1 ? { customer: customers[0] } : {}),
+      trigger_name: trigger.name,
+      searched_at: new Date().toISOString(),
+    },
+  };
+}
+
+// ────────────────────────────────────────────────
+// HANDLER: Update Contact (UPDATE)
+// ────────────────────────────────────────────────
+async function handleUpdateContact(supabase: any, trigger: any, payload: any) {
+  if (!payload || typeof payload !== 'object') {
+    return {
+      success: false,
+      status: 400,
+      error: 'Payload required with customer_id and fields to update',
+      body: {
+        success: false,
+        error: 'Payload required',
+        hint: 'Send JSON with customer_id (required) and fields to update',
+        expected_schema: {
+          customer_id: 'string (required, UUID)',
+          name: 'string (optional)',
+          email: 'string (optional)',
+          phone: 'string (optional)',
+          status: 'string (optional)',
+          address: 'string (optional)',
+          contact_person: 'string (optional)',
+          notes: 'string (optional)',
+        },
+      },
+    };
+  }
+
+  const normalized = normalizeUpdatePayload(payload);
+  console.log('Update contact params:', JSON.stringify(normalized));
+
+  if (!normalized.customer_id) {
+    return {
+      success: false,
+      status: 400,
+      error: 'customer_id is required for updates',
+      body: {
+        success: false,
+        error: 'Missing customer_id',
+        hint: 'Include "customer_id" (UUID) in your payload to identify which contact to update.',
+      },
+    };
+  }
+
+  // Verify customer exists and belongs to this user
+  const { data: existing, error: findError } = await supabase
+    .from('customers')
+    .select('id, name, email')
+    .eq('id', normalized.customer_id)
+    .eq('user_id', trigger.user_id)
+    .maybeSingle();
+
+  if (findError || !existing) {
+    return {
+      success: false,
+      status: 404,
+      error: 'Customer not found',
+      body: {
+        success: false,
+        error: 'Customer not found',
+        hint: `No customer with id "${normalized.customer_id}" found for this account.`,
+      },
+    };
+  }
+
+  // Build update fields
+  const updateFields: Record<string, any> = {};
+  if (normalized.name) updateFields.name = normalized.name;
+  if (normalized.email) updateFields.email = normalized.email;
+  if (normalized.phone) updateFields.phone = normalized.phone;
+  if (normalized.status) updateFields.status = normalized.status;
+  if (normalized.address) updateFields.address = normalized.address;
+  if (normalized.contact_person) updateFields.contact_person = normalized.contact_person;
+  if (normalized.notes) updateFields.notes = normalized.notes;
+  if (normalized.company_address) updateFields.company_address = normalized.company_address;
+
+  if (Object.keys(updateFields).length === 0) {
+    return {
+      success: false,
+      status: 400,
+      error: 'No fields to update',
+      body: {
+        success: false,
+        error: 'No updatable fields provided',
+        hint: 'Include at least one field to update: name, email, phone, status, address, contact_person, notes',
+      },
+    };
+  }
+
+  updateFields.updated_at = new Date().toISOString();
+
+  const { data: updated, error: updateError } = await supabase
+    .from('customers')
+    .update(updateFields)
+    .eq('id', normalized.customer_id)
+    .eq('user_id', trigger.user_id)
+    .select('id, name, email, phone, status, address, contact_person, notes, updated_at')
+    .single();
+
+  if (updateError) {
+    console.error('Update error:', updateError);
+    return {
+      success: false,
+      status: 500,
+      error: updateError.message,
+      body: { success: false, error: 'Update failed', details: updateError.message },
+    };
+  }
+
+  // Log pipeline activity
+  await supabase.from('pipeline_activity').insert({
+    user_id: trigger.user_id,
+    entity_id: normalized.customer_id,
+    entity_type: 'customer',
+    action_type: 'updated_via_webhook',
+    pipeline_type: 'customer',
+    metadata: {
+      updated_fields: Object.keys(updateFields).filter(k => k !== 'updated_at'),
+      trigger_name: trigger.name,
+      source: 'webhook',
+    },
+  });
+
+  console.log(`Updated customer: ${normalized.customer_id}`);
+
+  return {
+    success: true,
+    status: 200,
+    error: null,
+    body: {
+      success: true,
+      message: 'Contact updated successfully',
+      customer: updated,
+      updated_fields: Object.keys(updateFields).filter(k => k !== 'updated_at'),
+      trigger_name: trigger.name,
+      updated_at: new Date().toISOString(),
+    },
+  };
+}
+
+// ────────────────────────────────────────────────
+// HANDLER: Create Contact (INSERT) — original logic
+// ────────────────────────────────────────────────
+async function handleCreateContact(supabase: any, trigger: any, payload: any, endpointKey: string) {
+  let customerResult: { id: string | null; created: boolean; error: string | null } = {
+    id: null,
+    created: false,
+    error: null,
+  };
+
+  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+    const normalized = normalizePayload(payload);
+    const customerName = normalized.name;
+    const customerEmail = normalized.email;
+
+    if (customerName && customerEmail) {
+      // Deduplicate by email
+      const { data: existing } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('user_id', trigger.user_id)
+        .eq('email', customerEmail)
+        .maybeSingle();
+
+      if (existing) {
+        const updateFields: Record<string, any> = {};
+        if (normalized.phone) updateFields.phone = normalized.phone;
+        if (normalized.status) updateFields.status = normalized.status;
+        if (normalized.address) updateFields.address = normalized.address;
+        if (normalized.notes) {
+          updateFields.notes = `[Webhook ${new Date().toISOString()}] Source: ${normalized.source || 'API'}\n${normalized.notes}`;
+        }
+        if (normalized.contact_person) updateFields.contact_person = normalized.contact_person;
+
+        if (Object.keys(updateFields).length > 0) {
+          await supabase.from('customers').update(updateFields).eq('id', existing.id);
+        }
+
+        customerResult = { id: existing.id, created: false, error: null };
+        console.log(`Updated existing customer: ${existing.id}`);
+      } else {
+        const { data: newCustomer, error: insertError } = await supabase
+          .from('customers')
+          .insert({
+            user_id: trigger.user_id,
+            name: customerName,
+            email: customerEmail,
+            phone: normalized.phone || null,
+            status: normalized.status || 'active',
+            address: normalized.address || null,
+            contact_person: normalized.contact_person || null,
+            notes: normalized.source ? `Lead source: ${normalized.source}` : 'Created via webhook',
+          })
+          .select('id')
+          .single();
+
+        if (insertError) {
+          console.error('Customer insert failed:', insertError);
+          customerResult = { id: null, created: false, error: insertError.message };
+        } else {
+          customerResult = { id: newCustomer.id, created: true, error: null };
+          console.log(`Created new customer: ${newCustomer.id}`);
+
+          // Place into first pipeline stage
+          const { data: defaultStage } = await supabase
+            .from('pipeline_stages')
+            .select('id')
+            .eq('user_id', trigger.user_id)
+            .eq('pipeline_type', 'customer')
+            .order('position', { ascending: true })
+            .limit(1)
+            .maybeSingle();
+
+          if (defaultStage) {
+            await supabase.from('pipeline_activity').insert({
+              user_id: trigger.user_id,
+              entity_id: newCustomer.id,
+              entity_type: 'customer',
+              action_type: 'created_via_webhook',
+              pipeline_type: 'customer',
+              to_stage_id: defaultStage.id,
+              metadata: {
+                source: normalized.source || 'webhook',
+                trigger_name: trigger.name,
+                endpoint_key: endpointKey,
+              },
+            });
+          }
+        }
+      }
+    } else {
+      customerResult.error = 'Missing required fields: "name" and "email" are required.';
+    }
+  }
+
+  if (customerResult.error) {
+    return {
+      success: false,
+      status: 422,
+      error: customerResult.error,
+      body: {
+        success: false,
+        error: customerResult.error,
+        hint: 'Ensure your payload includes "name" and "email". Optional: "phone", "status", "source", "address", "contact_person", "notes".',
+        expected_schema: {
+          name: 'string (required)',
+          email: 'string (required)',
+          phone: 'string (optional)',
+          status: 'string (optional, default: "active")',
+          source: 'string (optional)',
+          address: 'string (optional)',
+          contact_person: 'string (optional)',
+          notes: 'string (optional)',
+        },
+      },
+    };
+  }
+
+  return {
+    success: true,
+    status: 200,
+    error: null,
+    body: {
+      success: true,
+      message: customerResult.created
+        ? 'Lead created successfully and added to pipeline'
+        : customerResult.id
+          ? 'Existing lead updated with new data'
+          : 'Webhook received (no actionable data)',
+      customer_id: customerResult.id,
+      trigger_name: trigger.name,
+      received_at: new Date().toISOString(),
+    },
+  };
+}
+
+// ────────────────────────────────────────────────
+// NORMALIZERS
+// ────────────────────────────────────────────────
+
+/** Normalize search payload keys */
+function normalizeSearchPayload(raw: Record<string, any>): Record<string, string | null> {
+  let data = raw;
+  if (raw.record && typeof raw.record === 'object') data = raw.record;
+  else if (raw.data && typeof raw.data === 'object') data = raw.data;
+  else if (raw.query && typeof raw.query === 'object') data = raw.query;
+  else if (raw.search && typeof raw.search === 'object') data = raw.search;
+
+  const lower: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    lower[key.toLowerCase().replace(/[\s-]/g, '_')] = value;
+  }
+
+  return {
+    customer_id: lower.customer_id || lower.id || lower.contact_id || null,
+    email: lower.email || lower.email_address || lower.customer_email || null,
+    phone: lower.phone || lower.phone_number || lower.mobile || lower.telephone || null,
+    name: lower.name || lower.full_name || lower.customer_name || lower.lead_name || null,
+  };
+}
+
+/** Normalize update payload keys */
+function normalizeUpdatePayload(raw: Record<string, any>): Record<string, string | null> {
+  let data = raw;
+  if (raw.record && typeof raw.record === 'object') data = { ...raw.record, customer_id: raw.customer_id || raw.record.customer_id };
+  else if (raw.data && typeof raw.data === 'object') data = { ...raw.data, customer_id: raw.customer_id || raw.data.customer_id };
+
+  const lower: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    lower[key.toLowerCase().replace(/[\s-]/g, '_')] = value;
+  }
+
+  return {
+    customer_id: lower.customer_id || lower.id || lower.contact_id || null,
+    name: lower.name || lower.full_name || lower.customer_name || null,
+    email: lower.email || lower.email_address || null,
+    phone: lower.phone || lower.phone_number || lower.mobile || null,
+    status: lower.status || lower.lead_status || null,
+    address: lower.address || lower.company_address || lower.location || null,
+    contact_person: lower.contact_person || lower.contact || null,
+    notes: lower.notes || lower.message || lower.description || lower.comments || null,
+    company_address: lower.company_address || null,
+  };
+}
+
+/** Normalize create payload keys (original) */
 function normalizePayload(raw: Record<string, any>): Record<string, string | null> {
-  // Unwrap common nesting patterns
   let data = raw;
   if (raw.record && typeof raw.record === 'object') data = raw.record;
   else if (raw.data && typeof raw.data === 'object') data = raw.data;
