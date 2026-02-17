@@ -217,11 +217,12 @@ async function handleUpdateContact(supabase: any, trigger: any, payload: any) {
           name: 'string (optional)',
           email: 'string (optional)',
           phone: 'string (optional)',
-          status: 'string (optional)',
+          status: 'string (optional) — allowed: "new", "existing", "pending", "finalised" (case-insensitive, aliases supported)',
           address: 'string (optional)',
           contact_person: 'string (optional)',
           notes: 'string (optional)',
         },
+        allowed_statuses: [...VALID_STATUSES],
       },
     };
   }
@@ -268,7 +269,29 @@ async function handleUpdateContact(supabase: any, trigger: any, payload: any) {
   if (normalized.name) updateFields.name = normalized.name;
   if (normalized.email) updateFields.email = normalized.email;
   if (normalized.phone) updateFields.phone = normalized.phone;
-  if (normalized.status) updateFields.status = normalized.status;
+  if (normalized.status) {
+    const statusResult = normalizeStatus(normalized.status);
+    if (!statusResult.valid) {
+      return {
+        success: false,
+        status: 400,
+        error: `Invalid status value: "${normalized.status}"`,
+        body: {
+          success: false,
+          error: `Invalid status value: "${normalized.status}"`,
+          hint: 'Status is case-insensitive. Common aliases are auto-mapped.',
+          allowed_values: [...VALID_STATUSES],
+          alias_examples: {
+            'new': ['new', 'lead', 'prospect', 'open'],
+            'existing': ['existing', 'qualified', 'active', 'converted', 'customer', 'won'],
+            'pending': ['pending', 'contacted', 'in progress', 'follow up', 'negotiation'],
+            'finalised': ['finalised', 'finalized', 'closed', 'completed', 'done'],
+          },
+        },
+      };
+    }
+    if (statusResult.value) updateFields.status = statusResult.value;
+  }
   if (normalized.address) updateFields.address = normalized.address;
   if (normalized.contact_person) updateFields.contact_person = normalized.contact_person;
   if (normalized.notes) updateFields.notes = normalized.notes;
@@ -365,7 +388,10 @@ async function handleCreateContact(supabase: any, trigger: any, payload: any, en
       if (existing) {
         const updateFields: Record<string, any> = {};
         if (normalized.phone) updateFields.phone = normalized.phone;
-        if (normalized.status) updateFields.status = normalized.status;
+        if (normalized.status) {
+          const statusResult = normalizeStatus(normalized.status);
+          if (statusResult.valid && statusResult.value) updateFields.status = statusResult.value;
+        }
         if (normalized.address) updateFields.address = normalized.address;
         if (normalized.notes) {
           updateFields.notes = `[Webhook ${new Date().toISOString()}] Source: ${normalized.source || 'API'}\n${normalized.notes}`;
@@ -386,7 +412,10 @@ async function handleCreateContact(supabase: any, trigger: any, payload: any, en
             name: customerName,
             email: customerEmail,
             phone: normalized.phone || null,
-            status: normalized.status || 'active',
+            status: (() => {
+              const s = normalizeStatus(normalized.status);
+              return s.valid && s.value ? s.value : 'new';
+            })(),
             address: normalized.address || null,
             contact_person: normalized.contact_person || null,
             notes: normalized.source ? `Lead source: ${normalized.source}` : 'Created via webhook',
@@ -446,12 +475,13 @@ async function handleCreateContact(supabase: any, trigger: any, payload: any, en
           name: 'string (required)',
           email: 'string (required)',
           phone: 'string (optional)',
-          status: 'string (optional, default: "active")',
+          status: 'string (optional) — allowed: "new", "existing", "pending", "finalised" (case-insensitive, aliases like "qualified"→"existing" supported)',
           source: 'string (optional)',
           address: 'string (optional)',
           contact_person: 'string (optional)',
           notes: 'string (optional)',
         },
+        allowed_statuses: [...VALID_STATUSES],
       },
     };
   }
@@ -472,6 +502,72 @@ async function handleCreateContact(supabase: any, trigger: any, payload: any, en
       received_at: new Date().toISOString(),
     },
   };
+}
+
+// ────────────────────────────────────────────────
+// STATUS VALIDATION & MAPPING
+// ────────────────────────────────────────────────
+
+const VALID_STATUSES = ['new', 'existing', 'pending', 'finalised'] as const;
+
+/** Maps common external status terms to internal valid values */
+const STATUS_ALIASES: Record<string, string> = {
+  // "new" aliases
+  'new': 'new',
+  'new lead': 'new',
+  'lead': 'new',
+  'prospect': 'new',
+  'open': 'new',
+  // "existing" aliases
+  'existing': 'existing',
+  'qualified': 'existing',
+  'active': 'existing',
+  'converted': 'existing',
+  'customer': 'existing',
+  'client': 'existing',
+  'won': 'existing',
+  'closed won': 'existing',
+  // "pending" aliases
+  'pending': 'pending',
+  'contacted': 'pending',
+  'in progress': 'pending',
+  'in_progress': 'pending',
+  'follow up': 'pending',
+  'follow_up': 'pending',
+  'negotiation': 'pending',
+  'nurturing': 'pending',
+  // "finalised" aliases
+  'finalised': 'finalised',
+  'finalized': 'finalised',
+  'closed': 'finalised',
+  'completed': 'finalised',
+  'done': 'finalised',
+  'archived': 'finalised',
+  'closed lost': 'finalised',
+};
+
+/**
+ * Validates and normalizes a status value.
+ * Returns the valid status string, or null if invalid.
+ * Case-insensitive with alias support.
+ */
+function normalizeStatus(raw: string | null | undefined): { value: string | null; valid: boolean; original: string | null } {
+  if (!raw) return { value: null, valid: true, original: null };
+  
+  const cleaned = raw.toString().trim().toLowerCase();
+  
+  // Direct match
+  if ((VALID_STATUSES as readonly string[]).includes(cleaned)) {
+    return { value: cleaned, valid: true, original: raw };
+  }
+  
+  // Alias match
+  if (STATUS_ALIASES[cleaned]) {
+    return { value: STATUS_ALIASES[cleaned], valid: true, original: raw };
+  }
+  
+  // Invalid
+  return { value: null, valid: false, original: raw };
 }
 
 // ────────────────────────────────────────────────
