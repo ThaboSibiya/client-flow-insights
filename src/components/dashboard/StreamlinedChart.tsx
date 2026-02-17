@@ -128,7 +128,7 @@ const StreamlinedChart = ({ data }: StreamlinedChartProps) => {
                   <Bar 
                     dataKey="new" 
                     stackId="a"
-                    fill="hsl(var(--primary))" 
+                    fill="hsl(var(--chart-new))" 
                     name="New" 
                     radius={[0, 0, 0, 0]} 
                   />
@@ -137,7 +137,7 @@ const StreamlinedChart = ({ data }: StreamlinedChartProps) => {
                   <Bar 
                     dataKey="existing" 
                     stackId="a"
-                    fill="hsl(var(--chart-2))" 
+                    fill="hsl(var(--chart-existing))" 
                     name="Existing" 
                     radius={[0, 0, 0, 0]} 
                   />
@@ -146,7 +146,7 @@ const StreamlinedChart = ({ data }: StreamlinedChartProps) => {
                   <Bar 
                     dataKey="pending" 
                     stackId="a"
-                    fill="hsl(var(--chart-4))" 
+                    fill="hsl(var(--chart-pending))" 
                     name="Pending" 
                     radius={[0, 0, 0, 0]} 
                   />
@@ -155,7 +155,7 @@ const StreamlinedChart = ({ data }: StreamlinedChartProps) => {
                   <Bar 
                     dataKey="finalised" 
                     stackId="a"
-                    fill="hsl(var(--chart-3))" 
+                    fill="hsl(var(--chart-finalised))" 
                     name="Finalised" 
                     radius={[4, 4, 0, 0]} 
                   />
