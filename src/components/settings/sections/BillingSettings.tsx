@@ -44,8 +44,8 @@ const PLANS: PlanTier[] = [
     name: 'Team',
     icon: <Sparkles className="h-5 w-5" />,
     price: {
-      ZAR: { amount: 249, label: 'R249' },
-      USD: { amount: 19, label: '$19' },
+      ZAR: { amount: 499, label: 'R499' },
+      USD: { amount: 39, label: '$39' },
     },
     badge: 'Most Popular',
     highlighted: true,
