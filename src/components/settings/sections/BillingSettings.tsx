@@ -76,8 +76,23 @@ const PLANS: PlanTier[] = [
 
 const detectCurrency = (): Currency => {
   try {
-    const locale = Intl.DateTimeFormat().resolvedOptions().locale || '';
-    if (locale.toLowerCase().includes('za')) return 'ZAR';
+    // Check multiple signals for South African locale
+    const sources = [
+      Intl.DateTimeFormat().resolvedOptions().locale,
+      navigator.language,
+      ...(navigator.languages || []),
+    ].filter(Boolean);
+
+    const isSouthAfrican = sources.some((lang) =>
+      lang.toLowerCase().includes('za')
+    );
+    if (isSouthAfrican) return 'ZAR';
+
+    // Fallback: check timezone
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    if (timezone.toLowerCase().includes('johannesburg') || timezone.toLowerCase().includes('africa/johannesburg')) {
+      return 'ZAR';
+    }
   } catch {
     // fallback
   }
