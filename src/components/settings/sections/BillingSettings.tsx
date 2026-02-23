@@ -30,7 +30,7 @@ const PLANS: PlanTier[] = [
     icon: <Crown className="h-5 w-5" />,
     price: {
       ZAR: { amount: 99, label: 'R99' },
-      USD: { amount: 9, label: '$9' },
+      USD: { amount: 6, label: '$6' },
     },
     users: '1 user',
     customers: '500 customers',
@@ -45,7 +45,7 @@ const PLANS: PlanTier[] = [
     icon: <Sparkles className="h-5 w-5" />,
     price: {
       ZAR: { amount: 499, label: 'R499' },
-      USD: { amount: 39, label: '$39' },
+      USD: { amount: 29, label: '$29' },
     },
     badge: 'Most Popular',
     highlighted: true,
@@ -62,7 +62,7 @@ const PLANS: PlanTier[] = [
     icon: <Building2 className="h-5 w-5" />,
     price: {
       ZAR: { amount: 999, label: 'From R999' },
-      USD: { amount: 79, label: 'From $79' },
+      USD: { amount: 59, label: 'From $59' },
     },
     users: 'Unlimited users',
     customers: 'Unlimited customers',
