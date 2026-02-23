@@ -1,25 +1,92 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CreditCard, Package, Receipt, AlertCircle, CheckCircle2, Crown } from 'lucide-react';
+import { CreditCard, Receipt, AlertCircle, CheckCircle2, Crown, Sparkles, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 
+type Currency = 'ZAR' | 'USD';
+
+interface PlanTier {
+  name: string;
+  icon: React.ReactNode;
+  price: Record<Currency, { amount: number; label: string }>;
+  badge?: string;
+  features: string[];
+  highlighted?: boolean;
+  cta: string;
+  users: string;
+  customers: string;
+  storage: string;
+  webhooks: string;
+  support: string;
+}
+
+const PLANS: PlanTier[] = [
+  {
+    name: 'Solo',
+    icon: <Crown className="h-5 w-5" />,
+    price: {
+      ZAR: { amount: 99, label: 'R99' },
+      USD: { amount: 9, label: '$9' },
+    },
+    users: '1 user',
+    customers: '500 customers',
+    storage: '2 GB storage',
+    webhooks: '3 API webhooks',
+    support: 'Email support',
+    features: ['Basic automations', 'Standard reports', 'Mobile access'],
+    cta: 'Get Started',
+  },
+  {
+    name: 'Team',
+    icon: <Sparkles className="h-5 w-5" />,
+    price: {
+      ZAR: { amount: 249, label: 'R249' },
+      USD: { amount: 19, label: '$19' },
+    },
+    badge: 'Most Popular',
+    highlighted: true,
+    users: 'Up to 10 users',
+    customers: '2,000 customers',
+    storage: '10 GB storage',
+    webhooks: '10 API webhooks',
+    support: 'Priority support',
+    features: ['Advanced automations', 'Team collaboration', 'Analytics dashboard'],
+    cta: 'Upgrade to Team',
+  },
+  {
+    name: 'Enterprise',
+    icon: <Building2 className="h-5 w-5" />,
+    price: {
+      ZAR: { amount: 999, label: 'From R999' },
+      USD: { amount: 79, label: 'From $79' },
+    },
+    users: 'Unlimited users',
+    customers: 'Unlimited customers',
+    storage: '50 GB+ storage',
+    webhooks: 'Unlimited webhooks',
+    support: 'Dedicated support',
+    features: ['Full automation suite', 'Custom integrations', 'SLA guarantee'],
+    cta: 'Contact Sales',
+  },
+];
+
+const detectCurrency = (): Currency => {
+  try {
+    const locale = Intl.DateTimeFormat().resolvedOptions().locale || '';
+    if (locale.toLowerCase().includes('za')) return 'ZAR';
+  } catch {
+    // fallback
+  }
+  return 'USD';
+};
+
 const BillingSettings = () => {
-  // Mock data - would come from Stripe/billing integration
-  const currentPlan = {
-    name: 'Professional',
-    price: 49,
-    interval: 'month',
-    features: ['Unlimited customers', '5 team members', 'Priority support', 'API access'],
-    usage: {
-      customers: { used: 127, limit: 'Unlimited' },
-      team: { used: 3, limit: 5 },
-      storage: { used: 2.4, limit: 10, unit: 'GB' },
-    }
-  };
+  const currency = useMemo(detectCurrency, []);
+  const currentPlanName = 'Solo'; // Mock — would come from billing integration
 
   const paymentMethod = {
     type: 'Visa',
@@ -28,75 +95,91 @@ const BillingSettings = () => {
   };
 
   const invoices = [
-    { id: 'INV-001', date: '2024-01-01', amount: 49.00, status: 'paid' },
-    { id: 'INV-002', date: '2023-12-01', amount: 49.00, status: 'paid' },
-    { id: 'INV-003', date: '2023-11-01', amount: 49.00, status: 'paid' },
+    { id: 'INV-001', date: '2024-01-01', amount: 99.0, status: 'paid' },
+    { id: 'INV-002', date: '2023-12-01', amount: 99.0, status: 'paid' },
+    { id: 'INV-003', date: '2023-11-01', amount: 99.0, status: 'paid' },
   ];
 
+  const formatAmount = (amount: number) =>
+    currency === 'ZAR' ? `R${amount.toFixed(2)}` : `$${amount.toFixed(2)}`;
+
   return (
-    <div className="space-y-6">
-      {/* Current Plan */}
-      <Card className="border-quikle-primary/20 bg-gradient-to-br from-quikle-primary/5 to-quikle-secondary/5">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Crown className="h-5 w-5 text-quikle-primary" />
-              <CardTitle>Current Plan</CardTitle>
-            </div>
-            <Badge className="bg-quikle-primary text-white">
-              {currentPlan.name}
-            </Badge>
-          </div>
-          <CardDescription>
-            Your subscription renews on January 15, 2024
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-bold text-quikle-charcoal">${currentPlan.price}</span>
-            <span className="text-quikle-slate/70">/{currentPlan.interval}</span>
-          </div>
+    <div className="space-y-8">
+      {/* Plans Header */}
+      <div>
+        <h2 className="text-xl font-semibold text-quikle-charcoal">Choose Your Plan</h2>
+        <p className="text-sm text-quikle-slate mt-1">
+          Simple, transparent pricing. Currency auto-detected as <Badge variant="outline" className="ml-1 text-xs">{currency}</Badge>
+        </p>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {currentPlan.features.map((feature, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span>{feature}</span>
+      {/* Pricing Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {PLANS.map((plan) => {
+          const isCurrent = plan.name === currentPlanName;
+          const priceInfo = plan.price[currency];
+          const allFeatures = [plan.users, plan.customers, plan.storage, plan.webhooks, plan.support, ...plan.features];
+
+          return (
+            <Card
+              key={plan.name}
+              className={`relative flex flex-col transition-all duration-300 ${
+                plan.highlighted
+                  ? 'border-quikle-primary/40 shadow-luxury ring-1 ring-quikle-primary/20 scale-[1.02]'
+                  : ''
+              } ${isCurrent ? 'border-green-400/50 ring-1 ring-green-400/30' : ''}`}
+            >
+              {/* Badges */}
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex gap-2">
+                {plan.badge && (
+                  <Badge className="bg-quikle-primary text-white shadow-md text-xs px-3">
+                    {plan.badge}
+                  </Badge>
+                )}
+                {isCurrent && (
+                  <Badge className="bg-green-600 text-white shadow-md text-xs px-3">
+                    Current Plan
+                  </Badge>
+                )}
               </div>
-            ))}
-          </div>
 
-          <Separator />
-
-          {/* Usage */}
-          <div className="space-y-4">
-            <h4 className="font-medium text-quikle-charcoal">Current Usage</h4>
-            
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Team Members</span>
-                  <span>{currentPlan.usage.team.used} / {currentPlan.usage.team.limit}</span>
+              <CardHeader className="text-center pt-8 pb-4 border-b-0">
+                <div className="mx-auto mb-2 p-2.5 rounded-xl bg-quikle-platinum text-quikle-primary w-fit">
+                  {plan.icon}
                 </div>
-                <Progress value={(currentPlan.usage.team.used / currentPlan.usage.team.limit) * 100} className="h-2" />
-              </div>
-
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Storage</span>
-                  <span>{currentPlan.usage.storage.used} / {currentPlan.usage.storage.limit} {currentPlan.usage.storage.unit}</span>
+                <CardTitle className="text-lg">{plan.name}</CardTitle>
+                <div className="mt-3">
+                  <span className="text-3xl font-bold text-quikle-charcoal">{priceInfo.label}</span>
+                  <span className="text-sm text-quikle-slate/70">/mo</span>
                 </div>
-                <Progress value={(currentPlan.usage.storage.used / currentPlan.usage.storage.limit) * 100} className="h-2" />
-              </div>
-            </div>
-          </div>
+              </CardHeader>
 
-          <div className="flex gap-3">
-            <Button>Upgrade Plan</Button>
-            <Button variant="outline">Compare Plans</Button>
-          </div>
-        </CardContent>
-      </Card>
+              <CardContent className="flex-1 flex flex-col pt-4">
+                <ul className="space-y-2.5 flex-1">
+                  {allFeatures.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <CheckCircle2 className={`h-4 w-4 mt-0.5 flex-shrink-0 ${i < 5 ? 'text-green-500' : 'text-quikle-slate/50'}`} />
+                      <span className={i < 5 ? 'font-medium text-quikle-charcoal' : 'text-quikle-slate'}>
+                        {feature}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  className="w-full mt-6"
+                  variant={isCurrent ? 'outline' : plan.highlighted ? 'default' : 'secondary'}
+                  disabled={isCurrent}
+                >
+                  {isCurrent ? 'Current Plan' : plan.cta}
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <Separator />
 
       {/* Payment Method */}
       <Card>
@@ -105,9 +188,7 @@ const BillingSettings = () => {
             <CreditCard className="h-5 w-5 text-quikle-primary" />
             Payment Method
           </CardTitle>
-          <CardDescription>
-            Manage your payment methods and billing address
-          </CardDescription>
+          <CardDescription>Manage your payment methods</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between p-4 bg-quikle-crystal/30 rounded-lg">
@@ -135,15 +216,13 @@ const BillingSettings = () => {
             <Receipt className="h-5 w-5 text-quikle-primary" />
             Billing History
           </CardTitle>
-          <CardDescription>
-            View and download past invoices
-          </CardDescription>
+          <CardDescription>View and download past invoices</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             {invoices.map((invoice) => (
-              <div 
-                key={invoice.id} 
+              <div
+                key={invoice.id}
                 className="flex items-center justify-between p-3 hover:bg-quikle-crystal/30 rounded-lg transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -154,7 +233,7 @@ const BillingSettings = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="font-medium">${invoice.amount.toFixed(2)}</span>
+                  <span className="font-medium">{formatAmount(invoice.amount)}</span>
                   <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                     {invoice.status}
                   </Badge>
@@ -166,16 +245,14 @@ const BillingSettings = () => {
         </CardContent>
       </Card>
 
-      {/* Danger Zone */}
+      {/* Cancel */}
       <Card className="border-red-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-600">
             <AlertCircle className="h-5 w-5" />
             Cancel Subscription
           </CardTitle>
-          <CardDescription>
-            Cancel your subscription and downgrade to the free plan
-          </CardDescription>
+          <CardDescription>Cancel your subscription and downgrade to free</CardDescription>
         </CardHeader>
         <CardContent>
           <Button variant="destructive">Cancel Subscription</Button>
