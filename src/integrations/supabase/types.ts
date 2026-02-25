@@ -2857,6 +2857,33 @@ export type Database = {
           },
         ]
       }
+      subscription_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          paystack_reference: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          paystack_reference?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          paystack_reference?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       template_fields: {
         Row: {
           created_at: string | null
@@ -3210,6 +3237,66 @@ export type Database = {
           granted_by?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string | null
+          currency: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          paystack_authorization_code: string | null
+          paystack_customer_code: string | null
+          paystack_plan_code: string | null
+          paystack_reference: string | null
+          paystack_subscription_code: string | null
+          plan_amount: number
+          plan_name: string
+          status: string
+          trial_ends_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string | null
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          paystack_authorization_code?: string | null
+          paystack_customer_code?: string | null
+          paystack_plan_code?: string | null
+          paystack_reference?: string | null
+          paystack_subscription_code?: string | null
+          plan_amount?: number
+          plan_name?: string
+          status?: string
+          trial_ends_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string | null
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          paystack_authorization_code?: string | null
+          paystack_customer_code?: string | null
+          paystack_plan_code?: string | null
+          paystack_reference?: string | null
+          paystack_subscription_code?: string | null
+          plan_amount?: number
+          plan_name?: string
+          status?: string
+          trial_ends_at?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
