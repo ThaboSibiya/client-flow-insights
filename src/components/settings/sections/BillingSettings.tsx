@@ -1,11 +1,12 @@
-
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CreditCard, Receipt, AlertCircle, CheckCircle2, Crown, Sparkles, Building2 } from 'lucide-react';
+import { CreditCard, Receipt, AlertCircle, Crown, Sparkles, Building2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { useSubscription } from '@/hooks/useSubscription';
+import PlanCard from '@/components/billing/PlanCard';
+import PaymentVerification from '@/components/billing/PaymentVerification';
 
 type Currency = 'ZAR' | 'USD';
 
@@ -76,7 +77,6 @@ const PLANS: PlanTier[] = [
 
 const detectCurrency = (): Currency => {
   try {
-    // Check multiple signals for South African locale
     const sources = [
       Intl.DateTimeFormat().resolvedOptions().locale,
       navigator.language,
@@ -88,7 +88,6 @@ const detectCurrency = (): Currency => {
     );
     if (isSouthAfrican) return 'ZAR';
 
-    // Fallback: check timezone
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
     if (timezone.toLowerCase().includes('johannesburg') || timezone.toLowerCase().includes('africa/johannesburg')) {
       return 'ZAR';
@@ -101,178 +100,142 @@ const detectCurrency = (): Currency => {
 
 const BillingSettings = () => {
   const currency = useMemo(detectCurrency, []);
-  const currentPlanName = 'Solo'; // Mock — would come from billing integration
+  const {
+    subscription,
+    isLoading,
+    currentPlan,
+    isActive,
+    isPastDue,
+    initializePayment,
+  } = useSubscription();
 
-  const paymentMethod = {
-    type: 'Visa',
-    last4: '4242',
-    expiry: '12/25',
+  const handleSelectPlan = (plan: PlanTier) => {
+    if (plan.name === 'Enterprise') {
+      window.open('mailto:sales@quikle.com?subject=Enterprise Plan Inquiry', '_blank');
+      return;
+    }
+
+    const priceInfo = plan.price[currency];
+    initializePayment.mutate({
+      planName: plan.name,
+      amount: priceInfo.amount,
+      currency,
+    });
   };
-
-  const invoices = [
-    { id: 'INV-001', date: '2024-01-01', amount: 99.0, status: 'paid' },
-    { id: 'INV-002', date: '2023-12-01', amount: 99.0, status: 'paid' },
-    { id: 'INV-003', date: '2023-11-01', amount: 99.0, status: 'paid' },
-  ];
-
-  const formatAmount = (amount: number) =>
-    currency === 'ZAR' ? `R${amount.toFixed(2)}` : `$${amount.toFixed(2)}`;
 
   return (
     <div className="space-y-8">
+      {/* Payment Verification Banner */}
+      <PaymentVerification />
+
+      {/* Current Status */}
+      {isActive && subscription && (
+        <Card className="border-green-300/50 bg-green-50/30">
+          <CardContent className="p-4 flex items-center gap-3">
+            <Shield className="h-5 w-5 text-green-600" />
+            <div>
+              <p className="font-medium text-green-800">
+                Active {subscription.plan_name} Plan
+              </p>
+              <p className="text-sm text-green-600">
+                {subscription.current_period_end
+                  ? `Renews ${new Date(subscription.current_period_end).toLocaleDateString()}`
+                  : 'Subscription active'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isPastDue && (
+        <Card className="border-orange-300/50 bg-orange-50/30">
+          <CardContent className="p-4 flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-orange-600" />
+            <div>
+              <p className="font-medium text-orange-800">Payment Past Due</p>
+              <p className="text-sm text-orange-600">
+                Please update your payment method to avoid service interruption.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Plans Header */}
       <div>
         <h2 className="text-xl font-semibold text-quikle-charcoal">Choose Your Plan</h2>
         <p className="text-sm text-quikle-slate mt-1">
-          Simple, transparent pricing. Currency auto-detected as <Badge variant="outline" className="ml-1 text-xs">{currency}</Badge>
+          Simple, transparent pricing. Currency auto-detected as{' '}
+          <Badge variant="outline" className="ml-1 text-xs">{currency}</Badge>
         </p>
       </div>
 
       {/* Pricing Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {PLANS.map((plan) => {
-          const isCurrent = plan.name === currentPlanName;
+          const isCurrent = plan.name === currentPlan && isActive;
           const priceInfo = plan.price[currency];
-          const allFeatures = [plan.users, plan.customers, plan.storage, plan.webhooks, plan.support, ...plan.features];
+          const allFeatures = [
+            plan.users, plan.customers, plan.storage,
+            plan.webhooks, plan.support, ...plan.features,
+          ];
 
           return (
-            <Card
+            <PlanCard
               key={plan.name}
-              className={`relative flex flex-col transition-all duration-300 ${
-                plan.highlighted
-                  ? 'border-quikle-primary/40 shadow-luxury ring-1 ring-quikle-primary/20 scale-[1.02]'
-                  : ''
-              } ${isCurrent ? 'border-green-400/50 ring-1 ring-green-400/30' : ''}`}
-            >
-              {/* Badges */}
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex gap-2">
-                {plan.badge && (
-                  <Badge className="bg-quikle-primary text-white shadow-md text-xs px-3">
-                    {plan.badge}
-                  </Badge>
-                )}
-                {isCurrent && (
-                  <Badge className="bg-green-600 text-white shadow-md text-xs px-3">
-                    Current Plan
-                  </Badge>
-                )}
-              </div>
-
-              <CardHeader className="text-center pt-8 pb-4 border-b-0">
-                <div className="mx-auto mb-2 p-2.5 rounded-xl bg-quikle-platinum text-quikle-primary w-fit">
-                  {plan.icon}
-                </div>
-                <CardTitle className="text-lg">{plan.name}</CardTitle>
-                <div className="mt-3">
-                  <span className="text-3xl font-bold text-quikle-charcoal">{priceInfo.label}</span>
-                  <span className="text-sm text-quikle-slate/70">/mo</span>
-                </div>
-              </CardHeader>
-
-              <CardContent className="flex-1 flex flex-col pt-4">
-                <ul className="space-y-2.5 flex-1">
-                  {allFeatures.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <CheckCircle2 className={`h-4 w-4 mt-0.5 flex-shrink-0 ${i < 5 ? 'text-green-500' : 'text-quikle-slate/50'}`} />
-                      <span className={i < 5 ? 'font-medium text-quikle-charcoal' : 'text-quikle-slate'}>
-                        {feature}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  className="w-full mt-6"
-                  variant={isCurrent ? 'outline' : plan.highlighted ? 'default' : 'secondary'}
-                  disabled={isCurrent}
-                >
-                  {isCurrent ? 'Current Plan' : plan.cta}
-                </Button>
-              </CardContent>
-            </Card>
+              name={plan.name}
+              icon={plan.icon}
+              priceLabel={priceInfo.label}
+              priceAmount={priceInfo.amount}
+              currency={currency}
+              badge={plan.badge}
+              highlighted={plan.highlighted}
+              isCurrent={isCurrent}
+              isLoading={initializePayment.isPending}
+              features={allFeatures}
+              cta={plan.cta}
+              onSelect={() => handleSelectPlan(plan)}
+            />
           );
         })}
       </div>
 
       <Separator />
 
-      {/* Payment Method */}
+      {/* Secure Payment Notice */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-quikle-primary" />
-            Payment Method
-          </CardTitle>
-          <CardDescription>Manage your payment methods</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between p-4 bg-quikle-crystal/30 rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white rounded-lg shadow-sm">
-                <CreditCard className="h-5 w-5 text-quikle-primary" />
-              </div>
-              <div>
-                <p className="font-medium">{paymentMethod.type} ending in {paymentMethod.last4}</p>
-                <p className="text-sm text-quikle-slate/70">Expires {paymentMethod.expiry}</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">Edit</Button>
-              <Button variant="outline" size="sm">Add New</Button>
-            </div>
+        <CardContent className="p-4 flex items-center gap-3">
+          <Shield className="h-5 w-5 text-quikle-primary" />
+          <div>
+            <p className="font-medium text-sm">Secure Payments by Paystack</p>
+            <p className="text-xs text-quikle-slate">
+              All payments are processed securely through Paystack. Your card details are never stored on our servers.
+            </p>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Billing History */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Receipt className="h-5 w-5 text-quikle-primary" />
-            Billing History
-          </CardTitle>
-          <CardDescription>View and download past invoices</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {invoices.map((invoice) => (
-              <div
-                key={invoice.id}
-                className="flex items-center justify-between p-3 hover:bg-quikle-crystal/30 rounded-lg transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <Receipt className="h-4 w-4 text-quikle-slate/60" />
-                  <div>
-                    <p className="font-medium text-sm">{invoice.id}</p>
-                    <p className="text-xs text-quikle-slate/70">{invoice.date}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="font-medium">{formatAmount(invoice.amount)}</span>
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    {invoice.status}
-                  </Badge>
-                  <Button variant="ghost" size="sm">Download</Button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <img 
+            src="https://paystack.com/assets/img/logos/paystack-logo.svg" 
+            alt="Paystack" 
+            className="h-6 ml-auto opacity-60"
+            loading="lazy"
+          />
         </CardContent>
       </Card>
 
       {/* Cancel */}
-      <Card className="border-red-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-600">
-            <AlertCircle className="h-5 w-5" />
-            Cancel Subscription
-          </CardTitle>
-          <CardDescription>Cancel your subscription and downgrade to free</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button variant="destructive">Cancel Subscription</Button>
-        </CardContent>
-      </Card>
+      {isActive && (
+        <Card className="border-red-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+              Cancel Subscription
+            </CardTitle>
+            <CardDescription>Cancel your subscription and downgrade to free</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="destructive">Cancel Subscription</Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
