@@ -69,18 +69,20 @@ export const useSubscription = () => {
 
   const verifyPayment = useMutation({
     mutationFn: async (reference: string) => {
-      // Verify via Paystack API through edge function
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      // Poll subscription status
-      const { data } = await supabase
-        .from('user_subscriptions')
-        .select('*')
-        .eq('paystack_reference', reference)
-        .maybeSingle();
+      // Verify payment server-side via Paystack API
+      const response = await supabase.functions.invoke('paystack-verify', {
+        body: { reference },
+      });
 
-      return data;
+      if (response.error) throw new Error(response.error.message);
+      if (!response.data?.verified) {
+        throw new Error(response.data?.message || 'Payment verification failed');
+      }
+
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-subscription'] });
