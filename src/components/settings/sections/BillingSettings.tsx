@@ -107,6 +107,7 @@ const BillingSettings = () => {
     isActive,
     isPastDue,
     initializePayment,
+    cancelSubscription,
   } = useSubscription();
 
   const handleSelectPlan = (plan: PlanTier) => {
@@ -232,7 +233,17 @@ const BillingSettings = () => {
             <CardDescription>Cancel your subscription and downgrade to free</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="destructive">Cancel Subscription</Button>
+            <Button
+              variant="destructive"
+              disabled={cancelSubscription.isPending}
+              onClick={() => {
+                if (window.confirm('Are you sure you want to cancel your subscription? You will lose access to premium features.')) {
+                  cancelSubscription.mutate();
+                }
+              }}
+            >
+              {cancelSubscription.isPending ? 'Cancelling...' : 'Cancel Subscription'}
+            </Button>
           </CardContent>
         </Card>
       )}
