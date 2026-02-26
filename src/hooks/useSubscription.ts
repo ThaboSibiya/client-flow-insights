@@ -90,6 +90,38 @@ export const useSubscription = () => {
     },
   });
 
+  const cancelSubscription = useMutation({
+    mutationFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await supabase.functions.invoke('paystack-cancel', {
+        body: {},
+      });
+
+      if (response.error) throw new Error(response.error.message);
+      if (!response.data?.cancelled) {
+        throw new Error(response.data?.error || 'Cancellation failed');
+      }
+
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-subscription'] });
+      toast({
+        title: 'Subscription Cancelled',
+        description: 'Your subscription has been cancelled successfully.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Cancellation Error',
+        description: error.message || 'Failed to cancel subscription',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const currentPlan = subscription?.plan_name || 'free';
   const isActive = subscription?.status === 'active' || subscription?.status === 'trialing';
   const isPastDue = subscription?.status === 'past_due';
@@ -102,6 +134,7 @@ export const useSubscription = () => {
     isPastDue,
     initializePayment,
     verifyPayment,
+    cancelSubscription,
     paystackPublicKey: PAYSTACK_PUBLIC_KEY,
   };
 };
