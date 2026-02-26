@@ -39,7 +39,8 @@ export const useSubscription = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      const callbackUrl = `${window.location.origin}/settings/billing?payment=success`;
+      // Use a clean callback URL — Paystack appends ?trxref=xxx&reference=xxx
+      const callbackUrl = `${window.location.origin}/settings/billing`;
 
       const response = await supabase.functions.invoke('paystack-initialize', {
         body: {

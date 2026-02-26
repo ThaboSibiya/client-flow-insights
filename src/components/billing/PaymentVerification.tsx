@@ -11,11 +11,11 @@ const PaymentVerification: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { verifyPayment } = useSubscription();
 
-  const paymentStatus = searchParams.get('payment');
+  // Paystack appends ?trxref=xxx&reference=xxx to callback URL
   const reference = searchParams.get('reference') || searchParams.get('trxref');
 
   useEffect(() => {
-    if (paymentStatus === 'success' && reference && !verifying && !verified && !error) {
+    if (reference && !verifying && !verified && !error) {
       setVerifying(true);
       setError(null);
       verifyPayment.mutateAsync(reference).then(() => {
@@ -29,9 +29,9 @@ const PaymentVerification: React.FC = () => {
         setError(err.message || 'Verification failed. Please contact support.');
       });
     }
-  }, [paymentStatus, reference]);
+  }, [reference]);
 
-  if (!paymentStatus) return null;
+  if (!reference && !verifying && !verified && !error) return null;
 
   if (verifying) {
     return (
