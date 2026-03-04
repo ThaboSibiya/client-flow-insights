@@ -145,7 +145,7 @@ const Documentation = () => {
           <CardTitle className="text-quikle-charcoal">Quick Access Links</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-3 gap-4">
             <div className="p-4 bg-quikle-crystal rounded-lg">
               <h4 className="font-medium text-quikle-charcoal mb-2">Need Help?</h4>
               <p className="text-sm text-quikle-neutral">
@@ -157,6 +157,15 @@ const Documentation = () => {
               <p className="text-sm text-quikle-neutral">
                 For additional support, contact your system administrator or support team.
               </p>
+            </div>
+            <div className="p-4 bg-quikle-crystal rounded-lg">
+              <h4 className="font-medium text-quikle-charcoal mb-2">Cancellation Policy</h4>
+              <p className="text-sm text-quikle-neutral">
+                Review our subscription cancellation and data retention policy before making changes.
+              </p>
+              <a href="/cancellation-policy" className="text-sm text-quikle-primary hover:underline mt-1 inline-block">
+                Read cancellation policy →
+              </a>
             </div>
           </div>
         </CardContent>
