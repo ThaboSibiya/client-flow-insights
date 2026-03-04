@@ -224,10 +224,12 @@ const BillingSettings = () => {
         </CardContent>
       </Card>
 
-      {/* Cancellation Policy & Cancel */}
+      {/* Cancellation Policy Summary — always visible */}
+      <CancellationPolicySummary />
+
+      {/* Cancel Subscription — only for active subscribers */}
       {isActive && (
         <>
-          <CancellationPolicySummary />
           <Card className="border-destructive/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-destructive">
