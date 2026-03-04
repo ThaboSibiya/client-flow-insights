@@ -7,6 +7,8 @@ import { Separator } from '@/components/ui/separator';
 import { useSubscription } from '@/hooks/useSubscription';
 import PlanCard from '@/components/billing/PlanCard';
 import PaymentVerification from '@/components/billing/PaymentVerification';
+import CancellationPolicySummary from '@/components/billing/CancellationPolicySummary';
+import CancelSubscriptionDialog from '@/components/billing/CancelSubscriptionDialog';
 
 type Currency = 'ZAR' | 'USD';
 
@@ -222,30 +224,26 @@ const BillingSettings = () => {
         </CardContent>
       </Card>
 
-      {/* Cancel */}
+      {/* Cancellation Policy & Cancel */}
       {isActive && (
-        <Card className="border-red-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="h-5 w-5" />
-              Cancel Subscription
-            </CardTitle>
-            <CardDescription>Cancel your subscription and downgrade to free</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="destructive"
-              disabled={cancelSubscription.isPending}
-              onClick={() => {
-                if (window.confirm('Are you sure you want to cancel your subscription? You will lose access to premium features.')) {
-                  cancelSubscription.mutate();
-                }
-              }}
-            >
-              {cancelSubscription.isPending ? 'Cancelling...' : 'Cancel Subscription'}
-            </Button>
-          </CardContent>
-        </Card>
+        <>
+          <CancellationPolicySummary />
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <AlertCircle className="h-5 w-5" />
+                Cancel Subscription
+              </CardTitle>
+              <CardDescription>Cancel your subscription and downgrade to free</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CancelSubscriptionDialog
+                isPending={cancelSubscription.isPending}
+                onConfirm={() => cancelSubscription.mutate()}
+              />
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );

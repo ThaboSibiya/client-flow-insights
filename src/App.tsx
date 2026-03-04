@@ -34,6 +34,7 @@ import NotificationHistory from "./pages/NotificationHistory";
 import AdminProtectedRoute from "./components/auth/AdminProtectedRoute";
 import OwnerProtectedRoute from "./components/auth/OwnerProtectedRoute";
 import Settings from "./pages/Settings";
+import CancellationPolicy from "./pages/CancellationPolicy";
 
 // Settings sections
 import GeneralSettings from "./components/settings/sections/GeneralSettings";
@@ -150,6 +151,11 @@ const App = () => (
                         <Route path="documentation" element={
                           <ErrorBoundary>
                             <Documentation />
+                          </ErrorBoundary>
+                        } />
+                        <Route path="cancellation-policy" element={
+                          <ErrorBoundary>
+                            <CancellationPolicy />
                           </ErrorBoundary>
                         } />
                         <Route path="audit-log" element={
