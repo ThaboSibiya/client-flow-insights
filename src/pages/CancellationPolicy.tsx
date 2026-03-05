@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -78,6 +79,7 @@ const POLICY_SECTIONS = [
       'Quikle reserves the right to update this policy at any time. Users will be notified of material changes via email or in-app notification.',
       'Continued use of the service after changes constitutes acceptance of the revised policy.',
       'This policy is governed by the laws of the Republic of South Africa.',
+      'For the full agreement, please review the Terms of Service.',
     ],
   },
 ];
@@ -155,6 +157,9 @@ const CancellationPolicy = () => {
               </a>{' '}
               or reach out through the in-app Help button for assistance.
             </p>
+            <Link to="/terms-of-service" className="text-xs text-primary hover:underline mt-1 inline-block">
+              View full Terms of Service →
+            </Link>
           </div>
         </CardContent>
       </Card>

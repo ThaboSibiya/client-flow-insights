@@ -153,10 +153,13 @@ const Documentation = () => {
               </p>
             </div>
             <div className="p-4 bg-quikle-crystal rounded-lg">
-              <h4 className="font-medium text-quikle-charcoal mb-2">Support Contact</h4>
+              <h4 className="font-medium text-quikle-charcoal mb-2">Terms of Service</h4>
               <p className="text-sm text-quikle-neutral">
-                For additional support, contact your system administrator or support team.
+                Review our full Terms of Service agreement governing your use of Quikle CRM.
               </p>
+              <a href="/terms-of-service" className="text-sm text-quikle-primary hover:underline mt-1 inline-block">
+                Read Terms of Service →
+              </a>
             </div>
             <div className="p-4 bg-quikle-crystal rounded-lg">
               <h4 className="font-medium text-quikle-charcoal mb-2">Cancellation Policy</h4>
