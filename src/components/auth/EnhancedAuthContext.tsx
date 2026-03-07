@@ -132,7 +132,7 @@ export const EnhancedAuthProvider = ({ children }: EnhancedAuthProviderProps) =>
   const resetPassword = async (email: string, options?: { redirectTo?: string }) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: options?.redirectTo || `${window.location.origin}/auth/reset-password`,
+        redirectTo: options?.redirectTo || `${window.location.origin}/reset-password`,
       });
 
       if (error) throw error;

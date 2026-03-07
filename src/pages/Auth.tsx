@@ -20,6 +20,17 @@ const authSchema = z.object({
   password: passwordSchema,
 });
 
+const getAuthErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error) {
+    if (error.message.toLowerCase().includes('failed to fetch')) {
+      return 'Network error: please check your connection and try again.';
+    }
+    return error.message;
+  }
+
+  return fallback;
+};
+
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -191,38 +202,37 @@ const Auth: React.FC = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       toast({
-        title: "Validation Error", 
+        title: "Validation Error",
         description: "Please fix the errors below",
         variant: "destructive",
       });
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
-      
+
       if (error) throw error;
-      
-      // Successfully signed in, navigation is handled by the auth state change listener
+
       toast({
         title: "Welcome back!",
         description: "You have been successfully signed in",
       });
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
       toast({
         title: "Sign in failed",
-        description: errorMessage,
+        description: getAuthErrorMessage(error, 'Failed to sign in'),
         variant: "destructive",
       });
+    } finally {
       setLoading(false);
     }
   };
@@ -230,24 +240,27 @@ const Auth: React.FC = () => {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
+      const sanitizedEmail = email.trim().toLowerCase();
+      emailSchema.parse(sanitizedEmail);
+
+      const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
-      
+
       if (error) throw error;
-      
+
       toast({
         title: "Password reset email sent",
-        description: "Check your email for the password reset link",
+        description: "Check your inbox and spam folder for the reset link.",
       });
-      
+
       setActiveTab('login');
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to send reset email",
+        title: "Reset request failed",
+        description: getAuthErrorMessage(error, 'Failed to send reset email'),
         variant: "destructive",
       });
     } finally {
@@ -269,7 +282,7 @@ const Auth: React.FC = () => {
             <CardDescription className="text-center">Sign in to your account or create a new one</CardDescription>
           </CardHeader>
           
-          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-3 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
               <TabsTrigger value="login" className="flex-1 md:flex-initial">Login</TabsTrigger>
               <TabsTrigger value="register" className="flex-1 md:flex-initial">Register</TabsTrigger>
