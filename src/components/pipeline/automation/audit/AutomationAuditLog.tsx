@@ -170,7 +170,7 @@ const AutomationAuditLog: React.FC<AutomationAuditLogProps> = ({ automationId })
                     </div>
                     <div className="text-right text-xs text-muted-foreground">
                       <p>User: {log.user_id}</p>
-                      {log.ip_address && <p>IP: {log.ip_address}</p>}
+                      {log.user_agent && <p>Agent: {log.user_agent.substring(0, 30)}...</p>}
                     </div>
                   </div>
                 </CardContent>

@@ -148,16 +148,21 @@ const TicketAttachments = ({ ticketId }: TicketAttachmentsProps) => {
                 </div>
               </div>
               <div className="flex gap-1 ml-2">
-                <a
-                  href={getAttachmentUrl(attachment.file_path)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
+                  onClick={async () => {
+                    try {
+                      const url = await getAttachmentUrl(attachment.file_path);
+                      window.open(url, '_blank', 'noopener,noreferrer');
+                    } catch {
+                      toast({ title: 'Error', description: 'Failed to get download link', variant: 'destructive' });
+                    }
+                  }}
                 >
-                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                    <Download className="h-3 w-3" />
-                  </Button>
-                </a>
+                  <Download className="h-3 w-3" />
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
