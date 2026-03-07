@@ -15,14 +15,21 @@ export const sanitizeInput = (input: string, maxLength: number = 1000): string =
   return sanitized.trim().substring(0, maxLength);
 };
 
-// HTML content sanitization for display
+// HTML content sanitization for display - hardened against phishing/XSS
 export const sanitizeHtmlContent = (html: string): string => {
   if (!html) return '';
+
+  // Reject oversized content
+  if (html.length > 500000) {
+    return '<p>Email content too large to display safely.</p>';
+  }
   
   return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li'],
-    ALLOWED_ATTR: ['href', 'target'],
-    ALLOW_DATA_ATTR: false
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'span', 'blockquote', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div'],
+    ALLOWED_ATTR: ['class'],
+    ALLOW_DATA_ATTR: false,
+    FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed', 'form', 'input', 'textarea', 'select', 'button', 'a'],
+    FORBID_ATTR: ['style', 'onclick', 'onerror', 'onload', 'onmouseover', 'onfocus', 'href', 'target', 'src', 'action']
   });
 };
 
@@ -57,41 +64,16 @@ export const validateCSRFToken = (token: string, sessionToken: string): boolean 
   return token === sessionToken && token.length === 64;
 };
 
-// DEPRECATED: Use server-side rate limiting instead
-// This client-side rate limiting is insecure and should not be used for security purposes
+// REMOVED: Client-side rate limiting was insecure.
+// Use server-side rate limiting with the useSecureRateLimit hook instead.
+// This stub exists only for backwards compatibility — always returns true.
 export const checkRateLimit = async (
-  identifier: string, 
-  resource: string, 
-  maxAttempts: number, 
-  windowMs: number
+  _identifier: string, 
+  _resource: string, 
+  _maxAttempts: number, 
+  _windowMs: number
 ): Promise<boolean> => {
-  console.warn('Client-side rate limiting is deprecated. Use server-side rate limiting with useSecureRateLimit hook.');
-  
-  const key = `rate_limit_${identifier}_${resource}`;
-  const now = Date.now();
-  
-  const stored = localStorage.getItem(key);
-  if (!stored) {
-    localStorage.setItem(key, JSON.stringify({ count: 1, firstAttempt: now }));
-    return true;
-  }
-  
-  const data = JSON.parse(stored);
-  
-  // Reset if window has expired
-  if (now - data.firstAttempt > windowMs) {
-    localStorage.setItem(key, JSON.stringify({ count: 1, firstAttempt: now }));
-    return true;
-  }
-  
-  // Check if limit exceeded
-  if (data.count >= maxAttempts) {
-    return false;
-  }
-  
-  // Increment count
-  data.count++;
-  localStorage.setItem(key, JSON.stringify(data));
+  console.warn('Client-side rate limiting is removed. Use useSecureRateLimit hook with server-side check_rate_limit RPC.');
   return true;
 };
 

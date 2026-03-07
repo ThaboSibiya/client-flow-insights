@@ -150,10 +150,11 @@ export const downloadTicketAttachment = async (attachmentId: string, userId: str
   }
 };
 
-export const getAttachmentUrl = (filePath: string) => {
-  const { data } = supabase.storage
+export const getAttachmentUrl = async (filePath: string): Promise<string> => {
+  const { data, error } = await supabase.storage
     .from('attachments')
-    .getPublicUrl(filePath);
-  
-  return data.publicUrl;
+    .createSignedUrl(filePath, 3600); // 1 hour expiry
+
+  if (error) throw error;
+  return data.signedUrl;
 };

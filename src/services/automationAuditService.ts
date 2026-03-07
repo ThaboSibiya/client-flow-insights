@@ -7,7 +7,6 @@ export interface AutomationAuditLog {
   action: 'created' | 'updated' | 'deleted' | 'executed' | 'failed';
   details: Record<string, any>;
   timestamp: string;
-  ip_address?: string;
   user_agent?: string;
 }
 
@@ -21,62 +20,50 @@ class AutomationAuditService {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const auditLog: Omit<AutomationAuditLog, 'id'> = {
-        user_id: user.id,
-        automation_id: automationId,
-        action,
-        details,
-        timestamp: new Date().toISOString(),
-        ip_address: await this.getClientIP(),
-        user_agent: navigator.userAgent
-      };
-
-      console.log('Audit Log:', auditLog);
-
-      // In a real implementation, this would be stored in a database
-      // For now, we'll log it and could send to an audit service
-      await this.storeAuditLog(auditLog);
+      // Log to server-side security_audit_logs table
+      await supabase.rpc('log_security_event', {
+        p_user_id: user.id,
+        p_action: `automation_${action}`,
+        p_resource_type: 'automation',
+        p_resource_id: automationId,
+        p_success: action !== 'failed',
+        p_metadata: {
+          ...details,
+          action,
+          timestamp: new Date().toISOString(),
+        },
+        p_user_agent: navigator.userAgent,
+      });
     } catch (error) {
       console.error('Failed to log automation action:', error);
     }
   }
 
-  private async storeAuditLog(auditLog: Omit<AutomationAuditLog, 'id'>): Promise<void> {
-    // This would typically insert into an audit_logs table
-    // For now, we'll store in localStorage for demo purposes
-    const existingLogs = JSON.parse(localStorage.getItem('automation_audit_logs') || '[]');
-    const newLog = { ...auditLog, id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` };
-    existingLogs.push(newLog);
-    
-    // Keep only last 1000 logs to prevent storage issues
-    if (existingLogs.length > 1000) {
-      existingLogs.splice(0, existingLogs.length - 1000);
-    }
-    
-    localStorage.setItem('automation_audit_logs', JSON.stringify(existingLogs));
-  }
-
-  private async getClientIP(): Promise<string | undefined> {
-    try {
-      const response = await fetch('https://api.ipify.org?format=json');
-      const data = await response.json();
-      return data.ip;
-    } catch {
-      return undefined;
-    }
-  }
-
   async getAuditLogs(automationId?: string): Promise<AutomationAuditLog[]> {
     try {
-      const logs = JSON.parse(localStorage.getItem('automation_audit_logs') || '[]');
-      
+      let query = supabase
+        .from('security_audit_logs')
+        .select('*')
+        .eq('resource_type', 'automation')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
       if (automationId) {
-        return logs.filter((log: AutomationAuditLog) => log.automation_id === automationId);
+        query = query.eq('resource_id', automationId);
       }
-      
-      return logs.sort((a: AutomationAuditLog, b: AutomationAuditLog) => 
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      );
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return (data || []).map((log: any) => ({
+        id: log.id,
+        user_id: log.user_id,
+        automation_id: log.resource_id || '',
+        action: (log.metadata?.action || log.action?.replace('automation_', '')) as AutomationAuditLog['action'],
+        details: log.metadata || {},
+        timestamp: log.created_at,
+        user_agent: log.user_agent,
+      }));
     } catch (error) {
       console.error('Failed to retrieve audit logs:', error);
       return [];
