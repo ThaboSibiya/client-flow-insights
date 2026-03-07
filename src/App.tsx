@@ -36,6 +36,7 @@ import OwnerProtectedRoute from "./components/auth/OwnerProtectedRoute";
 import Settings from "./pages/Settings";
 import CancellationPolicy from "./pages/CancellationPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import ResetPassword from "./pages/ResetPassword";
 
 // Settings sections
 import GeneralSettings from "./components/settings/sections/GeneralSettings";
@@ -84,7 +85,7 @@ const App = () => (
                   <ErrorBoundary>
                     <Routes>
                       <Route path="/auth" element={<Auth />} />
-                      <Route path="/employee-setup" element={<EmployeeSetup />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
                       <Route path="/" element={<ProtectedRoute element={<Layout />} />}>
                         <Route index element={<Index />} />
                         <Route path="dashboard" element={

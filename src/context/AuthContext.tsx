@@ -44,7 +44,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 
     // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: currentSession }, error }) => {
+      if (error?.message?.toLowerCase().includes('refresh token not found')) {
+        await supabase.auth.signOut({ scope: 'local' });
+      }
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       setLoading(false);
