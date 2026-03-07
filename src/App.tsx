@@ -35,6 +35,7 @@ import AdminProtectedRoute from "./components/auth/AdminProtectedRoute";
 import OwnerProtectedRoute from "./components/auth/OwnerProtectedRoute";
 import Settings from "./pages/Settings";
 import CancellationPolicy from "./pages/CancellationPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import ResetPassword from "./pages/ResetPassword";
 
 // Settings sections
