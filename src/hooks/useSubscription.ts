@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-const PAYSTACK_PUBLIC_KEY = 'pk_test_007253c55810a7ec1f53ae7212f833665e66f737';
+const PAYSTACK_PUBLIC_KEY = 'pk_live_40ca1dd56a5f2c88ff30208434d8f0934e1d107e';
 
 interface InitializePaymentParams {
   planName: string;
