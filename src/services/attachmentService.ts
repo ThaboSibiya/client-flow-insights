@@ -27,10 +27,13 @@ export const uploadAttachment = async (file: File, conversationId: string, userI
 
     if (uploadError) throw uploadError;
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    // Get signed URL (private bucket)
+    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
       .from('attachments')
-      .getPublicUrl(filePath);
+      .createSignedUrl(filePath, 3600); // 1 hour expiry
+
+    if (signedUrlError) throw signedUrlError;
+    const fileUrl = signedUrlData.signedUrl;
 
     // Log file access
     await logFileAccess(userId, filePath, 'upload');
@@ -42,7 +45,7 @@ export const uploadAttachment = async (file: File, conversationId: string, userI
       path: filePath,
       size: file.size,
       type: file.type,
-      url: publicUrl,
+      url: fileUrl,
       conversation_id: conversationId,
       uploaded_by: userId,
       created_at: new Date().toISOString()

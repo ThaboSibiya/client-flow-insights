@@ -63,13 +63,16 @@ class FinanceAuditService {
   /**
    * Get or create a session ID for tracking user sessions
    */
+  private _sessionId: string | null = null;
+
+  /**
+   * Get or create an ephemeral in-memory session ID (not persisted to storage)
+   */
   private getSessionId(): string {
-    let sessionId = sessionStorage.getItem('finance_session_id');
-    if (!sessionId) {
-      sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      sessionStorage.setItem('finance_session_id', sessionId);
+    if (!this._sessionId) {
+      this._sessionId = `session_${Date.now()}_${crypto.randomUUID()}`;
     }
-    return sessionId;
+    return this._sessionId;
   }
 
   /**

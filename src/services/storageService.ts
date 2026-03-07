@@ -72,13 +72,14 @@ export const deleteFile = async (path: string, userId: string) => {
   }
 };
 
-export const getFileUrl = async (path: string) => {
+export const getFileUrl = async (path: string): Promise<string | null> => {
   try {
-    const { data } = supabase.storage
+    const { data, error } = await supabase.storage
       .from('attachments')
-      .getPublicUrl(path)
+      .createSignedUrl(path, 3600); // 1 hour expiry
 
-    return data.publicUrl;
+    if (error) throw error;
+    return data.signedUrl;
   } catch (error) {
     console.error('Get file URL error:', error);
     return null;
