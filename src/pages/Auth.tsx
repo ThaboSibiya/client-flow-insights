@@ -275,7 +275,7 @@ const Auth: React.FC = () => {
         <div className="text-center flex flex-col items-center gap-2">
           <img src={quikleLogo} alt="Quikle Logo" className="h-12 w-12 object-contain drop-shadow-md" />
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Quikle CRM</h1>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Quikle CRM</h1>
             <p className="mt-1 text-sm text-muted-foreground">Manage your customers efficiently</p>
           </div>
         </div>
