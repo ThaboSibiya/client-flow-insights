@@ -93,9 +93,9 @@ const Index = () => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-radial from-primary/5 to-transparent rounded-full" />
       </div>
 
-      <div className="container max-w-2xl mx-auto px-4 text-center space-y-4 relative z-10">
+      <div className="container max-w-2xl mx-auto px-4 text-center space-y-6 relative z-10">
         {/* Hero Section */}
-        <div className="space-y-2 animate-fade-in">
+        <div className="space-y-3 animate-fade-in">
           {loading ? (
             <div className="space-y-3 flex flex-col items-center">
               <Skeleton className="h-10 w-72" />
@@ -103,12 +103,12 @@ const Index = () => {
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-center gap-2">
-                <img src={quikleLogo} alt="Quikle Logo" className="h-8 w-8 object-contain" />
-                <p className="text-xs font-medium text-muted-foreground tracking-widest uppercase">
-                  Welcome to Quikle
-                </p>
+              <div className="flex justify-center mb-1">
+                <img src={quikleLogo} alt="Quikle Logo" className="h-14 w-14 object-contain drop-shadow-md" />
               </div>
+              <p className="text-xs font-medium text-muted-foreground tracking-widest uppercase">
+                Welcome to Quikle
+              </p>
               
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
                 <span className="bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
