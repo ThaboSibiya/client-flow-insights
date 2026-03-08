@@ -269,14 +269,14 @@ const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-quikle-platinum">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold luxury-text">Quikle CRM</h1>
-          <p className="mt-2 text-quikle-slate">Manage your customers efficiently</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Quikle CRM</h1>
+          <p className="mt-2 text-muted-foreground">Manage your customers efficiently</p>
         </div>
         
-        <Card className="glass-effect">
+        <Card className="border-border/50 shadow-lg bg-card">
           <CardHeader>
             <CardTitle className="text-center">Welcome</CardTitle>
             <CardDescription className="text-center">Sign in to your account or create a new one</CardDescription>
@@ -308,10 +308,10 @@ const Auth: React.FC = () => {
                           }
                         }}
                         required
-                        className={`pl-10 ${validationErrors.email ? 'border-red-500' : ''}`}
+                        className={`pl-10 bg-background text-foreground border-input ${validationErrors.email ? 'border-destructive' : ''}`}
                       />
                       {validationErrors.email && (
-                        <div className="flex items-center gap-1 mt-1 text-sm text-red-600">
+                        <div className="flex items-center gap-1 mt-1 text-sm text-destructive">
                           <AlertCircle className="h-3 w-3" />
                           {validationErrors.email}
                         </div>
@@ -335,10 +335,10 @@ const Auth: React.FC = () => {
                           }
                         }}
                         required
-                        className={`pl-10 ${validationErrors.password ? 'border-red-500' : ''}`}
+                        className={`pl-10 bg-background text-foreground border-input ${validationErrors.password ? 'border-destructive' : ''}`}
                       />
                       {validationErrors.password && (
-                        <div className="flex items-center gap-1 mt-1 text-sm text-red-600">
+                        <div className="flex items-center gap-1 mt-1 text-sm text-destructive">
                           <AlertCircle className="h-3 w-3" />
                           {validationErrors.password}
                         </div>
@@ -350,7 +350,7 @@ const Auth: React.FC = () => {
                 <CardFooter className="flex flex-col space-y-2">
                   <Button 
                     type="submit" 
-                    className="w-full quikle-button-primary"
+                    className="w-full"
                     disabled={loading}
                   >
                     <LogIn className="mr-2 h-4 w-4" />
@@ -382,7 +382,7 @@ const Auth: React.FC = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="pl-10"
+                        className="pl-10 bg-background text-foreground border-input"
                       />
                     </div>
                   </div>
@@ -398,7 +398,7 @@ const Auth: React.FC = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        className="pl-10"
+                        className="pl-10 bg-background text-foreground border-input"
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">Password must be at least 6 characters</p>
@@ -408,7 +408,7 @@ const Auth: React.FC = () => {
                 <CardFooter>
                   <Button 
                     type="submit" 
-                    className="w-full quikle-button-primary"
+                    className="w-full"
                     disabled={loading}
                   >
                     <UserPlus className="mr-2 h-4 w-4" />
@@ -432,7 +432,7 @@ const Auth: React.FC = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="pl-10"
+                        className="pl-10 bg-background text-foreground border-input"
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -444,7 +444,7 @@ const Auth: React.FC = () => {
                 <CardFooter className="flex flex-col space-y-2">
                   <Button 
                     type="submit" 
-                    className="w-full quikle-button-primary"
+                    className="w-full"
                     disabled={loading}
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
