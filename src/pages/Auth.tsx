@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { Mail, Lock, UserPlus, LogIn, RefreshCw, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
+import quikleLogo from '@/assets/quikle-logo.png';
 
 // Validation schemas
 const emailSchema = z.string().email('Please enter a valid email address');
