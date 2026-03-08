@@ -408,7 +408,7 @@ const Auth: React.FC = () => {
                 <CardFooter>
                   <Button 
                     type="submit" 
-                    className="w-full quikle-button-primary"
+                    className="w-full"
                     disabled={loading}
                   >
                     <UserPlus className="mr-2 h-4 w-4" />
