@@ -1,4 +1,5 @@
 import React from 'react';
+import QuikleLogo from '@/components/brand/QuikleLogo';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
