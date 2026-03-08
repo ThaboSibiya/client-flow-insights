@@ -11,7 +11,6 @@ interface RecentActivityProps {
 }
 
 const RecentActivity = ({ customers }: RecentActivityProps) => {
-  // Get the 5 most recently updated customers
   const recentActivity = [...customers]
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
     .slice(0, 5);
@@ -19,15 +18,15 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new':
-        return 'bg-gradient-to-r from-quikle-crystal to-quikle-platinum text-quikle-primary border border-quikle-primary/30';
+        return 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30';
       case 'existing':
-        return 'bg-gradient-to-r from-emerald-100 to-emerald-50 text-emerald-800 border border-emerald-300';
+        return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30';
       case 'pending':
-        return 'bg-gradient-to-r from-quikle-crystal to-quikle-platinum text-quikle-accent border border-quikle-accent/30';
+        return 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30';
       case 'finalised':
-        return 'bg-gradient-to-r from-purple-100 to-purple-50 text-purple-800 border border-purple-300';
+        return 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30';
       default:
-        return 'bg-gradient-to-r from-quikle-crystal to-quikle-platinum text-quikle-slate border border-quikle-silver/30';
+        return 'bg-muted text-muted-foreground border border-border';
     }
   };
 
@@ -41,10 +40,10 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
   };
 
   return (
-    <Card className="shadow-md h-full bg-gradient-to-br from-white to-quikle-crystal border-quikle-silver/30">
-      <CardHeader className="pb-2 border-b border-quikle-silver/20">
-        <CardTitle className="flex items-center gap-2 text-quikle-primary">
-          <Clock className="h-5 w-5 text-quikle-accent" />
+    <Card className="shadow-md h-full">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <Clock className="h-5 w-5 text-muted-foreground" />
           Recent Activity
         </CardTitle>
       </CardHeader>
@@ -52,15 +51,15 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
         <ScrollArea className="h-[250px] pr-4">
           <div className="space-y-4">
             {recentActivity.map((customer) => (
-              <div key={customer.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-quikle-crystal/50 transition-colors">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-quikle-primary to-quikle-accent text-white flex items-center justify-center shadow-sm">
+              <div key={customer.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm text-sm font-medium">
                   {customer.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <p className="font-medium text-quikle-charcoal truncate max-w-[120px] sm:max-w-[150px] md:max-w-[180px]">
+                        <p className="font-medium text-foreground truncate max-w-[120px] sm:max-w-[150px] md:max-w-[180px]">
                           {customer.name}
                         </p>
                       </TooltipTrigger>
@@ -71,7 +70,7 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <p className="text-xs text-quikle-slate truncate max-w-[120px] sm:max-w-[150px] md:max-w-[180px]">
+                        <p className="text-xs text-muted-foreground truncate max-w-[120px] sm:max-w-[150px] md:max-w-[180px]">
                           {customer.email}
                         </p>
                       </TooltipTrigger>
@@ -80,10 +79,10 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
                   </TooltipProvider>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <span className={`text-xs px-3 py-1 rounded-full whitespace-nowrap shadow-sm ${getStatusColor(customer.status)}`}>
+                  <span className={`text-xs px-3 py-1 rounded-full whitespace-nowrap ${getStatusColor(customer.status)}`}>
                     {customer.status}
                   </span>
-                  <span className="text-xs text-quikle-slate whitespace-nowrap">
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
                     {formatDate(customer.updatedAt)}
                   </span>
                 </div>
@@ -91,7 +90,7 @@ const RecentActivity = ({ customers }: RecentActivityProps) => {
             ))}
 
             {recentActivity.length === 0 && (
-              <p className="text-center text-quikle-slate">No recent activity</p>
+              <p className="text-center text-muted-foreground">No recent activity</p>
             )}
           </div>
         </ScrollArea>
