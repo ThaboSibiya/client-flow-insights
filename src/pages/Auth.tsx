@@ -444,7 +444,7 @@ const Auth: React.FC = () => {
                 <CardFooter className="flex flex-col space-y-2">
                   <Button 
                     type="submit" 
-                    className="w-full quikle-button-primary"
+                    className="w-full"
                     disabled={loading}
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
