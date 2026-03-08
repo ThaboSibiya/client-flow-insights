@@ -19,6 +19,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 
 const BillingSettings = () => {
   const currency = useMemo(detectCurrency, []);
+  const [selectedPlan, setSelectedPlan] = React.useState<string | null>(null);
   const {
     subscription,
     isLoading,
@@ -35,12 +36,12 @@ const BillingSettings = () => {
       return;
     }
 
+    setSelectedPlan(plan.name);
     const priceInfo = plan.price[currency];
-    initializePayment.mutate({
-      planName: plan.name,
-      amount: priceInfo.amount,
-      currency,
-    });
+    initializePayment.mutate(
+      { planName: plan.name, amount: priceInfo.amount, currency },
+      { onSettled: () => setSelectedPlan(null) },
+    );
   };
 
   return (
@@ -111,7 +112,7 @@ const BillingSettings = () => {
               badge={plan.badge}
               highlighted={plan.highlighted}
               isCurrent={isCurrent}
-              isLoading={initializePayment.isPending}
+              isLoading={initializePayment.isPending && selectedPlan === plan.name}
               features={allFeatures}
               cta={plan.cta}
               onSelect={() => handleSelectPlan(plan)}

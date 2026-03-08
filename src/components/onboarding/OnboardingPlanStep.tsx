@@ -19,18 +19,19 @@ interface OnboardingPlanStepProps {
 const OnboardingPlanStep: React.FC<OnboardingPlanStepProps> = ({ onSkip }) => {
   const currency = useMemo(detectCurrency, []);
   const { initializePayment, isActive, currentPlan } = useSubscription();
+  const [selectedPlan, setSelectedPlan] = React.useState<string | null>(null);
 
   const handleSelect = (plan: PlanTier) => {
     if (plan.name === 'Enterprise') {
       window.open('mailto:sales@quikle.com?subject=Enterprise Plan Inquiry', '_blank');
       return;
     }
+    setSelectedPlan(plan.name);
     const priceInfo = plan.price[currency];
-    initializePayment.mutate({
-      planName: plan.name,
-      amount: priceInfo.amount,
-      currency,
-    });
+    initializePayment.mutate(
+      { planName: plan.name, amount: priceInfo.amount, currency },
+      { onSettled: () => setSelectedPlan(null) },
+    );
   };
 
   return (
@@ -93,10 +94,10 @@ const OnboardingPlanStep: React.FC<OnboardingPlanStepProps> = ({ onSkip }) => {
                 size="sm"
                 className="w-full text-xs"
                 variant={isCurrent ? 'outline' : plan.highlighted ? 'default' : 'secondary'}
-                disabled={isCurrent || initializePayment.isPending}
+                disabled={isCurrent || (initializePayment.isPending && selectedPlan !== null)}
                 onClick={() => handleSelect(plan)}
               >
-                {initializePayment.isPending ? (
+                {initializePayment.isPending && selectedPlan === plan.name ? (
                   <Loader2 className="h-3 w-3 animate-spin mr-1" />
                 ) : isCurrent ? (
                   'Current'

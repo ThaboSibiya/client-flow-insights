@@ -85,7 +85,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
           className="w-full mt-6"
           variant={isCurrent ? 'outline' : highlighted ? 'default' : 'secondary'}
           disabled={isCurrent || isLoading}
-          onClick={onSelect}
+          onClick={!isLoading ? onSelect : undefined}
         >
           {isLoading ? (
             <>
