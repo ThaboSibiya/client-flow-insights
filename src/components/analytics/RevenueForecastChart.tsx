@@ -11,14 +11,12 @@ const RevenueForecastChart = () => {
   const chartData = useMemo(() => {
     if (!revenueTimeSeries.length) return [];
 
-    // Use real revenue data for past months
     const pastData = revenueTimeSeries.map(item => ({
       month: item.name,
       actual: item.value,
       forecast: null as number | null,
     }));
 
-    // Simple linear forecast for next 3 months based on trend
     const values = revenueTimeSeries.map(d => d.value);
     const avgGrowth = values.length >= 2
       ? (values[values.length - 1] - values[0]) / (values.length - 1)
@@ -54,16 +52,16 @@ const RevenueForecastChart = () => {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <DollarSign className="h-4 w-4 text-primary" />
+          <DollarSign className="h-4 w-4" style={{ color: 'hsl(var(--chart-revenue))' }} />
           Revenue Forecast
         </CardTitle>
         <div className="flex gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-primary" />
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'hsl(var(--chart-revenue))' }} />
             Actual: R{totalActual.toLocaleString()}
           </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-accent" />
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'hsl(var(--chart-forecast))' }} />
             Forecast: R{totalForecast.toLocaleString()}
           </span>
         </div>
@@ -73,9 +71,13 @@ const RevenueForecastChart = () => {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData}>
               <defs>
+                <linearGradient id="revActualGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-revenue))" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-revenue))" stopOpacity={0.02} />
+                </linearGradient>
                 <linearGradient id="revForecastGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
+                  <stop offset="5%" stopColor="hsl(var(--chart-forecast))" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-forecast))" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -88,8 +90,8 @@ const RevenueForecastChart = () => {
                   name === 'actual' ? 'Actual' : 'Forecast'
                 ]}
               />
-              <Area type="monotone" dataKey="forecast" stroke="hsl(var(--accent-foreground))" strokeDasharray="5 5" fill="url(#revForecastGrad)" />
-              <Line type="monotone" dataKey="actual" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: 'hsl(var(--primary))', r: 3 }} />
+              <Area type="monotone" dataKey="forecast" stroke="hsl(var(--chart-forecast))" strokeDasharray="5 5" fill="url(#revForecastGrad)" strokeWidth={2} />
+              <Line type="monotone" dataKey="actual" stroke="hsl(var(--chart-revenue))" strokeWidth={2.5} dot={{ fill: 'hsl(var(--chart-revenue))', r: 4, strokeWidth: 2, stroke: 'hsl(var(--background))' }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>

@@ -13,8 +13,7 @@ const CustomerAcquisitionCost = () => {
 
     return customerTimeSeries.map((month, i) => {
       const revenue = revenueTimeSeries[i]?.value ?? 0;
-      // CAC = estimated spend (% of revenue) / new customers
-      const estimatedSpend = revenue * 0.25; // 25% of revenue as marketing spend estimate
+      const estimatedSpend = revenue * 0.25;
       const cac = month.value > 0 ? Math.round(estimatedSpend / month.value) : 0;
 
       return {
@@ -48,17 +47,17 @@ const CustomerAcquisitionCost = () => {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <DollarSign className="h-4 w-4 text-primary" />
+          <DollarSign className="h-4 w-4" style={{ color: 'hsl(var(--chart-cac))' }} />
           Customer Acquisition Cost
         </CardTitle>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span>Avg CAC: R{averageCAC}</span>
           {trend === 'up' ? (
-            <span className="flex items-center gap-1 text-destructive">
+            <span className="flex items-center gap-1" style={{ color: 'hsl(var(--chart-churn))' }}>
               <TrendingUp className="h-3 w-3" /> Rising
             </span>
           ) : (
-            <span className="flex items-center gap-1 text-primary">
+            <span className="flex items-center gap-1" style={{ color: 'hsl(var(--chart-existing))' }}>
               <TrendingDown className="h-3 w-3" /> Improving
             </span>
           )}
@@ -68,6 +67,12 @@ const CustomerAcquisitionCost = () => {
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={cacData}>
+              <defs>
+                <linearGradient id="cacGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--chart-cac))" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="hsl(var(--chart-cac))" stopOpacity={0.5} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
               <YAxis tickFormatter={(v) => `R${v}`} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
@@ -78,7 +83,7 @@ const CustomerAcquisitionCost = () => {
                   name === 'cac' ? 'CAC' : 'New Customers'
                 ]}
               />
-              <Bar dataKey="cac" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="cac" fill="url(#cacGrad)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -92,13 +97,13 @@ const CustomerAcquisitionCost = () => {
           </div>
           <div className="text-center">
             <p className="text-xs text-muted-foreground">New Customers</p>
-            <p className="text-sm font-bold text-foreground">
+            <p className="text-sm font-bold" style={{ color: 'hsl(var(--chart-new))' }}>
               {cacData.reduce((sum, d) => sum + d.newCustomers, 0)}
             </p>
           </div>
           <div className="text-center">
             <p className="text-xs text-muted-foreground">Trend</p>
-            <p className={`text-sm font-bold ${trend === 'down' ? 'text-primary' : 'text-destructive'}`}>
+            <p className="text-sm font-bold" style={{ color: trend === 'down' ? 'hsl(var(--chart-existing))' : 'hsl(var(--chart-churn))' }}>
               {trend === 'down' ? '↓ Improving' : '↑ Rising'}
             </p>
           </div>
