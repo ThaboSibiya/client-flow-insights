@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import quikleLogo from '@/assets/quikle-logo.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { 
