@@ -27,6 +27,7 @@ interface EquipmentFormDialogProps {
   onClose: () => void;
   onSave: (data: EquipmentFormData, editingId?: string) => Promise<boolean>;
   saving?: boolean;
+  equipmentTypes?: { value: string; label: string }[];
 }
 
 const initialFormData: EquipmentFormData = {
