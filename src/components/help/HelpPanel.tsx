@@ -94,8 +94,10 @@ const HelpPanel = ({ isOpen, onClose }: HelpPanelProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex justify-end">
-      <div className="w-96 bg-card shadow-xl h-full flex flex-col border-l">
+    <div className="fixed inset-0 z-50 flex justify-end">
+      {/* Backdrop — click to close */}
+      <div className="absolute inset-0 bg-black/50 animate-in fade-in-0 duration-200" onClick={onClose} />
+      <div className="relative w-96 bg-card shadow-xl h-full flex flex-col border-l animate-in slide-in-from-right-full duration-300">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
