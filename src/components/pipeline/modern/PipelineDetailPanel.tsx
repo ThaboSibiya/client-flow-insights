@@ -203,7 +203,7 @@ const PipelineDetailPanel = ({
                     <div className="space-y-1">
                       <p className="text-sm font-medium">Customer created</p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(customer.createdAt), 'MMM d, yyyy')}
+                        {customer?.createdAt ? format(new Date(customer.createdAt), 'MMM d, yyyy') : 'N/A'}
                       </p>
                     </div>
                   </div>
