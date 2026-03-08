@@ -126,13 +126,9 @@ const EquipmentFormDialog = ({ equipment, isOpen, onClose, onSave, saving, equip
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="printer">Printer</SelectItem>
-                      <SelectItem value="scanner">Scanner</SelectItem>
-                      <SelectItem value="copier">Copier</SelectItem>
-                      <SelectItem value="fax">Fax Machine</SelectItem>
-                      <SelectItem value="multifunction">Multifunction</SelectItem>
-                      <SelectItem value="computer">Computer</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      {typeOptions.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
