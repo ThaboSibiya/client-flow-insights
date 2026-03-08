@@ -155,11 +155,14 @@ const FirstTimeOnboardingModal: React.FC = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-lg p-0 overflow-hidden border-quikle-silver/30 shadow-luxury">
+      <DialogContent className={cn(
+        "p-0 overflow-hidden border-quikle-silver/30 shadow-luxury",
+        currentStepData.isCustomContent ? "sm:max-w-2xl" : "sm:max-w-lg"
+      )}>
         {/* Progress bar */}
-        <div className="h-1 bg-quikle-silver/20">
+        <div className="h-1 bg-muted">
           <div 
-            className="h-full bg-gradient-to-r from-quikle-primary to-quikle-secondary transition-all duration-500"
+            className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -173,10 +176,10 @@ const FirstTimeOnboardingModal: React.FC = () => {
                 className={cn(
                   "h-2 rounded-full transition-all duration-300",
                   index === currentStep 
-                    ? "w-8 bg-gradient-to-r from-quikle-primary to-quikle-secondary" 
+                    ? "w-8 bg-gradient-to-r from-primary to-secondary" 
                     : index < currentStep
-                    ? "w-2 bg-quikle-primary"
-                    : "w-2 bg-quikle-silver/40"
+                    ? "w-2 bg-primary"
+                    : "w-2 bg-muted"
                 )}
               />
             ))}
@@ -184,7 +187,7 @@ const FirstTimeOnboardingModal: React.FC = () => {
 
           {/* Icon */}
           <div className="flex justify-center mb-4">
-            <div className="p-4 rounded-full bg-gradient-to-br from-quikle-crystal to-white shadow-lg">
+            <div className="p-4 rounded-full bg-gradient-to-br from-muted to-background shadow-lg">
               {currentStepData.icon}
             </div>
           </div>
@@ -194,7 +197,7 @@ const FirstTimeOnboardingModal: React.FC = () => {
             <DialogTitle className="text-2xl luxury-text">
               {currentStepData.title}
             </DialogTitle>
-            <DialogDescription className="text-base text-quikle-slate leading-relaxed">
+            <DialogDescription className="text-base text-muted-foreground leading-relaxed">
               {currentStepData.description}
             </DialogDescription>
           </DialogHeader>
@@ -202,9 +205,16 @@ const FirstTimeOnboardingModal: React.FC = () => {
           {/* Role badge for welcome step */}
           {currentStep === 0 && (
             <div className="flex justify-center mt-4">
-              <Badge className="bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white border-0 px-4 py-1">
+              <Badge className="bg-gradient-to-r from-primary to-secondary text-primary-foreground border-0 px-4 py-1">
                 {isCompanyOwner ? '👑 Company Owner' : `${employeeProfile?.role || 'Team Member'}`}
               </Badge>
+            </div>
+          )}
+
+          {/* Plan selection step — custom content */}
+          {currentStepData.isCustomContent && currentStepData.id === 'plan' && (
+            <div className="mt-4">
+              <OnboardingPlanStep onSkip={handleNext} />
             </div>
           )}
 
@@ -214,7 +224,7 @@ const FirstTimeOnboardingModal: React.FC = () => {
               <Button
                 variant="outline"
                 onClick={() => handleStepAction(currentStepData)}
-                className="border-quikle-primary/30 text-quikle-primary hover:bg-quikle-primary/10"
+                className="border-primary/30 text-primary hover:bg-primary/10"
               >
                 {currentStepData.actionLabel}
                 <ArrowRight className="h-4 w-4 ml-2" />
@@ -223,11 +233,11 @@ const FirstTimeOnboardingModal: React.FC = () => {
           )}
 
           {/* Navigation buttons */}
-          <div className="flex items-center justify-between mt-8 pt-4 border-t border-quikle-silver/20">
+          <div className="flex items-center justify-between mt-8 pt-4 border-t border-border">
             <Button
               variant="ghost"
               onClick={handleSkip}
-              className="text-quikle-slate hover:text-quikle-charcoal"
+              className="text-muted-foreground hover:text-foreground"
             >
               Skip Tour
             </Button>
@@ -237,14 +247,13 @@ const FirstTimeOnboardingModal: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={() => setCurrentStep(currentStep - 1)}
-                  className="border-quikle-silver/30"
                 >
                   Back
                 </Button>
               )}
               <Button
                 onClick={handleNext}
-                className="bg-gradient-to-r from-quikle-primary to-quikle-secondary hover:from-quikle-secondary hover:to-quikle-primary text-white shadow-lg"
+                className="bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary text-primary-foreground shadow-lg"
               >
                 {currentStep === steps.length - 1 ? (
                   <>
