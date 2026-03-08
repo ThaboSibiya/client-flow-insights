@@ -3468,6 +3468,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_trigger_count: {
+        Args: { trigger_id: string }
+        Returns: undefined
+      }
       insert_email_history: {
         Args: {
           p_attachments?: string[]
