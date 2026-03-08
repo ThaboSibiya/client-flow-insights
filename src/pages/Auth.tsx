@@ -272,8 +272,8 @@ const Auth: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold luxury-text">Quikle CRM</h1>
-          <p className="mt-2 text-quikle-slate">Manage your customers efficiently</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Quikle CRM</h1>
+          <p className="mt-2 text-muted-foreground">Manage your customers efficiently</p>
         </div>
         
         <Card className="glass-effect">
