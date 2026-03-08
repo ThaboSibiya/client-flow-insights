@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles } from 'lucide-react';
 import { IndustryTemplate } from '@/types/templates';
 import { useCustomTemplates } from '@/hooks/useCustomTemplates';
+import { templateService } from '@/services/templateService';
+import { useQuery } from '@tanstack/react-query';
 import VisualTemplateCard from '../VisualTemplateCard';
 
 interface TemplateSelectionStepProps {
