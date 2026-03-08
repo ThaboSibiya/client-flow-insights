@@ -90,7 +90,7 @@ const Sidebar = () => {
           <div className="flex items-center gap-3">
             <div className="relative">
               <img 
-                src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" 
+                src={quikleLogo} 
                 alt="Quikle Logo" 
                 className="h-11 w-11 relative z-10 drop-shadow-md transition-transform duration-300 hover:scale-110" 
               />
