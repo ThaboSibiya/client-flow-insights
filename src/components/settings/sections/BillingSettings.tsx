@@ -36,12 +36,12 @@ const BillingSettings = () => {
       return;
     }
 
+    setSelectedPlan(plan.name);
     const priceInfo = plan.price[currency];
-    initializePayment.mutate({
-      planName: plan.name,
-      amount: priceInfo.amount,
-      currency,
-    });
+    initializePayment.mutate(
+      { planName: plan.name, amount: priceInfo.amount, currency },
+      { onSettled: () => setSelectedPlan(null) },
+    );
   };
 
   return (
