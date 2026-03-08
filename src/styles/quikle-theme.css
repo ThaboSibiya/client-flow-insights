@@ -1,46 +1,46 @@
-/* Quikle specific styles - Ultra Premium Edition */
+/* Quikle specific styles - Theme-aware */
   .quikle-gradient-bg {
-    @apply bg-gradient-quikle;
+    @apply bg-gradient-to-br from-background to-muted;
   }
 
   .quikle-card {
-    @apply bg-card backdrop-blur-sm border border-border shadow-platinum hover:shadow-elegant transition-all duration-300;
+    @apply bg-card backdrop-blur-sm border border-border shadow-sm hover:shadow-md transition-all duration-300;
   }
 
   .quikle-button-primary {
-    @apply bg-gradient-to-r from-quikle-primary to-quikle-secondary text-primary-foreground hover:shadow-luxury transition-all duration-300 transform hover:scale-[1.02];
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200;
   }
 
   /* Premium surface styles */
   .premium-surface {
-    @apply bg-card/95 backdrop-blur-md border border-border shadow-platinum;
+    @apply bg-card/95 backdrop-blur-md border border-border shadow-sm;
   }
 
   .elegant-card {
-    @apply bg-card border border-border shadow-platinum hover:shadow-luxury transition-all duration-300;
+    @apply bg-card border border-border shadow-sm hover:shadow-md transition-all duration-300;
   }
 
   .sophisticated-gradient {
     @apply bg-gradient-to-br from-background via-muted to-accent/50;
   }
 
-  /* Luxury glass effect */
+  /* Glass effect */
   .glass-effect {
-    @apply bg-card/90 backdrop-blur-xl border border-border shadow-luxury;
+    @apply bg-card/90 backdrop-blur-xl border border-border shadow-md;
   }
 
-  /* Premium text effects */
+  /* Text effects */
   .luxury-text {
-    @apply bg-gradient-to-r from-foreground via-primary to-muted-foreground bg-clip-text text-transparent;
+    @apply text-foreground font-semibold;
   }
 
-  /* Shimmer effect for premium elements */
+  /* Shimmer effect */
   .shimmer {
     @apply relative overflow-hidden;
   }
 
   .shimmer::before {
     content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-transparent via-background/20 to-transparent;
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-foreground/5 to-transparent;
     animation: shimmer 2s infinite;
   }

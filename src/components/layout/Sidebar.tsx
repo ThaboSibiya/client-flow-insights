@@ -82,17 +82,12 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="w-64 bg-gradient-to-br from-white via-white to-quikle-crystal/20 border-r border-quikle-silver/30 min-h-screen flex flex-col shadow-xl relative overflow-hidden">
-      {/* Subtle background pattern overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(139,92,246,0.03),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(59,130,246,0.03),transparent_50%)]" />
-      
+    <div className="w-64 bg-sidebar border-r border-sidebar-border min-h-screen flex flex-col shadow-xl relative overflow-hidden">
       <div className="flex-1 relative z-10 flex flex-col overflow-hidden">
-        {/* Premium Logo Section with Notification Bell */}
-        <div className="p-6 flex items-center justify-between border-b border-quikle-silver/20 bg-gradient-to-r from-white/95 to-quikle-crystal/40 backdrop-blur-sm flex-shrink-0">
+        {/* Logo Section */}
+        <div className="p-6 flex items-center justify-between border-b border-sidebar-border bg-sidebar/95 backdrop-blur-sm flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-quikle-primary/20 to-quikle-secondary/20 rounded-xl blur-lg" />
               <img 
                 src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" 
                 alt="Quikle Logo" 
@@ -100,10 +95,10 @@ const Sidebar = () => {
               />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-primary bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold text-sidebar-foreground">
                 Quikle
               </h1>
-              <p className="text-[10px] font-medium text-quikle-slate/70 tracking-widest uppercase -mt-0.5">
+              <p className="text-[10px] font-medium text-sidebar-foreground/50 tracking-widest uppercase -mt-0.5">
                 Innovation Suite
               </p>
             </div>
@@ -114,19 +109,17 @@ const Sidebar = () => {
         {/* Workstation Quick Access Panel */}
         <WorkstationQuickPanel />
 
-        {/* Navigation Menu with Enhanced Hover Scrollbar */}
+        {/* Navigation Menu */}
         <nav className="flex-1 px-3 overflow-y-auto hover-scrollbar">
           <div className="space-y-3 pb-4">
             {menuGroups.map((group, groupIndex) => (
               <div key={group.label} className="space-y-1.5">
-                {/* Group Label */}
                 <div className="px-3 mb-1.5">
-                  <h3 className="text-[10px] font-bold text-quikle-slate/50 uppercase tracking-[0.15em] letter-spacing-wider">
+                  <h3 className="text-[10px] font-bold text-sidebar-foreground/40 uppercase tracking-[0.15em]">
                     {group.label}
                   </h3>
                 </div>
                 
-                {/* Group Items */}
                 <div className="space-y-1">
                   {group.items.map((item) => {
                     const Icon = item.icon;
@@ -137,43 +130,36 @@ const Sidebar = () => {
                         key={item.path}
                         to={item.path}
                         className={cn(
-                          "flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-300 group relative overflow-hidden",
+                          "flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 group relative overflow-hidden",
                           isActive 
-                            ? "bg-gradient-to-r from-quikle-primary/15 via-quikle-secondary/10 to-quikle-primary/15 text-quikle-primary shadow-lg shadow-quikle-primary/10" 
-                            : "text-quikle-charcoal/80 hover:bg-gradient-to-r hover:from-quikle-crystal/40 hover:to-quikle-crystal/20 hover:text-quikle-primary hover:shadow-md"
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm" 
+                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                         )}
                       >
-                        {/* Active indicator */}
                         {isActive && (
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-quikle-primary to-quikle-secondary rounded-r-full shadow-lg shadow-quikle-primary/30" />
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-sidebar-primary rounded-r-full" />
                         )}
                         
                         <Icon className={cn(
-                          "mr-3 h-[18px] w-[18px] transition-all duration-300",
+                          "mr-3 h-[18px] w-[18px] transition-all duration-200",
                           isActive 
-                            ? "text-quikle-primary drop-shadow-sm" 
-                            : "text-quikle-slate/60 group-hover:text-quikle-primary group-hover:scale-110 group-hover:drop-shadow-sm"
+                            ? "text-sidebar-primary" 
+                            : "text-sidebar-foreground/50 group-hover:text-sidebar-accent-foreground"
                         )} />
                         <span className={cn(
-                          "transition-all duration-300",
-                          isActive ? "font-semibold" : "font-medium group-hover:translate-x-0.5"
+                          "transition-all duration-200",
+                          isActive ? "font-semibold" : "font-medium"
                         )}>
                           {item.label}
                         </span>
-                        
-                        {/* Hover glow effect */}
-                        {!isActive && (
-                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-quikle-primary/5 to-transparent" />
-                        )}
                       </Link>
                     );
                   })}
                 </div>
                 
-                {/* Light Border Separator */}
                 {groupIndex < menuGroups.length - 1 && (
                   <div className="pt-2.5 pb-0.5">
-                    <div className="h-px bg-gradient-to-r from-transparent via-quikle-silver/40 to-transparent shadow-sm" />
+                    <div className="h-px bg-sidebar-border/50" />
                   </div>
                 )}
               </div>
@@ -182,8 +168,8 @@ const Sidebar = () => {
         </nav>
       </div>
       
-      {/* Enhanced User Profile Section */}
-      <div className="mt-auto relative z-10 border-t border-quikle-silver/20 bg-gradient-to-t from-white/80 to-transparent backdrop-blur-sm">
+      {/* User Profile Section */}
+      <div className="mt-auto relative z-10 border-t border-sidebar-border bg-sidebar/80 backdrop-blur-sm">
         <UserProfile />
       </div>
     </div>
