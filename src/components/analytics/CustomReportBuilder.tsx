@@ -116,13 +116,14 @@ const CustomReportBuilder: React.FC = () => {
     setReportResults(null);
 
     try {
-      // Build the select columns from the selected fields
+      // Build select columns
       const selectColumns = currentReport.fields.map(f => f.dbColumn).join(', ');
-      
+
+      // Build query with raw select to avoid deep type instantiation
       let query = supabase
         .from('customers')
         .select(selectColumns)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id) as any;
 
       // Apply filters
       for (const filter of currentReport.filters) {
@@ -155,7 +156,7 @@ const CustomReportBuilder: React.FC = () => {
         query = query.order(groupField);
       }
 
-      const { data, error } = await query.limit(500);
+      const { data, error } = await query.limit(500) as { data: Record<string, unknown>[] | null; error: any };
 
       if (error) throw error;
 
