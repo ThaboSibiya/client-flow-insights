@@ -43,7 +43,7 @@ const PipelineDetailPanel = ({
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12">
                 <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                  {customer.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                  {(customer?.name || 'Unknown').split(' ').map(n => n[0] || '').join('').toUpperCase().slice(0, 2) || '??'}
                 </AvatarFallback>
               </Avatar>
               <div>
