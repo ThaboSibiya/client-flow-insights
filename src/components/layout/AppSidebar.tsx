@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import quikleLogo from '@/assets/quikle-logo.png';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  LifeBuoy,
 } from 'lucide-react';
 import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import {
@@ -40,8 +41,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import UserProfile from '@/components/auth/UserProfile';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import CollapsibleWorkstationPanel from './CollapsibleWorkstationPanel';
+import HelpPanel from '@/components/help/HelpPanel';
 
 const AppSidebar = () => {
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const location = useLocation();
   const { data: employee } = useEmployeeProfile();
   const { state, toggleSidebar } = useSidebar();
@@ -171,8 +174,17 @@ const AppSidebar = () => {
       {/* Footer with User Profile and Collapse Toggle */}
       <SidebarFooter className="border-t border-border/40 p-2">
         {!isCollapsed ? (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <UserProfile />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsHelpOpen(true)}
+              className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <LifeBuoy className="h-4 w-4" />
+              <span className="text-xs">Support</span>
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -185,23 +197,40 @@ const AppSidebar = () => {
             </Button>
           </div>
         ) : (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleSidebar}
-                className="w-full h-9"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              Expand sidebar (⌘B)
-            </TooltipContent>
-          </Tooltip>
+          <div className="space-y-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsHelpOpen(true)}
+                  className="w-full h-9"
+                >
+                  <LifeBuoy className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Support</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleSidebar}
+                  className="w-full h-9"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                Expand sidebar (⌘B)
+              </TooltipContent>
+            </Tooltip>
+          </div>
         )}
       </SidebarFooter>
+
+      <HelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 
       {/* Rail for edge hover toggle */}
       <SidebarRail />
