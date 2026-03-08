@@ -20,6 +20,24 @@ const TemplateSelectionStep: React.FC<TemplateSelectionStepProps> = ({
 }) => {
   const { templates, loading: templatesLoading } = useCustomTemplates();
 
+  // Fetch field counts for all templates in a single batch
+  const { data: fieldCounts } = useQuery({
+    queryKey: ['template-field-counts', templates.map(t => t.id).join(',')],
+    queryFn: async () => {
+      const counts: Record<string, number> = {};
+      const results = await Promise.all(
+        templates.map(async (t) => {
+          const fields = await templateService.getTemplateFields(t.id);
+          return { id: t.id, count: fields.length };
+        })
+      );
+      results.forEach(r => { counts[r.id] = r.count; });
+      return counts;
+    },
+    enabled: templates.length > 0,
+    staleTime: 5 * 60 * 1000,
+  });
+
   if (templatesLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
