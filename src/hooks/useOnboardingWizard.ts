@@ -92,7 +92,16 @@ export const useOnboardingWizard = (): UseOnboardingWizardReturn => {
   
   // Computed values
   const stepIndex = useMemo(() => STEPS.indexOf(currentStep), [currentStep]);
-  const progress = useMemo(() => ((stepIndex + 1) / STEPS.length) * 100, [stepIndex]);
+  
+  // Visible steps account for skipped 'fields' step when no template is selected
+  const visibleSteps = useMemo(
+    () => selectedTemplate ? STEPS : STEPS.filter(s => s !== 'fields'),
+    [selectedTemplate]
+  );
+  const progress = useMemo(() => {
+    const visibleIndex = visibleSteps.indexOf(currentStep);
+    return ((visibleIndex + 1) / visibleSteps.length) * 100;
+  }, [visibleSteps, currentStep]);
   
   // Template selection with field loading
   const selectTemplate = useCallback(async (template: IndustryTemplate | null) => {
