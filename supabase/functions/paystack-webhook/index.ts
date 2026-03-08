@@ -25,17 +25,20 @@ Deno.serve(async (req) => {
 
     const body = await req.text();
 
-    // Verify Paystack signature
+    // Verify Paystack signature (REQUIRED for production security)
     const signature = req.headers.get('x-paystack-signature');
-    if (signature) {
-      const hash = createHmac('sha512', paystackSecretKey)
-        .update(body)
-        .digest('hex');
+    if (!signature) {
+      console.error('Missing Paystack webhook signature');
+      return new Response('Missing signature', { status: 401, headers: corsHeaders });
+    }
+    
+    const hash = createHmac('sha512', paystackSecretKey)
+      .update(body)
+      .digest('hex');
 
-      if (hash !== signature) {
-        console.error('Invalid Paystack webhook signature');
-        return new Response('Invalid signature', { status: 401, headers: corsHeaders });
-      }
+    if (hash !== signature) {
+      console.error('Invalid Paystack webhook signature');
+      return new Response('Invalid signature', { status: 401, headers: corsHeaders });
     }
 
     const event = JSON.parse(body);

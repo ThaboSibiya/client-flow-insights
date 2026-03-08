@@ -110,8 +110,13 @@ Deno.serve(async (req) => {
       paystack_reference: reference,
     }, { onConflict: 'user_id' });
 
-    // Log event
-    await supabase.from('subscription_events').insert({
+    // Log event (use admin client to bypass RLS)
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    
+    await adminClient.from('subscription_events').insert({
       user_id: user.id,
       event_type: 'payment_initialized',
       paystack_reference: reference,
