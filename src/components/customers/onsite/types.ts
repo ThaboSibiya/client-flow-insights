@@ -1,4 +1,3 @@
-
 import { CustomerStatus } from '@/types/customer';
 
 export interface Customer {
@@ -17,6 +16,14 @@ export interface OnSiteTicket {
   status: string;
   priority: string;
   created_at: string;
+}
+
+export interface JobPhoto {
+  id: string;
+  name: string;
+  url: string;
+  path: string;
+  type: 'before' | 'after' | 'general';
 }
 
 export interface OnSiteStatusUpdateProps {
