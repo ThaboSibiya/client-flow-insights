@@ -112,7 +112,7 @@ const BillingSettings = () => {
               badge={plan.badge}
               highlighted={plan.highlighted}
               isCurrent={isCurrent}
-              isLoading={initializePayment.isPending}
+              isLoading={initializePayment.isPending && selectedPlan === plan.name}
               features={allFeatures}
               cta={plan.cta}
               onSelect={() => handleSelectPlan(plan)}

@@ -94,10 +94,10 @@ const OnboardingPlanStep: React.FC<OnboardingPlanStepProps> = ({ onSkip }) => {
                 size="sm"
                 className="w-full text-xs"
                 variant={isCurrent ? 'outline' : plan.highlighted ? 'default' : 'secondary'}
-                disabled={isCurrent || initializePayment.isPending}
+                disabled={isCurrent || (initializePayment.isPending && selectedPlan !== null)}
                 onClick={() => handleSelect(plan)}
               >
-                {initializePayment.isPending ? (
+                {initializePayment.isPending && selectedPlan === plan.name ? (
                   <Loader2 className="h-3 w-3 animate-spin mr-1" />
                 ) : isCurrent ? (
                   'Current'
