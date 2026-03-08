@@ -17,13 +17,13 @@ const BusinessInformationForm = ({ customer, onClose }: BusinessInformationFormP
   
   const form = useForm({
     defaultValues: {
-      contact_person: customer.contact_person || '',
-      email: customer.email || '',
-      phone: customer.phone || '',
       name: customer.name || '',
+      contact_person: customer.contact_person || '',
       company_address: customer.company_address || '',
     },
   });
+
+  const { isDirty } = form.formState;
   
   const onSubmit = (data: any) => {
     updateCustomer(customer.id, data);
@@ -31,86 +31,61 @@ const BusinessInformationForm = ({ customer, onClose }: BusinessInformationFormP
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-br from-quikle-crystal to-white rounded-lg p-6 border border-quikle-silver/20">
-        <h3 className="text-lg font-semibold text-quikle-charcoal mb-4 flex items-center gap-2">
-          Business Information
-        </h3>
-        
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="contact_person" className="text-quikle-charcoal font-medium">Contact Person</Label>
-              <Input
-                id="contact_person"
-                {...form.register('contact_person')}
-                placeholder="Contact person name"
-                className="border-quikle-silver/50 focus:border-quikle-primary"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-quikle-charcoal font-medium">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                {...form.register('email')}
-                placeholder="contact@company.com"
-                className="border-quikle-silver/50 focus:border-quikle-primary"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-quikle-charcoal font-medium">Phone Number</Label>
-              <Input
-                id="phone"
-                {...form.register('phone')}
-                placeholder="+27 12 345 6789"
-                className="border-quikle-silver/50 focus:border-quikle-primary"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-quikle-charcoal font-medium">Company Name</Label>
-              <Input
-                id="name"
-                {...form.register('name')}
-                placeholder="Company name"
-                className="border-quikle-silver/50 focus:border-quikle-primary"
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="company_address" className="text-quikle-charcoal font-medium">Company Address</Label>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
+      <div className="flex-1 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="name" className="text-foreground text-sm">Company Name</Label>
             <Input
-              id="company_address"
-              {...form.register('company_address')}
-              placeholder="123 Business Street, City, Province, Postal Code"
-              className="border-quikle-silver/50 focus:border-quikle-primary"
+              id="name"
+              {...form.register('name')}
+              placeholder="Company name"
+              className="bg-background text-foreground border-input"
             />
           </div>
-          
-          <div className="flex justify-end gap-3 pt-4 border-t border-quikle-silver/20">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="border-quikle-silver/50 text-quikle-charcoal hover:bg-quikle-crystal"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white hover:shadow-md"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Save Changes
-            </Button>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="contact_person" className="text-foreground text-sm">Contact Person</Label>
+            <Input
+              id="contact_person"
+              {...form.register('contact_person')}
+              placeholder="Contact person name"
+              className="bg-background text-foreground border-input"
+            />
           </div>
-        </form>
+        </div>
+        
+        <div className="space-y-1.5">
+          <Label htmlFor="company_address" className="text-foreground text-sm">Company Address</Label>
+          <Input
+            id="company_address"
+            {...form.register('company_address')}
+            placeholder="123 Business Street, City, Province, Postal Code"
+            className="bg-background text-foreground border-input"
+          />
+        </div>
       </div>
-    </div>
+      
+      <div className="flex justify-end gap-2 pt-4 mt-4 border-t border-border sticky bottom-0 bg-background pb-1">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onClose}
+          className="text-foreground border-border"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          size="sm"
+          disabled={!isDirty}
+        >
+          <Save className="mr-1.5 h-3.5 w-3.5" />
+          Save Changes
+        </Button>
+      </div>
+    </form>
   );
 };
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Customer, CustomerStatus } from '@/types/customer';
 import { Button } from '@/components/ui/button';
@@ -33,6 +32,8 @@ const CustomerDetailsForm = ({ customer, onClose }: CustomerDetailsFormProps) =>
       notes: customer.notes || '',
     },
   });
+
+  const { isDirty } = form.formState;
   
   const onSubmit = (data: any) => {
     updateCustomer(customer.id, data);
@@ -40,94 +41,90 @@ const CustomerDetailsForm = ({ customer, onClose }: CustomerDetailsFormProps) =>
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-br from-quikle-crystal to-white rounded-lg p-6 border border-quikle-silver/20">
-        <h3 className="text-lg font-semibold text-quikle-charcoal mb-4 flex items-center gap-2">
-          Personal Details
-        </h3>
-        
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="contact_person" className="text-quikle-charcoal font-medium">Name</Label>
-              <Input
-                id="contact_person"
-                {...form.register('contact_person')}
-                placeholder="Full name"
-                className="border-quikle-silver/50 focus:border-quikle-primary"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-quikle-charcoal font-medium">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                {...form.register('email')}
-                placeholder="email@example.com"
-                className="border-quikle-silver/50 focus:border-quikle-primary"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-quikle-charcoal font-medium">Phone Number</Label>
-              <Input
-                id="phone"
-                {...form.register('phone')}
-                placeholder="+27 12 345 6789"
-                className="border-quikle-silver/50 focus:border-quikle-primary"
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="status" className="text-quikle-charcoal font-medium">Customer Status</Label>
-            <Select 
-              onValueChange={(value) => form.setValue('status', value as CustomerStatus)}
-              defaultValue={customer.status}
-            >
-              <SelectTrigger className="border-quikle-silver/50 focus:border-quikle-primary">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="new" className="text-quikle-info">New Customer</SelectItem>
-                <SelectItem value="existing" className="text-quikle-success">Existing Customer</SelectItem>
-                <SelectItem value="pending" className="text-quikle-accent">Pending Policy</SelectItem>
-                <SelectItem value="finalised" className="text-quikle-purple">Finalised Sale</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="notes" className="text-quikle-charcoal font-medium">Notes</Label>
-            <Textarea
-              id="notes"
-              {...form.register('notes')}
-              placeholder="Additional notes about the customer"
-              className="min-h-[100px] border-quikle-silver/50 focus:border-quikle-primary"
+    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
+      <div className="flex-1 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="contact_person" className="text-foreground text-sm">Name</Label>
+            <Input
+              id="contact_person"
+              {...form.register('contact_person')}
+              placeholder="Full name"
+              className="bg-background text-foreground border-input"
             />
           </div>
           
-          <div className="flex justify-end gap-3 pt-4 border-t border-quikle-silver/20">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="border-quikle-silver/50 text-quikle-charcoal hover:bg-quikle-crystal"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white hover:shadow-md"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Save Changes
-            </Button>
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-foreground text-sm">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              {...form.register('email')}
+              placeholder="email@example.com"
+              className="bg-background text-foreground border-input"
+            />
           </div>
-        </form>
+          
+          <div className="space-y-1.5">
+            <Label htmlFor="phone" className="text-foreground text-sm">Phone</Label>
+            <Input
+              id="phone"
+              {...form.register('phone')}
+              placeholder="+27 12 345 6789"
+              className="bg-background text-foreground border-input"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="status" className="text-foreground text-sm">Status</Label>
+            <Select 
+              onValueChange={(value) => form.setValue('status', value as CustomerStatus, { shouldDirty: true })}
+              defaultValue={customer.status}
+            >
+              <SelectTrigger className="bg-background text-foreground border-input">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="new">New Customer</SelectItem>
+                <SelectItem value="existing">Existing Customer</SelectItem>
+                <SelectItem value="pending">Pending Policy</SelectItem>
+                <SelectItem value="finalised">Finalised Sale</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="space-y-1.5">
+          <Label htmlFor="notes" className="text-foreground text-sm">Notes</Label>
+          <Textarea
+            id="notes"
+            {...form.register('notes')}
+            placeholder="Additional notes about the customer"
+            className="min-h-[80px] bg-background text-foreground border-input resize-none"
+          />
+        </div>
       </div>
-    </div>
+      
+      <div className="flex justify-end gap-2 pt-4 mt-4 border-t border-border sticky bottom-0 bg-background pb-1">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onClose}
+          className="text-foreground border-border"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          size="sm"
+          disabled={!isDirty}
+        >
+          <Save className="mr-1.5 h-3.5 w-3.5" />
+          Save Changes
+        </Button>
+      </div>
+    </form>
   );
 };
 
