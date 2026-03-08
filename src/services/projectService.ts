@@ -124,22 +124,43 @@ export const projectService = {
   async getProjects(): Promise<Project[]> {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error('User not authenticated');
+    const userId = user.user.id;
 
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('user_id', user.user.id)
-      .order('created_at', { ascending: false });
+    // Fetch projects and all tasks in parallel (2 queries instead of N+1)
+    const [projectsResult, tasksResult] = await Promise.all([
+      supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('project_tasks')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false }),
+    ]);
 
-    if (error) throw error;
+    if (projectsResult.error) throw projectsResult.error;
+    if (tasksResult.error) throw tasksResult.error;
 
-    const projects = data.map(transformDatabaseProjectToProject);
-
-    // Load tasks for each project
-    for (const project of projects) {
-      const tasks = await this.getProjectTasks(project.id);
-      project.tasks = tasks;
+    // Group tasks by project_id in a single pass
+    const tasksByProject = new Map<string, Task[]>();
+    for (const dbTask of tasksResult.data || []) {
+      const task = transformDatabaseTaskToTask(dbTask);
+      const existing = tasksByProject.get(dbTask.project_id);
+      if (existing) {
+        existing.push(task);
+      } else {
+        tasksByProject.set(dbTask.project_id, [task]);
+      }
     }
+
+    // Attach tasks to projects
+    const projects = projectsResult.data.map(dbProject => {
+      const project = transformDatabaseProjectToProject(dbProject);
+      project.tasks = tasksByProject.get(project.id) || [];
+      return project;
+    });
 
     return projects;
   },
