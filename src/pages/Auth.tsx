@@ -276,7 +276,7 @@ const Auth: React.FC = () => {
           <p className="mt-2 text-muted-foreground">Manage your customers efficiently</p>
         </div>
         
-        <Card className="glass-effect">
+        <Card className="border-border/50 shadow-lg bg-card">
           <CardHeader>
             <CardTitle className="text-center">Welcome</CardTitle>
             <CardDescription className="text-center">Sign in to your account or create a new one</CardDescription>
