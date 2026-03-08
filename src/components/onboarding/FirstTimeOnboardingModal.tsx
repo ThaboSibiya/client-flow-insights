@@ -31,6 +31,7 @@ interface OnboardingStep {
   icon: React.ReactNode;
   action?: () => void;
   actionLabel?: string;
+  isCustomContent?: boolean;
 }
 
 const FirstTimeOnboardingModal: React.FC = () => {
