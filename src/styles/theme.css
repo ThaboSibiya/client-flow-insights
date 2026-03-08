@@ -36,6 +36,17 @@
     --chart-pending: 38 92% 50%;
     --chart-finalised: 271 69% 49%;
 
+    --chart-1: 217 91% 60%;
+    --chart-2: 160 84% 39%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 271 69% 49%;
+    --chart-5: 349 72% 57%;
+    --chart-revenue: 160 84% 39%;
+    --chart-forecast: 217 91% 60%;
+    --chart-churn: 349 72% 57%;
+    --chart-retention: 160 84% 39%;
+    --chart-cac: 271 69% 49%;
+
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 215 25% 17%;
     --sidebar-primary: 215 25% 17%;
