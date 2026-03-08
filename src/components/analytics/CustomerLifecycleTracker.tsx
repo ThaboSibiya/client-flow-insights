@@ -3,56 +3,65 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useCRM } from '@/context/CRMContext';
+import { useAnalytics } from '@/context/AnalyticsContext';
 import { TrendingUp, Users, Target, CheckCircle } from 'lucide-react';
 
 const CustomerLifecycleTracker = () => {
-  const { customers } = useCRM();
+  const { metrics, isLoading } = useAnalytics();
 
-  // Calculate lifecycle stages
   const stages = {
-    prospect: customers.filter(c => c.status === 'new').length,
-    qualified: customers.filter(c => c.status === 'existing').length,
-    negotiation: customers.filter(c => c.status === 'pending').length,
-    closed: customers.filter(c => c.status === 'finalised').length,
+    prospect: metrics?.newCustomers ?? 0,
+    active: metrics?.activeCustomers ?? 0,
+    pending: metrics?.pendingCustomers ?? 0,
+    closed: metrics?.finalisedCustomers ?? 0,
   };
 
   const total = Object.values(stages).reduce((sum, count) => sum + count, 0);
   const conversionRate = total > 0 ? Math.round((stages.closed / total) * 100) : 0;
 
   const stageData = [
-    { name: 'Prospects', count: stages.prospect, color: 'bg-quikle-charcoal', icon: <Users className="h-4 w-4" /> },
-    { name: 'Qualified', count: stages.qualified, color: 'bg-quikle-slate', icon: <Target className="h-4 w-4" /> },
-    { name: 'Negotiation', count: stages.negotiation, color: 'bg-quikle-neutral', icon: <TrendingUp className="h-4 w-4" /> },
-    { name: 'Closed Won', count: stages.closed, color: 'bg-quikle-accent', icon: <CheckCircle className="h-4 w-4" /> },
+    { name: 'Prospects', count: stages.prospect, icon: <Users className="h-4 w-4" /> },
+    { name: 'Active', count: stages.active, icon: <Target className="h-4 w-4" /> },
+    { name: 'Pending', count: stages.pending, icon: <TrendingUp className="h-4 w-4" /> },
+    { name: 'Closed Won', count: stages.closed, icon: <CheckCircle className="h-4 w-4" /> },
   ];
 
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center h-32">
+          <p className="text-sm text-muted-foreground">Loading lifecycle data...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="shadow-md">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-quikle-primary" />
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <TrendingUp className="h-4 w-4 text-primary" />
           Customer Lifecycle Pipeline
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {stageData.map((stage) => (
-            <div key={stage.name} className="flex items-center gap-3 p-3 rounded-lg bg-quikle-crystal">
-              <div className={`p-2 rounded-full ${stage.color} text-white`}>
+            <div key={stage.name} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+              <div className="p-2 rounded-full bg-primary/10 text-primary">
                 {stage.icon}
               </div>
               <div>
-                <p className="text-sm font-medium">{stage.name}</p>
-                <p className="text-2xl font-bold">{stage.count}</p>
+                <p className="text-xs text-muted-foreground">{stage.name}</p>
+                <p className="text-xl font-bold text-foreground">{stage.count}</p>
               </div>
             </div>
           ))}
         </div>
         
-        <div className="pt-4 border-t">
+        <div className="pt-3 border-t border-border">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium">Overall Conversion Rate</span>
+            <span className="text-sm text-muted-foreground">Conversion Rate</span>
             <Badge variant="secondary">{conversionRate}%</Badge>
           </div>
           <Progress value={conversionRate} className="h-2" />

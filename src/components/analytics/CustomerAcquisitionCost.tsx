@@ -1,102 +1,104 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { DollarSign, TrendingDown, TrendingUp } from 'lucide-react';
-import { useCRM } from '@/context/CRMContext';
+import { useAnalytics } from '@/context/AnalyticsContext';
 
 const CustomerAcquisitionCost = () => {
-  const { customers } = useCRM();
+  const { customerTimeSeries, revenueTimeSeries, isLoading } = useAnalytics();
 
-  // Generate CAC data based on customer acquisition patterns
-  const generateCACData = () => {
-    const months = [];
-    const currentDate = new Date();
-    
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-      const monthName = date.toLocaleDateString('default', { month: 'short' });
-      
-      // Count new customers for this month
-      const newCustomers = customers.filter(customer => {
-        const customerMonth = customer.createdAt.getMonth();
-        const customerYear = customer.createdAt.getFullYear();
-        return customerMonth === date.getMonth() && customerYear === date.getFullYear();
-      }).length;
-      
-      // Simulate marketing spend and calculate CAC
-      const marketingSpend = Math.max(newCustomers * 150 + Math.random() * 500, 200);
-      const cac = newCustomers > 0 ? Math.round(marketingSpend / newCustomers) : 0;
-      
-      months.push({
-        month: monthName,
-        cac: cac,
-        marketingSpend: Math.round(marketingSpend),
-        newCustomers: newCustomers,
-      });
-    }
-    
-    return months;
-  };
+  const cacData = useMemo(() => {
+    if (!customerTimeSeries.length) return [];
 
-  const cacData = generateCACData();
-  const averageCAC = Math.round(cacData.reduce((sum, month) => sum + month.cac, 0) / cacData.length);
-  const trend = cacData[cacData.length - 1]?.cac > cacData[cacData.length - 2]?.cac ? 'up' : 'down';
+    return customerTimeSeries.map((month, i) => {
+      const revenue = revenueTimeSeries[i]?.value ?? 0;
+      // CAC = estimated spend (% of revenue) / new customers
+      const estimatedSpend = revenue * 0.25; // 25% of revenue as marketing spend estimate
+      const cac = month.value > 0 ? Math.round(estimatedSpend / month.value) : 0;
+
+      return {
+        month: month.name,
+        cac,
+        newCustomers: month.value,
+        spend: Math.round(estimatedSpend),
+      };
+    });
+  }, [customerTimeSeries, revenueTimeSeries]);
+
+  const averageCAC = cacData.length > 0
+    ? Math.round(cacData.reduce((sum, d) => sum + d.cac, 0) / cacData.filter(d => d.cac > 0).length || 0)
+    : 0;
+
+  const trend = cacData.length >= 2
+    ? cacData[cacData.length - 1]?.cac > cacData[cacData.length - 2]?.cac ? 'up' : 'down'
+    : 'stable';
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center h-48">
+          <p className="text-sm text-muted-foreground">Loading CAC data...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card className="shadow-md">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-quikle-primary" />
-          Customer Acquisition Cost (CAC)
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <DollarSign className="h-4 w-4 text-primary" />
+          Customer Acquisition Cost
         </CardTitle>
-        <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <span>Average CAC: R{averageCAC}</span>
-            {trend === 'up' ? (
-              <TrendingUp className="h-4 w-4 text-quikle-neutral" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-quikle-accent" />
-            )}
-          </div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>Avg CAC: R{averageCAC}</span>
+          {trend === 'up' ? (
+            <span className="flex items-center gap-1 text-destructive">
+              <TrendingUp className="h-3 w-3" /> Rising
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-primary">
+              <TrendingDown className="h-3 w-3" /> Improving
+            </span>
+          )}
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-64">
+        <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={cacData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis tickFormatter={(value) => `R${value}`} />
-              <Tooltip 
-                formatter={(value, name) => [
-                  name === 'cac' ? `R${value}` : 
-                  name === 'marketingSpend' ? `R${value}` : value,
-                  name === 'cac' ? 'CAC' : 
-                  name === 'marketingSpend' ? 'Marketing Spend' : 'New Customers'
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+              <YAxis tickFormatter={(v) => `R${v}`} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+              <Tooltip
+                contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 8, color: 'hsl(var(--popover-foreground))' }}
+                formatter={(value: number, name: string) => [
+                  name === 'cac' ? `R${value}` : value,
+                  name === 'cac' ? 'CAC' : 'New Customers'
                 ]}
               />
-              <Bar dataKey="cac" fill="#1F2937" />
+              <Bar dataKey="cac" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
-        
-        <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
+
+        <div className="grid grid-cols-3 gap-3 mt-4 pt-3 border-t border-border">
           <div className="text-center">
-            <p className="text-sm text-gray-600">Total Spend</p>
-            <p className="text-lg font-bold text-quikle-primary">
-              R{cacData.reduce((sum, month) => sum + month.marketingSpend, 0).toLocaleString()}
+            <p className="text-xs text-muted-foreground">Total Spend</p>
+            <p className="text-sm font-bold text-foreground">
+              R{cacData.reduce((sum, d) => sum + d.spend, 0).toLocaleString()}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-sm text-gray-600">New Customers</p>
-            <p className="text-lg font-bold text-quikle-accent">
-              {cacData.reduce((sum, month) => sum + month.newCustomers, 0)}
+            <p className="text-xs text-muted-foreground">New Customers</p>
+            <p className="text-sm font-bold text-foreground">
+              {cacData.reduce((sum, d) => sum + d.newCustomers, 0)}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-sm text-gray-600">CAC Trend</p>
-            <p className={`text-lg font-bold ${trend === 'down' ? 'text-quikle-accent' : 'text-quikle-neutral'}`}>
+            <p className="text-xs text-muted-foreground">Trend</p>
+            <p className={`text-sm font-bold ${trend === 'down' ? 'text-primary' : 'text-destructive'}`}>
               {trend === 'down' ? '↓ Improving' : '↑ Rising'}
             </p>
           </div>

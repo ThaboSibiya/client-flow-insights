@@ -1,106 +1,95 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
-import { DollarSign, TrendingUp } from 'lucide-react';
-import { useCRM } from '@/context/CRMContext';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line } from 'recharts';
+import { DollarSign } from 'lucide-react';
+import { useAnalytics } from '@/context/AnalyticsContext';
 
 const RevenueForecastChart = () => {
-  const { customers } = useCRM();
+  const { revenueTimeSeries, isLoading } = useAnalytics();
 
-  // Generate mock revenue data based on customer progression
-  const generateRevenueData = () => {
-    const months = [];
-    const currentDate = new Date();
-    
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-      const monthName = date.toLocaleDateString('default', { month: 'short' });
-      
-      // Calculate actual revenue based on finalized customers
-      const monthCustomers = customers.filter(customer => {
-        const customerMonth = customer.updatedAt.getMonth();
-        const customerYear = customer.updatedAt.getFullYear();
-        return customerMonth === date.getMonth() && 
-               customerYear === date.getFullYear() && 
-               customer.status === 'finalised';
-      }).length;
-      
-      const baseRevenue = monthCustomers * 2500; // Assume R2500 average deal size
-      
-      months.push({
-        month: monthName,
-        actual: baseRevenue,
-        forecast: baseRevenue * 1.2, // 20% growth forecast
-        target: baseRevenue * 1.3, // 30% growth target
-      });
-    }
-    
-    // Add future forecasted months
-    for (let i = 1; i <= 6; i++) {
-      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
-      const monthName = date.toLocaleDateString('default', { month: 'short' });
-      const lastRevenue = months[months.length - 1]?.forecast || 10000;
-      
-      months.push({
-        month: monthName,
-        actual: null,
-        forecast: lastRevenue * (1 + (i * 0.05)), // 5% monthly growth
-        target: lastRevenue * (1 + (i * 0.08)), // 8% target growth
-      });
-    }
-    
-    return months;
-  };
+  const chartData = useMemo(() => {
+    if (!revenueTimeSeries.length) return [];
 
-  const revenueData = generateRevenueData();
-  const currentRevenue = revenueData.slice(0, 6).reduce((sum, month) => sum + (month.actual || 0), 0);
-  const forecastedRevenue = revenueData.slice(6).reduce((sum, month) => sum + month.forecast, 0);
+    // Use real revenue data for past months
+    const pastData = revenueTimeSeries.map(item => ({
+      month: item.name,
+      actual: item.value,
+      forecast: null as number | null,
+    }));
+
+    // Simple linear forecast for next 3 months based on trend
+    const values = revenueTimeSeries.map(d => d.value);
+    const avgGrowth = values.length >= 2
+      ? (values[values.length - 1] - values[0]) / (values.length - 1)
+      : 0;
+    const lastValue = values[values.length - 1] || 0;
+
+    const futureMonths = ['Next +1', 'Next +2', 'Next +3'];
+    const futureData = futureMonths.map((month, i) => ({
+      month,
+      actual: null as number | null,
+      forecast: Math.max(0, Math.round(lastValue + avgGrowth * (i + 1))),
+    }));
+
+    return [...pastData, ...futureData];
+  }, [revenueTimeSeries]);
+
+  const totalActual = revenueTimeSeries.reduce((sum, d) => sum + d.value, 0);
+  const totalForecast = chartData
+    .filter(d => d.forecast !== null)
+    .reduce((sum, d) => sum + (d.forecast ?? 0), 0);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center h-48">
+          <p className="text-sm text-muted-foreground">Loading revenue data...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card className="shadow-md">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-quikle-accent" />
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <DollarSign className="h-4 w-4 text-primary" />
           Revenue Forecast
         </CardTitle>
-        <div className="flex gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-quikle-primary rounded"></div>
-            <span>Actual: R{currentRevenue.toLocaleString()}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-quikle-accent rounded"></div>
-            <span>Forecast: R{forecastedRevenue.toLocaleString()}</span>
-          </div>
+        <div className="flex gap-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-primary" />
+            Actual: R{totalActual.toLocaleString()}
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-accent" />
+            Forecast: R{totalForecast.toLocaleString()}
+          </span>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-64">
+        <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={revenueData}>
+            <AreaChart data={chartData}>
               <defs>
-                <linearGradient id="targetGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#64748B" stopOpacity={0.1} />
-                  <stop offset="95%" stopColor="#64748B" stopOpacity={0.05} />
-                </linearGradient>
-                <linearGradient id="forecastGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6B7280" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#6B7280" stopOpacity={0.1} />
+                <linearGradient id="revForecastGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis tickFormatter={(value) => `R${(value / 1000).toFixed(0)}k`} />
-              <Tooltip 
-                formatter={(value, name) => [
-                  value ? `R${value.toLocaleString()}` : 'N/A', 
-                  name === 'actual' ? 'Actual' : name === 'forecast' ? 'Forecast' : 'Target'
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+              <YAxis tickFormatter={(v) => `R${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+              <Tooltip
+                contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 8, color: 'hsl(var(--popover-foreground))' }}
+                formatter={(value: number | null, name: string) => [
+                  value != null ? `R${value.toLocaleString()}` : 'N/A',
+                  name === 'actual' ? 'Actual' : 'Forecast'
                 ]}
               />
-              <Area type="monotone" dataKey="target" stackId="1" stroke="#64748B" fill="url(#targetGradient)" />
-              <Area type="monotone" dataKey="forecast" stackId="1" stroke="#6B7280" fill="url(#forecastGradient)" />
-              <Line type="monotone" dataKey="actual" stroke="#1F2937" strokeWidth={3} dot={{ fill: '#1F2937' }} />
+              <Area type="monotone" dataKey="forecast" stroke="hsl(var(--accent-foreground))" strokeDasharray="5 5" fill="url(#revForecastGrad)" />
+              <Line type="monotone" dataKey="actual" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: 'hsl(var(--primary))', r: 3 }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>

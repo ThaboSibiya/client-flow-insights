@@ -1,34 +1,32 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileDown, Calendar, Settings, BarChart3 } from 'lucide-react';
+import { BarChart3, Calendar, Settings } from 'lucide-react';
 import DrillDownAnalytics from './DrillDownAnalytics';
-import ExportScheduler from './ExportScheduler';
+import UnifiedScheduler from './UnifiedScheduler';
 import CustomReportBuilder from './CustomReportBuilder';
 
 const InteractiveReports: React.FC = () => {
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-blue-500/20 via-purple-500/15 to-indigo-500/20 p-6 rounded-xl border border-white/20 backdrop-blur-sm">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-          Interactive Reports
-        </h2>
-        <p className="text-muted-foreground mt-1">
-          Advanced reporting with drill-down capabilities, automated exports, and custom report building
+      <div>
+        <h2 className="text-lg font-semibold text-foreground">Reports</h2>
+        <p className="text-sm text-muted-foreground">
+          Drill-down analytics, scheduled exports, and custom report building
         </p>
       </div>
 
       <Tabs defaultValue="drill-down" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="drill-down" className="flex items-center gap-2">
+        <TabsList className="bg-muted/50 p-1 h-auto">
+          <TabsTrigger value="drill-down" className="gap-2 data-[state=active]:bg-background">
             <BarChart3 className="h-4 w-4" />
-            Drill-Down Analytics
+            Drill-Down
           </TabsTrigger>
-          <TabsTrigger value="export" className="flex items-center gap-2">
+          <TabsTrigger value="scheduler" className="gap-2 data-[state=active]:bg-background">
             <Calendar className="h-4 w-4" />
-            Export Scheduler
+            Scheduled Reports
           </TabsTrigger>
-          <TabsTrigger value="builder" className="flex items-center gap-2">
+          <TabsTrigger value="builder" className="gap-2 data-[state=active]:bg-background">
             <Settings className="h-4 w-4" />
             Report Builder
           </TabsTrigger>
@@ -38,8 +36,8 @@ const InteractiveReports: React.FC = () => {
           <DrillDownAnalytics />
         </TabsContent>
 
-        <TabsContent value="export" className="space-y-6">
-          <ExportScheduler />
+        <TabsContent value="scheduler" className="space-y-6">
+          <UnifiedScheduler />
         </TabsContent>
 
         <TabsContent value="builder" className="space-y-6">
