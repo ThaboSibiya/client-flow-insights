@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import OnSiteStatusUpdate from '@/components/customers/OnSiteStatusUpdate';
 
-// Mock all the hooks and components
+// Mock all the hooks
 const mockUseSecureCustomerData = vi.fn();
 const mockUseCustomerSearch = vi.fn();
 const mockUseLocation = vi.fn();
@@ -25,14 +25,11 @@ vi.mock('@/hooks/useSecureJobCompletion', () => ({
   useSecureJobCompletion: () => mockUseSecureJobCompletion(),
 }));
 
-// Mock all the UI components
-vi.mock('@/components/ui/card', () => ({
-  Card: ({ children, className }: any) => <div className={className}>{children}</div>,
-  CardContent: ({ children, className }: any) => <div className={className}>{children}</div>,
-  CardHeader: ({ children, className }: any) => <div className={className}>{children}</div>,
-  CardTitle: ({ children, className }: any) => <div className={className}>{children}</div>,
+vi.mock('@/utils/securityUtils', () => ({
+  sanitizeInput: (val: string) => val,
 }));
 
+// Mock UI components
 vi.mock('@/components/ui/button', () => ({
   Button: ({ children, onClick, disabled, className }: any) => (
     <button onClick={onClick} disabled={disabled} className={className}>
@@ -41,14 +38,10 @@ vi.mock('@/components/ui/button', () => ({
   ),
 }));
 
-vi.mock('@/components/ui/tabs', () => ({
-  Tabs: ({ children, defaultValue }: any) => <div data-testid="tabs" data-value={defaultValue}>{children}</div>,
-  TabsContent: ({ children, value }: any) => <div data-testid={`tab-content-${value}`}>{children}</div>,
-  TabsList: ({ children }: any) => <div data-testid="tabs-list">{children}</div>,
-  TabsTrigger: ({ children, value }: any) => <div data-testid={`tab-trigger-${value}`}>{children}</div>,
+vi.mock('@/components/ui/input', () => ({
+  Input: (props: any) => <input {...props} />,
 }));
 
-// Mock the component imports
 vi.mock('@/components/customers/onsite/components/SecureCustomerSearchInput', () => ({
   SecureCustomerSearchInput: ({ searchTerm, onSearchChange, disabled }: any) => (
     <input
@@ -90,12 +83,7 @@ vi.mock('@/components/customers/onsite/components/SelectedCustomerCard', () => (
 
 vi.mock('@/components/customers/onsite/components/StatusSelector', () => ({
   StatusSelector: ({ value, onChange }: any) => (
-    <select
-      data-testid="status-selector"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    >
-      <option value="new">New</option>
+    <select data-testid="status-selector" value={value} onChange={(e) => onChange(e.target.value)}>
       <option value="existing">Existing</option>
       <option value="pending">Pending</option>
       <option value="finalised">Finalised</option>
@@ -105,20 +93,13 @@ vi.mock('@/components/customers/onsite/components/StatusSelector', () => ({
 
 vi.mock('@/components/customers/onsite/components/SecureNotesInput', () => ({
   SecureNotesInput: ({ value, onChange }: any) => (
-    <textarea
-      data-testid="notes-input"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder="Add notes..."
-    />
+    <textarea data-testid="notes-input" value={value} onChange={(e) => onChange(e.target.value)} />
   ),
 }));
 
 vi.mock('@/components/customers/onsite/components/LocationIndicator', () => ({
   LocationIndicator: ({ hasLocation }: any) => (
-    <div data-testid="location-indicator">
-      Location: {hasLocation ? 'Available' : 'Not Available'}
-    </div>
+    <div data-testid="location-indicator">Location: {hasLocation ? 'Yes' : 'No'}</div>
   ),
 }));
 
@@ -130,31 +111,36 @@ vi.mock('@/components/customers/onsite/components/ErrorDisplay', () => ({
   ErrorDisplay: ({ error }: any) => <div data-testid="error-display">{error}</div>,
 }));
 
-vi.mock('@/components/customers/onsite/components/TicketsTab', () => ({
-  TicketsTab: ({ tickets, loading }: any) => (
-    <div data-testid="tickets-tab">
-      {loading ? 'Loading tickets...' : `${tickets.length} tickets`}
+vi.mock('@/components/customers/onsite/components/TicketSelector', () => ({
+  TicketSelector: ({ tickets, loading }: any) => (
+    <div data-testid="ticket-selector">
+      {loading ? 'Loading...' : `${tickets.length} tickets`}
     </div>
   ),
+}));
+
+vi.mock('@/components/customers/onsite/components/PhotoUploader', () => ({
+  PhotoUploader: () => <div data-testid="photo-uploader">Photos</div>,
 }));
 
 interface Customer {
   id: string;
   name: string;
   email: string;
+  phone: string;
   status: 'new' | 'existing' | 'pending' | 'finalised';
+  notes: string;
 }
 
 describe('OnSiteStatusUpdate', () => {
   const mockCustomers: Customer[] = [
-    { id: '1', name: 'John Doe', email: 'john@example.com', status: 'existing' },
-    { id: '2', name: 'Jane Smith', email: 'jane@example.com', status: 'new' },
+    { id: '1', name: 'John Doe', email: 'john@example.com', phone: '123', status: 'existing', notes: '' },
+    { id: '2', name: 'Jane Smith', email: 'jane@example.com', phone: '456', status: 'new', notes: '' },
   ];
 
   beforeEach(() => {
     vi.clearAllMocks();
     
-    // Setup default mock returns
     mockUseSecureCustomerData.mockReturnValue({
       customers: mockCustomers,
       loading: false,
@@ -185,7 +171,6 @@ describe('OnSiteStatusUpdate', () => {
     const { container } = render(
       <OnSiteStatusUpdate isOpen={false} onClose={vi.fn()} />
     );
-    
     expect(container.firstChild).toBeNull();
   });
 
@@ -193,11 +178,10 @@ describe('OnSiteStatusUpdate', () => {
     const { getByTestId } = render(
       <OnSiteStatusUpdate isOpen={true} onClose={vi.fn()} />
     );
-    
     expect(getByTestId('search-input')).toBeInTheDocument();
   });
 
-  it('shows loading state when data is loading', () => {
+  it('shows loading state', () => {
     mockUseSecureCustomerData.mockReturnValue({
       customers: [],
       loading: true,
@@ -208,38 +192,28 @@ describe('OnSiteStatusUpdate', () => {
     const { getByTestId } = render(
       <OnSiteStatusUpdate isOpen={true} onClose={vi.fn()} />
     );
-    
     expect(getByTestId('loading-state')).toBeInTheDocument();
   });
 
-  it('shows error when there is an error', () => {
+  it('shows error state', () => {
     mockUseSecureCustomerData.mockReturnValue({
       customers: [],
       loading: false,
-      error: 'Failed to load customers',
+      error: 'Failed to load',
       loadCustomerTickets: vi.fn(),
     });
 
     const { getByTestId } = render(
       <OnSiteStatusUpdate isOpen={true} onClose={vi.fn()} />
     );
-    
     expect(getByTestId('error-display')).toBeInTheDocument();
   });
 
-  it('renders search input with correct placeholder', () => {
-    const { getByPlaceholderText } = render(
-      <OnSiteStatusUpdate isOpen={true} onClose={vi.fn()} />
-    );
-    
-    expect(getByPlaceholderText('Search customers...')).toBeInTheDocument();
-  });
-
-  it('shows customer dropdown when search is active', () => {
+  it('shows unified form after customer selection', () => {
     mockUseCustomerSearch.mockReturnValue({
-      searchTerm: 'John',
+      searchTerm: '',
       setSearchTerm: vi.fn(),
-      filteredCustomers: [mockCustomers[0]],
+      filteredCustomers: mockCustomers,
       isDropdownOpen: true,
       setIsDropdownOpen: vi.fn(),
     });
@@ -247,111 +221,72 @@ describe('OnSiteStatusUpdate', () => {
     const { getByTestId } = render(
       <OnSiteStatusUpdate isOpen={true} onClose={vi.fn()} />
     );
-    
-    expect(getByTestId('customer-dropdown')).toBeInTheDocument();
-    expect(getByTestId('customer-option-1')).toBeInTheDocument();
-  });
 
-  it('shows selected customer card when customer is selected', () => {
-    const { getByTestId, getByText } = render(
-      <OnSiteStatusUpdate isOpen={true} onClose={vi.fn()} />
-    );
-    
-    // Simulate customer selection
-    const customerOption = getByTestId('customer-option-1');
-    customerOption.click();
-    
+    // Select customer
+    getByTestId('customer-option-1').click();
+
+    // All unified form sections should render
     expect(getByTestId('selected-customer-card')).toBeInTheDocument();
-  });
-
-  it('renders tabs for status and tickets', () => {
-    const { getByTestId } = render(
-      <OnSiteStatusUpdate isOpen={true} onClose={vi.fn()} />
-    );
-    
-    // Click customer to show tabs
-    const customerOption = getByTestId('customer-option-1');
-    customerOption.click();
-    
-    expect(getByTestId('tabs')).toBeInTheDocument();
-    expect(getByTestId('tab-trigger-status')).toBeInTheDocument();
-    expect(getByTestId('tab-trigger-tickets')).toBeInTheDocument();
-  });
-
-  it('shows status selector and notes input in status tab', () => {
-    const { getByTestId } = render(
-      <OnSiteStatusUpdate isOpen={true} onClose={vi.fn()} />
-    );
-    
-    // Select customer to show status tab
-    const customerOption = getByTestId('customer-option-1');
-    customerOption.click();
-    
+    expect(getByTestId('ticket-selector')).toBeInTheDocument();
     expect(getByTestId('status-selector')).toBeInTheDocument();
+    expect(getByTestId('photo-uploader')).toBeInTheDocument();
     expect(getByTestId('notes-input')).toBeInTheDocument();
-    expect(getByTestId('location-indicator')).toBeInTheDocument();
   });
 
-  it('shows tickets in tickets tab', () => {
-    const { getByTestId } = render(
-      <OnSiteStatusUpdate isOpen={true} onClose={vi.fn()} />
-    );
-    
-    // Select customer to show tickets tab
-    const customerOption = getByTestId('customer-option-1');
-    customerOption.click();
-    
-    expect(getByTestId('tickets-tab')).toBeInTheDocument();
-  });
-
-  it('handles form submission correctly', () => {
+  it('calls handleSubmit with payload on complete', () => {
     const mockHandleSubmit = vi.fn().mockResolvedValue(true);
     mockUseSecureJobCompletion.mockReturnValue({
       submitting: false,
       handleSubmit: mockHandleSubmit,
     });
 
-    const { getByTestId, getByText } = render(
-      <OnSiteStatusUpdate isOpen={true} onClose={vi.fn()} />
-    );
-    
-    // Select customer
-    const customerOption = getByTestId('customer-option-1');
-    customerOption.click();
-    
-    // Submit form
-    const submitButton = getByText('Complete Job');
-    submitButton.click();
-    
-    expect(mockHandleSubmit).toHaveBeenCalled();
-  });
-
-  it('shows submitting state during form submission', () => {
-    mockUseSecureJobCompletion.mockReturnValue({
-      submitting: true,
-      handleSubmit: vi.fn(),
+    mockUseCustomerSearch.mockReturnValue({
+      searchTerm: '',
+      setSearchTerm: vi.fn(),
+      filteredCustomers: mockCustomers,
+      isDropdownOpen: true,
+      setIsDropdownOpen: vi.fn(),
     });
 
     const { getByTestId, getByText } = render(
       <OnSiteStatusUpdate isOpen={true} onClose={vi.fn()} />
     );
-    
-    // Select customer
-    const customerOption = getByTestId('customer-option-1');
-    customerOption.click();
-    
-    expect(getByText('Updating...')).toBeInTheDocument();
+
+    getByTestId('customer-option-1').click();
+    getByText('Complete Job').click();
+
+    expect(mockHandleSubmit).toHaveBeenCalled();
   });
 
-  it('handles modal close correctly', () => {
+  it('shows completing state during submission', () => {
+    mockUseSecureJobCompletion.mockReturnValue({
+      submitting: true,
+      handleSubmit: vi.fn(),
+    });
+
+    mockUseCustomerSearch.mockReturnValue({
+      searchTerm: '',
+      setSearchTerm: vi.fn(),
+      filteredCustomers: mockCustomers,
+      isDropdownOpen: true,
+      setIsDropdownOpen: vi.fn(),
+    });
+
+    const { getByTestId, getByText } = render(
+      <OnSiteStatusUpdate isOpen={true} onClose={vi.fn()} />
+    );
+
+    getByTestId('customer-option-1').click();
+    expect(getByText('Completing...')).toBeInTheDocument();
+  });
+
+  it('handles cancel correctly', () => {
     const mockOnClose = vi.fn();
     const { getByText } = render(
       <OnSiteStatusUpdate isOpen={true} onClose={mockOnClose} />
     );
     
-    const cancelButton = getByText('Cancel');
-    cancelButton.click();
-    
+    getByText('Cancel').click();
     expect(mockOnClose).toHaveBeenCalled();
   });
 });

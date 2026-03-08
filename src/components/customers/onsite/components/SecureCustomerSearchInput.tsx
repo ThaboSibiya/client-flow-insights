@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
@@ -24,7 +23,7 @@ export const SecureCustomerSearchInput = ({
 
   return (
     <div className="relative">
-      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       <Input
         type="text"
         placeholder={disabled ? "No customers available" : "Search customers..."}
@@ -32,9 +31,7 @@ export const SecureCustomerSearchInput = ({
         onChange={handleInputChange}
         onFocus={onFocus}
         disabled={disabled}
-        className={`pl-10 border-2 border-gray-200 focus:border-green-500 ${
-          disabled ? 'bg-gray-100 cursor-not-allowed' : ''
-        }`}
+        className="pl-10"
         maxLength={100}
         autoComplete="off"
       />

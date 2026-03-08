@@ -1754,6 +1754,10 @@ export type Database = {
           location_lat: number | null
           location_lng: number | null
           notes: string | null
+          photos: Json | null
+          started_at: string | null
+          ticket_id: string | null
+          work_summary: string | null
         }
         Insert: {
           after_status?: string | null
@@ -1766,6 +1770,10 @@ export type Database = {
           location_lat?: number | null
           location_lng?: number | null
           notes?: string | null
+          photos?: Json | null
+          started_at?: string | null
+          ticket_id?: string | null
+          work_summary?: string | null
         }
         Update: {
           after_status?: string | null
@@ -1778,6 +1786,10 @@ export type Database = {
           location_lat?: number | null
           location_lng?: number | null
           notes?: string | null
+          photos?: Json | null
+          started_at?: string | null
+          ticket_id?: string | null
+          work_summary?: string | null
         }
         Relationships: [
           {
@@ -1792,6 +1804,13 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_completions_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
             referencedColumns: ["id"]
           },
         ]

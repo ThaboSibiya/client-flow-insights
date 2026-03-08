@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CustomerStatus } from '@/types/customer';
@@ -10,16 +9,16 @@ interface StatusSelectorProps {
 
 export const StatusSelector = ({ value, onChange }: StatusSelectorProps) => {
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-semibold text-gray-700">New Status</label>
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium text-foreground">Customer Status</label>
       <Select value={value} onValueChange={(value: CustomerStatus) => onChange(value)}>
-        <SelectTrigger className="border-2 border-gray-200 focus:border-green-500">
+        <SelectTrigger>
           <SelectValue />
         </SelectTrigger>
-        <SelectContent className="bg-white border-2 border-gray-200 shadow-lg">
-          <SelectItem value="existing" className="hover:bg-green-50">Existing</SelectItem>
-          <SelectItem value="finalised" className="hover:bg-green-50">Finalised</SelectItem>
-          <SelectItem value="pending" className="hover:bg-green-50">Pending</SelectItem>
+        <SelectContent>
+          <SelectItem value="existing">Existing</SelectItem>
+          <SelectItem value="finalised">Finalised</SelectItem>
+          <SelectItem value="pending">Pending</SelectItem>
         </SelectContent>
       </Select>
     </div>
