@@ -68,7 +68,7 @@ const Auth: React.FC = () => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        navigate('/dashboard');
+        navigate('/');
       }
     };
     
