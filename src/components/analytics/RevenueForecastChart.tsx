@@ -11,24 +11,36 @@ const RevenueForecastChart = () => {
   const chartData = useMemo(() => {
     if (!revenueTimeSeries.length) return [];
 
+    // Calculate standard deviation for confidence bands
+    const values = revenueTimeSeries.map(d => d.value);
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const stdDev = Math.sqrt(values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length);
+
     const pastData = revenueTimeSeries.map(item => ({
       month: item.name,
       actual: item.value,
       forecast: null as number | null,
+      upper: null as number | null,
+      lower: null as number | null,
     }));
 
-    const values = revenueTimeSeries.map(d => d.value);
     const avgGrowth = values.length >= 2
       ? (values[values.length - 1] - values[0]) / (values.length - 1)
       : 0;
     const lastValue = values[values.length - 1] || 0;
 
     const futureMonths = ['Next +1', 'Next +2', 'Next +3'];
-    const futureData = futureMonths.map((month, i) => ({
-      month,
-      actual: null as number | null,
-      forecast: Math.max(0, Math.round(lastValue + avgGrowth * (i + 1))),
-    }));
+    const futureData = futureMonths.map((month, i) => {
+      const predicted = Math.max(0, Math.round(lastValue + avgGrowth * (i + 1)));
+      const spread = stdDev * (1 + i * 0.4); // Wider bands further out
+      return {
+        month,
+        actual: null as number | null,
+        forecast: predicted,
+        upper: Math.round(predicted + spread),
+        lower: Math.max(0, Math.round(predicted - spread)),
+      };
+    });
 
     return [...pastData, ...futureData];
   }, [revenueTimeSeries]);
