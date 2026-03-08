@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,21 +10,27 @@ interface AddStageDialogProps {
   onAddStage: (name: string, color: string) => void;
 }
 
-const colorOptions = [
-  '#1F2937', '#374151', '#6B7280', '#059669', 
-  '#0369A1', '#7C3AED', '#DC2626', '#64748B'
+const COLOR_OPTIONS = [
+  { name: 'Slate', value: 'hsl(var(--muted-foreground))' },
+  { name: 'Primary', value: 'hsl(var(--primary))' },
+  { name: 'Green', value: 'hsl(142 76% 36%)' },
+  { name: 'Blue', value: 'hsl(217 91% 60%)' },
+  { name: 'Purple', value: 'hsl(263 70% 50%)' },
+  { name: 'Amber', value: 'hsl(38 92% 50%)' },
+  { name: 'Red', value: 'hsl(var(--destructive))' },
+  { name: 'Teal', value: 'hsl(172 66% 50%)' },
 ];
 
 const AddStageDialog = ({ open, onOpenChange, onAddStage }: AddStageDialogProps) => {
   const [stageName, setStageName] = useState('');
-  const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
+  const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0].value);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (stageName.trim()) {
       onAddStage(stageName.trim(), selectedColor);
       setStageName('');
-      setSelectedColor(colorOptions[0]);
+      setSelectedColor(COLOR_OPTIONS[0].value);
     }
   };
 
@@ -33,55 +38,51 @@ const AddStageDialog = ({ open, onOpenChange, onAddStage }: AddStageDialogProps)
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-quikle-charcoal">Add New Stage</DialogTitle>
+          <DialogTitle>Add New Stage</DialogTitle>
+          <DialogDescription>Create a new stage for your pipeline.</DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="stageName" className="text-quikle-charcoal">Stage Name</Label>
+            <Label htmlFor="stageName">Stage Name</Label>
             <Input
               id="stageName"
               value={stageName}
               onChange={(e) => setStageName(e.target.value)}
-              placeholder="Enter stage name..."
-              className="border-quikle-silver/50 text-quikle-charcoal"
+              placeholder="e.g., Qualified, In Review..."
+              autoFocus
               required
             />
           </div>
           
           <div className="space-y-2">
-            <Label className="text-quikle-charcoal">Stage Color</Label>
+            <Label>Stage Color</Label>
             <div className="grid grid-cols-4 gap-2">
-              {colorOptions.map((color) => (
+              {COLOR_OPTIONS.map((option) => (
                 <button
-                  key={color}
+                  key={option.value}
                   type="button"
-                  className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-105 ${
-                    selectedColor === color ? 'border-quikle-primary ring-2 ring-quikle-primary/30' : 'border-quikle-silver hover:border-quikle-slate'
+                  className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-105 ${
+                    selectedColor === option.value 
+                      ? 'border-primary ring-2 ring-primary/30' 
+                      : 'border-border hover:border-muted-foreground'
                   }`}
-                  style={{ backgroundColor: color }}
-                  onClick={() => setSelectedColor(color)}
+                  style={{ backgroundColor: option.value }}
+                  onClick={() => setSelectedColor(option.value)}
+                  title={option.name}
                 />
               ))}
             </div>
           </div>
           
-          <div className="flex justify-end gap-2">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)} 
-              className="border-quikle-silver text-quikle-charcoal hover:bg-quikle-crystal hover:border-quikle-slate"
-            >
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              className="bg-quikle-primary hover:bg-quikle-secondary text-white border-none"
-            >
+            <Button type="submit" disabled={!stageName.trim()}>
               Add Stage
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

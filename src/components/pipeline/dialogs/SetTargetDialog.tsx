@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { TrendingUp } from "lucide-react";
 
 interface SetTargetDialogProps {
@@ -46,11 +47,11 @@ const SetTargetDialog = ({ open, onOpenChange, stage, onSetTarget }: SetTargetDi
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-quikle-primary" />
+            <TrendingUp className="h-5 w-5 text-primary" />
             Set Target for "{stage?.name}"
           </DialogTitle>
           <DialogDescription>
-            Set a target number to track progress and performance for this stage.
+            Track progress by setting a target number for this stage.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -68,22 +69,17 @@ const SetTargetDialog = ({ open, onOpenChange, stage, onSetTarget }: SetTargetDi
               placeholder="Enter target number"
               disabled={removeTarget}
             />
-            <p className="text-sm text-quikle-slate">
-              Set a target number to track progress for this stage
-            </p>
           </div>
           
           {stage?.target && (
             <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
+              <Checkbox
                 id="remove-target"
                 checked={removeTarget}
-                onChange={(e) => {
-                  setRemoveTarget(e.target.checked);
-                  if (e.target.checked) setTarget('');
+                onCheckedChange={(checked) => {
+                  setRemoveTarget(!!checked);
+                  if (checked) setTarget('');
                 }}
-                className="rounded border-quikle-silver"
               />
               <Label htmlFor="remove-target" className="text-sm">
                 Remove current target
@@ -92,13 +88,10 @@ const SetTargetDialog = ({ open, onOpenChange, stage, onSetTarget }: SetTargetDi
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button 
             onClick={handleSave}
             disabled={!removeTarget && (!target || parseInt(target) <= 0)}
-            className="bg-quikle-primary hover:bg-quikle-primary/90 text-white"
           >
             {removeTarget ? 'Remove Target' : 'Set Target'}
           </Button>
