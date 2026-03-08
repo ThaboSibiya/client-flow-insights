@@ -98,23 +98,54 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Payment verified successfully — activate subscription
+    // Payment verified successfully — activate subscription using admin client
     const paystackTx = verifyData.data;
     const planName = paystackTx.metadata?.plan_name || 'Solo';
 
-    const { error: updateError } = await supabase.from('user_subscriptions').update({
+    // Use service role to bypass RLS for subscription updates
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    // Check if already active to prevent duplicate processing
+    const { data: existingSub } = await adminClient
+      .from('user_subscriptions')
+      .select('status')
+      .eq('paystack_reference', reference)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (existingSub?.status === 'active') {
+      console.log(`Payment already verified for ref: ${reference}`);
+      return new Response(JSON.stringify({
+        verified: true,
+        plan_name: planName,
+        status: 'active',
+        already_processed: true,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { error: updateError } = await adminClient.from('user_subscriptions').update({
       status: 'active',
       paystack_customer_code: paystackTx.customer?.customer_code || null,
+      paystack_authorization_code: paystackTx.authorization?.authorization_code || null,
       current_period_start: new Date().toISOString(),
       current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     }).eq('paystack_reference', reference).eq('user_id', user.id);
 
     if (updateError) {
       console.error('Error updating subscription:', updateError);
+      return new Response(JSON.stringify({ error: 'Failed to activate subscription' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Log successful verification
-    await supabase.from('subscription_events').insert({
+    await adminClient.from('subscription_events').insert({
       user_id: user.id,
       event_type: 'payment_verified',
       paystack_reference: reference,
@@ -123,6 +154,7 @@ Deno.serve(async (req) => {
         amount: paystackTx.amount / 100,
         currency: paystackTx.currency,
         customer_code: paystackTx.customer?.customer_code,
+        authorization_code: paystackTx.authorization?.authorization_code,
         transaction_id: paystackTx.id,
       },
     });
