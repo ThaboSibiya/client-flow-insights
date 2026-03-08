@@ -8,6 +8,7 @@ import DocumentationSidebar, { documentationData, DocArticle, DocCategory } from
 import DocumentationArticle from '@/components/documentation/DocumentationArticle';
 
 const Documentation = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState(documentationData[0].id);
   const [activeArticle, setActiveArticle] = useState(documentationData[0].articles[0].id);
