@@ -398,7 +398,7 @@ const Auth: React.FC = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        className="pl-10"
+                        className="pl-10 bg-background text-foreground border-input"
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">Password must be at least 6 characters</p>
