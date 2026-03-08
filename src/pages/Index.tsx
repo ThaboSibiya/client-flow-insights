@@ -17,6 +17,7 @@ import {
   Shield,
   User
 } from 'lucide-react';
+import quikleLogo from '@/assets/quikle-logo.png';
 
 const Index = () => {
   const { user } = useAuth();
