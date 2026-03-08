@@ -216,8 +216,14 @@ export const useOnboardingWizard = (): UseOnboardingWizardReturn => {
   const canGoPrev = useMemo(() => stepIndex > 0, [stepIndex]);
   
   const goToStep = useCallback((step: WizardStep) => {
-    setCurrentStep(step);
-  }, []);
+    const targetIndex = STEPS.indexOf(step);
+    const currentIndex = STEPS.indexOf(currentStep);
+    
+    // Only allow navigating backwards (completed steps) — forward requires Next button
+    if (targetIndex < currentIndex) {
+      setCurrentStep(step);
+    }
+  }, [currentStep]);
   
   const nextStep = useCallback(() => {
     // Validate current step before proceeding
