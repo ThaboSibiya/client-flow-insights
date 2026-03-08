@@ -46,58 +46,72 @@ export const useProjectManagement = (): UseProjectManagementReturn => {
   const { logError, errors, clearErrors } = useProjectErrorHandling();
   const { startMeasure } = useProjectPerformance();
 
-  // Load team members from profile and employees
+  // Load team members and projects in parallel on mount
   useEffect(() => {
-    const loadTeamMembers = async () => {
-      if (!user) return;
+    const loadTeamMembers = async (): Promise<TeamMember[]> => {
+      const members: TeamMember[] = [];
       
-      try {
-        const members: TeamMember[] = [];
-        
-        // Add current user from profile
-        const { data: profile } = await supabase
+      const [profileResult, employeesResult] = await Promise.all([
+        supabase
           .from('profiles')
           .select('id, first_name, last_name, email, avatar_url, role')
-          .eq('id', user.id)
-          .single();
-        
-        if (profile) {
-          const userName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.email || 'Current User';
-          members.push({
-            id: profile.id,
-            name: userName,
-            email: profile.email || user.email || '',
-            role: profile.role || 'Owner',
-            department: 'Management',
-            avatar: profile.avatar_url || undefined,
-          });
-        }
-        
-        // Add employees
-        const { data: employees } = await supabase
+          .eq('id', user!.id)
+          .single(),
+        supabase
           .from('employees')
           .select('id, first_name, last_name, email, title, department')
-          .eq('company_owner_id', user.id)
-          .eq('status', 'active');
-        
-        if (employees) {
-          employees.forEach(emp => {
-            members.push({
-              id: emp.id,
-              name: `${emp.first_name} ${emp.last_name}`,
-              email: emp.email,
-              role: emp.title || 'Employee',
-              department: emp.department || 'General',
-              avatar: undefined,
-            });
+          .eq('company_owner_id', user!.id)
+          .eq('status', 'active'),
+      ]);
+      
+      if (profileResult.data) {
+        const profile = profileResult.data;
+        const userName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.email || 'Current User';
+        members.push({
+          id: profile.id,
+          name: userName,
+          email: profile.email || user!.email || '',
+          role: profile.role || 'Owner',
+          department: 'Management',
+          avatar: profile.avatar_url || undefined,
+        });
+      }
+      
+      if (employeesResult.data) {
+        employeesResult.data.forEach(emp => {
+          members.push({
+            id: emp.id,
+            name: `${emp.first_name} ${emp.last_name}`,
+            email: emp.email,
+            role: emp.title || 'Employee',
+            department: emp.department || 'General',
+            avatar: undefined,
           });
-        }
-        
-        setTeamMembers(members);
-      } catch (error) {
-        console.error('Failed to load team members:', error);
-        // Set current user as fallback
-        if (user) {
+        });
+      }
+      
+      return members;
+    };
+
+    const loadData = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+
+        // Run team + projects in parallel instead of sequentially
+        const [teamResult, projectsResult] = await Promise.allSettled([
+          loadTeamMembers(),
+          projectService.getProjects(),
+        ]);
+
+        if (teamResult.status === 'fulfilled') {
+          setTeamMembers(teamResult.value);
+        } else {
+          console.error('Failed to load team members:', teamResult.reason);
           setTeamMembers([{
             id: user.id,
             name: user.email || 'Current User',
@@ -107,32 +121,21 @@ export const useProjectManagement = (): UseProjectManagementReturn => {
             avatar: undefined,
           }]);
         }
-      }
-    };
-    
-    loadTeamMembers();
-  }, [user]);
 
-  // Load projects from database on mount
-  useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        setIsLoading(true);
-        const loadedProjects = await projectService.getProjects();
-        setProjects(loadedProjects);
-        console.log('Projects loaded from database:', loadedProjects.length);
-      } catch (error) {
-        console.error('Failed to load projects from database:', error);
-        logError(error, 'loadProjects');
-        // Fallback to empty array if database fails and user is not authenticated
-        setProjects([]);
+        if (projectsResult.status === 'fulfilled') {
+          setProjects(projectsResult.value);
+        } else {
+          console.error('Failed to load projects:', projectsResult.reason);
+          logError(projectsResult.reason, 'loadProjects');
+          setProjects([]);
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadProjects();
-  }, [logError]);
+    loadData();
+  }, [user, logError]);
 
   const filteredProjects = useMemo(() => {
     return projects.filter(project => {
