@@ -300,11 +300,11 @@ const PipelineDetailPanel = ({
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Time Spent</p>
-                  <p className="font-medium">{Math.round(ticket.totalTimeSpent / 60)}h {ticket.totalTimeSpent % 60}m</p>
+                  <p className="font-medium">{Math.round((ticket?.totalTimeSpent || 0) / 60)}h {(ticket?.totalTimeSpent || 0) % 60}m</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Created</p>
-                  <p className="text-sm">{format(new Date(ticket.createdAt), 'MMM d, yyyy')}</p>
+                  <p className="text-sm">{ticket?.createdAt ? format(new Date(ticket.createdAt), 'MMM d, yyyy') : 'N/A'}</p>
                 </div>
               </div>
             </div>
