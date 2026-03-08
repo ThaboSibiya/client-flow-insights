@@ -1,11 +1,8 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { Check } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Check, X } from "lucide-react";
 import { CustomerStatus } from '@/types/customer';
 import { OnSiteStatusUpdateProps, Customer, OnSiteTicket } from './onsite/types';
 import { useSecureCustomerData } from '@/hooks/useSecureCustomerData';
@@ -47,9 +44,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
     setNotes('');
     setSearchTerm('');
     setIsDropdownOpen(false);
-    console.log('Selected customer:', customer.name);
 
-    // Load tickets for the selected customer with security validation
     setTicketsLoading(true);
     const tickets = await loadCustomerTickets(customer.id);
     setCustomerTickets(tickets);
@@ -64,7 +59,6 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
     setCustomerTickets([]);
   };
 
-  // Request location only when modal opens and user has privileges
   React.useEffect(() => {
     if (isOpen) {
       requestLocation();
@@ -83,114 +77,115 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] p-0">
-        <DialogTitle className="sr-only">Job Completion Update</DialogTitle>
-        <DialogDescription className="sr-only">
-          Update job status and add completion notes for the selected customer
-        </DialogDescription>
-        <ScrollArea className="max-h-[85vh]">
-          <Card className="border-0 shadow-none">
-            <CardHeader className="text-center bg-gradient-to-r from-green-50 to-blue-50">
-              <CardTitle className="flex items-center gap-2 justify-center text-green-700">
-                <Check className="h-5 w-5" />
-                Job Completion Update
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 p-6">
-              {error && <ErrorDisplay error={error} />}
+      <DialogContent className="sm:max-w-lg p-0 flex flex-col max-h-[85vh]">
+        <DialogHeader className="px-5 pt-5 pb-3 border-b border-border shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Check className="h-4 w-4 text-green-600" />
+            Job Completion
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            Update job status for the selected customer
+          </DialogDescription>
+        </DialogHeader>
 
-              {loading ? (
-                <LoadingState />
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700">Select Customer</label>
-                    {!selectedCustomer ? (
-                      <div className="relative">
-                        <SecureCustomerSearchInput
-                          searchTerm={searchTerm}
-                          onSearchChange={(value) => {
-                            setSearchTerm(value);
-                            setIsDropdownOpen(true);
-                          }}
-                          onFocus={() => setIsDropdownOpen(true)}
-                          disabled={customers.length === 0}
-                        />
-                        
-                        <CustomerDropdown
-                          customers={filteredCustomers}
-                          isOpen={isDropdownOpen}
-                          searchTerm={searchTerm}
-                          onCustomerSelect={handleCustomerSelect}
-                        />
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <SelectedCustomerCard
-                          customer={selectedCustomer}
-                          onClear={clearSelection}
-                        />
-                        
-                        <Tabs defaultValue="status" className="w-full">
-                          <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="status">Update Status</TabsTrigger>
-                            <TabsTrigger value="tickets">Active Tickets ({customerTickets.length})</TabsTrigger>
-                          </TabsList>
-                          
-                          <TabsContent value="status" className="space-y-4">
-                            <StatusSelector
-                              value={newStatus}
-                              onChange={setNewStatus}
-                            />
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          {error && <ErrorDisplay error={error} />}
 
-                            <SecureNotesInput
-                              value={notes}
-                              onChange={setNotes}
-                            />
-
-                            <LocationIndicator hasLocation={!!location} />
-                          </TabsContent>
-                          
-                          <TabsContent value="tickets">
-                            <TicketsTab 
-                              tickets={customerTickets} 
-                              loading={ticketsLoading}
-                            />
-                          </TabsContent>
-                        </Tabs>
-                      </div>
-                    )}
+          {loading ? (
+            <LoadingState />
+          ) : (
+            <>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Select Customer</label>
+                {!selectedCustomer ? (
+                  <div className="relative">
+                    <SecureCustomerSearchInput
+                      searchTerm={searchTerm}
+                      onSearchChange={(value) => {
+                        setSearchTerm(value);
+                        setIsDropdownOpen(true);
+                      }}
+                      onFocus={() => setIsDropdownOpen(true)}
+                      disabled={customers.length === 0}
+                    />
+                    
+                    <CustomerDropdown
+                      customers={filteredCustomers}
+                      isOpen={isDropdownOpen}
+                      searchTerm={searchTerm}
+                      onCustomerSelect={handleCustomerSelect}
+                    />
                   </div>
+                ) : (
+                  <div className="space-y-3">
+                    <SelectedCustomerCard
+                      customer={selectedCustomer}
+                      onClear={clearSelection}
+                    />
+                    
+                    <Tabs defaultValue="status" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2 h-9">
+                        <TabsTrigger value="status" className="text-xs">Update Status</TabsTrigger>
+                        <TabsTrigger value="tickets" className="text-xs">
+                          Tickets ({customerTickets.length})
+                        </TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="status" className="space-y-3 mt-3">
+                        <StatusSelector
+                          value={newStatus}
+                          onChange={setNewStatus}
+                        />
 
-                  <div className="flex gap-3 pt-4">
-                    <Button
-                      variant="outline"
-                      onClick={onClose}
-                      className="flex-1 border-2 hover:bg-gray-50"
-                      disabled={submitting}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={onSubmit}
-                      disabled={!selectedCustomer || submitting}
-                      className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300"
-                    >
-                      {submitting ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Updating...
-                        </>
-                      ) : (
-                        'Complete Job'
-                      )}
-                    </Button>
+                        <SecureNotesInput
+                          value={notes}
+                          onChange={setNotes}
+                        />
+
+                        <LocationIndicator hasLocation={!!location} />
+                      </TabsContent>
+                      
+                      <TabsContent value="tickets" className="mt-3">
+                        <TicketsTab 
+                          tickets={customerTickets} 
+                          loading={ticketsLoading}
+                        />
+                      </TabsContent>
+                    </Tabs>
                   </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </ScrollArea>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Sticky footer - always visible */}
+        <div className="shrink-0 border-t border-border px-5 py-3 flex gap-3 bg-background">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="flex-1"
+            size="sm"
+            disabled={submitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={onSubmit}
+            disabled={!selectedCustomer || submitting}
+            className="flex-1 bg-green-600 hover:bg-green-700"
+            size="sm"
+          >
+            {submitting ? (
+              <>
+                <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white mr-1.5" />
+                Updating...
+              </>
+            ) : (
+              'Complete Job'
+            )}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -1,178 +1,137 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, CheckCircle, Clock } from "lucide-react";
+import { RefreshCw, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
 
-interface StatusRule {
+interface StatusUpdate {
   id: string;
-  name: string;
-  fromStatus: string;
-  toStatus: string;
-  trigger: string;
-  isActive: boolean;
-  conditions: string[];
+  customer_name: string;
+  old_status: string | null;
+  new_status: string | null;
+  updated_by: string | null;
+  timestamp: string | null;
 }
 
 const AutoStatusUpdates = () => {
-  const [rules, setRules] = useState<StatusRule[]>([
-    {
-      id: '1',
-      name: 'Mark as Completed',
-      fromStatus: 'in_progress',
-      toStatus: 'completed',
-      trigger: 'mobile_team_marks_complete',
-      isActive: true,
-      conditions: ['GPS location verified', 'Photo evidence uploaded'],
-    },
-    {
-      id: '2',
-      name: 'Schedule Follow-up',
-      fromStatus: 'completed',
-      toStatus: 'followup_scheduled',
-      trigger: 'requires_followup_selected',
-      isActive: true,
-      conditions: ['Follow-up reason provided'],
-    },
-    {
-      id: '3',
-      name: 'Move to Invoicing',
-      fromStatus: 'completed',
-      toStatus: 'ready_for_invoice',
-      trigger: 'no_issues_reported',
-      isActive: false,
-      conditions: ['Customer satisfaction confirmed'],
-    },
-  ]);
+  const [updates, setUpdates] = useState<StatusUpdate[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [recentUpdates, setRecentUpdates] = useState([
-    {
-      id: '1',
-      customer: 'Sarah Johnson',
-      oldStatus: 'In Progress',
-      newStatus: 'Completed',
-      updatedBy: 'Mike Wilson (Mobile)',
-      timestamp: '2024-06-22T14:30:00Z',
-      rule: 'Mark as Completed',
-    },
-    {
-      id: '2',
-      customer: 'David Chen',
-      oldStatus: 'Completed',
-      newStatus: 'Follow-up Scheduled',
-      updatedBy: 'System',
-      timestamp: '2024-06-22T13:45:00Z',
-      rule: 'Schedule Follow-up',
-    },
-  ]);
+  const loadUpdates = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-  const toggleRule = (ruleId: string) => {
-    setRules(prev => prev.map(rule => 
-      rule.id === ruleId ? { ...rule, isActive: !rule.isActive } : rule
-    ));
-    toast({
-      title: "Rule Updated",
-      description: "Automation rule has been toggled.",
-    });
+      // Pull recent job completions as status change history
+      const { data, error } = await supabase
+        .from('job_completions')
+        .select(`
+          id, before_status, after_status, created_at,
+          customers!inner(name),
+          employees(first_name, last_name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(15);
+
+      if (error) throw error;
+
+      const formatted: StatusUpdate[] = (data || []).map((item: any) => ({
+        id: item.id,
+        customer_name: item.customers?.name || 'Unknown',
+        old_status: item.before_status,
+        new_status: item.after_status,
+        updated_by: item.employees
+          ? `${item.employees.first_name} ${item.employees.last_name}`
+          : 'System',
+        timestamp: item.created_at,
+      }));
+
+      setUpdates(formatted);
+    } catch (error: any) {
+      console.error('Error loading status updates:', error);
+      toast({ title: "Error", description: "Failed to load updates", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      'in_progress': 'bg-blue-100 text-blue-800',
-      'completed': 'bg-green-100 text-green-800',
-      'followup_scheduled': 'bg-yellow-100 text-yellow-800',
-      'ready_for_invoice': 'bg-purple-100 text-purple-800',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+  useEffect(() => {
+    loadUpdates();
+  }, []);
+
+  const getStatusColor = (status: string | null) => {
+    switch (status) {
+      case 'new': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'existing': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'finalised': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400';
+      default: return 'bg-muted text-muted-foreground';
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <RefreshCw className="h-5 w-5" />
-            Automation Rules
+    <Card className="border-border">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base text-foreground">
+            <RefreshCw className="h-4 w-4" />
+            Status Change History
           </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {rules.map((rule) => (
-              <div key={rule.id} className="border rounded-lg p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold">{rule.name}</h4>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge className={getStatusColor(rule.fromStatus)}>
-                        {rule.fromStatus.replace('_', ' ')}
-                      </Badge>
-                      <span>→</span>
-                      <Badge className={getStatusColor(rule.toStatus)}>
-                        {rule.toStatus.replace('_', ' ')}
-                      </Badge>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={rule.isActive}
-                    onCheckedChange={() => toggleRule(rule.id)}
-                  />
-                </div>
-
-                <div className="text-sm text-muted-foreground mb-2">
-                  <strong>Trigger:</strong> {rule.trigger.replace('_', ' ')}
-                </div>
-
-                {rule.conditions.length > 0 && (
-                  <div className="text-sm">
-                    <strong>Conditions:</strong>
-                    <ul className="list-disc list-inside mt-1 text-muted-foreground">
-                      {rule.conditions.map((condition, index) => (
-                        <li key={index}>{condition}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+          <Button variant="ghost" size="sm" onClick={loadUpdates} disabled={loading}>
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-14 bg-muted/50 rounded-md animate-pulse" />
             ))}
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5" />
-            Recent Status Updates
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {recentUpdates.map((update) => (
-              <div key={update.id} className="border-l-4 border-quikle-primary pl-4 py-2">
+        ) : updates.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <RefreshCw className="h-8 w-8 mx-auto mb-2 opacity-40" />
+            <p className="text-sm">No status changes recorded</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {updates.map((update) => (
+              <div key={update.id} className="border-l-2 border-primary/30 pl-3 py-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-medium">{update.customer}</h4>
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {new Date(update.timestamp).toLocaleTimeString()}
+                  <h4 className="font-medium text-sm text-foreground">{update.customer_name}</h4>
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-2.5 w-2.5" />
+                    {update.timestamp
+                      ? new Date(update.timestamp).toLocaleDateString()
+                      : '—'}
                   </span>
                 </div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  Status changed from <strong>{update.oldStatus}</strong> to <strong>{update.newStatus}</strong>
+                <div className="flex items-center gap-1.5 mt-1">
+                  {update.old_status && (
+                    <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${getStatusColor(update.old_status)}`}>
+                      {update.old_status}
+                    </Badge>
+                  )}
+                  <span className="text-xs text-muted-foreground">→</span>
+                  {update.new_status && (
+                    <Badge className={`text-[10px] px-1.5 py-0 ${getStatusColor(update.new_status)}`}>
+                      {update.new_status}
+                    </Badge>
+                  )}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  Updated by {update.updatedBy} • Rule: {update.rule}
-                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  By {update.updated_by}
+                </p>
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

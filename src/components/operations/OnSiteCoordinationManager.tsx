@@ -1,12 +1,8 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Truck, Calendar, Package, Bell, Ticket } from "lucide-react";
+import { Truck, Bell, Ticket, RefreshCw } from "lucide-react";
 import JobCompletionNotifications from './coordination/JobCompletionNotifications';
 import AutoStatusUpdates from './coordination/AutoStatusUpdates';
-import NextAppointmentScheduler from './coordination/NextAppointmentScheduler';
-import InventoryAlerts from './coordination/InventoryAlerts';
 import OnSiteTicketManager from './coordination/OnSiteTicketManager';
 
 const OnSiteCoordinationManager = () => {
@@ -14,75 +10,53 @@ const OnSiteCoordinationManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-quikle-primary/10 via-quikle-accent/8 to-quikle-secondary/10 p-6 rounded-xl border border-quikle-silver/20">
-        <div className="flex items-center gap-3 mb-2">
-          <Truck className="h-6 w-6 text-quikle-primary" />
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary to-quikle-secondary bg-clip-text text-transparent">
-            On-Site Team Coordination
+      <div className="bg-gradient-to-r from-primary/5 to-secondary/5 p-5 rounded-xl border border-border">
+        <div className="flex items-center gap-2.5 mb-1">
+          <Truck className="h-5 w-5 text-primary" />
+          <h1 className="text-xl font-bold text-foreground">
+            On-Site Coordination
           </h1>
         </div>
-        <p className="text-quikle-slate text-sm">
-          Manage tickets, automate communication, and coordinate field operations
+        <p className="text-muted-foreground text-sm">
+          Manage tickets, track completions, and view status changes
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 bg-white border border-quikle-silver/20 shadow-sm">
+        <TabsList className="grid w-full grid-cols-3 bg-background border border-border">
           <TabsTrigger 
             value="tickets" 
-            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white flex items-center gap-2"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-1.5 text-xs"
           >
-            <Ticket className="h-4 w-4" />
-            Ticket Updates
+            <Ticket className="h-3.5 w-3.5" />
+            Tickets
           </TabsTrigger>
           <TabsTrigger 
-            value="notifications" 
-            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white flex items-center gap-2"
+            value="completions" 
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-1.5 text-xs"
           >
-            <Bell className="h-4 w-4" />
-            Job Notifications
+            <Bell className="h-3.5 w-3.5" />
+            Completions
           </TabsTrigger>
           <TabsTrigger 
-            value="status-updates" 
-            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white flex items-center gap-2"
+            value="history" 
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-1.5 text-xs"
           >
-            <Truck className="h-4 w-4" />
-            Status Updates
-          </TabsTrigger>
-          <TabsTrigger 
-            value="scheduling" 
-            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white flex items-center gap-2"
-          >
-            <Calendar className="h-4 w-4" />
-            Scheduling
-          </TabsTrigger>
-          <TabsTrigger 
-            value="inventory" 
-            className="data-[state=active]:bg-quikle-primary data-[state=active]:text-white flex items-center gap-2"
-          >
-            <Package className="h-4 w-4" />
-            Inventory
+            <RefreshCw className="h-3.5 w-3.5" />
+            History
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="tickets" className="mt-6">
+        <TabsContent value="tickets" className="mt-4">
           <OnSiteTicketManager />
         </TabsContent>
 
-        <TabsContent value="notifications" className="mt-6">
+        <TabsContent value="completions" className="mt-4">
           <JobCompletionNotifications />
         </TabsContent>
 
-        <TabsContent value="status-updates" className="mt-6">
+        <TabsContent value="history" className="mt-4">
           <AutoStatusUpdates />
-        </TabsContent>
-
-        <TabsContent value="scheduling" className="mt-6">
-          <NextAppointmentScheduler />
-        </TabsContent>
-
-        <TabsContent value="inventory" className="mt-6">
-          <InventoryAlerts />
         </TabsContent>
       </Tabs>
     </div>

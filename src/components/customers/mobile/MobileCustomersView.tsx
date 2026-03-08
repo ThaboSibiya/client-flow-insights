@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Phone, Mail, Plus, Users } from 'lucide-react';
+import { Search, Phone, Mail, Plus, Users, ClipboardCheck } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,20 +8,20 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { 
   MobileCard, 
-  MobileSheet, 
   MobileEmptyState, 
   FloatingActionButton,
   PullToRefresh,
   SwipeableRow
 } from '@/components/mobile';
 import { cn } from '@/lib/utils';
+import OnSiteStatusUpdate from '@/components/customers/OnSiteStatusUpdate';
 
 const MobileCustomersView: React.FC = () => {
   const navigate = useNavigate();
   const { customers } = useCRM();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showFilters, setShowFilters] = useState(false);
+  const [isJobCompleteOpen, setIsJobCompleteOpen] = useState(false);
 
   const handleRefresh = useCallback(async () => {
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -79,6 +79,15 @@ const MobileCustomersView: React.FC = () => {
               {filteredCustomers.length} of {customers.length} clients
             </p>
           </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5 text-xs"
+            onClick={() => setIsJobCompleteOpen(true)}
+          >
+            <ClipboardCheck className="h-3.5 w-3.5" />
+            Job Complete
+          </Button>
         </div>
 
         {/* Search */}
@@ -175,10 +184,7 @@ const MobileCustomersView: React.FC = () => {
                         variant: getStatusBadgeVariant(customer.status),
                       },
                     ]}
-                    onClick={() => {
-                      // Navigate to customer detail or open dialog
-                      // For now, we'll rely on the existing table behavior
-                    }}
+                    onClick={() => {}}
                     showChevron
                   />
                 </SwipeableRow>
@@ -193,6 +199,12 @@ const MobileCustomersView: React.FC = () => {
         onClick={() => navigate('/onboarding')}
         icon={<Plus className="h-6 w-6" />}
         position="bottom-right"
+      />
+
+      {/* Job Completion Dialog */}
+      <OnSiteStatusUpdate 
+        isOpen={isJobCompleteOpen} 
+        onClose={() => setIsJobCompleteOpen(false)} 
       />
     </div>
   );
