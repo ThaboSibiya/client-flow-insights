@@ -1,11 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Book } from 'lucide-react';
+import { Search, Book, X } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { useNavigate } from 'react-router-dom';
 import DocumentationSidebar, { documentationData, DocArticle, DocCategory } from '@/components/documentation/DocumentationSidebar';
 import DocumentationArticle from '@/components/documentation/DocumentationArticle';
 
 const Documentation = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState(documentationData[0].id);
   const [activeArticle, setActiveArticle] = useState(documentationData[0].articles[0].id);
@@ -59,6 +62,15 @@ const Documentation = () => {
       <div className="shrink-0 border-b bg-card px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9"
+              onClick={() => navigate(-1)}
+              title="Go back"
+            >
+              <X className="h-5 w-5" />
+            </Button>
             <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-primary/10">
               <Book className="h-5 w-5 text-primary" />
             </div>
