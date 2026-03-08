@@ -104,7 +104,7 @@ const BillingSettings = () => {
             <PlanCard
               key={plan.name}
               name={plan.name}
-              icon={plan.icon}
+              icon={ICON_MAP[plan.iconName]}
               priceLabel={priceInfo.label}
               priceAmount={priceInfo.amount}
               currency={currency}
