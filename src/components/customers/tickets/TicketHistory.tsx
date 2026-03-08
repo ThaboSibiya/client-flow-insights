@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MessageSquare, Settings, User } from 'lucide-react';
@@ -25,14 +24,10 @@ interface TicketHistoryProps {
 const TicketHistory = ({ history, formatDate }: TicketHistoryProps) => {
   const getIcon = (type: string) => {
     switch (type) {
-      case 'comment':
-        return <MessageSquare className="h-4 w-4" />;
-      case 'status_change':
-        return <Settings className="h-4 w-4" />;
-      case 'assignment':
-        return <User className="h-4 w-4" />;
-      default:
-        return <Clock className="h-4 w-4" />;
+      case 'comment': return <MessageSquare className="h-3.5 w-3.5" />;
+      case 'status_change': return <Settings className="h-3.5 w-3.5" />;
+      case 'assignment': return <User className="h-3.5 w-3.5" />;
+      default: return <Clock className="h-3.5 w-3.5" />;
     }
   };
 
@@ -41,13 +36,15 @@ const TicketHistory = ({ history, formatDate }: TicketHistoryProps) => {
       case 'comment':
         return (
           <div>
-            <span className="font-medium">{item.user}</span>
-            {item.details.isInternal ? ' added an internal note' : ' added a comment'}
+            <span className="font-medium text-foreground">{item.user}</span>
+            <span className="text-muted-foreground">
+              {item.details.isInternal ? ' added an internal note' : ' commented'}
+            </span>
             {item.details.comment && (
-              <div className={`mt-2 p-2 rounded text-sm ${
-                item.details.isInternal 
-                  ? 'bg-amber-50 border-l-2 border-amber-400' 
-                  : 'bg-blue-50 border-l-2 border-blue-400'
+              <div className={`mt-1.5 p-2 rounded text-xs ${
+                item.details.isInternal
+                  ? 'bg-amber-500/10 border-l-2 border-amber-500'
+                  : 'bg-primary/5 border-l-2 border-primary'
               }`}>
                 {item.details.comment}
               </div>
@@ -56,83 +53,67 @@ const TicketHistory = ({ history, formatDate }: TicketHistoryProps) => {
         );
       case 'status_change':
         return (
-          <div>
-            <span className="font-medium">{item.user}</span> changed status from{' '}
-            <Badge variant="outline" className="mx-1">{item.details.oldStatus}</Badge>
-            to{' '}
-            <Badge variant="outline" className="mx-1">{item.details.newStatus}</Badge>
+          <div className="text-sm">
+            <span className="font-medium text-foreground">{item.user}</span>
+            <span className="text-muted-foreground"> changed status </span>
+            <Badge variant="outline" className="mx-0.5 text-xs">{item.details.oldStatus}</Badge>
+            <span className="text-muted-foreground"> → </span>
+            <Badge variant="outline" className="mx-0.5 text-xs">{item.details.newStatus}</Badge>
           </div>
         );
       case 'assignment':
         return (
-          <div>
-            <span className="font-medium">{item.user}</span> assigned ticket to{' '}
-            <span className="font-medium">{item.details.assignedTo}</span>
+          <div className="text-sm">
+            <span className="font-medium text-foreground">{item.user}</span>
+            <span className="text-muted-foreground"> assigned to </span>
+            <span className="font-medium text-foreground">{item.details.assignedTo}</span>
           </div>
         );
       case 'created':
         return (
-          <div>
-            Ticket created by <span className="font-medium">{item.user}</span>
+          <div className="text-sm">
+            <span className="text-muted-foreground">Ticket created by </span>
+            <span className="font-medium text-foreground">{item.user}</span>
           </div>
         );
       default:
-        return <div>Unknown event</div>;
+        return <div className="text-sm text-muted-foreground">Unknown event</div>;
     }
   };
 
   if (history.length === 0) {
     return (
       <div className="text-center py-4">
-        <Clock className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-        <p className="text-sm text-gray-500">No history available</p>
+        <Clock className="h-8 w-8 mx-auto text-muted-foreground/40 mb-2" />
+        <p className="text-sm text-muted-foreground">No history available</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Clock className="h-4 w-4" />
-        <span className="font-medium text-sm">Ticket History</span>
-        <Badge variant="outline" className="text-xs">
-          {history.length} events
-        </Badge>
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Clock className="h-4 w-4 text-muted-foreground" />
+        <span className="font-medium text-sm text-foreground">History</span>
+        <Badge variant="outline" className="text-xs">{history.length}</Badge>
       </div>
-      
-      <div className="relative">
-        {/* Timeline line */}
-        <div className="absolute left-6 top-0 bottom-0 w-px bg-gray-200"></div>
-        
-        {history.map((item, index) => (
-          <div key={item.id} className="relative flex items-start gap-3 pb-4">
-            {/* Timeline dot */}
-            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-xs ${
-              item.type === 'comment' && item.details.isInternal 
-                ? 'bg-amber-500' 
-                : item.type === 'comment' 
-                ? 'bg-blue-500'
-                : item.type === 'status_change'
-                ? 'bg-purple-500'
-                : 'bg-gray-500'
-            }`}>
+
+      <div className="relative pl-6">
+        <div className="absolute left-[11px] top-0 bottom-0 w-px bg-border" />
+        {history.map((item) => (
+          <div key={item.id} className="relative flex items-start gap-3 pb-3">
+            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-muted-foreground -ml-6 z-10 border border-border">
               {getIcon(item.type)}
             </div>
-            
-            {/* Event content */}
             <div className="flex-1 min-w-0">
-              <div className="bg-white border rounded-lg p-3 shadow-sm">
-                {getEventDescription(item)}
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs text-gray-500">
-                    {formatDate(item.timestamp.toISOString())}
-                  </span>
-                  {item.details.isInternal && (
-                    <Badge variant="secondary" className="text-xs">
-                      Internal
-                    </Badge>
-                  )}
-                </div>
+              {getEventDescription(item)}
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs text-muted-foreground">
+                  {formatDate(item.timestamp.toISOString())}
+                </span>
+                {item.details.isInternal && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Internal</Badge>
+                )}
               </div>
             </div>
           </div>

@@ -4,15 +4,26 @@ import { MessageSquare } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   addTicketComment,
   getTicketComments,
   updateTicketComment,
   deleteTicketComment,
-  type TicketComment
+  type TicketComment,
 } from '@/services/ticketCommentService';
 import { sendTicketNotification } from '@/services/ticketNotificationService';
 import CommentForm from './comments/CommentForm';
 import CommentsList from './comments/CommentsList';
+import { formatTicketDate } from '@/utils/ticketFormatters';
 
 interface TicketCommentsProps {
   ticketId: string;
@@ -29,11 +40,10 @@ const TicketComments = ({ ticketId, customerEmail, customerName }: TicketComment
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user && ticketId) {
-      loadComments();
-    }
+    if (user && ticketId) loadComments();
   }, [user, ticketId]);
 
   const loadComments = async () => {
@@ -50,22 +60,12 @@ const TicketComments = ({ ticketId, customerEmail, customerName }: TicketComment
 
   const handleAddComment = async () => {
     if (!newComment.trim() || !user) return;
-
     setIsSubmitting(true);
     try {
-      const comment = await addTicketComment(
-        ticketId,
-        user.id,
-        user.email || 'Unknown User',
-        newComment.trim(),
-        isInternal
-      );
-      
+      const comment = await addTicketComment(ticketId, user.id, user.email || 'Unknown User', newComment.trim(), isInternal);
       if (comment) {
         setComments(prev => [...prev, comment]);
         setNewComment('');
-        
-        // Send email notification if not internal and customer info is available
         if (!isInternal && customerEmail && customerName) {
           await sendTicketNotification({
             ticketId,
@@ -74,19 +74,11 @@ const TicketComments = ({ ticketId, customerEmail, customerName }: TicketComment
             ticketNumber: `TKT-${ticketId.slice(-6)}`,
             subject: 'Ticket Update',
             type: 'comment_added',
-            details: {
-              comment: newComment.trim(),
-              isInternal,
-              userName: user.email || 'Support Team'
-            }
+            details: { comment: newComment.trim(), isInternal, userName: user.email || 'Support Team' },
           });
         }
-        
         setIsInternal(false);
-        toast({
-          title: "Success",
-          description: "Comment added successfully",
-        });
+        toast({ title: "Success", description: "Comment added successfully" });
       }
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -102,20 +94,14 @@ const TicketComments = ({ ticketId, customerEmail, customerName }: TicketComment
 
   const handleSaveEdit = async () => {
     if (!editText.trim() || !editingId) return;
-
     const success = await updateTicketComment(editingId, editText.trim());
     if (success) {
-      setComments(prev => prev.map(c => 
-        c.id === editingId 
-          ? { ...c, comment: editText.trim(), updated_at: new Date().toISOString() }
-          : c
+      setComments(prev => prev.map(c =>
+        c.id === editingId ? { ...c, comment: editText.trim(), updated_at: new Date().toISOString() } : c
       ));
       setEditingId(null);
       setEditText('');
-      toast({
-        title: "Success",
-        description: "Comment updated successfully",
-      });
+      toast({ title: "Success", description: "Comment updated" });
     }
   };
 
@@ -124,40 +110,24 @@ const TicketComments = ({ ticketId, customerEmail, customerName }: TicketComment
     setEditText('');
   };
 
-  const handleDelete = async (commentId: string) => {
-    if (window.confirm('Are you sure you want to delete this comment?')) {
-      const success = await deleteTicketComment(commentId);
-      if (success) {
-        setComments(prev => prev.filter(c => c.id !== commentId));
-        toast({
-          title: "Success",
-          description: "Comment deleted successfully",
-        });
-      }
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetId) return;
+    const success = await deleteTicketComment(deleteTargetId);
+    if (success) {
+      setComments(prev => prev.filter(c => c.id !== deleteTargetId));
+      toast({ title: "Success", description: "Comment deleted" });
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(dateString));
+    setDeleteTargetId(null);
   };
 
   if (!user) return null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-3">
-        <MessageSquare className="h-4 w-4" />
-        <span className="font-medium text-sm">Comments</span>
-        {comments.length > 0 && (
-          <Badge variant="outline" className="text-xs">
-            {comments.length}
-          </Badge>
-        )}
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <MessageSquare className="h-4 w-4 text-muted-foreground" />
+        <span className="font-medium text-sm text-foreground">Comments</span>
+        {comments.length > 0 && <Badge variant="outline" className="text-xs">{comments.length}</Badge>}
       </div>
 
       <CommentForm
@@ -179,9 +149,26 @@ const TicketComments = ({ ticketId, customerEmail, customerName }: TicketComment
         onEdit={handleEdit}
         onSaveEdit={handleSaveEdit}
         onCancelEdit={handleCancelEdit}
-        onDelete={handleDelete}
-        formatDate={formatDate}
+        onDelete={(id) => setDeleteTargetId(id)}
+        formatDate={(dateString) => formatTicketDate(dateString)}
       />
+
+      <AlertDialog open={!!deleteTargetId} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this comment? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
