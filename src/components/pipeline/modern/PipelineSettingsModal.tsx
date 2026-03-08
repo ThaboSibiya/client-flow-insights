@@ -12,7 +12,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { MessageSquare, Mail, Zap, Database } from "lucide-react";
+import { MessageSquare, Mail } from "lucide-react";
 import TwilioSettings from '../settings/TwilioSettings';
 import EmailSettings from '../settings/EmailSettings';
 import TelnyxSettings from '../settings/TelnyxSettings';
@@ -29,7 +29,7 @@ const PipelineSettingsModal = ({ open, onOpenChange }: PipelineSettingsModalProp
         <SheetHeader>
           <SheetTitle>Pipeline Settings</SheetTitle>
           <SheetDescription>
-            Configure integrations and automation settings
+            Configure communication integrations for your pipeline
           </SheetDescription>
         </SheetHeader>
 
@@ -68,34 +68,6 @@ const PipelineSettingsModal = ({ open, onOpenChange }: PipelineSettingsModalProp
               </AccordionTrigger>
               <AccordionContent>
                 <EmailSettings />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="automation">
-              <AccordionTrigger className="text-sm">
-                <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4" />
-                  Automation Rules
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="text-sm text-muted-foreground py-4">
-                  Configure automation rules from individual stage settings.
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="data">
-              <AccordionTrigger className="text-sm">
-                <div className="flex items-center gap-2">
-                  <Database className="h-4 w-4" />
-                  Data & Sync
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="text-sm text-muted-foreground py-4">
-                  Data synchronization settings coming soon.
-                </div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>

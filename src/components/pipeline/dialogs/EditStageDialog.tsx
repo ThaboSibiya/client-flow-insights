@@ -15,9 +15,20 @@ interface EditStageDialogProps {
   onEditStage: (stageId: string, name: string, color: string) => void;
 }
 
+const COLOR_OPTIONS = [
+  { name: 'Slate', value: 'hsl(var(--muted-foreground))' },
+  { name: 'Primary', value: 'hsl(var(--primary))' },
+  { name: 'Green', value: 'hsl(142 76% 36%)' },
+  { name: 'Blue', value: 'hsl(217 91% 60%)' },
+  { name: 'Purple', value: 'hsl(263 70% 50%)' },
+  { name: 'Amber', value: 'hsl(38 92% 50%)' },
+  { name: 'Red', value: 'hsl(var(--destructive))' },
+  { name: 'Teal', value: 'hsl(172 66% 50%)' },
+];
+
 const EditStageDialog = ({ open, onOpenChange, stage, onEditStage }: EditStageDialogProps) => {
   const [name, setName] = useState(stage?.name || '');
-  const [color, setColor] = useState(stage?.color || '#6B7280');
+  const [color, setColor] = useState(stage?.color || COLOR_OPTIONS[0].value);
 
   React.useEffect(() => {
     if (stage) {
@@ -33,25 +44,12 @@ const EditStageDialog = ({ open, onOpenChange, stage, onEditStage }: EditStageDi
     }
   };
 
-  const colorOptions = [
-    { name: 'Gray', value: '#6B7280' },
-    { name: 'Blue', value: '#3B82F6' },
-    { name: 'Green', value: '#10B981' },
-    { name: 'Purple', value: '#8B5CF6' },
-    { name: 'Red', value: '#EF4444' },
-    { name: 'Orange', value: '#F59E0B' },
-    { name: 'Teal', value: '#14B8A6' },
-    { name: 'Pink', value: '#EC4899' },
-  ];
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Stage</DialogTitle>
-          <DialogDescription>
-            Modify the name and color of this pipeline stage.
-          </DialogDescription>
+          <DialogDescription>Modify the name and color of this pipeline stage.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
@@ -66,14 +64,14 @@ const EditStageDialog = ({ open, onOpenChange, stage, onEditStage }: EditStageDi
           <div className="space-y-2">
             <Label>Stage Color</Label>
             <div className="grid grid-cols-4 gap-2">
-              {colorOptions.map((option) => (
+              {COLOR_OPTIONS.map((option) => (
                 <button
                   key={option.value}
                   type="button"
-                  className={`w-12 h-12 rounded-lg border-2 transition-all ${
+                  className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-105 ${
                     color === option.value 
-                      ? 'border-quikle-primary ring-2 ring-quikle-primary/30' 
-                      : 'border-quikle-silver hover:border-quikle-slate'
+                      ? 'border-primary ring-2 ring-primary/30' 
+                      : 'border-border hover:border-muted-foreground'
                   }`}
                   style={{ backgroundColor: option.value }}
                   onClick={() => setColor(option.value)}
@@ -84,16 +82,8 @@ const EditStageDialog = ({ open, onOpenChange, stage, onEditStage }: EditStageDi
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleSave}
-            disabled={!name.trim()}
-            className="bg-quikle-primary hover:bg-quikle-primary/90 text-white"
-          >
-            Save Changes
-          </Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button onClick={handleSave} disabled={!name.trim()}>Save Changes</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
