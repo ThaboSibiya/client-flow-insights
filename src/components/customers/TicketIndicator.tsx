@@ -15,10 +15,10 @@ const TicketIndicator = ({ tickets, ticketCount, lastTicketDate }: TicketIndicat
   const openTickets = tickets.filter(ticket => ticket.status === 'open' || ticket.status === 'in-progress');
   const urgentTickets = tickets.filter(ticket => ticket.priority === 'urgent' && ticket.status !== 'closed');
   
-  const getStatusColor = () => {
-    if (urgentTickets.length > 0) return 'bg-red-600 text-white';
-    if (openTickets.length > 0) return 'bg-slate-600 text-white';
-    return 'bg-emerald-600 text-white';
+  const getStatusClasses = () => {
+    if (urgentTickets.length > 0) return 'bg-destructive/10 text-destructive border-destructive/30';
+    if (openTickets.length > 0) return 'bg-primary/10 text-primary border-primary/30';
+    return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30';
   };
 
   const getStatusText = () => {
@@ -30,25 +30,25 @@ const TicketIndicator = ({ tickets, ticketCount, lastTicketDate }: TicketIndicat
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1">
-        <Ticket className="h-4 w-4 text-slate-600" />
-        <span className="text-sm font-medium">{ticketCount}</span>
+        <Ticket className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium text-foreground">{ticketCount}</span>
       </div>
       
       {ticketCount > 0 && (
         <>
           <Badge 
-            variant="secondary" 
-            className={`text-xs ${getStatusColor()}`}
+            variant="outline" 
+            className={`text-xs border ${getStatusClasses()}`}
           >
             {getStatusText()}
           </Badge>
           
           {urgentTickets.length > 0 && (
-            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertTriangle className="h-4 w-4 text-destructive" />
           )}
           
           {lastTicketDate && (
-            <div className="flex items-center gap-1 text-xs text-slate-600">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
               <span>{formatDistanceToNow(lastTicketDate, { addSuffix: true })}</span>
             </div>
@@ -57,7 +57,7 @@ const TicketIndicator = ({ tickets, ticketCount, lastTicketDate }: TicketIndicat
       )}
       
       {ticketCount === 0 && (
-        <Badge variant="outline" className="text-xs border-slate-300 text-slate-600">
+        <Badge variant="outline" className="text-xs border-border text-muted-foreground">
           No Tickets
         </Badge>
       )}

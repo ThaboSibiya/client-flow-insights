@@ -2,35 +2,49 @@
 import React, { useState } from 'react';
 import { Customer, CustomerStatus, useCRM } from '@/context/CRMContext';
 import CustomerDetailsDialog from './forms/CustomerDetailsDialog';
-import TicketManagementDialog from './TicketManagementDialog';
 import { toast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export const useCustomerActions = () => {
-  const { updateCustomerStatus, deleteCustomer, createTicket, updateTicketStatus, addTimeEntry } = useCRM();
+  const { updateCustomerStatus, deleteCustomer } = useCRM();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
-  const [activeDialogTab, setActiveDialogTab] = useState('details');
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [bulkDeleteTargets, setBulkDeleteTargets] = useState<Set<string> | null>(null);
 
   const handleStatusChange = (customerId: string, newStatus: CustomerStatus) => {
     updateCustomerStatus(customerId, newStatus);
   };
 
   const handleDeleteCustomer = (customerId: string) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      deleteCustomer(customerId);
+    setDeleteTarget(customerId);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteCustomer(deleteTarget);
+      setDeleteTarget(null);
     }
   };
 
   const handleOpenCustomerDetails = (customer: Customer, tab = 'details') => {
     setSelectedCustomer(customer);
-    setActiveDialogTab(tab);
     setIsFormOpen(true);
   };
 
+  // Tickets are now managed inside the Customer Details Sheet (Tickets tab)
   const handleManageTickets = (customer: Customer) => {
     setSelectedCustomer(customer);
-    setIsTicketDialogOpen(true);
+    setIsFormOpen(true);
   };
 
   const handleBulkStatusChange = async (selectedCustomers: Set<string>, status: CustomerStatus) => {
@@ -43,13 +57,18 @@ export const useCustomerActions = () => {
   };
 
   const handleBulkDelete = async (selectedCustomers: Set<string>) => {
-    if (window.confirm(`Are you sure you want to delete ${selectedCustomers.size} customer(s)?`)) {
-      const promises = Array.from(selectedCustomers).map(id => deleteCustomer(id));
+    setBulkDeleteTargets(selectedCustomers);
+  };
+
+  const confirmBulkDelete = async () => {
+    if (bulkDeleteTargets) {
+      const promises = Array.from(bulkDeleteTargets).map(id => deleteCustomer(id));
       await Promise.all(promises);
       toast({
         title: "Success",
-        description: `Deleted ${selectedCustomers.size} customer(s)`,
+        description: `Deleted ${bulkDeleteTargets.size} customer(s)`,
       });
+      setBulkDeleteTargets(null);
     }
   };
 
@@ -61,21 +80,44 @@ export const useCustomerActions = () => {
         onClose={() => {
           setIsFormOpen(false);
           setSelectedCustomer(null);
-          setActiveDialogTab('details');
         }} 
       />
 
-      <TicketManagementDialog 
-        customer={selectedCustomer}
-        isOpen={isTicketDialogOpen}
-        onClose={() => {
-          setIsTicketDialogOpen(false);
-          setSelectedCustomer(null);
-        }}
-        onCreateTicket={createTicket}
-        onUpdateTicketStatus={updateTicketStatus}
-        onAddTimeEntry={addTimeEntry}
-      />
+      {/* Single delete confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Customer</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this customer and all associated data. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-foreground">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk delete confirmation */}
+      <AlertDialog open={!!bulkDeleteTargets} onOpenChange={(open) => !open && setBulkDeleteTargets(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {bulkDeleteTargets?.size} Customer(s)</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the selected customers and all associated data. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-foreground">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 
