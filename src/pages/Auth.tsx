@@ -432,7 +432,7 @@ const Auth: React.FC = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="pl-10"
+                        className="pl-10 bg-background text-foreground border-input"
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">
