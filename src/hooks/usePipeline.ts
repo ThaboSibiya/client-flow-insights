@@ -228,8 +228,38 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
   }, []);
 
   const handleAddItem = useCallback((stageId: string) => {
-    console.log('Add item to stage:', stageId);
-  }, []);
+    const stage = stages.find(s => s.id === stageId);
+    if (!stage) return;
+
+    if (type === 'customer') {
+      // Create a placeholder customer inline
+      const newCustomer: Customer = {
+        id: `new-${Date.now()}`,
+        name: `New Customer`,
+        email: `customer-${Date.now()}@example.com`,
+        status: (CUSTOMER_STAGES_CONFIG.find(c => c.id === stageId)?.statusMatch || 'new') as CustomerStatus,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ticketCount: 0,
+      };
+      // Select the new item to open detail panel for editing
+      setSelectedItem(newCustomer);
+    } else {
+      const newTicket: CustomerTicket = {
+        id: `ticket-new-${Date.now()}`,
+        ticketNumber: `TKT-${Math.floor(Math.random() * 9000) + 1000}`,
+        subject: 'New Ticket',
+        description: '',
+        priority: 'medium',
+        status: (TICKET_STAGES_CONFIG.find(c => c.id === stageId)?.statusMatch || 'open') as TicketStatus,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        totalTimeSpent: 0,
+        timeEntries: [],
+      };
+      setSelectedItem(newTicket);
+    }
+  }, [stages, type]);
 
   const handleSetTarget = useCallback((stageId: string, target: number | undefined) => {
     setStages(prev => prev.map(stage =>
