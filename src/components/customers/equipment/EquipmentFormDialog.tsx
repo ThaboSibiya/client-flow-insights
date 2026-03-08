@@ -42,7 +42,18 @@ const initialFormData: EquipmentFormData = {
   technical_issues: ''
 };
 
-const EquipmentFormDialog = ({ equipment, isOpen, onClose, onSave, saving }: EquipmentFormDialogProps) => {
+const defaultEquipmentTypes = [
+  { value: 'printer', label: 'Printer' },
+  { value: 'scanner', label: 'Scanner' },
+  { value: 'copier', label: 'Copier' },
+  { value: 'fax', label: 'Fax Machine' },
+  { value: 'multifunction', label: 'Multifunction' },
+  { value: 'computer', label: 'Computer' },
+  { value: 'other', label: 'Other' },
+];
+
+const EquipmentFormDialog = ({ equipment, isOpen, onClose, onSave, saving, equipmentTypes }: EquipmentFormDialogProps) => {
+  const typeOptions = equipmentTypes || defaultEquipmentTypes;
   const [formData, setFormData] = useState<EquipmentFormData>(
     equipment 
       ? {
