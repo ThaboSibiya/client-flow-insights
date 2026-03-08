@@ -17,16 +17,45 @@ serve(async (req: Request) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       throw new Error("No authorization header");
     }
 
+    // Verify the caller's identity
+    const anonClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: userError } = await anonClient.auth.getUser();
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { customerId }: CalculateRequest = await req.json();
-    console.log("Calculating summary for customer:", customerId);
+    console.log("Calculating summary for customer:", customerId, "by user:", user.id);
+
+    const supabase = createClient(supabaseUrl, serviceKey);
+
+    // Verify the caller owns this customer
+    const { data: customer, error: custError } = await supabase
+      .from("customers")
+      .select("id")
+      .eq("id", customerId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (custError || !customer) {
+      return new Response(JSON.stringify({ error: "Customer not found or access denied" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { data: invoices, error: invoicesError } = await supabase
       .from("invoices")
