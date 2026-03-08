@@ -103,6 +103,9 @@ const Index = () => {
             </div>
           ) : (
             <>
+              <div className="flex justify-center mb-1">
+                <img src={quikleLogo} alt="Quikle Logo" className="h-14 w-14 object-contain drop-shadow-md" />
+              </div>
               <p className="text-xs font-medium text-muted-foreground tracking-widest uppercase">
                 Welcome to Quikle
               </p>
