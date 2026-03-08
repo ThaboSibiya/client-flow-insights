@@ -41,8 +41,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import UserProfile from '@/components/auth/UserProfile';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import CollapsibleWorkstationPanel from './CollapsibleWorkstationPanel';
+import HelpPanel from '@/components/help/HelpPanel';
 
 const AppSidebar = () => {
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const location = useLocation();
   const { data: employee } = useEmployeeProfile();
   const { state, toggleSidebar } = useSidebar();
