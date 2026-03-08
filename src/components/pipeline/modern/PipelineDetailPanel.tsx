@@ -192,9 +192,9 @@ const PipelineDetailPanel = ({
                   <div className="relative">
                     <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-primary" />
                     <div className="space-y-1">
-                      <p className="text-sm font-medium">Status changed to {customer.status}</p>
+                      <p className="text-sm font-medium">Status changed to {customer?.status || 'unknown'}</p>
                       <p className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(customer.updatedAt), { addSuffix: true })}
+                        {customer?.updatedAt ? formatDistanceToNow(new Date(customer.updatedAt), { addSuffix: true }) : 'N/A'}
                       </p>
                     </div>
                   </div>
