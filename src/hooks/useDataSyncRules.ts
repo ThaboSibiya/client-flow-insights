@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
@@ -31,18 +31,13 @@ export interface NewDataSyncRule {
 }
 
 export const useDataSyncRules = () => {
-  const [syncRules, setSyncRules] = useState<DataSyncRule[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const queryKey = ['data-sync-rules', user?.id];
 
-  const fetchSyncRules = async () => {
-    if (!user) {
-      setSyncRules([]);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
+  const { data: syncRules = [], isLoading } = useQuery({
+    queryKey,
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('data_sync_rules')
         .select('*')
@@ -50,24 +45,16 @@ export const useDataSyncRules = () => {
 
       if (error) throw error;
 
-      setSyncRules((data || []).map(rule => ({
+      return (data || []).map(rule => ({
         ...rule,
         sync_direction: rule.sync_direction as 'push' | 'pull' | 'bidirectional',
         frequency: rule.frequency as 'real-time' | 'hourly' | 'daily' | 'manual',
         status: rule.status as 'active' | 'inactive' | 'error' | 'syncing',
         config: (rule.config as Record<string, any>) || {},
-      })));
-    } catch (error) {
-      console.error('Error fetching sync rules:', error);
-      toast.error('Failed to load sync rules');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSyncRules();
-  }, [user]);
+      })) as DataSyncRule[];
+    },
+    enabled: !!user?.id,
+  });
 
   const createSyncRule = async (newRule: NewDataSyncRule): Promise<boolean> => {
     if (!user) {
@@ -95,7 +82,7 @@ export const useDataSyncRules = () => {
       if (error) throw error;
 
       toast.success('Sync rule created successfully');
-      fetchSyncRules();
+      queryClient.invalidateQueries({ queryKey });
       return true;
     } catch (error) {
       console.error('Error creating sync rule:', error);
@@ -108,30 +95,32 @@ export const useDataSyncRules = () => {
     const rule = syncRules.find(r => r.id === id);
     if (!rule) return;
 
+    const newStatus = rule.is_active ? 'inactive' : 'active';
+
+    queryClient.setQueryData(queryKey, (old: DataSyncRule[] | undefined) =>
+      (old || []).map(r => r.id === id ? { ...r, is_active: !r.is_active, status: newStatus as 'active' | 'inactive' } : r)
+    );
+
     try {
-      const newStatus = rule.is_active ? 'inactive' : 'active';
       const { error } = await supabase
         .from('data_sync_rules')
-        .update({ 
-          is_active: !rule.is_active,
-          status: newStatus as 'active' | 'inactive'
-        })
+        .update({ is_active: !rule.is_active, status: newStatus as 'active' | 'inactive' })
         .eq('id', id);
 
       if (error) throw error;
-
-      setSyncRules(syncRules.map(r =>
-        r.id === id ? { ...r, is_active: !r.is_active, status: newStatus as 'active' | 'inactive' } : r
-      ));
-
       toast.success(`Sync rule ${rule.is_active ? 'disabled' : 'enabled'}`);
     } catch (error) {
       console.error('Error toggling sync rule:', error);
       toast.error('Failed to update sync rule');
+      queryClient.invalidateQueries({ queryKey });
     }
   };
 
   const deleteSyncRule = async (id: string) => {
+    queryClient.setQueryData(queryKey, (old: DataSyncRule[] | undefined) =>
+      (old || []).filter(r => r.id !== id)
+    );
+
     try {
       const { error } = await supabase
         .from('data_sync_rules')
@@ -139,22 +128,21 @@ export const useDataSyncRules = () => {
         .eq('id', id);
 
       if (error) throw error;
-
-      setSyncRules(syncRules.filter(r => r.id !== id));
       toast.success('Sync rule deleted');
     } catch (error) {
       console.error('Error deleting sync rule:', error);
       toast.error('Failed to delete sync rule');
+      queryClient.invalidateQueries({ queryKey });
     }
   };
 
   const triggerManualSync = async (rule: DataSyncRule) => {
-    try {
-      // Update status to syncing
-      setSyncRules(syncRules.map(r =>
-        r.id === rule.id ? { ...r, status: 'syncing' as const } : r
-      ));
+    // Optimistic: show syncing state
+    queryClient.setQueryData(queryKey, (old: DataSyncRule[] | undefined) =>
+      (old || []).map(r => r.id === rule.id ? { ...r, status: 'syncing' as const } : r)
+    );
 
+    try {
       await supabase
         .from('data_sync_rules')
         .update({ status: 'syncing' })
@@ -167,7 +155,7 @@ export const useDataSyncRules = () => {
 
       const { error } = await supabase
         .from('data_sync_rules')
-        .update({ 
+        .update({
           status: 'active',
           sync_count: rule.sync_count + 1,
           last_sync_at: new Date().toISOString()
@@ -176,17 +164,17 @@ export const useDataSyncRules = () => {
 
       if (error) throw error;
 
-      fetchSyncRules();
+      queryClient.invalidateQueries({ queryKey });
       toast.success('Sync completed successfully');
     } catch (error) {
       console.error('Error during manual sync:', error);
-      
+
       await supabase
         .from('data_sync_rules')
         .update({ status: 'error' })
         .eq('id', rule.id);
-      
-      fetchSyncRules();
+
+      queryClient.invalidateQueries({ queryKey });
       toast.error('Sync failed');
     }
   };
@@ -198,6 +186,6 @@ export const useDataSyncRules = () => {
     toggleSyncRule,
     deleteSyncRule,
     triggerManualSync,
-    refetch: fetchSyncRules
+    refetch: () => queryClient.invalidateQueries({ queryKey }),
   };
 };

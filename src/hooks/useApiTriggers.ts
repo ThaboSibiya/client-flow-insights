@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
@@ -26,25 +26,20 @@ export interface NewApiTrigger {
   sample_payload?: Record<string, any>;
 }
 
-const SUPABASE_PROJECT_REF = 'oquiaxbnkdnpixqhqdfq';
+const SUPABASE_PROJECT_REF = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'oquiaxbnkdnpixqhqdfq';
 
 export const useApiTriggers = () => {
-  const [triggers, setTriggers] = useState<ApiTrigger[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const queryKey = ['api-triggers', user?.id];
 
   const getWebhookUrl = (endpointKey: string) => {
     return `https://${SUPABASE_PROJECT_REF}.supabase.co/functions/v1/webhook-receiver/${endpointKey}`;
   };
 
-  const fetchTriggers = async () => {
-    if (!user) {
-      setTriggers([]);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
+  const { data: triggers = [], isLoading } = useQuery({
+    queryKey,
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('api_triggers')
         .select('*')
@@ -52,34 +47,19 @@ export const useApiTriggers = () => {
 
       if (error) throw error;
 
-      setTriggers((data || []).map(trigger => ({
+      return (data || []).map(trigger => ({
         ...trigger,
         sample_payload: trigger.sample_payload as Record<string, any> | null,
-      })));
-    } catch (error) {
-      console.error('Error fetching API triggers:', error);
-      toast.error('Failed to load API triggers');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      })) as ApiTrigger[];
+    },
+    enabled: !!user?.id,
+  });
 
-  useEffect(() => {
-    fetchTriggers();
-  }, [user]);
+  const createMutation = useMutation({
+    mutationFn: async (newTrigger: NewApiTrigger) => {
+      if (!user) throw new Error('Not authenticated');
+      if (!newTrigger.name) throw new Error('Name required');
 
-  const createTrigger = async (newTrigger: NewApiTrigger): Promise<boolean> => {
-    if (!user) {
-      toast.error('You must be logged in to create triggers');
-      return false;
-    }
-
-    if (!newTrigger.name) {
-      toast.error('Please provide a trigger name');
-      return false;
-    }
-
-    try {
       const { error } = await supabase.from('api_triggers').insert({
         user_id: user.id,
         name: newTrigger.name,
@@ -90,13 +70,22 @@ export const useApiTriggers = () => {
       });
 
       if (error) throw error;
-
+    },
+    onSuccess: () => {
       toast.success('API trigger created successfully');
-      fetchTriggers();
-      return true;
-    } catch (error) {
+      queryClient.invalidateQueries({ queryKey });
+    },
+    onError: (error) => {
       console.error('Error creating trigger:', error);
       toast.error('Failed to create API trigger');
+    },
+  });
+
+  const createTrigger = async (newTrigger: NewApiTrigger): Promise<boolean> => {
+    try {
+      await createMutation.mutateAsync(newTrigger);
+      return true;
+    } catch {
       return false;
     }
   };
@@ -105,6 +94,11 @@ export const useApiTriggers = () => {
     const trigger = triggers.find(t => t.id === id);
     if (!trigger) return;
 
+    // Optimistic update
+    queryClient.setQueryData(queryKey, (old: ApiTrigger[] | undefined) =>
+      (old || []).map(t => t.id === id ? { ...t, is_active: !t.is_active } : t)
+    );
+
     try {
       const { error } = await supabase
         .from('api_triggers')
@@ -112,19 +106,20 @@ export const useApiTriggers = () => {
         .eq('id', id);
 
       if (error) throw error;
-
-      setTriggers(triggers.map(t =>
-        t.id === id ? { ...t, is_active: !t.is_active } : t
-      ));
-
       toast.success(`Trigger ${trigger.is_active ? 'disabled' : 'enabled'}`);
     } catch (error) {
       console.error('Error toggling trigger:', error);
       toast.error('Failed to update trigger');
+      queryClient.invalidateQueries({ queryKey });
     }
   };
 
   const deleteTrigger = async (id: string) => {
+    // Optimistic removal
+    queryClient.setQueryData(queryKey, (old: ApiTrigger[] | undefined) =>
+      (old || []).filter(t => t.id !== id)
+    );
+
     try {
       const { error } = await supabase
         .from('api_triggers')
@@ -132,12 +127,11 @@ export const useApiTriggers = () => {
         .eq('id', id);
 
       if (error) throw error;
-
-      setTriggers(triggers.filter(t => t.id !== id));
       toast.success('API trigger deleted');
     } catch (error) {
       console.error('Error deleting trigger:', error);
       toast.error('Failed to delete trigger');
+      queryClient.invalidateQueries({ queryKey });
     }
   };
 
@@ -149,14 +143,14 @@ export const useApiTriggers = () => {
 
   const testTrigger = async (trigger: ApiTrigger) => {
     const url = getWebhookUrl(trigger.endpoint_key);
-    
+
     try {
       toast.info('Sending test request...');
-      
+
       const response = await fetch(url, {
         method: trigger.method,
         headers: { 'Content-Type': 'application/json' },
-        body: trigger.method !== 'GET' 
+        body: trigger.method !== 'GET'
           ? JSON.stringify(trigger.sample_payload || { test: true, timestamp: new Date().toISOString() })
           : undefined
       });
@@ -165,7 +159,8 @@ export const useApiTriggers = () => {
 
       if (response.ok) {
         toast.success('Webhook test successful!');
-        fetchTriggers();
+        queryClient.invalidateQueries({ queryKey });
+        queryClient.invalidateQueries({ queryKey: ['webhook-logs'] });
       } else {
         toast.error(`Test failed: ${data.error || 'Unknown error'}`);
       }
@@ -184,6 +179,6 @@ export const useApiTriggers = () => {
     deleteTrigger,
     copyEndpoint,
     testTrigger,
-    refetch: fetchTriggers
+    refetch: () => queryClient.invalidateQueries({ queryKey }),
   };
 };
