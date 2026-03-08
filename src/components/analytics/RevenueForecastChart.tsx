@@ -11,24 +11,36 @@ const RevenueForecastChart = () => {
   const chartData = useMemo(() => {
     if (!revenueTimeSeries.length) return [];
 
+    // Calculate standard deviation for confidence bands
+    const values = revenueTimeSeries.map(d => d.value);
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const stdDev = Math.sqrt(values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length);
+
     const pastData = revenueTimeSeries.map(item => ({
       month: item.name,
       actual: item.value,
       forecast: null as number | null,
+      upper: null as number | null,
+      lower: null as number | null,
     }));
 
-    const values = revenueTimeSeries.map(d => d.value);
     const avgGrowth = values.length >= 2
       ? (values[values.length - 1] - values[0]) / (values.length - 1)
       : 0;
     const lastValue = values[values.length - 1] || 0;
 
     const futureMonths = ['Next +1', 'Next +2', 'Next +3'];
-    const futureData = futureMonths.map((month, i) => ({
-      month,
-      actual: null as number | null,
-      forecast: Math.max(0, Math.round(lastValue + avgGrowth * (i + 1))),
-    }));
+    const futureData = futureMonths.map((month, i) => {
+      const predicted = Math.max(0, Math.round(lastValue + avgGrowth * (i + 1)));
+      const spread = stdDev * (1 + i * 0.4); // Wider bands further out
+      return {
+        month,
+        actual: null as number | null,
+        forecast: predicted,
+        upper: Math.round(predicted + spread),
+        lower: Math.max(0, Math.round(predicted - spread)),
+      };
+    });
 
     return [...pastData, ...futureData];
   }, [revenueTimeSeries]);
@@ -55,7 +67,7 @@ const RevenueForecastChart = () => {
           <DollarSign className="h-4 w-4" style={{ color: 'hsl(var(--chart-revenue))' }} />
           Revenue Forecast
         </CardTitle>
-        <div className="flex gap-4 text-xs text-muted-foreground">
+        <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'hsl(var(--chart-revenue))' }} />
             Actual: R{totalActual.toLocaleString()}
@@ -63,6 +75,10 @@ const RevenueForecastChart = () => {
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'hsl(var(--chart-forecast))' }} />
             Forecast: R{totalForecast.toLocaleString()}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm opacity-30" style={{ background: 'hsl(var(--chart-forecast))' }} />
+            Confidence Band
           </span>
         </div>
       </CardHeader>
@@ -90,6 +106,8 @@ const RevenueForecastChart = () => {
                   name === 'actual' ? 'Actual' : 'Forecast'
                 ]}
               />
+              <Area type="monotone" dataKey="upper" stroke="none" fill="hsl(var(--chart-forecast))" fillOpacity={0.08} />
+              <Area type="monotone" dataKey="lower" stroke="none" fill="hsl(var(--background))" fillOpacity={1} />
               <Area type="monotone" dataKey="forecast" stroke="hsl(var(--chart-forecast))" strokeDasharray="5 5" fill="url(#revForecastGrad)" strokeWidth={2} />
               <Line type="monotone" dataKey="actual" stroke="hsl(var(--chart-revenue))" strokeWidth={2.5} dot={{ fill: 'hsl(var(--chart-revenue))', r: 4, strokeWidth: 2, stroke: 'hsl(var(--background))' }} />
             </AreaChart>
