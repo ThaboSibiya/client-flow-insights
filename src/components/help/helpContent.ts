@@ -1,5 +1,5 @@
 
-import { LucideIcon, Users, MessageCircle, BarChart3, FileText, UserCog, Bot, LayoutDashboard, UserPlus } from 'lucide-react';
+import { LucideIcon, Users, MessageCircle, BarChart3, FileText, UserCog, Bot, LayoutDashboard, UserPlus, Settings, Webhook, DollarSign, Shield, LineChart } from 'lucide-react';
 
 interface HelpSection {
   title: string;
@@ -301,6 +301,201 @@ export const helpContent: Record<string, PageHelp> = {
           "Review and clean data before final import",
           "Verify imported data is accurate",
           "Set up any missing information"
+        ]
+      }
+    ]
+  },
+  settings: {
+    title: "Settings",
+    description: "Configure your workspace, preferences, and integrations",
+    sections: [
+      {
+        title: "General Settings",
+        content: "Manage your profile, workspace name, timezone, and language preferences.",
+        icon: Settings,
+        steps: [
+          "Navigate to Settings from the sidebar",
+          "Update your display name and contact email",
+          "Set your preferred timezone and date format",
+          "Choose your default language",
+          "Save changes to apply immediately"
+        ],
+        tips: "Changes to timezone affect how dates display across the entire CRM"
+      },
+      {
+        title: "Appearance & Themes",
+        content: "Customise the look and feel of your workspace with light, dark, or system themes.",
+        steps: [
+          "Go to Settings → Appearance",
+          "Select a theme: Light, Dark, or System",
+          "Preview the colour palette for your chosen theme",
+          "Check the readability preview to ensure text is clear",
+          "Theme changes apply instantly across the app"
+        ]
+      },
+      {
+        title: "Company & Branding",
+        content: "Set up your company details used in quotes, invoices, and email communications.",
+        steps: [
+          "Upload your company logo",
+          "Fill in business name, address, and VAT/tax number",
+          "Configure email sender name and reply-to address",
+          "Set default currency and payment terms",
+          "These details auto-populate in financial documents"
+        ],
+        tips: "A complete company profile builds trust with customers on every quote and invoice"
+      },
+      {
+        title: "Security Settings",
+        content: "Control authentication, session timeouts, and audit trail settings.",
+        steps: [
+          "Enable two-factor authentication for your account",
+          "Set session timeout duration",
+          "Review recent login history",
+          "Configure password complexity requirements",
+          "Access the full audit log from here"
+        ]
+      }
+    ]
+  },
+  integrations: {
+    title: "Integrations",
+    description: "Connect external tools, APIs, and webhooks to your CRM",
+    sections: [
+      {
+        title: "API Endpoints (Triggers)",
+        content: "Create unique API endpoints that external tools can send data to, automatically ingesting leads, updating customers, or searching records.",
+        icon: Webhook,
+        steps: [
+          "Click 'Create API Endpoint' and give it a descriptive name",
+          "Copy the unique URL generated for your endpoint",
+          "Paste the URL into your external tool (Zapier, Make, website form, etc.)",
+          "Send a test payload using the ••• menu → Test",
+          "Monitor incoming events in the webhook logs"
+        ],
+        tips: "Name your endpoint with keywords like 'find', 'update', or 'create' to control the operation type automatically"
+      },
+      {
+        title: "Webhook Connections",
+        content: "Set up outbound webhooks to notify external services when events happen inside Quikle.",
+        steps: [
+          "Navigate to Integrations → Webhooks tab",
+          "Add a new connection with the target URL",
+          "Select which CRM events should trigger the webhook",
+          "Test the connection to verify delivery",
+          "Monitor trigger counts and last-triggered timestamps"
+        ]
+      },
+      {
+        title: "Data Sync Rules",
+        content: "Keep data synchronised between Quikle and external systems like accounting software or marketing platforms.",
+        steps: [
+          "Create a new sync rule with source and target systems",
+          "Choose the data type to sync (customers, invoices, etc.)",
+          "Set the sync frequency (real-time, hourly, daily)",
+          "Define the sync direction (one-way or bidirectional)",
+          "Review sync history and resolve any conflicts"
+        ]
+      }
+    ]
+  },
+  finance: {
+    title: "Finance",
+    description: "Track customer balances, transactions, and financial health",
+    sections: [
+      {
+        title: "Customer Finance Overview",
+        content: "View and manage financial summaries for each customer including balances, credit limits, and payment history.",
+        icon: DollarSign,
+        steps: [
+          "Navigate to Finance from the sidebar",
+          "Select a customer to view their financial profile",
+          "Review current balance, credit limit, and risk rating",
+          "Check recent transactions and payment history",
+          "Add finance notes for internal tracking"
+        ],
+        tips: "Set credit limits proactively to prevent overdue balances from growing unchecked"
+      },
+      {
+        title: "Transactions & Payments",
+        content: "Record and track all financial transactions tied to customers.",
+        steps: [
+          "View transactions filtered by type (payment, charge, credit)",
+          "Add new manual transactions with reference numbers",
+          "Track payment methods and due dates",
+          "Monitor balance-after amounts for audit trails",
+          "Export transaction history for accounting"
+        ]
+      },
+      {
+        title: "Debtor Management",
+        content: "Track overdue accounts and manage collections with structured follow-up workflows.",
+        steps: [
+          "Filter customers by account status (overdue, at risk)",
+          "Add debtor notes with priority and follow-up dates",
+          "Set up automated payment reminders via automation settings",
+          "Track resolution progress over time",
+          "Flag accounts that need escalation"
+        ]
+      }
+    ]
+  },
+  'audit-log': {
+    title: "Audit Log",
+    description: "Track all system activity for security and compliance",
+    sections: [
+      {
+        title: "Understanding the Audit Log",
+        content: "The audit log records every significant action taken in your CRM, providing a complete trail for security reviews and compliance.",
+        icon: Shield,
+        steps: [
+          "Access Audit Log from the sidebar (Admin only)",
+          "Filter by date range, user, or action type",
+          "Review entries showing who did what and when",
+          "Export logs for external compliance tools",
+          "Set up alerts for sensitive actions"
+        ],
+        tips: "Regular audit log reviews help catch unusual activity early and maintain data integrity"
+      },
+      {
+        title: "Action Types Tracked",
+        content: "The system tracks a wide range of actions for comprehensive visibility.",
+        steps: [
+          "Customer records: creates, updates, deletes, status changes",
+          "Financial actions: invoice creation, payment recording, credit adjustments",
+          "Employee actions: login/logout, permission changes, data access",
+          "System changes: settings updates, integration modifications",
+          "File access: document views, downloads, and shares"
+        ]
+      }
+    ]
+  },
+  'customer-insights': {
+    title: "Customer Insights",
+    description: "Advanced analytics and AI-powered customer intelligence",
+    sections: [
+      {
+        title: "Insights Dashboard",
+        content: "Get a deep understanding of customer behaviour, trends, and opportunities through visual analytics.",
+        icon: LineChart,
+        steps: [
+          "Navigate to Customer Insights from Analytics",
+          "Review customer segmentation charts",
+          "Analyse engagement patterns over time",
+          "Identify at-risk customers for proactive outreach",
+          "Monitor customer lifetime value trends"
+        ],
+        tips: "Use insights to personalise your outreach — customers who feel understood are more likely to stay"
+      },
+      {
+        title: "Reporting & Export",
+        content: "Generate detailed customer reports for stakeholders and strategic planning.",
+        steps: [
+          "Select the metrics and date range for your report",
+          "Choose chart types and visualisation options",
+          "Export as PDF or spreadsheet for sharing",
+          "Schedule recurring reports for automated delivery",
+          "Compare periods to track improvement"
         ]
       }
     ]
