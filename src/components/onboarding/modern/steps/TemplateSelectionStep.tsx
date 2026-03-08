@@ -100,7 +100,7 @@ const TemplateSelectionStep: React.FC<TemplateSelectionStepProps> = ({
               template={template}
               isSelected={selectedTemplate?.id === template.id}
               onClick={() => onSelectTemplate(template)}
-              fieldsCount={template.version || 0}
+              fieldsCount={fieldCounts?.[template.id] ?? 0}
             />
           ))}
         </div>
