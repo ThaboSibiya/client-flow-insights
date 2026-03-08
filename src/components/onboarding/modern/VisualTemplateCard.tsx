@@ -140,7 +140,7 @@ const VisualTemplateCard: React.FC<VisualTemplateCardProps> = ({
             isSelected ? "bg-quikle-primary/10 text-quikle-primary" : "bg-white/60"
           )}
         >
-          {fieldsCount || template.version || 0} fields
+          {fieldsCount} fields
         </Badge>
         <Badge variant="outline" className="text-xs capitalize">
           {template.industry.replace(/_/g, ' ')}
