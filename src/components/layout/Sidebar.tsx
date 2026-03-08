@@ -23,7 +23,6 @@ import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import UserProfile from '@/components/auth/UserProfile';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import WorkstationQuickPanel from '@/components/sidebar/WorkstationQuickPanel';
-import QuikleLogo from '@/components/brand/QuikleLogo';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -87,7 +86,23 @@ const Sidebar = () => {
       <div className="flex-1 relative z-10 flex flex-col overflow-hidden">
         {/* Logo Section */}
         <div className="p-6 flex items-center justify-between border-b border-sidebar-border bg-sidebar/95 backdrop-blur-sm flex-shrink-0">
-          <QuikleLogo size="md" />
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <img 
+                src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" 
+                alt="Quikle Logo" 
+                className="h-11 w-11 relative z-10 drop-shadow-md transition-transform duration-300 hover:scale-110" 
+              />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-sidebar-foreground">
+                Quikle
+              </h1>
+              <p className="text-[10px] font-medium text-sidebar-foreground/50 tracking-widest uppercase -mt-0.5">
+                Innovation Suite
+              </p>
+            </div>
+          </div>
           <NotificationBell />
         </div>
         

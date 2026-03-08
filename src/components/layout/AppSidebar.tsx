@@ -1,5 +1,4 @@
 import React from 'react';
-import QuikleLogo from '@/components/brand/QuikleLogo';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
@@ -95,7 +94,21 @@ const AppSidebar = () => {
       {/* Header with Logo */}
       <SidebarHeader className="border-b border-border/40 p-4">
         <div className="flex items-center justify-between">
-          <QuikleLogo size={isCollapsed ? 'sm' : 'md'} iconOnly={isCollapsed} className={cn(isCollapsed && "justify-center w-full")} />
+          <div className={cn("flex items-center gap-3", isCollapsed && "justify-center w-full")}>
+            <img
+              src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png"
+              alt="Quikle Logo"
+              className="h-8 w-8 flex-shrink-0"
+            />
+            {!isCollapsed && (
+              <div className="flex flex-col">
+                <h1 className="text-lg font-bold text-primary">Quikle</h1>
+                <p className="text-[10px] text-muted-foreground tracking-wide uppercase">
+                  Innovation Suite
+                </p>
+              </div>
+            )}
+          </div>
           {!isCollapsed && <NotificationBell />}
         </div>
       </SidebarHeader>
