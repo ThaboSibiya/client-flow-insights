@@ -272,8 +272,8 @@ const Auth: React.FC = () => {
   return (
     <div className="h-screen flex items-center justify-center py-4 px-4 sm:px-6 lg:px-8 bg-background overflow-hidden">
       <div className="w-full max-w-md space-y-4">
-        <div className="text-center flex flex-col items-center gap-3">
-          <img src={quikleLogo} alt="Quikle Logo" className="h-16 w-16 object-contain drop-shadow-md" />
+        <div className="text-center flex flex-col items-center gap-2">
+          <img src={quikleLogo} alt="Quikle Logo" className="h-12 w-12 object-contain drop-shadow-md" />
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Quikle CRM</h1>
             <p className="mt-1 text-sm text-muted-foreground">Manage your customers efficiently</p>
