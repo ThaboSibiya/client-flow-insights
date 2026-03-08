@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles } from 'lucide-react';
 import { IndustryTemplate } from '@/types/templates';
 import { useCustomTemplates } from '@/hooks/useCustomTemplates';
+import { templateService } from '@/services/templateService';
+import { useQuery } from '@tanstack/react-query';
 import VisualTemplateCard from '../VisualTemplateCard';
 
 interface TemplateSelectionStepProps {
@@ -17,6 +19,24 @@ const TemplateSelectionStep: React.FC<TemplateSelectionStepProps> = ({
   fieldsLoading,
 }) => {
   const { templates, loading: templatesLoading } = useCustomTemplates();
+
+  // Fetch field counts for all templates in a single batch
+  const { data: fieldCounts } = useQuery({
+    queryKey: ['template-field-counts', templates.map(t => t.id).join(',')],
+    queryFn: async () => {
+      const counts: Record<string, number> = {};
+      const results = await Promise.all(
+        templates.map(async (t) => {
+          const fields = await templateService.getTemplateFields(t.id);
+          return { id: t.id, count: fields.length };
+        })
+      );
+      results.forEach(r => { counts[r.id] = r.count; });
+      return counts;
+    },
+    enabled: templates.length > 0,
+    staleTime: 5 * 60 * 1000,
+  });
 
   if (templatesLoading) {
     return (
@@ -80,7 +100,7 @@ const TemplateSelectionStep: React.FC<TemplateSelectionStepProps> = ({
               template={template}
               isSelected={selectedTemplate?.id === template.id}
               onClick={() => onSelectTemplate(template)}
-              fieldsCount={template.version || 0}
+              fieldsCount={fieldCounts?.[template.id] ?? 0}
             />
           ))}
         </div>
