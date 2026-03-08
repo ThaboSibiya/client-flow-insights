@@ -27,6 +27,7 @@ interface EquipmentFormDialogProps {
   onClose: () => void;
   onSave: (data: EquipmentFormData, editingId?: string) => Promise<boolean>;
   saving?: boolean;
+  equipmentTypes?: { value: string; label: string }[];
 }
 
 const initialFormData: EquipmentFormData = {
@@ -41,7 +42,18 @@ const initialFormData: EquipmentFormData = {
   technical_issues: ''
 };
 
-const EquipmentFormDialog = ({ equipment, isOpen, onClose, onSave, saving }: EquipmentFormDialogProps) => {
+const defaultEquipmentTypes = [
+  { value: 'printer', label: 'Printer' },
+  { value: 'scanner', label: 'Scanner' },
+  { value: 'copier', label: 'Copier' },
+  { value: 'fax', label: 'Fax Machine' },
+  { value: 'multifunction', label: 'Multifunction' },
+  { value: 'computer', label: 'Computer' },
+  { value: 'other', label: 'Other' },
+];
+
+const EquipmentFormDialog = ({ equipment, isOpen, onClose, onSave, saving, equipmentTypes }: EquipmentFormDialogProps) => {
+  const typeOptions = equipmentTypes || defaultEquipmentTypes;
   const [formData, setFormData] = useState<EquipmentFormData>(
     equipment 
       ? {
@@ -114,13 +126,9 @@ const EquipmentFormDialog = ({ equipment, isOpen, onClose, onSave, saving }: Equ
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="printer">Printer</SelectItem>
-                      <SelectItem value="scanner">Scanner</SelectItem>
-                      <SelectItem value="copier">Copier</SelectItem>
-                      <SelectItem value="fax">Fax Machine</SelectItem>
-                      <SelectItem value="multifunction">Multifunction</SelectItem>
-                      <SelectItem value="computer">Computer</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      {typeOptions.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
