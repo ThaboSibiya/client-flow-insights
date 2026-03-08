@@ -141,11 +141,11 @@ const PipelineDetailPanel = ({
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Created</p>
-                    <p className="text-sm">{format(new Date(customer.createdAt), 'MMM d, yyyy')}</p>
+                    <p className="text-sm">{customer?.createdAt ? format(new Date(customer.createdAt), 'MMM d, yyyy') : 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Last Updated</p>
-                    <p className="text-sm">{formatDistanceToNow(new Date(customer.updatedAt), { addSuffix: true })}</p>
+                    <p className="text-sm">{customer?.updatedAt ? formatDistanceToNow(new Date(customer.updatedAt), { addSuffix: true }) : 'N/A'}</p>
                   </div>
                 </div>
               </div>
