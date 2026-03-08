@@ -1,189 +1,166 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Clock, MapPin } from "lucide-react";
+import { Bell, Clock, MapPin, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from '@/integrations/supabase/client';
 
 interface JobCompletion {
   id: string;
-  customerName: string;
-  jobType: string;
-  completedBy: string;
-  completedAt: string;
-  location: string;
-  status: 'completed' | 'requires_followup' | 'issue_found';
-  nextAction?: string;
+  customer_id: string;
+  customer_name: string;
+  employee_name: string | null;
+  before_status: string | null;
+  after_status: string | null;
+  notes: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  completed_at: string | null;
+  created_at: string | null;
 }
 
 const JobCompletionNotifications = () => {
-  const [notifications, setNotifications] = useState<JobCompletion[]>([
-    {
-      id: '1',
-      customerName: 'Sarah Johnson',
-      jobType: 'Installation',
-      completedBy: 'Mike Wilson',
-      completedAt: '2024-06-22T14:30:00Z',
-      location: '123 Oak Street',
-      status: 'completed',
-    },
-    {
-      id: '2',
-      customerName: 'David Chen',
-      jobType: 'Maintenance',
-      completedBy: 'Lisa Brown',
-      completedAt: '2024-06-22T13:15:00Z',
-      location: '456 Pine Avenue',
-      status: 'requires_followup',
-      nextAction: 'Schedule follow-up inspection',
-    },
-  ]);
+  const [completions, setCompletions] = useState<JobCompletion[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [settings, setSettings] = useState({
-    autoNotify: true,
-    notifyMethods: ['email', 'sms'],
-    delayMinutes: 0,
-  });
+  const loadCompletions = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-  const handleNotificationAction = (id: string, action: 'acknowledge' | 'schedule_followup') => {
-    if (action === 'acknowledge') {
-      setNotifications(prev => prev.filter(n => n.id !== id));
-      toast({
-        title: "Notification Acknowledged",
-        description: "Job completion has been processed.",
-      });
-    } else {
-      toast({
-        title: "Follow-up Scheduled",
-        description: "Next appointment has been scheduled.",
-      });
+      const { data, error } = await supabase
+        .from('job_completions')
+        .select(`
+          id, customer_id, before_status, after_status, notes,
+          location_lat, location_lng, completed_at, created_at,
+          customers!inner(name),
+          employees(first_name, last_name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      const formatted: JobCompletion[] = (data || []).map((item: any) => ({
+        id: item.id,
+        customer_id: item.customer_id,
+        customer_name: item.customers?.name || 'Unknown',
+        employee_name: item.employees 
+          ? `${item.employees.first_name} ${item.employees.last_name}` 
+          : null,
+        before_status: item.before_status,
+        after_status: item.after_status,
+        notes: item.notes,
+        location_lat: item.location_lat,
+        location_lng: item.location_lng,
+        completed_at: item.completed_at,
+        created_at: item.created_at,
+      }));
+
+      setCompletions(formatted);
+    } catch (error: any) {
+      console.error('Error loading job completions:', error);
+      toast({ title: "Error", description: "Failed to load completions", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getStatusColor = (status: string) => {
+  useEffect(() => {
+    loadCompletions();
+  }, []);
+
+  const getStatusBadge = (status: string | null) => {
+    if (!status) return 'bg-muted text-muted-foreground';
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'requires_followup': return 'bg-yellow-100 text-yellow-800';
-      case 'issue_found': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'existing': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'finalised': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            Notification Settings
+    <Card className="border-border">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base text-foreground">
+            <Bell className="h-4 w-4" />
+            Recent Job Completions
           </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="auto-notify">Auto-notify office team</Label>
-            <Switch
-              id="auto-notify"
-              checked={settings.autoNotify}
-              onCheckedChange={(checked) => 
-                setSettings(prev => ({ ...prev, autoNotify: checked }))
-              }
-            />
+          <Button variant="ghost" size="sm" onClick={loadCompletions} disabled={loading}>
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-16 bg-muted/50 rounded-md animate-pulse" />
+            ))}
           </div>
-
+        ) : completions.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <Bell className="h-8 w-8 mx-auto mb-2 opacity-40" />
+            <p className="text-sm">No job completions yet</p>
+          </div>
+        ) : (
           <div className="space-y-2">
-            <Label>Notification delay</Label>
-            <Select 
-              value={settings.delayMinutes.toString()}
-              onValueChange={(value) => 
-                setSettings(prev => ({ ...prev, delayMinutes: parseInt(value) }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">Immediate</SelectItem>
-                <SelectItem value="5">5 minutes</SelectItem>
-                <SelectItem value="15">15 minutes</SelectItem>
-                <SelectItem value="30">30 minutes</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Job Completions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {notifications.map((notification) => (
-              <div key={notification.id} className="border rounded-lg p-4 space-y-3">
+            {completions.map((completion) => (
+              <div key={completion.id} className="border border-border rounded-lg p-3 space-y-2">
                 <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-semibold">{notification.customerName}</h4>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                      <span>{notification.jobType}</span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {new Date(notification.completedAt).toLocaleTimeString()}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {notification.location}
-                      </span>
+                  <div className="min-w-0">
+                    <h4 className="font-medium text-sm text-foreground truncate">
+                      {completion.customer_name}
+                    </h4>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      {completion.before_status && (
+                        <span className="text-xs text-muted-foreground">
+                          {completion.before_status}
+                        </span>
+                      )}
+                      {completion.before_status && completion.after_status && (
+                        <span className="text-xs text-muted-foreground">→</span>
+                      )}
+                      {completion.after_status && (
+                        <Badge className={`text-[10px] px-1.5 py-0 ${getStatusBadge(completion.after_status)}`}>
+                          {completion.after_status}
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                  <Badge className={getStatusColor(notification.status)}>
-                    {notification.status.replace('_', ' ')}
-                  </Badge>
-                </div>
-
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Completed by:</span> {notification.completedBy}
-                </div>
-
-                {notification.nextAction && (
-                  <div className="text-sm bg-yellow-50 p-2 rounded">
-                    <strong>Action Required:</strong> {notification.nextAction}
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">
+                    <Clock className="h-3 w-3" />
+                    {completion.created_at
+                      ? new Date(completion.created_at).toLocaleDateString()
+                      : '—'}
                   </div>
+                </div>
+
+                {completion.notes && (
+                  <p className="text-xs text-muted-foreground line-clamp-2">{completion.notes}</p>
                 )}
 
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleNotificationAction(notification.id, 'acknowledge')}
-                  >
-                    Acknowledge
-                  </Button>
-                  {notification.status === 'requires_followup' && (
-                    <Button 
-                      size="sm"
-                      onClick={() => handleNotificationAction(notification.id, 'schedule_followup')}
-                    >
-                      Schedule Follow-up
-                    </Button>
+                <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                  {completion.employee_name && (
+                    <span>By {completion.employee_name}</span>
+                  )}
+                  {completion.location_lat && (
+                    <span className="flex items-center gap-0.5">
+                      <MapPin className="h-2.5 w-2.5" />
+                      Location verified
+                    </span>
                   )}
                 </div>
               </div>
             ))}
-
-            {notifications.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No pending job completion notifications</p>
-              </div>
-            )}
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
