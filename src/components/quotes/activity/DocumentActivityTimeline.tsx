@@ -148,7 +148,7 @@ const DocumentActivityTimeline: React.FC<DocumentActivityTimelineProps> = ({ quo
 
   const statusIcon = (status: StepStatus) => {
     if (status === 'completed') return <CheckCircle className="h-5 w-5 text-primary" />;
-    if (status === 'active') return <Clock className="h-5 w-5 text-warning" />;
+    if (status === 'active') return <Clock className="h-5 w-5 text-primary" />;
     return <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30" />;
   };
 
