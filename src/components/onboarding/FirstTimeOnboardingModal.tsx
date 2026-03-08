@@ -7,7 +7,6 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/AuthContext';
 import { useEmployeeAuth } from '@/hooks/useEmployeeAuth';
@@ -17,13 +16,13 @@ import {
   Users, 
   LayoutDashboard, 
   FolderKanban,
-  MessageCircle,
-  BarChart3,
+  CreditCard,
   ArrowRight,
   CheckCircle2,
   Rocket
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import OnboardingPlanStep from '@/components/onboarding/OnboardingPlanStep';
 
 interface OnboardingStep {
   id: string;
