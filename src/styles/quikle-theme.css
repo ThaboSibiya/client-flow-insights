@@ -1,40 +1,37 @@
-/* @layer components { */
-  /* Quikle specific styles - Ultra Premium Edition */
+/* Quikle specific styles - Ultra Premium Edition */
   .quikle-gradient-bg {
     @apply bg-gradient-quikle;
   }
 
   .quikle-card {
-    @apply bg-white backdrop-blur-sm border border-quikle-silver/30 shadow-platinum hover:shadow-elegant transition-all duration-300;
+    @apply bg-card backdrop-blur-sm border border-border shadow-platinum hover:shadow-elegant transition-all duration-300;
   }
 
   .quikle-button-primary {
-    @apply bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white hover:shadow-luxury transition-all duration-300 transform hover:scale-[1.02];
+    @apply bg-gradient-to-r from-quikle-primary to-quikle-secondary text-primary-foreground hover:shadow-luxury transition-all duration-300 transform hover:scale-[1.02];
   }
 
   /* Premium surface styles */
   .premium-surface {
-    background: rgba(255, 255, 255, 0.95);
-    @apply backdrop-blur-md border border-white/30 shadow-platinum;
+    @apply bg-card/95 backdrop-blur-md border border-border shadow-platinum;
   }
 
   .elegant-card {
-    @apply bg-white border border-quikle-silver/20 shadow-platinum hover:shadow-luxury transition-all duration-300;
+    @apply bg-card border border-border shadow-platinum hover:shadow-luxury transition-all duration-300;
   }
 
   .sophisticated-gradient {
-    @apply bg-gradient-to-br from-white via-quikle-crystal to-quikle-platinum/50;
+    @apply bg-gradient-to-br from-background via-muted to-accent/50;
   }
 
   /* Luxury glass effect */
   .glass-effect {
-    background: rgba(255, 255, 255, 0.9);
-    @apply backdrop-blur-xl border border-white/20 shadow-luxury;
+    @apply bg-card/90 backdrop-blur-xl border border-border shadow-luxury;
   }
 
   /* Premium text effects */
   .luxury-text {
-    @apply bg-gradient-to-r from-quikle-charcoal via-quikle-primary to-quikle-slate bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-foreground via-primary to-muted-foreground bg-clip-text text-transparent;
   }
 
   /* Shimmer effect for premium elements */
@@ -44,7 +41,6 @@
 
   .shimmer::before {
     content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent;
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-background/20 to-transparent;
     animation: shimmer 2s infinite;
   }
-/* } */
