@@ -347,7 +347,7 @@ const PipelineDetailPanel = ({
               </Button>
             </div>
 
-            {ticket.timeEntries.length === 0 && (
+            {(ticket.timeEntries?.length ?? 0) === 0 && (
               <div className="text-center text-muted-foreground py-8">
                 <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No time entries</p>
