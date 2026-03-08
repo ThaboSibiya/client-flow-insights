@@ -174,8 +174,17 @@ const AppSidebar = () => {
       {/* Footer with User Profile and Collapse Toggle */}
       <SidebarFooter className="border-t border-border/40 p-2">
         {!isCollapsed ? (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <UserProfile />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsHelpOpen(true)}
+              className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <LifeBuoy className="h-4 w-4" />
+              <span className="text-xs">Support</span>
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -188,23 +197,40 @@ const AppSidebar = () => {
             </Button>
           </div>
         ) : (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleSidebar}
-                className="w-full h-9"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              Expand sidebar (⌘B)
-            </TooltipContent>
-          </Tooltip>
+          <div className="space-y-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsHelpOpen(true)}
+                  className="w-full h-9"
+                >
+                  <LifeBuoy className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Support</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleSidebar}
+                  className="w-full h-9"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                Expand sidebar (⌘B)
+              </TooltipContent>
+            </Tooltip>
+          </div>
         )}
       </SidebarFooter>
+
+      <HelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 
       {/* Rail for edge hover toggle */}
       <SidebarRail />
