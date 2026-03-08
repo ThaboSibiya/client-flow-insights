@@ -29,23 +29,20 @@
      );
    }
  
-   return (
-     <div className="space-y-4">
-       {/* Header with title and actions */}
-       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-         <h2 className="text-lg font-semibold text-foreground">
-           {quote.type === 'quote' ? 'Quote' : 'Invoice'} Preview
-         </h2>
-         <DocumentPreviewActions quote={quote} />
-       </div>
- 
-       {/* Document Preview - scrollable container */}
-       <Card className="overflow-hidden border">
-         <div className="overflow-auto max-h-[calc(100vh-280px)] bg-muted/30">
-           <DocumentPreview ref={previewRef} quote={quote} profile={profile} />
-         </div>
-       </Card>
-     </div>
+    return (
+      <div className="space-y-3">
+        {/* Compact header with actions only */}
+        <div className="flex items-center justify-end">
+          <DocumentPreviewActions quote={quote} />
+        </div>
+  
+        {/* Document Preview - flex-driven height */}
+        <Card className="overflow-hidden border">
+          <div className="overflow-auto max-h-[calc(100vh-220px)] bg-muted/30">
+            <DocumentPreview ref={previewRef} quote={quote} profile={profile} />
+          </div>
+        </Card>
+      </div>
    );
  };
  
