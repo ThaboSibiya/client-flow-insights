@@ -19,6 +19,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 
 const BillingSettings = () => {
   const currency = useMemo(detectCurrency, []);
+  const [selectedPlan, setSelectedPlan] = React.useState<string | null>(null);
   const {
     subscription,
     isLoading,
