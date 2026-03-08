@@ -75,48 +75,17 @@ export const parseJSON = (content: string): ParsedData => {
   }
 };
 
-export const parseExcel = async (file: File): Promise<ParsedData> => {
-  // For Excel files, we'll need to use a library like xlsx
-  // For now, return an error suggesting CSV conversion
-  // In a full implementation, you'd add the xlsx library
-  
-  const errors: string[] = [];
-  
-  try {
-    // Dynamic import of xlsx library if available
-    const XLSX = await import('xlsx').catch(() => null);
-    
-    if (!XLSX) {
-      errors.push('Excel parsing requires the xlsx library. Please convert to CSV or install xlsx package.');
-      return { data: [], columns: [], rowCount: 0, errors };
-    }
-    
-    const arrayBuffer = await file.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    
-    // Get first sheet
-    const firstSheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[firstSheetName];
-    
-    // Convert to JSON
-    const jsonData = XLSX.utils.sheet_to_json(worksheet);
-    
-    if (jsonData.length === 0) {
-      return { data: [], columns: [], rowCount: 0, errors: ['Empty spreadsheet'] };
-    }
-    
-    const columns = Object.keys(jsonData[0] as Record<string, unknown>);
-    return { 
-      data: jsonData as Record<string, unknown>[], 
-      columns, 
-      rowCount: jsonData.length, 
-      errors 
-    };
-    
-  } catch (err) {
-    errors.push(`Excel parse error: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    return { data: [], columns: [], rowCount: 0, errors };
-  }
+export const parseExcel = async (_file: File): Promise<ParsedData> => {
+  // The xlsx library was removed due to high-severity security vulnerabilities
+  // (Prototype Pollution & ReDoS). Users should convert Excel files to CSV first.
+  return {
+    data: [],
+    columns: [],
+    rowCount: 0,
+    errors: [
+      'Excel file import is not supported. Please save your spreadsheet as CSV (.csv) and upload that instead.'
+    ],
+  };
 };
 
 // Helper to parse CSV line handling quoted values
