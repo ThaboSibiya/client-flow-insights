@@ -60,10 +60,17 @@ const FirstTimeOnboardingModal: React.FC = () => {
       icon: <Sparkles className="h-12 w-12 text-amber-500" />,
     },
     {
+      id: 'plan',
+      title: 'Choose Your Plan',
+      description: 'Select a plan that fits your business. You can always upgrade or change later.',
+      icon: <CreditCard className="h-12 w-12 text-primary" />,
+      isCustomContent: true,
+    },
+    {
       id: 'dashboard',
       title: 'Your Dashboard',
       description: 'Get a bird\'s eye view of your business metrics, recent activity, and quick actions all in one place.',
-      icon: <LayoutDashboard className="h-12 w-12 text-quikle-primary" />,
+      icon: <LayoutDashboard className="h-12 w-12 text-primary" />,
       action: () => navigate('/dashboard'),
       actionLabel: 'Go to Dashboard'
     },
@@ -71,7 +78,7 @@ const FirstTimeOnboardingModal: React.FC = () => {
       id: 'customers',
       title: 'Manage Customers',
       description: 'Keep track of all your clients, their details, communication history, and deals in one centralized location.',
-      icon: <Users className="h-12 w-12 text-quikle-secondary" />,
+      icon: <Users className="h-12 w-12 text-secondary" />,
       action: () => navigate('/customers'),
       actionLabel: 'View Customers'
     },
@@ -79,7 +86,7 @@ const FirstTimeOnboardingModal: React.FC = () => {
       id: 'projects',
       title: 'Project Management',
       description: 'Organize your work with projects, tasks, and team collaboration. Track progress and meet deadlines.',
-      icon: <FolderKanban className="h-12 w-12 text-quikle-accent" />,
+      icon: <FolderKanban className="h-12 w-12 text-accent" />,
       action: () => navigate('/projects'),
       actionLabel: 'View Projects'
     },
