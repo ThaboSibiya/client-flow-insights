@@ -338,7 +338,7 @@ const PipelineDetailPanel = ({
           <TabsContent value="time" className="m-0 p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold">{Math.round(ticket.totalTimeSpent / 60)}h {ticket.totalTimeSpent % 60}m</p>
+                <p className="text-2xl font-bold">{Math.round((ticket?.totalTimeSpent || 0) / 60)}h {(ticket?.totalTimeSpent || 0) % 60}m</p>
                 <p className="text-sm text-muted-foreground">Total time logged</p>
               </div>
               <Button size="sm" variant="outline" className="gap-2">
