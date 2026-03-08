@@ -19,18 +19,19 @@ interface OnboardingPlanStepProps {
 const OnboardingPlanStep: React.FC<OnboardingPlanStepProps> = ({ onSkip }) => {
   const currency = useMemo(detectCurrency, []);
   const { initializePayment, isActive, currentPlan } = useSubscription();
+  const [selectedPlan, setSelectedPlan] = React.useState<string | null>(null);
 
   const handleSelect = (plan: PlanTier) => {
     if (plan.name === 'Enterprise') {
       window.open('mailto:sales@quikle.com?subject=Enterprise Plan Inquiry', '_blank');
       return;
     }
+    setSelectedPlan(plan.name);
     const priceInfo = plan.price[currency];
-    initializePayment.mutate({
-      planName: plan.name,
-      amount: priceInfo.amount,
-      currency,
-    });
+    initializePayment.mutate(
+      { planName: plan.name, amount: priceInfo.amount, currency },
+      { onSettled: () => setSelectedPlan(null) },
+    );
   };
 
   return (
