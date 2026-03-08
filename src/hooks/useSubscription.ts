@@ -78,15 +78,32 @@ export const useSubscription = () => {
         body: { reference },
       });
 
-      if (response.error) throw new Error(response.error.message);
+      if (response.error) {
+        console.error('Paystack verify error:', response.error);
+        throw new Error(response.error.message || 'Payment verification failed');
+      }
+      
       if (!response.data?.verified) {
         throw new Error(response.data?.message || 'Payment verification failed');
       }
 
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['user-subscription'] });
+      toast({
+        title: 'Payment Successful',
+        description: data.already_processed 
+          ? 'Your subscription is already active!'
+          : `Your ${data.plan_name} subscription is now active!`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Verification Failed',
+        description: error.message || 'Could not verify payment. Please contact support.',
+        variant: 'destructive',
+      });
     },
   });
 
