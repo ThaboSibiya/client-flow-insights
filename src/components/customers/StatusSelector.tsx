@@ -1,13 +1,15 @@
 
 import React from 'react';
 import { CustomerStatus } from '@/context/CRMContext';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface StatusSelectorProps {
   status: CustomerStatus;
@@ -15,33 +17,60 @@ interface StatusSelectorProps {
   className?: string;
 }
 
+const STATUS_CONFIG: Record<string, { label: string; dotClass: string; badgeClass: string }> = {
+  new: {
+    label: 'New',
+    dotClass: 'bg-primary',
+    badgeClass: 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/15',
+  },
+  existing: {
+    label: 'Existing',
+    dotClass: 'bg-emerald-500',
+    badgeClass: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/15',
+  },
+  pending: {
+    label: 'Pending',
+    dotClass: 'bg-amber-500',
+    badgeClass: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/15',
+  },
+  finalised: {
+    label: 'Finalised',
+    dotClass: 'bg-violet-500',
+    badgeClass: 'bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/20 hover:bg-violet-500/15',
+  },
+};
+
 const StatusSelector = ({ status, onChange, className }: StatusSelectorProps) => {
-  
-  const getStatusTriggerColor = (status: CustomerStatus) => {
-    switch(status) {
-      case 'new': return 'border-quikle-primary/30 text-quikle-primary bg-gradient-to-r from-quikle-crystal to-quikle-platinum hover:border-quikle-primary/50';
-      case 'existing': return 'border-quikle-success/30 text-quikle-success bg-gradient-to-r from-green-50 to-green-100 hover:border-quikle-success/50';
-      case 'pending': return 'border-quikle-accent/30 text-quikle-accent bg-gradient-to-r from-quikle-crystal to-quikle-platinum hover:border-quikle-accent/50';
-      case 'finalised': return 'border-quikle-purple/30 text-quikle-purple bg-gradient-to-r from-purple-50 to-purple-100 hover:border-quikle-purple/50';
-      default: return 'border-quikle-silver/30 text-quikle-slate bg-gradient-to-r from-quikle-crystal to-quikle-platinum';
-    }
-  };
+  const config = STATUS_CONFIG[status] || STATUS_CONFIG.new;
 
   return (
-    <Select
-      value={status}
-      onValueChange={(value) => onChange(value as CustomerStatus)}
-    >
-      <SelectTrigger className={`w-[140px] ${getStatusTriggerColor(status)} shadow-sm hover:shadow-md transition-all duration-200 focus:ring-2 focus:ring-quikle-primary/20 focus:border-quikle-primary/50 ${className}`}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent className="bg-white border border-quikle-silver/30 shadow-luxury z-50 rounded-lg">
-        <SelectItem value="new" className="text-quikle-primary hover:bg-quikle-crystal focus:bg-quikle-crystal cursor-pointer">New</SelectItem>
-        <SelectItem value="existing" className="text-quikle-success hover:bg-green-50 focus:bg-green-50 cursor-pointer">Existing</SelectItem>
-        <SelectItem value="pending" className="text-quikle-accent hover:bg-quikle-crystal focus:bg-quikle-crystal cursor-pointer">Pending</SelectItem>
-        <SelectItem value="finalised" className="text-quikle-purple hover:bg-purple-50 focus:bg-purple-50 cursor-pointer">Finalised</SelectItem>
-      </SelectContent>
-    </Select>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          className={cn(
+            'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1',
+            config.badgeClass,
+            className
+          )}
+        >
+          <span className={cn('h-1.5 w-1.5 rounded-full', config.dotClass)} />
+          {config.label}
+          <ChevronDown className="h-3 w-3 opacity-50" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-32">
+        {Object.entries(STATUS_CONFIG).map(([value, cfg]) => (
+          <DropdownMenuItem
+            key={value}
+            onClick={() => onChange(value as CustomerStatus)}
+            className="text-xs cursor-pointer"
+          >
+            <span className={cn('h-2 w-2 rounded-full mr-2', cfg.dotClass)} />
+            {cfg.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

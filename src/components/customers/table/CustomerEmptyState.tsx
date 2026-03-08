@@ -15,11 +15,11 @@ const CustomerEmptyState = ({ hasFilters = false, onClearFilters }: CustomerEmpt
   if (hasFilters) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4">
-        <div className="w-14 h-14 rounded-full bg-quikle-crystal flex items-center justify-center mb-4">
-          <Search className="h-7 w-7 text-quikle-slate" />
+        <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
+          <Search className="h-7 w-7 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-medium text-quikle-charcoal mb-1">No matches found</h3>
-        <p className="text-sm text-quikle-slate text-center max-w-sm mb-4">
+        <h3 className="text-lg font-medium text-foreground mb-1">No matches found</h3>
+        <p className="text-sm text-muted-foreground text-center max-w-sm mb-4">
           Try adjusting your search or filter criteria
         </p>
         {onClearFilters && (
@@ -27,7 +27,6 @@ const CustomerEmptyState = ({ hasFilters = false, onClearFilters }: CustomerEmpt
             variant="outline" 
             size="sm"
             onClick={onClearFilters}
-            className="border-quikle-silver/50"
           >
             Clear all filters
           </Button>
@@ -38,16 +37,15 @@ const CustomerEmptyState = ({ hasFilters = false, onClearFilters }: CustomerEmpt
 
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-quikle-primary/10 to-quikle-secondary/10 flex items-center justify-center mb-4">
-        <Users className="h-8 w-8 text-quikle-primary" />
+      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+        <Users className="h-8 w-8 text-primary" />
       </div>
-      <h3 className="text-lg font-medium text-quikle-charcoal mb-1">No clients yet</h3>
-      <p className="text-sm text-quikle-slate text-center max-w-sm mb-5">
+      <h3 className="text-lg font-medium text-foreground mb-1">No clients yet</h3>
+      <p className="text-sm text-muted-foreground text-center max-w-sm mb-5">
         Get started by adding your first client to manage their information and tickets.
       </p>
       <Button 
         onClick={() => navigate('/onboarding')}
-        className="quikle-button-primary"
       >
         <UserPlus className="h-4 w-4 mr-2" />
         Add First Client
