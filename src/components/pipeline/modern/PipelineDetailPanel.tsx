@@ -47,8 +47,8 @@ const PipelineDetailPanel = ({
                 </AvatarFallback>
               </Avatar>
               <div>
-                <CardTitle className="text-lg">{customer.name}</CardTitle>
-                <p className="text-sm text-muted-foreground">{customer.email}</p>
+                <CardTitle className="text-lg">{customer?.name || 'Unknown'}</CardTitle>
+                <p className="text-sm text-muted-foreground">{customer?.email || 'No email'}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
