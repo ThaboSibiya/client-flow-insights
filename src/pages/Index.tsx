@@ -85,32 +85,31 @@ const Index = () => {
    ];
  
   return (
-    <div className="h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 relative overflow-hidden">
+    <div className="h-[calc(100vh-3rem)] flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 relative overflow-hidden">
       {/* Sophisticated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-primary/8 to-transparent rounded-full blur-3xl" />
         <div className="absolute -bottom-32 -left-32 w-72 h-72 bg-gradient-to-tr from-quikle-info/8 to-transparent rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-radial from-primary/5 to-transparent rounded-full" />
       </div>
 
-      <div className="container max-w-2xl mx-auto px-4 text-center space-y-6 relative z-10">
+      <div className="max-w-2xl mx-auto px-4 text-center space-y-4 relative z-10">
         {/* Hero Section */}
-        <div className="space-y-3 animate-fade-in">
+        <div className="space-y-2 animate-fade-in">
           {loading ? (
-            <div className="space-y-3 flex flex-col items-center">
-              <Skeleton className="h-10 w-72" />
-              <Skeleton className="h-5 w-40" />
+            <div className="space-y-2 flex flex-col items-center">
+              <Skeleton className="h-9 w-64" />
+              <Skeleton className="h-4 w-36" />
             </div>
           ) : (
             <>
-              <div className="flex justify-center mb-1">
-                <img src={quikleLogo} alt="Quikle Logo" className="h-14 w-14 object-contain drop-shadow-md" />
+              <div className="flex justify-center">
+                <img src={quikleLogo} alt="Quikle Logo" className="h-12 w-12 object-contain drop-shadow-md" />
               </div>
-              <p className="text-xs font-medium text-muted-foreground tracking-widest uppercase">
+              <p className="text-[10px] font-medium text-muted-foreground tracking-widest uppercase">
                 Welcome to Quikle
               </p>
               
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
                 <span className="bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
                   {getGreeting()}
                 </span>
@@ -122,68 +121,66 @@ const Index = () => {
               </h1>
 
               {userName && (
-                <div className="flex justify-center pt-1">
-                  <Badge className={`${role.color} shadow-sm px-2.5 py-0.5 text-xs`}>
-                    <RoleIcon className="h-3 w-3 mr-1" />
+                <div className="flex justify-center">
+                  <Badge className={`${role.color} shadow-sm px-2 py-0.5 text-[10px]`}>
+                    <RoleIcon className="h-2.5 w-2.5 mr-1" />
                     {role.label}
                   </Badge>
                 </div>
               )}
 
-              <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+              <p className="text-muted-foreground text-xs max-w-sm mx-auto">
                 {userName 
                   ? "Your command center awaits. Where would you like to start?"
                   : "Premium business management designed for professionals."}
               </p>
             </>
           )}
-         </div>
+        </div>
  
         {/* Navigation Grid */}
-        <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
-           {quickLinks.map((link) => {
-             const Icon = link.icon;
-             return (
-               <Card
-                 key={link.path}
-                 className="group relative p-4 cursor-pointer border-border/40 bg-card/80 backdrop-blur-sm hover:border-primary/30 hover:shadow-md transition-all duration-300 overflow-hidden"
-                 onClick={() => navigate(link.path)}
-               >
-                {/* Hover gradient overlay */}
+        <div className="grid grid-cols-2 gap-2.5 max-w-sm mx-auto">
+          {quickLinks.map((link) => {
+            const Icon = link.icon;
+            return (
+              <Card
+                key={link.path}
+                className="group relative p-3 cursor-pointer border-border/40 bg-card/80 backdrop-blur-sm hover:border-primary/30 hover:shadow-md transition-all duration-300 overflow-hidden"
+                onClick={() => navigate(link.path)}
+              >
                 <div className={`absolute inset-0 bg-gradient-to-br ${link.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-                
-                 <div className="relative flex flex-col items-center gap-2 text-center">
-                   <div className={`p-2 rounded-lg bg-gradient-to-br ${link.gradient} shadow-sm group-hover:shadow-md transition-shadow`}>
-                     <Icon className="h-4 w-4 text-white" />
+                <div className="relative flex flex-col items-center gap-1.5 text-center">
+                  <div className={`p-1.5 rounded-md bg-gradient-to-br ${link.gradient} shadow-sm group-hover:shadow-md transition-shadow`}>
+                    <Icon className="h-3.5 w-3.5 text-white" />
                   </div>
                   <div>
-                     <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors block">
+                    <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors block">
                       {link.label}
                     </span>
-                     <span className="text-[10px] text-muted-foreground block">
+                    <span className="text-[10px] text-muted-foreground block">
                       {link.description}
                     </span>
                   </div>
-                 </div>
-               </Card>
-             );
-           })}
-         </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
  
         {/* CTA */}
-        <div className="pt-2">
+        <div>
           <Button
-            size="default"
-            className="gap-2 px-6 shadow-md hover:shadow-lg transition-all duration-300"
+            size="sm"
+            className="gap-1.5 px-5 shadow-md hover:shadow-lg transition-all duration-300"
             onClick={() => navigate('/dashboard')}
           >
-            <TrendingUp className="h-4 w-4" />
+            <TrendingUp className="h-3.5 w-3.5" />
             Go to Dashboard
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-3.5 w-3.5" />
           </Button>
         </div>
-       </div>
-     </div>
+      </div>
+    </div>
   );
 };
 
