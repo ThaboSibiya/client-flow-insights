@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Printer, CheckCircle, AlertTriangle, Settings, Package } from 'lucide-react';
+import { Plus, Printer, Package } from 'lucide-react';
 import { useEquipmentService } from '@/hooks/useEquipmentService';
 import { Equipment } from './types';
 import EquipmentCard from './EquipmentCard';
@@ -9,6 +9,16 @@ import EquipmentFormDialog from './EquipmentFormDialog';
 import LogServiceDialog from './LogServiceDialog';
 import EquipmentQuickView from './EquipmentQuickView';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface EquipmentManagerProps {
   customerId: string;
@@ -31,8 +41,8 @@ const EquipmentManager = ({ customerId }: EquipmentManagerProps) => {
   const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(null);
   const [loggingServiceFor, setLoggingServiceFor] = useState<Equipment | null>(null);
   const [quickViewEquipment, setQuickViewEquipment] = useState<Equipment | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Stats
   const stats = {
     total: equipment.length,
     active: equipment.filter(e => e.status === 'active').length,
@@ -40,138 +50,100 @@ const EquipmentManager = ({ customerId }: EquipmentManagerProps) => {
     broken: equipment.filter(e => e.status === 'broken').length
   };
 
-  const handleEdit = (eq: Equipment) => {
-    setEditingEquipment(eq);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this equipment?')) {
-      await deleteEquipment(id);
-    }
+  const handleDelete = async () => {
+    if (!deletingId) return;
+    await deleteEquipment(deletingId);
+    setDeletingId(null);
   };
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex justify-between items-center">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-9 w-32" />
-        </div>
-        <div className="grid grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} className="h-20" />
-          ))}
+          <Skeleton className="h-6 w-36" />
+          <Skeleton className="h-8 w-28" />
         </div>
         {[1, 2].map(i => (
-          <Skeleton key={i} className="h-24" />
+          <Skeleton key={i} className="h-20" />
         ))}
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <Printer className="h-5 w-5 text-primary" />
-            Equipment Management
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+            <Printer className="h-4 w-4 text-primary" />
+            Equipment
           </h3>
-          <p className="text-sm text-muted-foreground">
-            {equipment.length} equipment items registered
-          </p>
+          {equipment.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {stats.total} total · {stats.active} active
+              {stats.maintenance > 0 && ` · ${stats.maintenance} maintenance`}
+              {stats.broken > 0 && ` · ${stats.broken} issues`}
+            </p>
+          )}
         </div>
-        <Button onClick={() => setShowAddDialog(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Equipment
+        <Button size="sm" variant="outline" onClick={() => setShowAddDialog(true)} className="h-8 text-foreground border-border">
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          Add
         </Button>
       </div>
 
-      {/* Stats Overview */}
-      {equipment.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Card className="border-border">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Package className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-                <p className="text-xs text-muted-foreground">Total Equipment</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stats.active}</p>
-                <p className="text-xs text-muted-foreground">Active</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <Settings className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stats.maintenance}</p>
-                <p className="text-xs text-muted-foreground">Maintenance</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stats.broken}</p>
-                <p className="text-xs text-muted-foreground">Issues</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       {/* Equipment List */}
       {equipment.length === 0 ? (
-        <Card className="border-dashed border-2 border-border bg-muted/30">
-          <CardContent className="py-12 text-center">
-            <div className="p-4 rounded-full bg-muted inline-flex mb-4">
-              <Printer className="h-10 w-10 text-muted-foreground" />
+        <Card className="border-dashed border border-border bg-muted/20">
+          <CardContent className="py-8 text-center">
+            <div className="p-3 rounded-full bg-muted inline-flex mb-3">
+              <Package className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium text-foreground mb-2">No Equipment Registered</h3>
-            <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-              Add equipment to track printers, copiers, and other devices. 
-              Log service history and maintenance records.
+            <p className="text-sm font-medium text-foreground mb-1">No Equipment</p>
+            <p className="text-xs text-muted-foreground mb-4">
+              Track printers, copiers, and other devices.
             </p>
-            <Button onClick={() => setShowAddDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add First Equipment
+            <Button size="sm" onClick={() => setShowAddDialog(true)}>
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Add Equipment
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {equipment.map(eq => (
             <EquipmentCard
               key={eq.id}
               equipment={eq}
               isExpanded={expandedId === eq.id}
               onToggleExpand={() => setExpandedId(expandedId === eq.id ? null : eq.id)}
-              onEdit={() => handleEdit(eq)}
-              onDelete={() => handleDelete(eq.id)}
+              onEdit={() => setEditingEquipment(eq)}
+              onDelete={() => setDeletingId(eq.id)}
               onLogService={() => setLoggingServiceFor(eq)}
               onViewHistory={() => setQuickViewEquipment(eq)}
             />
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Equipment</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this equipment and all its service history. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-foreground">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Add/Edit Equipment Dialog */}
       <EquipmentFormDialog
