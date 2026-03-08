@@ -102,6 +102,8 @@ const RevenueForecastChart = () => {
                   name === 'actual' ? 'Actual' : 'Forecast'
                 ]}
               />
+              <Area type="monotone" dataKey="upper" stroke="none" fill="hsl(var(--chart-forecast))" fillOpacity={0.08} />
+              <Area type="monotone" dataKey="lower" stroke="none" fill="hsl(var(--background))" fillOpacity={1} />
               <Area type="monotone" dataKey="forecast" stroke="hsl(var(--chart-forecast))" strokeDasharray="5 5" fill="url(#revForecastGrad)" strokeWidth={2} />
               <Line type="monotone" dataKey="actual" stroke="hsl(var(--chart-revenue))" strokeWidth={2.5} dot={{ fill: 'hsl(var(--chart-revenue))', r: 4, strokeWidth: 2, stroke: 'hsl(var(--background))' }} />
             </AreaChart>
