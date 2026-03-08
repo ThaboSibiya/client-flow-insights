@@ -20,6 +20,7 @@ import {
   Code,
   ChevronDown,
   ChevronRight,
+  ScrollText,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -42,6 +43,8 @@ import IntegrationsGuide from '@/components/pipeline/automation/webhook-workflow
 import CreateApiTriggerSheet from '@/components/pipeline/automation/webhook-workflows/CreateApiTriggerSheet';
 import CreateWebhookSheet from '@/components/pipeline/automation/webhook-workflows/CreateWebhookSheet';
 import CreateSyncRuleDialog from '@/components/integrations/CreateSyncRuleDialog';
+import DeleteConfirmDialog from '@/components/integrations/DeleteConfirmDialog';
+import WebhookLogsPanel from '@/components/integrations/WebhookLogsPanel';
 
 type FilterChip = 'all' | 'api-triggers' | 'webhooks' | 'sync-rules';
 
@@ -52,16 +55,23 @@ const platformIcons: Record<string, string> = {
   custom: '⚙️'
 };
 
-const SUPABASE_PROJECT_REF = 'oquiaxbnkdnpixqhqdfq';
-
 const Integrations = () => {
   const [activeFilter, setActiveFilter] = useState<FilterChip>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showLogs, setShowLogs] = useState(false);
   
   // Sheet/Dialog states
   const [showWebhookSheet, setShowWebhookSheet] = useState(false);
   const [showApiTriggerSheet, setShowApiTriggerSheet] = useState(false);
   const [showSyncRuleDialog, setShowSyncRuleDialog] = useState(false);
+
+  // Delete confirmation state
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({ open: false, title: '', description: '', onConfirm: () => {} });
 
   // Data hooks
   const { 
@@ -147,6 +157,10 @@ const Integrations = () => {
     }
   };
 
+  const confirmDelete = (title: string, description: string, onConfirm: () => void) => {
+    setDeleteDialog({ open: true, title, description, onConfirm });
+  };
+
   const filterChips: { key: FilterChip; label: string; count: number }[] = [
     { key: 'all', label: 'All', count: triggers.length + connections.length + syncRules.length },
     { key: 'api-triggers', label: 'API Triggers', count: triggers.length },
@@ -167,6 +181,14 @@ const Integrations = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button 
+            variant={showLogs ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setShowLogs(!showLogs)}
+          >
+            <ScrollText className="h-4 w-4 mr-2" />
+            Logs
+          </Button>
           <Button variant="outline" size="sm" onClick={handleRefresh}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
@@ -225,6 +247,9 @@ const Integrations = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Webhook Logs Panel (toggleable) */}
+      {showLogs && <WebhookLogsPanel />}
 
       {/* Quick Start Guide */}
       <IntegrationsGuide />
@@ -296,7 +321,11 @@ const Integrations = () => {
                     webhookUrl={getWebhookUrl(trigger.endpoint_key)}
                     onToggle={() => toggleTrigger(trigger.id)}
                     onTest={() => testTrigger(trigger)}
-                    onDelete={() => deleteTrigger(trigger.id)}
+                    onDelete={() => confirmDelete(
+                      'Delete API Trigger',
+                      `Are you sure you want to delete "${trigger.name}"? This will permanently remove the endpoint and all associated logs. External systems using this URL will stop working.`,
+                      () => deleteTrigger(trigger.id)
+                    )}
                     onCopy={() => copyEndpoint(trigger.endpoint_key)}
                     formatDate={formatDate}
                   />
@@ -333,7 +362,11 @@ const Integrations = () => {
                     connection={connection}
                     onToggle={() => toggleConnection(connection.id)}
                     onTest={() => testWebhook(connection)}
-                    onDelete={() => deleteConnection(connection.id)}
+                    onDelete={() => confirmDelete(
+                      'Delete Webhook Connection',
+                      `Are you sure you want to delete "${connection.name}"? Automations using this webhook will stop working.`,
+                      () => deleteConnection(connection.id)
+                    )}
                     formatDate={formatDate}
                   />
                 ))}
@@ -369,7 +402,11 @@ const Integrations = () => {
                     rule={rule}
                     onToggle={() => toggleSyncRule(rule.id)}
                     onTest={() => triggerManualSync(rule)}
-                    onDelete={() => deleteSyncRule(rule.id)}
+                    onDelete={() => confirmDelete(
+                      'Delete Sync Rule',
+                      `Are you sure you want to delete "${rule.name}"? Data synchronization between ${rule.source_system} and ${rule.target_system} will stop.`,
+                      () => deleteSyncRule(rule.id)
+                    )}
                     formatDate={formatDate}
                   />
                 ))}
@@ -378,6 +415,18 @@ const Integrations = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+        onConfirm={() => {
+          deleteDialog.onConfirm();
+          setDeleteDialog(prev => ({ ...prev, open: false }));
+        }}
+        title={deleteDialog.title}
+        description={deleteDialog.description}
+      />
 
       {/* Sheets (slide-over panels) */}
       <CreateApiTriggerSheet
@@ -390,7 +439,6 @@ const Integrations = () => {
         onOpenChange={setShowWebhookSheet}
         onCreateConnection={createConnection}
       />
-      {/* Sync rules keeps dialog for now */}
       <CreateSyncRuleDialog
         open={showSyncRuleDialog}
         onOpenChange={setShowSyncRuleDialog}
