@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import NewTicketForm from './tickets/NewTicketForm';
 import TicketsList from './tickets/TicketsList';
 import { useTicketEvents } from '@/hooks/useTicketEvents';
+import { formatDuration } from '@/utils/ticketFormatters';
 
 interface TicketManagementDialogProps {
   customer: Customer | null;
@@ -22,25 +23,23 @@ interface TicketManagementDialogProps {
   onAddTimeEntry?: (ticketId: string, timeEntry: any) => void;
 }
 
-const TicketManagementDialog = ({ 
-  customer, 
-  isOpen, 
-  onClose, 
-  onCreateTicket, 
+const TicketManagementDialog = ({
+  customer,
+  isOpen,
+  onClose,
+  onCreateTicket,
   onUpdateTicketStatus,
-  onAddTimeEntry 
+  onAddTimeEntry,
 }: TicketManagementDialogProps) => {
   const [showNewTicketForm, setShowNewTicketForm] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Create stable callback for handling refresh
   const handleRefresh = useCallback((data: any) => {
     if (data?.customerId === customer?.id) {
       setRefreshKey(prev => prev + 1);
     }
   }, [customer?.id]);
 
-  // Subscribe to ticket events using the refactored hook
   useTicketEvents({
     onCustomerTicketsRefresh: handleRefresh,
     onTicketCreated: handleRefresh,
@@ -59,32 +58,24 @@ const TicketManagementDialog = ({
     return customer.activeTickets.reduce((total, ticket) => total + (ticket.totalTimeSpent || 0), 0);
   };
 
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()} modal={true}>
-      <DialogContent className="sm:max-w-[800px] bg-white border-0 shadow-xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader className="bg-gradient-to-r from-quikle-primary/10 to-quikle-accent/10 p-4 -m-6 mb-4 rounded-t-lg">
-          <DialogTitle className="text-xl font-semibold text-quikle-primary flex items-center gap-2">
-            Ticket Management - {customer?.name}
-            <Badge variant="outline">{customer?.ticketCount || 0} Total Tickets</Badge>
+      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+        <DialogHeader className="pb-3 border-b border-border">
+          <DialogTitle className="text-lg font-semibold text-foreground flex items-center gap-2 flex-wrap">
+            Tickets — {customer?.name}
+            <Badge variant="outline" className="text-xs">{customer?.ticketCount || 0} total</Badge>
             {getTotalTimeSpent() > 0 && (
-              <Badge variant="secondary">{formatTime(getTotalTimeSpent())} Total Time</Badge>
+              <Badge variant="secondary" className="text-xs">{formatDuration(getTotalTimeSpent())}</Badge>
             )}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium">Active Tickets</h3>
-            <Button 
-              onClick={() => setShowNewTicketForm(!showNewTicketForm)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
+            <h3 className="text-sm font-medium text-foreground">Active Tickets</h3>
+            <Button size="sm" onClick={() => setShowNewTicketForm(!showNewTicketForm)}>
+              <Plus className="h-3.5 w-3.5 mr-1.5" />
               New Ticket
             </Button>
           </div>
@@ -107,9 +98,9 @@ const TicketManagementDialog = ({
           />
         </div>
 
-        <div className="flex justify-end mt-6">
-          <Button variant="outline" onClick={onClose}>
-            <X className="mr-2 h-4 w-4" />
+        <div className="flex justify-end pt-3 border-t border-border">
+          <Button variant="outline" size="sm" onClick={onClose}>
+            <X className="mr-1.5 h-3.5 w-3.5" />
             Close
           </Button>
         </div>

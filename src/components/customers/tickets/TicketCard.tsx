@@ -10,16 +10,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CustomerTicket, TicketStatus } from '@/types/customer';
-import { User, Clock, AlertTriangle, AlertCircle, Timer, ChevronDown, ChevronUp, History, Star, ArrowUp, FileText } from 'lucide-react';
+import { User, Clock, AlertCircle, Timer, ChevronDown, ChevronUp, ArrowUp, Paperclip, MessageSquare } from 'lucide-react';
 import TimeTracker from './TimeTracker';
 import TicketAttachments from './TicketAttachments';
 import TicketComments from './TicketComments';
-import TicketHistory, { TicketHistoryItem } from './TicketHistory';
-import SatisfactionRating from './SatisfactionRating';
 import SLAStatus from '../../tickets/SLAStatus';
-import CustomDataDisplay from '../CustomDataDisplay';
 import { sendTicketNotification } from '@/services/ticketNotificationService';
 import { useTicketRouting } from '@/hooks/useTicketRouting';
+import { getPriorityColor, getStatusColor, formatTicketDate, formatDuration } from '@/utils/ticketFormatters';
+import SatisfactionRating from './SatisfactionRating';
 
 interface TicketCardProps {
   ticket: CustomerTicket;
@@ -35,69 +34,10 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
   const [showSatisfactionRating, setShowSatisfactionRating] = useState(false);
   const { escalateTicket, isProcessing } = useTicketRouting();
 
-  // Generate sample history data - in real app, this would come from the database
-  const generateTicketHistory = (): TicketHistoryItem[] => {
-    return [
-      {
-        id: '1',
-        type: 'created',
-        timestamp: ticket.createdAt,
-        user: 'Customer',
-        details: {}
-      },
-      {
-        id: '2',
-        type: 'status_change',
-        timestamp: new Date(ticket.createdAt.getTime() + 30000),
-        user: 'Support Agent',
-        details: {
-          oldStatus: 'new',
-          newStatus: ticket.status
-        }
-      }
-    ];
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800 border-red-300';
-      case 'high': return 'bg-orange-100 text-orange-800 border-orange-300';
-      case 'medium': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'low': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-      default: return 'bg-slate-100 text-slate-800 border-slate-300';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'in-progress': return 'bg-purple-100 text-purple-800 border-purple-300';
-      case 'resolved': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-      case 'closed': return 'bg-slate-100 text-slate-800 border-slate-300';
-      default: return 'bg-slate-100 text-slate-800 border-slate-300';
-    }
-  };
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
-
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
-
   const handleStatusUpdate = async (newStatus: TicketStatus) => {
     const oldStatus = ticket.status;
     onStatusUpdate(ticket.id, newStatus);
 
-    // Send email notification if customer info is available
     if (customerEmail && customerName && oldStatus !== newStatus) {
       await sendTicketNotification({
         ticketId: ticket.id,
@@ -106,14 +46,10 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
         ticketNumber: ticket.ticketNumber,
         subject: ticket.subject,
         type: 'status_changed',
-        details: {
-          oldStatus,
-          newStatus,
-        }
+        details: { oldStatus, newStatus },
       });
     }
 
-    // Show satisfaction rating dialog when ticket is resolved or closed
     if ((newStatus === 'resolved' || newStatus === 'closed') && customerId && oldStatus !== newStatus) {
       setShowSatisfactionRating(true);
     }
@@ -135,156 +71,128 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
 
   return (
     <>
-      <div className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h4 className="font-medium text-sm">{ticket.ticketNumber}</h4>
-              <Badge className={getPriorityColor(ticket.priority)}>
+      <div className="border border-border rounded-lg p-4 bg-card hover:shadow-md transition-shadow">
+        {/* Header row */}
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-1.5">
+              <span className="text-xs font-mono text-muted-foreground">{ticket.ticketNumber}</span>
+              <Badge className={getPriorityColor(ticket.priority)} variant="outline">
                 {ticket.priority === 'urgent' && <AlertCircle className="h-3 w-3 mr-1" />}
                 {ticket.priority}
               </Badge>
+              <SLAStatus ticket={ticket} compact={true} />
               {ticket.totalTimeSpent > 0 && (
-                <Badge variant="outline" className="text-xs border-slate-300 text-slate-600">
+                <Badge variant="outline" className="text-xs text-muted-foreground">
                   <Timer className="h-3 w-3 mr-1" />
-                  {formatTime(ticket.totalTimeSpent)}
+                  {formatDuration(ticket.totalTimeSpent)}
                 </Badge>
               )}
-              {/* SLA Status Badge */}
-              <SLAStatus ticket={ticket} compact={true} />
             </div>
-            <h3 className="font-semibold text-gray-900 mb-1">{ticket.subject}</h3>
+            <h3 className="font-semibold text-foreground text-sm leading-snug">{ticket.subject}</h3>
             {ticket.description && (
-              <p className="text-sm text-gray-600 mb-2">{ticket.description}</p>
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{ticket.description}</p>
             )}
           </div>
-          
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <Select value={ticket.status} onValueChange={handleStatusUpdate}>
-              <SelectTrigger className={`w-32 ${getStatusColor(ticket.status)}`}>
+              <SelectTrigger className={`w-[120px] h-8 text-xs ${getStatusColor(ticket.status)}`}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                <SelectItem value="open" className="text-blue-700 hover:bg-blue-50">Open</SelectItem>
-                <SelectItem value="in-progress" className="text-purple-700 hover:bg-purple-50">In Progress</SelectItem>
-                <SelectItem value="resolved" className="text-emerald-700 hover:bg-emerald-50">Resolved</SelectItem>
-                <SelectItem value="closed" className="text-slate-700 hover:bg-slate-50">Closed</SelectItem>
+              <SelectContent className="bg-popover border border-border shadow-lg">
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
               </SelectContent>
             </Select>
-            
-            {/* Escalate Button */}
+
             {ticket.status !== 'closed' && (
               <Button
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-500/10"
                 onClick={handleEscalateTicket}
                 disabled={isProcessing}
-                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                title="Escalate"
               >
                 <ArrowUp className="h-4 w-4" />
               </Button>
             )}
-            
+
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
+              className="h-8 w-8"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="ml-2"
             >
-              {isExpanded ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
+              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
           </div>
         </div>
 
+        {/* Footer meta */}
+        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
+          <span className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {formatTicketDate(ticket.createdAt)}
+          </span>
+          {ticket.assignedTo && (
+            <span className="flex items-center gap-1">
+              <User className="h-3 w-3" />
+              {ticket.assignedTo.name}
+            </span>
+          )}
+        </div>
+
+        {/* Expanded content — consolidated to 3 tabs */}
         {isExpanded && (
-          <div className="border-t pt-4">
+          <div className="border-t border-border mt-3 pt-3">
             <Tabs defaultValue="comments" className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="comments">Comments</TabsTrigger>
-                <TabsTrigger value="customer-data">
-                  <FileText className="h-4 w-4 mr-1" />
-                  Customer Data
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="comments" className="text-xs gap-1">
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  Activity
                 </TabsTrigger>
-                <TabsTrigger value="sla">SLA Status</TabsTrigger>
-                <TabsTrigger value="history">
-                  <History className="h-4 w-4 mr-1" />
-                  History
+                <TabsTrigger value="time" className="text-xs gap-1">
+                  <Timer className="h-3.5 w-3.5" />
+                  Time
                 </TabsTrigger>
-                <TabsTrigger value="time">Time Tracking</TabsTrigger>
-                <TabsTrigger value="attachments">Attachments</TabsTrigger>
+                <TabsTrigger value="attachments" className="text-xs gap-1">
+                  <Paperclip className="h-3.5 w-3.5" />
+                  Files
+                </TabsTrigger>
               </TabsList>
-              
-              <TabsContent value="comments" className="mt-4">
-                <TicketComments 
-                  ticketId={ticket.id} 
+
+              <TabsContent value="comments" className="mt-3">
+                <TicketComments
+                  ticketId={ticket.id}
                   customerEmail={customerEmail}
                   customerName={customerName}
                 />
               </TabsContent>
 
-              <TabsContent value="customer-data" className="mt-4">
-                {customerId ? (
-                  <CustomDataDisplay customerId={customerId} />
-                ) : (
-                  <div className="text-center py-6">
-                    <FileText className="h-12 w-12 mx-auto text-gray-400 mb-2" />
-                    <p className="text-gray-500">No customer data available</p>
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="sla" className="mt-4">
-                <SLAStatus ticket={ticket} />
-              </TabsContent>
-              
-              <TabsContent value="history" className="mt-4">
-                <TicketHistory
-                  history={generateTicketHistory()}
-                  formatDate={(dateString) => formatDate(new Date(dateString))}
-                />
-              </TabsContent>
-              
-              <TabsContent value="time" className="mt-4">
-                {onAddTimeEntry && (
+              <TabsContent value="time" className="mt-3">
+                {onAddTimeEntry ? (
                   <TimeTracker
                     timeEntries={ticket.timeEntries || []}
                     totalTimeSpent={ticket.totalTimeSpent || 0}
                     onAddTimeEntry={handleAddTimeEntry}
                   />
+                ) : (
+                  <p className="text-xs text-muted-foreground text-center py-4">Time tracking unavailable</p>
                 )}
               </TabsContent>
-              
-              <TabsContent value="attachments" className="mt-4">
+
+              <TabsContent value="attachments" className="mt-3">
                 <TicketAttachments ticketId={ticket.id} />
               </TabsContent>
             </Tabs>
           </div>
         )}
-
-        <div className="flex justify-between items-center text-xs text-gray-500 mt-3">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>Created {formatDate(ticket.createdAt)}</span>
-            </div>
-            {ticket.assignedTo && (
-              <div className="flex items-center gap-1">
-                <User className="h-3 w-3" />
-                <span>Assigned to {ticket.assignedTo.name}</span>
-              </div>
-            )}
-          </div>
-          {ticket.updatedAt && ticket.updatedAt !== ticket.createdAt && (
-            <span>Updated {formatDate(ticket.updatedAt)}</span>
-          )}
-        </div>
       </div>
 
-      {/* Satisfaction Rating Dialog */}
       {customerId && (
         <SatisfactionRating
           isOpen={showSatisfactionRating}

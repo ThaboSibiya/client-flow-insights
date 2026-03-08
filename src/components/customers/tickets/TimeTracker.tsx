@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Play, Pause, Clock, Plus } from 'lucide-react';
 import { TimeEntry } from '@/types/customer';
+import { formatDuration, formatTicketDate } from '@/utils/ticketFormatters';
 
 interface TimeTrackerProps {
   timeEntries: TimeEntry[];
@@ -28,41 +28,38 @@ const TimeTracker = ({ timeEntries, totalTimeSpent, onAddTimeEntry }: TimeTracke
   const [manualDuration, setManualDuration] = useState('');
   const [manualDescription, setManualDescription] = useState('');
   const [isManualEntryOpen, setIsManualEntryOpen] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
+  // Clean up interval on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
 
-  const startTracking = () => {
+  const startTracking = useCallback(() => {
     const now = new Date();
     setCurrentStartTime(now);
     setIsTracking(true);
     setCurrentDuration(0);
-    
-    // Update duration every minute
-    const interval = setInterval(() => {
-      if (currentStartTime) {
-        const elapsed = Math.floor((new Date().getTime() - currentStartTime.getTime()) / 60000);
-        setCurrentDuration(elapsed);
-      }
+
+    intervalRef.current = setInterval(() => {
+      setCurrentDuration(Math.floor((Date.now() - now.getTime()) / 60000));
     }, 60000);
+  }, []);
 
-    // Store interval ID for cleanup
-    (window as Window & { timeTrackingInterval?: NodeJS.Timeout }).timeTrackingInterval = interval;
-  };
-
-  const stopTracking = () => {
+  const stopTracking = useCallback(() => {
     if (currentStartTime && isTracking) {
       const endTime = new Date();
-      const duration = Math.floor((endTime.getTime() - currentStartTime.getTime()) / 60000);
-      
+      const duration = Math.max(1, Math.floor((endTime.getTime() - currentStartTime.getTime()) / 60000));
+
       onAddTimeEntry({
-        userId: 'current-user', // This would come from auth context
-        userName: 'Current User', // This would come from auth context
+        userId: 'current-user',
+        userName: 'Current User',
         description: trackingDescription || 'Time tracked',
-        duration: duration || 1, // Minimum 1 minute
+        duration,
         startTime: currentStartTime,
         endTime,
       });
@@ -71,21 +68,20 @@ const TimeTracker = ({ timeEntries, totalTimeSpent, onAddTimeEntry }: TimeTracke
       setCurrentStartTime(null);
       setCurrentDuration(0);
       setTrackingDescription('');
-      
-      // Clear interval
-      const windowWithInterval = window as Window & { timeTrackingInterval?: NodeJS.Timeout };
-      if (windowWithInterval.timeTrackingInterval) {
-        clearInterval(windowWithInterval.timeTrackingInterval);
+
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     }
-  };
+  }, [currentStartTime, isTracking, trackingDescription, onAddTimeEntry]);
 
-  const addManualEntry = () => {
+  const addManualEntry = useCallback(() => {
     const duration = parseInt(manualDuration);
     if (duration > 0 && manualDescription.trim()) {
       const now = new Date();
       const startTime = new Date(now.getTime() - duration * 60000);
-      
+
       onAddTimeEntry({
         userId: 'current-user',
         userName: 'Current User',
@@ -99,49 +95,51 @@ const TimeTracker = ({ timeEntries, totalTimeSpent, onAddTimeEntry }: TimeTracke
       setManualDescription('');
       setIsManualEntryOpen(false);
     }
-  };
+  }, [manualDuration, manualDescription, onAddTimeEntry]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      {/* Controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4" />
-          <span className="font-medium">Time Tracking</span>
-          <Badge variant="outline">{formatTime(totalTimeSpent)}</Badge>
+          <Clock className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">Total</span>
+          <Badge variant="outline" className="text-xs">{formatDuration(totalTimeSpent)}</Badge>
         </div>
-        
-        <div className="flex gap-2">
+
+        <div className="flex gap-1.5">
           {!isTracking ? (
-            <Button size="sm" onClick={startTracking} className="bg-green-600 hover:bg-green-700">
+            <Button size="sm" onClick={startTracking} variant="default" className="h-7 text-xs">
               <Play className="h-3 w-3 mr-1" />
               Start
             </Button>
           ) : (
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
-                {formatTime(currentDuration)} tracking...
+            <div className="flex items-center gap-1.5">
+              <Badge variant="secondary" className="text-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse mr-1.5 inline-block" />
+                {formatDuration(currentDuration)}
               </Badge>
-              <Button size="sm" onClick={stopTracking} variant="outline">
+              <Button size="sm" onClick={stopTracking} variant="outline" className="h-7 text-xs">
                 <Pause className="h-3 w-3 mr-1" />
                 Stop
               </Button>
             </div>
           )}
-          
+
           <Dialog open={isManualEntryOpen} onOpenChange={setIsManualEntryOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" className="h-7 text-xs">
                 <Plus className="h-3 w-3 mr-1" />
-                Add Time
+                Manual
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[380px]">
               <DialogHeader>
-                <DialogTitle>Add Manual Time Entry</DialogTitle>
+                <DialogTitle>Add Time Entry</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Duration (minutes)</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Duration (minutes)</label>
                   <Input
                     type="number"
                     value={manualDuration}
@@ -151,20 +149,20 @@ const TimeTracker = ({ timeEntries, totalTimeSpent, onAddTimeEntry }: TimeTracke
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Description</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Description</label>
                   <Textarea
                     value={manualDescription}
                     onChange={(e) => setManualDescription(e.target.value)}
                     placeholder="What did you work on?"
-                    rows={3}
+                    rows={2}
                   />
                 </div>
-                <div className="flex gap-2">
-                  <Button onClick={addManualEntry} disabled={!manualDuration || !manualDescription.trim()}>
-                    Add Entry
-                  </Button>
-                  <Button variant="outline" onClick={() => setIsManualEntryOpen(false)}>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" size="sm" onClick={() => setIsManualEntryOpen(false)}>
                     Cancel
+                  </Button>
+                  <Button size="sm" onClick={addManualEntry} disabled={!manualDuration || !manualDescription.trim()}>
+                    Add Entry
                   </Button>
                 </div>
               </div>
@@ -173,39 +171,34 @@ const TimeTracker = ({ timeEntries, totalTimeSpent, onAddTimeEntry }: TimeTracke
         </div>
       </div>
 
+      {/* Active tracking input */}
       {isTracking && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm font-medium text-green-800">Currently tracking time</span>
-          </div>
+        <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-md p-2.5">
           <Input
             value={trackingDescription}
             onChange={(e) => setTrackingDescription(e.target.value)}
             placeholder="What are you working on?"
-            className="text-sm"
+            className="text-sm h-8"
           />
         </div>
       )}
 
+      {/* Entries list */}
       {timeEntries.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium">Time Entries</h4>
-          <div className="space-y-2 max-h-32 overflow-y-auto">
-            {timeEntries.map((entry) => (
-              <div key={entry.id} className="text-xs bg-gray-50 p-2 rounded">
-                <div className="flex justify-between items-start">
-                  <span className="font-medium">{entry.description}</span>
-                  <Badge variant="outline" className="text-xs">
-                    {formatTime(entry.duration)}
-                  </Badge>
-                </div>
-                <div className="text-gray-500 mt-1">
-                  {entry.userName} • {entry.startTime.toLocaleDateString()}
+        <div className="space-y-1.5 max-h-32 overflow-y-auto">
+          {timeEntries.map((entry) => (
+            <div key={entry.id} className="text-xs bg-muted/50 p-2 rounded-md flex justify-between items-start">
+              <div className="min-w-0">
+                <span className="font-medium text-foreground">{entry.description}</span>
+                <div className="text-muted-foreground mt-0.5">
+                  {entry.userName} · {formatTicketDate(entry.startTime)}
                 </div>
               </div>
-            ))}
-          </div>
+              <Badge variant="outline" className="text-xs ml-2 flex-shrink-0">
+                {formatDuration(entry.duration)}
+              </Badge>
+            </div>
+          ))}
         </div>
       )}
     </div>
