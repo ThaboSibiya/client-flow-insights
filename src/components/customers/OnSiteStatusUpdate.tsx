@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Check, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Check } from "lucide-react";
 import { CustomerStatus } from '@/types/customer';
-import { OnSiteStatusUpdateProps, Customer, OnSiteTicket } from './onsite/types';
+import { OnSiteStatusUpdateProps, Customer, OnSiteTicket, JobPhoto } from './onsite/types';
 import { useSecureCustomerData } from '@/hooks/useSecureCustomerData';
 import { useCustomerSearch } from './onsite/hooks/useCustomerSearch';
 import { useLocation } from './onsite/hooks/useLocation';
@@ -17,14 +17,19 @@ import { SecureNotesInput } from './onsite/components/SecureNotesInput';
 import { LocationIndicator } from './onsite/components/LocationIndicator';
 import { LoadingState } from './onsite/components/LoadingState';
 import { ErrorDisplay } from './onsite/components/ErrorDisplay';
-import { TicketsTab } from './onsite/components/TicketsTab';
+import { TicketSelector } from './onsite/components/TicketSelector';
+import { PhotoUploader } from './onsite/components/PhotoUploader';
+import { sanitizeInput } from '@/utils/securityUtils';
 
 const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [newStatus, setNewStatus] = useState<CustomerStatus>('existing');
   const [notes, setNotes] = useState('');
+  const [workSummary, setWorkSummary] = useState('');
   const [customerTickets, setCustomerTickets] = useState<OnSiteTicket[]>([]);
   const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState<OnSiteTicket | null>(null);
+  const [photos, setPhotos] = useState<JobPhoto[]>([]);
 
   const { customers, loading, error, loadCustomerTickets } = useSecureCustomerData(isOpen);
   const { location, requestLocation } = useLocation();
@@ -42,8 +47,11 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
     setSelectedCustomer(customer);
     setNewStatus(customer.status);
     setNotes('');
+    setWorkSummary('');
     setSearchTerm('');
     setIsDropdownOpen(false);
+    setSelectedTicket(null);
+    setPhotos([]);
 
     setTicketsLoading(true);
     const tickets = await loadCustomerTickets(customer.id);
@@ -56,7 +64,10 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
     setSearchTerm('');
     setNewStatus('existing');
     setNotes('');
+    setWorkSummary('');
     setCustomerTickets([]);
+    setSelectedTicket(null);
+    setPhotos([]);
   };
 
   React.useEffect(() => {
@@ -67,7 +78,15 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
 
   const onSubmit = async () => {
     if (selectedCustomer) {
-      const success = await handleSubmit(selectedCustomer, newStatus, notes, location);
+      const success = await handleSubmit({
+        selectedCustomer,
+        newStatus,
+        notes,
+        workSummary,
+        location,
+        selectedTicket,
+        photos,
+      });
       if (success) {
         clearSelection();
         onClose();
@@ -80,11 +99,11 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
       <DialogContent className="sm:max-w-lg p-0 flex flex-col max-h-[85vh]">
         <DialogHeader className="px-5 pt-5 pb-3 border-b border-border shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base">
-            <Check className="h-4 w-4 text-green-600" />
+            <Check className="h-4 w-4 text-primary" />
             Job Completion
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Update job status for the selected customer
+            Complete a job, update status, and attach proof of work
           </DialogDescription>
         </DialogHeader>
 
@@ -95,8 +114,9 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
             <LoadingState />
           ) : (
             <>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Select Customer</label>
+              {/* Step 1: Customer Selection */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">Customer</label>
                 {!selectedCustomer ? (
                   <div className="relative">
                     <SecureCustomerSearchInput
@@ -108,7 +128,6 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
                       onFocus={() => setIsDropdownOpen(true)}
                       disabled={customers.length === 0}
                     />
-                    
                     <CustomerDropdown
                       customers={filteredCustomers}
                       isOpen={isDropdownOpen}
@@ -117,41 +136,53 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
                     />
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <SelectedCustomerCard
                       customer={selectedCustomer}
                       onClear={clearSelection}
                     />
-                    
-                    <Tabs defaultValue="status" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2 h-9">
-                        <TabsTrigger value="status" className="text-xs">Update Status</TabsTrigger>
-                        <TabsTrigger value="tickets" className="text-xs">
-                          Tickets ({customerTickets.length})
-                        </TabsTrigger>
-                      </TabsList>
-                      
-                      <TabsContent value="status" className="space-y-3 mt-3">
-                        <StatusSelector
-                          value={newStatus}
-                          onChange={setNewStatus}
-                        />
 
-                        <SecureNotesInput
-                          value={notes}
-                          onChange={setNotes}
-                        />
+                    {/* Step 2: Link ticket (optional) */}
+                    <TicketSelector
+                      tickets={customerTickets}
+                      selectedTicketId={selectedTicket?.id || null}
+                      onSelect={setSelectedTicket}
+                      loading={ticketsLoading}
+                    />
 
-                        <LocationIndicator hasLocation={!!location} />
-                      </TabsContent>
-                      
-                      <TabsContent value="tickets" className="mt-3">
-                        <TicketsTab 
-                          tickets={customerTickets} 
-                          loading={ticketsLoading}
-                        />
-                      </TabsContent>
-                    </Tabs>
+                    {/* Step 3: Work summary */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground">Work Summary</label>
+                      <Input
+                        placeholder="Brief description of work performed..."
+                        value={workSummary}
+                        onChange={(e) => setWorkSummary(sanitizeInput(e.target.value, 500))}
+                        maxLength={500}
+                      />
+                    </div>
+
+                    {/* Step 4: Status update */}
+                    <StatusSelector
+                      value={newStatus}
+                      onChange={setNewStatus}
+                    />
+
+                    {/* Step 5: Photos */}
+                    <PhotoUploader
+                      photos={photos}
+                      onPhotosChange={setPhotos}
+                      customerId={selectedCustomer.id}
+                    />
+
+                    {/* Step 6: Notes */}
+                    <SecureNotesInput
+                      value={notes}
+                      onChange={setNotes}
+                      label="Additional Notes"
+                      placeholder="Any additional details..."
+                    />
+
+                    <LocationIndicator hasLocation={!!location} />
                   </div>
                 )}
               </div>
@@ -159,7 +190,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
           )}
         </div>
 
-        {/* Sticky footer - always visible */}
+        {/* Sticky footer */}
         <div className="shrink-0 border-t border-border px-5 py-3 flex gap-3 bg-background">
           <Button
             variant="outline"
@@ -173,13 +204,13 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
           <Button
             onClick={onSubmit}
             disabled={!selectedCustomer || submitting}
-            className="flex-1 bg-green-600 hover:bg-green-700"
+            className="flex-1"
             size="sm"
           >
             {submitting ? (
               <>
-                <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white mr-1.5" />
-                Updating...
+                <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-primary-foreground mr-1.5" />
+                Completing...
               </>
             ) : (
               'Complete Job'
