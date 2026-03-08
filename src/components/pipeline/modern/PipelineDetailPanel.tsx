@@ -43,12 +43,12 @@ const PipelineDetailPanel = ({
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12">
                 <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                  {customer.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                  {(customer?.name || 'Unknown').split(' ').map(n => n[0] || '').join('').toUpperCase().slice(0, 2) || '??'}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <CardTitle className="text-lg">{customer.name}</CardTitle>
-                <p className="text-sm text-muted-foreground">{customer.email}</p>
+                <CardTitle className="text-lg">{customer?.name || 'Unknown'}</CardTitle>
+                <p className="text-sm text-muted-foreground">{customer?.email || 'No email'}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -141,11 +141,11 @@ const PipelineDetailPanel = ({
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Created</p>
-                    <p className="text-sm">{format(new Date(customer.createdAt), 'MMM d, yyyy')}</p>
+                    <p className="text-sm">{customer?.createdAt ? format(new Date(customer.createdAt), 'MMM d, yyyy') : 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Last Updated</p>
-                    <p className="text-sm">{formatDistanceToNow(new Date(customer.updatedAt), { addSuffix: true })}</p>
+                    <p className="text-sm">{customer?.updatedAt ? formatDistanceToNow(new Date(customer.updatedAt), { addSuffix: true }) : 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -192,9 +192,9 @@ const PipelineDetailPanel = ({
                   <div className="relative">
                     <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-primary" />
                     <div className="space-y-1">
-                      <p className="text-sm font-medium">Status changed to {customer.status}</p>
+                      <p className="text-sm font-medium">Status changed to {customer?.status || 'unknown'}</p>
                       <p className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(customer.updatedAt), { addSuffix: true })}
+                        {customer?.updatedAt ? formatDistanceToNow(new Date(customer.updatedAt), { addSuffix: true }) : 'N/A'}
                       </p>
                     </div>
                   </div>
@@ -203,7 +203,7 @@ const PipelineDetailPanel = ({
                     <div className="space-y-1">
                       <p className="text-sm font-medium">Customer created</p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(customer.createdAt), 'MMM d, yyyy')}
+                        {customer?.createdAt ? format(new Date(customer.createdAt), 'MMM d, yyyy') : 'N/A'}
                       </p>
                     </div>
                   </div>
@@ -300,11 +300,11 @@ const PipelineDetailPanel = ({
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Time Spent</p>
-                  <p className="font-medium">{Math.round(ticket.totalTimeSpent / 60)}h {ticket.totalTimeSpent % 60}m</p>
+                  <p className="font-medium">{Math.round((ticket?.totalTimeSpent || 0) / 60)}h {(ticket?.totalTimeSpent || 0) % 60}m</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Created</p>
-                  <p className="text-sm">{format(new Date(ticket.createdAt), 'MMM d, yyyy')}</p>
+                  <p className="text-sm">{ticket?.createdAt ? format(new Date(ticket.createdAt), 'MMM d, yyyy') : 'N/A'}</p>
                 </div>
               </div>
             </div>
@@ -338,7 +338,7 @@ const PipelineDetailPanel = ({
           <TabsContent value="time" className="m-0 p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold">{Math.round(ticket.totalTimeSpent / 60)}h {ticket.totalTimeSpent % 60}m</p>
+                <p className="text-2xl font-bold">{Math.round((ticket?.totalTimeSpent || 0) / 60)}h {(ticket?.totalTimeSpent || 0) % 60}m</p>
                 <p className="text-sm text-muted-foreground">Total time logged</p>
               </div>
               <Button size="sm" variant="outline" className="gap-2">
@@ -347,7 +347,7 @@ const PipelineDetailPanel = ({
               </Button>
             </div>
 
-            {ticket.timeEntries.length === 0 && (
+            {(ticket.timeEntries?.length ?? 0) === 0 && (
               <div className="text-center text-muted-foreground py-8">
                 <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No time entries</p>
