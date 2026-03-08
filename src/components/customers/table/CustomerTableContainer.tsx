@@ -4,17 +4,16 @@ import { useCustomerData } from '@/hooks/useCustomerData';
 import { useCustomerFilters } from '@/hooks/useCustomerFilters';
 import { useTableSelection } from '@/hooks/useTableSelection';
 import { useCustomerExport } from '@/hooks/useCustomerExport';
+import { useCustomerActions } from '../CustomerActions';
 import CustomerTableContent from './CustomerTableContent';
 import UnifiedToolbar from '../filters/UnifiedToolbar';
 import BulkActionsBar from './BulkActionsBar';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
-import { toast } from '@/hooks/use-toast';
 
 const CustomerTableContainer = React.memo(() => {
   const {
     customers,
     isLoading,
-    fetchCustomers,
   } = useCustomerData();
 
   const {
@@ -38,8 +37,7 @@ const CustomerTableContainer = React.memo(() => {
   } = useCustomerFilters(customers);
 
   const [currentPage, setCurrentPage] = React.useState(1);
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
   
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -64,10 +62,15 @@ const CustomerTableContainer = React.memo(() => {
     selectedCustomers,
   });
 
-  // Reset to page 1 when filters change
+  const {
+    handleBulkStatusChange,
+    handleBulkDelete,
+  } = useCustomerActions();
+
+  // Reset to page 1 when filters or page size change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, dateRange, ticketCountFilter]);
+  }, [searchQuery, statusFilter, dateRange, ticketCountFilter, itemsPerPage]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -82,10 +85,13 @@ const CustomerTableContainer = React.memo(() => {
     handleSelectItem(customerId, checked);
   };
 
+  const handleItemsPerPageChange = (value: number) => {
+    setItemsPerPage(value);
+  };
+
   return (
     <ErrorBoundary>
       <div className="space-y-4">
-        {/* Unified Toolbar */}
         <ErrorBoundary>
           <UnifiedToolbar
             searchQuery={searchQuery}
@@ -106,16 +112,22 @@ const CustomerTableContainer = React.memo(() => {
           />
         </ErrorBoundary>
 
-        {/* Bulk Actions Bar - Shows when items selected */}
         {selectedCustomers.size > 0 && (
           <BulkActionsBar
             selectedCount={selectedCustomers.size}
             onClearSelection={clearSelection}
             onExport={handleExportCSV}
+            onBulkStatusChange={(status) => {
+              handleBulkStatusChange(selectedCustomers, status);
+              clearSelection();
+            }}
+            onBulkDelete={() => {
+              handleBulkDelete(selectedCustomers);
+              clearSelection();
+            }}
           />
         )}
         
-        {/* Table Content */}
         <ErrorBoundary>
           <CustomerTableContent
             paginatedCustomers={paginatedCustomers}
@@ -131,7 +143,9 @@ const CustomerTableContainer = React.memo(() => {
             totalPages={totalPages}
             totalCount={filteredCustomers.length}
             onPageChange={setCurrentPage}
-            isLoading={isLoading || isRefreshing}
+            isLoading={isLoading}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={handleItemsPerPageChange}
           />
         </ErrorBoundary>
       </div>
