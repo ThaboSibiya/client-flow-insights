@@ -335,7 +335,7 @@ const Auth: React.FC = () => {
                           }
                         }}
                         required
-                        className={`pl-10 ${validationErrors.password ? 'border-red-500' : ''}`}
+                        className={`pl-10 bg-background text-foreground border-input ${validationErrors.password ? 'border-destructive' : ''}`}
                       />
                       {validationErrors.password && (
                         <div className="flex items-center gap-1 mt-1 text-sm text-red-600">
