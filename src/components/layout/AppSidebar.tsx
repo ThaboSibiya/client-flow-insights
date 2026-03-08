@@ -19,6 +19,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  LifeBuoy,
 } from 'lucide-react';
 import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import {
