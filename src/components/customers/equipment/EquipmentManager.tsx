@@ -3,12 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Printer, Package } from 'lucide-react';
 import { useEquipmentService } from '@/hooks/useEquipmentService';
-import { Equipment } from './types';
+import { Equipment, EquipmentFormData } from './types';
 import EquipmentCard from './EquipmentCard';
 import EquipmentFormDialog from './EquipmentFormDialog';
 import LogServiceDialog from './LogServiceDialog';
 import EquipmentQuickView from './EquipmentQuickView';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTicketManagement } from '@/hooks/useTicketManagement';
+import { useCustomerCustomData } from '@/hooks/useCustomerCustomData';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +26,14 @@ interface EquipmentManagerProps {
   customerId: string;
 }
 
+const getBookInPriority = (status: string): 'low' | 'medium' | 'high' | 'urgent' => {
+  switch (status) {
+    case 'broken': return 'urgent';
+    case 'maintenance': return 'high';
+    default: return 'low';
+  }
+};
+
 const EquipmentManager = ({ customerId }: EquipmentManagerProps) => {
   const {
     equipment,
@@ -35,6 +45,9 @@ const EquipmentManager = ({ customerId }: EquipmentManagerProps) => {
     logService,
     loadServiceHistory
   } = useEquipmentService(customerId);
+
+  const { handleCreateTicket } = useTicketManagement();
+  const { appliedTemplates } = useCustomerCustomData(customerId);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -54,6 +67,80 @@ const EquipmentManager = ({ customerId }: EquipmentManagerProps) => {
     if (!deletingId) return;
     await deleteEquipment(deletingId);
     setDeletingId(null);
+  };
+
+  // Industry-aware equipment type options
+  const getEquipmentTypes = (): { value: string; label: string }[] => {
+    const industry = appliedTemplates?.[0]?.industry?.toLowerCase() || '';
+    
+    if (industry.includes('print') || industry.includes('copier') || industry.includes('office')) {
+      return [
+        { value: 'printer', label: 'Printer' },
+        { value: 'copier', label: 'Copier' },
+        { value: 'scanner', label: 'Scanner' },
+        { value: 'multifunction', label: 'Multifunction' },
+        { value: 'fax', label: 'Fax Machine' },
+        { value: 'plotter', label: 'Plotter' },
+        { value: 'other', label: 'Other' },
+      ];
+    }
+    if (industry.includes('hvac') || industry.includes('climate') || industry.includes('air')) {
+      return [
+        { value: 'air_conditioner', label: 'Air Conditioner' },
+        { value: 'heat_pump', label: 'Heat Pump' },
+        { value: 'furnace', label: 'Furnace' },
+        { value: 'ventilation', label: 'Ventilation Unit' },
+        { value: 'thermostat', label: 'Thermostat' },
+        { value: 'other', label: 'Other' },
+      ];
+    }
+    if (industry.includes('it') || industry.includes('tech') || industry.includes('computer')) {
+      return [
+        { value: 'computer', label: 'Computer' },
+        { value: 'server', label: 'Server' },
+        { value: 'network', label: 'Network Device' },
+        { value: 'printer', label: 'Printer' },
+        { value: 'monitor', label: 'Monitor' },
+        { value: 'ups', label: 'UPS' },
+        { value: 'other', label: 'Other' },
+      ];
+    }
+    // Generic fallback
+    return [
+      { value: 'printer', label: 'Printer' },
+      { value: 'scanner', label: 'Scanner' },
+      { value: 'copier', label: 'Copier' },
+      { value: 'computer', label: 'Computer' },
+      { value: 'multifunction', label: 'Multifunction' },
+      { value: 'fax', label: 'Fax Machine' },
+      { value: 'other', label: 'Other' },
+    ];
+  };
+
+  const handleSaveEquipment = async (formData: EquipmentFormData, editingId?: string): Promise<boolean> => {
+    const success = await saveEquipment(formData, editingId);
+    
+    // Auto-create ticket on new equipment book-in (not edits)
+    if (success && !editingId) {
+      const industry = appliedTemplates?.[0]?.industry || 'General';
+      const category = `Equipment Book-In (${industry})`;
+      
+      try {
+        await handleCreateTicket(customerId, {
+          subject: `Equipment Book-In: ${formData.brand} ${formData.model}`,
+          description: `New equipment booked in.\nType: ${formData.equipment_type}\nSerial: ${formData.serial_number || 'N/A'}\n${formData.technical_issues ? `Issues: ${formData.technical_issues}` : ''}`.trim(),
+          priority: getBookInPriority(formData.status),
+          status: 'open',
+          timeEntries: [],
+          totalTimeSpent: 0,
+          category,
+        });
+      } catch (error) {
+        console.error('Auto-ticket creation failed (equipment saved successfully):', error);
+      }
+    }
+    
+    return success;
   };
 
   if (loading) {
@@ -153,7 +240,8 @@ const EquipmentManager = ({ customerId }: EquipmentManagerProps) => {
           setShowAddDialog(false);
           setEditingEquipment(null);
         }}
-        onSave={saveEquipment}
+        onSave={handleSaveEquipment}
+        equipmentTypes={getEquipmentTypes()}
       />
 
       {/* Log Service Dialog */}
