@@ -237,6 +237,8 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
         id: `new-${Date.now()}`,
         name: `New Customer`,
         email: `customer-${Date.now()}@example.com`,
+        phone: '',
+        notes: '',
         status: (CUSTOMER_STAGES_CONFIG.find(c => c.id === stageId)?.statusMatch || 'new') as CustomerStatus,
         createdAt: new Date(),
         updatedAt: new Date(),
