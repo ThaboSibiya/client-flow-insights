@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import QuikleLogo from '@/components/brand/QuikleLogo';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { 
@@ -77,17 +78,7 @@ const MobileNavigation = () => {
     <>
       {/* Mobile Top Header */}
       <div className="md:hidden bg-background/95 backdrop-blur-lg border-b border-border/50 px-4 py-3 flex justify-between items-center sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <img 
-            src="/lovable-uploads/f0901f42-4619-41c2-b222-e562191d61a9.png" 
-            alt="Quikle Logo" 
-            className="h-8 w-8" 
-          />
-          <div>
-            <h1 className="text-lg font-bold text-foreground">QUIKLE</h1>
-            <p className="text-[10px] text-muted-foreground -mt-0.5">Innovation Suite</p>
-          </div>
-        </div>
+        <QuikleLogo size="sm" />
 
         <div className="flex items-center gap-1">
           {/* Notification Bell */}
