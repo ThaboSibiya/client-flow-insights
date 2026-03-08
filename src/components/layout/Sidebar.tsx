@@ -23,6 +23,7 @@ import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import UserProfile from '@/components/auth/UserProfile';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import WorkstationQuickPanel from '@/components/sidebar/WorkstationQuickPanel';
+import QuikleLogo from '@/components/brand/QuikleLogo';
 
 const Sidebar = () => {
   const location = useLocation();
