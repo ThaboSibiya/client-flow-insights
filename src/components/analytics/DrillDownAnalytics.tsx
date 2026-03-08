@@ -15,8 +15,14 @@ interface DrillPath {
   data: any[];
 }
 
+const METRIC_COLORS: Record<MetricType, string> = {
+  customers: 'hsl(var(--chart-new))',
+  revenue: 'hsl(var(--chart-revenue))',
+  tickets: 'hsl(var(--chart-pending))',
+};
+
 const DrillDownAnalytics = () => {
-  const { metrics, customerTimeSeries, revenueTimeSeries, ticketTimeSeries, customerStatusData, isLoading } = useAnalytics();
+  const { metrics, customerTimeSeries, revenueTimeSeries, ticketTimeSeries, isLoading } = useAnalytics();
   const [activeMetric, setActiveMetric] = useState<MetricType>('customers');
   const [drillPath, setDrillPath] = useState<DrillPath[]>([]);
   const [currentLevel, setCurrentLevel] = useState<'overview' | 'monthly'>('overview');
@@ -27,18 +33,18 @@ const DrillDownAnalytics = () => {
     switch (activeMetric) {
       case 'customers':
         return [
-          { name: 'New', value: metrics.newCustomers },
-          { name: 'Active', value: metrics.activeCustomers },
-          { name: 'Pending', value: metrics.pendingCustomers },
-          { name: 'Finalised', value: metrics.finalisedCustomers },
+          { name: 'New', value: metrics.newCustomers, fill: 'hsl(var(--chart-new))' },
+          { name: 'Active', value: metrics.activeCustomers, fill: 'hsl(var(--chart-existing))' },
+          { name: 'Pending', value: metrics.pendingCustomers, fill: 'hsl(var(--chart-pending))' },
+          { name: 'Finalised', value: metrics.finalisedCustomers, fill: 'hsl(var(--chart-finalised))' },
         ];
       case 'revenue':
-        return revenueTimeSeries.map(d => ({ name: d.name, value: d.value }));
+        return revenueTimeSeries.map(d => ({ name: d.name, value: d.value, fill: 'hsl(var(--chart-revenue))' }));
       case 'tickets':
         return [
-          { name: 'Open', value: metrics.openTickets },
-          { name: 'Resolved', value: metrics.resolvedTickets },
-          { name: 'Total', value: metrics.totalTickets },
+          { name: 'Open', value: metrics.openTickets, fill: 'hsl(var(--chart-pending))' },
+          { name: 'Resolved', value: metrics.resolvedTickets, fill: 'hsl(var(--chart-existing))' },
+          { name: 'Total', value: metrics.totalTickets, fill: 'hsl(var(--chart-new))' },
         ];
       default:
         return [];
@@ -50,7 +56,6 @@ const DrillDownAnalytics = () => {
 
   const handleDrillDown = (data: any) => {
     if (currentLevel === 'overview' && activeMetric === 'customers') {
-      // Drill into monthly breakdown from customer time series
       const monthlyData = customerTimeSeries.map(d => ({ name: d.name, value: d.value }));
       setDrillPath([{ level: 'Status', filter: data.name, data: overviewData }]);
       setCurrentData(monthlyData);
@@ -87,12 +92,14 @@ const DrillDownAnalytics = () => {
     );
   }
 
+  const activeColor = METRIC_COLORS[activeMetric];
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-primary" />
+            <TrendingUp className="h-4 w-4" style={{ color: activeColor }} />
             {drillPath.length === 0 ? 'Drill-Down Analytics' : `Drill: ${drillPath.map(p => p.filter).join(' > ')}`}
           </CardTitle>
           {drillPath.length > 0 && (
@@ -140,10 +147,37 @@ const DrillDownAnalytics = () => {
                 <Tooltip
                   contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 8, color: 'hsl(var(--popover-foreground))' }}
                 />
-                <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3, fill: 'hsl(var(--primary))' }} />
+                <Line type="monotone" dataKey="value" stroke={activeColor} strokeWidth={2.5} dot={{ r: 4, fill: activeColor, strokeWidth: 2, stroke: 'hsl(var(--background))' }} />
               </LineChart>
             ) : (
               <BarChart data={displayData}>
+                <defs>
+                  {activeMetric === 'customers' ? (
+                    <>
+                      <linearGradient id="gradNew" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--chart-new))" stopOpacity={0.9} />
+                        <stop offset="100%" stopColor="hsl(var(--chart-new))" stopOpacity={0.6} />
+                      </linearGradient>
+                      <linearGradient id="gradExisting" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--chart-existing))" stopOpacity={0.9} />
+                        <stop offset="100%" stopColor="hsl(var(--chart-existing))" stopOpacity={0.6} />
+                      </linearGradient>
+                      <linearGradient id="gradPending" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--chart-pending))" stopOpacity={0.9} />
+                        <stop offset="100%" stopColor="hsl(var(--chart-pending))" stopOpacity={0.6} />
+                      </linearGradient>
+                      <linearGradient id="gradFinalised" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--chart-finalised))" stopOpacity={0.9} />
+                        <stop offset="100%" stopColor="hsl(var(--chart-finalised))" stopOpacity={0.6} />
+                      </linearGradient>
+                    </>
+                  ) : (
+                    <linearGradient id="gradDefault" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={activeColor} stopOpacity={0.9} />
+                      <stop offset="100%" stopColor={activeColor} stopOpacity={0.5} />
+                    </linearGradient>
+                  )}
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
                 <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
@@ -156,13 +190,21 @@ const DrillDownAnalytics = () => {
                     activeMetric.charAt(0).toUpperCase() + activeMetric.slice(1)
                   ]}
                 />
-                <Bar
-                  dataKey="value"
-                  fill="hsl(var(--primary))"
-                  radius={[4, 4, 0, 0]}
-                  cursor={activeMetric === 'customers' && currentLevel === 'overview' ? 'pointer' : undefined}
-                  onClick={activeMetric === 'customers' && currentLevel === 'overview' ? handleDrillDown : undefined}
-                />
+                {activeMetric === 'customers' ? (
+                  <Bar
+                    dataKey="value"
+                    radius={[6, 6, 0, 0]}
+                    cursor="pointer"
+                    onClick={handleDrillDown}
+                    shape={(props: any) => {
+                      const { x, y, width, height, index } = props;
+                      const gradIds = ['gradNew', 'gradExisting', 'gradPending', 'gradFinalised'];
+                      return <rect x={x} y={y} width={width} height={height} fill={`url(#${gradIds[index] || 'gradNew'})`} rx={6} ry={6} />;
+                    }}
+                  />
+                ) : (
+                  <Bar dataKey="value" fill="url(#gradDefault)" radius={[6, 6, 0, 0]} />
+                )}
               </BarChart>
             )}
           </ResponsiveContainer>
