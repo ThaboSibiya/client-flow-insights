@@ -67,7 +67,7 @@ const RevenueForecastChart = () => {
           <DollarSign className="h-4 w-4" style={{ color: 'hsl(var(--chart-revenue))' }} />
           Revenue Forecast
         </CardTitle>
-        <div className="flex gap-4 text-xs text-muted-foreground">
+        <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'hsl(var(--chart-revenue))' }} />
             Actual: R{totalActual.toLocaleString()}
@@ -75,6 +75,10 @@ const RevenueForecastChart = () => {
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'hsl(var(--chart-forecast))' }} />
             Forecast: R{totalForecast.toLocaleString()}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm opacity-30" style={{ background: 'hsl(var(--chart-forecast))' }} />
+            Confidence Band
           </span>
         </div>
       </CardHeader>
