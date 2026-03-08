@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Book } from 'lucide-react';
+import { Search, Book, X } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { useNavigate } from 'react-router-dom';
 import DocumentationSidebar, { documentationData, DocArticle, DocCategory } from '@/components/documentation/DocumentationSidebar';
 import DocumentationArticle from '@/components/documentation/DocumentationArticle';
 
