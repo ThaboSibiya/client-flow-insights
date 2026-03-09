@@ -13,16 +13,12 @@ vi.mock('@/components/pipeline/TicketPipeline', () => ({
   default: () => <div data-testid="ticket-pipeline">Ticket Pipeline</div>,
 }));
 
-vi.mock('@/components/pipeline/AutomationManager', () => ({
+vi.mock('@/components/pipeline/AutomationManagerNew', () => ({
   default: () => <div data-testid="automation-manager">Automation Manager</div>,
 }));
 
 vi.mock('@/components/pipeline/PipelineSettings', () => ({
   default: () => <div data-testid="pipeline-settings">Pipeline Settings</div>,
-}));
-
-vi.mock('@/components/pipeline/automation/IntegrationAutomationsManager', () => ({
-  default: () => <div data-testid="integration-automations">Integration Automations</div>,
 }));
 
 vi.mock('@/components/pipeline/automation/WebhookWorkflowsManager', () => ({

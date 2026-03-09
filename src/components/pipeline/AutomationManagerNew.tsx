@@ -2,159 +2,85 @@ import React, { useState, useCallback } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Zap, Webhook, Activity } from 'lucide-react';
-import { toast } from 'sonner';
 
 import WorkflowSidebar from './automation/WorkflowSidebar';
 import ModernAutomationBuilder from './ModernAutomationBuilder';
 import ActivityTab from './automation/ActivityTab';
 import IntegrationsTab from './automation/IntegrationsTab';
-import { automationAuditService } from '@/services/automationAuditService';
-
-interface Automation {
-  id: string;
-  name: string;
-  trigger: string;
-  actions: string[];
-  isActive: boolean;
-  type: 'customer' | 'ticket';
-  triggerType?: 'simple' | 'advanced' | 'time' | 'webhook';
-  lastTriggered?: string;
-  triggerCount?: number;
-}
+import { useWorkflowAutomations } from '@/hooks/useWorkflowAutomations';
 
 const AutomationManager = () => {
-  const [automations, setAutomations] = useState<Automation[]>([
-    {
-      id: '1',
-      name: 'Welcome New Customers',
-      trigger: 'Customer moves to "New Leads"',
-      actions: ['Send welcome email', 'Assign to sales rep'],
-      isActive: true,
-      type: 'customer',
-      triggerType: 'simple',
-      lastTriggered: '2024-06-14T10:30:00Z',
-      triggerCount: 45
-    },
-    {
-      id: '2',
-      name: 'High Priority Ticket Alert',
-      trigger: 'Ticket priority set to "Urgent"',
-      actions: ['Send SMS notification', 'Assign to manager'],
-      isActive: true,
-      type: 'ticket',
-      triggerType: 'simple',
-      lastTriggered: '2024-06-14T09:15:00Z',
-      triggerCount: 12
-    },
-    {
-      id: '3',
-      name: 'Follow-up Reminder',
-      trigger: 'Customer in "Contacted" for 3 days',
-      actions: ['Create follow-up task', 'Send reminder email'],
-      isActive: false,
-      type: 'customer',
-      triggerType: 'time',
-      triggerCount: 0
-    },
-    {
-      id: '4',
-      name: 'Zapier Integration Trigger',
-      trigger: 'External webhook received',
-      actions: ['Update customer status', 'Send notification'],
-      isActive: true,
-      type: 'customer',
-      triggerType: 'webhook',
-      lastTriggered: '2024-06-14T08:45:00Z',
-      triggerCount: 78
-    }
-  ]);
+  const {
+    automations,
+    isLoading,
+    createAutomation,
+    updateAutomation,
+    deleteAutomation,
+    duplicateAutomation,
+  } = useWorkflowAutomations();
 
   const [activeTab, setActiveTab] = useState('workflows');
   const [selectedAutomationId, setSelectedAutomationId] = useState<string | null>(null);
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
-  const [editingAutomation, setEditingAutomation] = useState<Automation | null>(null);
+  const [editingAutomationId, setEditingAutomationId] = useState<string | null>(null);
+
+  const sidebarAutomations = automations.map(a => ({
+    id: a.id,
+    name: a.name,
+    trigger: a.trigger_type || 'simple',
+    actions: [],
+    isActive: a.is_active,
+    type: 'customer' as const,
+    triggerType: (a.trigger_type || 'simple') as 'simple' | 'advanced' | 'time' | 'webhook',
+    lastTriggered: a.last_triggered_at || undefined,
+    triggerCount: a.trigger_count,
+  }));
 
   const toggleAutomation = useCallback(async (id: string) => {
     const automation = automations.find(a => a.id === id);
     if (!automation) return;
+    await updateAutomation({ id, is_active: !automation.is_active });
+  }, [automations, updateAutomation]);
 
-    const newStatus = !automation.isActive;
-    
-    setAutomations(prev => 
-      prev.map(auto => 
-        auto.id === id ? { ...auto, isActive: newStatus } : auto
-      )
-    );
-
-    try {
-      await automationAuditService.logAutomationAction(
-        id,
-        'updated',
-        {
-          field: 'status',
-          oldValue: automation.isActive,
-          newValue: newStatus,
-          automationName: automation.name
-        }
-      );
-    } catch (error) {
-      console.error('Failed to log automation action:', error);
-    }
-  }, [automations]);
-
-  const handleCreateNew = useCallback(() => {
-    setEditingAutomation(null);
+  const handleCreateNew = useCallback(async () => {
+    setEditingAutomationId(null);
     setIsBuilderOpen(true);
   }, []);
 
   const handleEdit = useCallback((id: string) => {
-    const automation = automations.find(a => a.id === id);
-    if (automation) {
-      setEditingAutomation(automation);
-      setIsBuilderOpen(true);
-    }
-  }, [automations]);
+    setEditingAutomationId(id);
+    setIsBuilderOpen(true);
+  }, []);
 
-  const handleDuplicate = useCallback((id: string) => {
-    const automation = automations.find(a => a.id === id);
-    if (automation) {
-      const newAutomation: Automation = {
-        ...automation,
-        id: Date.now().toString(),
-        name: `${automation.name} (Copy)`,
-        isActive: false,
-        triggerCount: 0,
-        lastTriggered: undefined
-      };
-      setAutomations(prev => [...prev, newAutomation]);
-      toast.success('Workflow duplicated');
-    }
-  }, [automations]);
+  const handleDuplicate = useCallback(async (id: string) => {
+    await duplicateAutomation(id);
+  }, [duplicateAutomation]);
 
-  const handleDelete = useCallback((id: string) => {
-    setAutomations(prev => prev.filter(a => a.id !== id));
-    if (selectedAutomationId === id) {
-      setSelectedAutomationId(null);
-    }
-    toast.success('Workflow deleted');
-  }, [selectedAutomationId]);
+  const handleDelete = useCallback(async (id: string) => {
+    await deleteAutomation(id);
+    if (selectedAutomationId === id) setSelectedAutomationId(null);
+  }, [deleteAutomation, selectedAutomationId]);
 
   const handleCloseBuilder = useCallback(() => {
     setIsBuilderOpen(false);
-    setEditingAutomation(null);
+    setEditingAutomationId(null);
   }, []);
 
-  // If builder is open, show it full-screen
+  const editingAutomation = editingAutomationId
+    ? automations.find(a => a.id === editingAutomationId)
+    : null;
+
   if (isBuilderOpen) {
     return (
       <div className="fixed inset-0 z-50 bg-background">
         <ReactFlowProvider>
-          <ModernAutomationBuilder 
+          <ModernAutomationBuilder
             onClose={handleCloseBuilder}
+            automationId={editingAutomation?.id}
             initialData={editingAutomation ? {
               name: editingAutomation.name,
-              nodes: [],
-              edges: []
+              nodes: editingAutomation.nodes,
+              edges: editingAutomation.edges,
             } : undefined}
           />
         </ReactFlowProvider>
@@ -182,9 +108,8 @@ const AutomationManager = () => {
 
         <TabsContent value="workflows" className="mt-4">
           <div className="flex h-[calc(100vh-20rem)] border rounded-lg overflow-hidden bg-background">
-            {/* Sidebar */}
             <WorkflowSidebar
-              automations={automations}
+              automations={sidebarAutomations}
               selectedId={selectedAutomationId}
               onSelect={setSelectedAutomationId}
               onToggle={toggleAutomation}
@@ -194,22 +119,26 @@ const AutomationManager = () => {
               onDelete={handleDelete}
             />
 
-            {/* Main Content Area */}
             <div className="flex-1 flex items-center justify-center bg-muted/10">
-              {selectedAutomationId ? (
+              {isLoading ? (
+                <div className="text-center p-8">
+                  <div className="h-8 w-8 mx-auto mb-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm text-muted-foreground">Loading workflows...</p>
+                </div>
+              ) : selectedAutomationId ? (
                 <div className="text-center p-8">
                   <Zap className="h-12 w-12 mx-auto mb-4 text-primary/50" />
                   <h3 className="text-lg font-medium mb-2">
                     {automations.find(a => a.id === selectedAutomationId)?.name}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Click "Edit" to open the visual workflow builder
+                    Open the visual builder to edit this workflow
                   </p>
-                  <button 
+                  <button
                     onClick={() => handleEdit(selectedAutomationId)}
-                    className="text-primary hover:underline text-sm font-medium"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
                   >
-                    Open in Builder →
+                    Open Builder →
                   </button>
                 </div>
               ) : (
@@ -218,9 +147,16 @@ const AutomationManager = () => {
                     <Zap className="h-8 w-8 text-muted-foreground" />
                   </div>
                   <h3 className="text-lg font-medium mb-2">Select a Workflow</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground mb-4">
                     Choose a workflow from the sidebar or create a new one
                   </p>
+                  <button
+                    onClick={handleCreateNew}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                  >
+                    <Zap className="h-4 w-4" />
+                    Create Workflow
+                  </button>
                 </div>
               )}
             </div>
@@ -232,7 +168,7 @@ const AutomationManager = () => {
         </TabsContent>
 
         <TabsContent value="activity" className="mt-4">
-          <ActivityTab automations={automations} />
+          <ActivityTab automations={sidebarAutomations} />
         </TabsContent>
       </Tabs>
     </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import {
   addEdge,
@@ -13,7 +12,7 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, Play, Pause, Settings2 } from 'lucide-react';
+import { ArrowLeft, Save, Play, Pause } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { CustomNode, WorkflowNodeType, NodeCategory, WorkflowTemplate } from './workflow/types';
@@ -22,28 +21,36 @@ import NodePalette from './workflow/NodePalette';
 import WorkflowCanvas from './workflow/WorkflowCanvas';
 import NodeConfigPanel from './workflow/NodeConfigPanel';
 import TemplateGallery from './workflow/TemplateGallery';
+import { useWorkflowAutomations } from '@/hooks/useWorkflowAutomations';
 
 interface ModernAutomationBuilderProps {
   onClose: () => void;
-  initialData?: any;
+  automationId?: string;
+  initialData?: {
+    name: string;
+    nodes: CustomNode[];
+    edges: Edge[];
+  };
 }
 
-const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomationBuilderProps) => {
+const ModernAutomationBuilderInner = ({ onClose, automationId, initialData }: ModernAutomationBuilderProps) => {
+  const { createAutomation, updateAutomation } = useWorkflowAutomations();
   const [showTemplates, setShowTemplates] = useState(!initialData?.nodes?.length);
   const [nodes, setNodes, onNodesChange] = useNodesState<CustomNode>(initialData?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialData?.edges || []);
   const [selectedNode, setSelectedNode] = useState<CustomNode | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [workflowName, setWorkflowName] = useState(initialData?.name || 'Untitled Workflow');
-  
+
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
   const onConnect = useCallback(
     (params: Connection) => {
-      setEdges((eds) => addEdge({ 
-        ...params, 
-        animated: true, 
-        style: { stroke: 'hsl(var(--muted-foreground))', strokeWidth: 2 } 
+      setEdges((eds) => addEdge({
+        ...params,
+        animated: true,
+        style: { stroke: 'hsl(var(--muted-foreground))', strokeWidth: 2 }
       }, eds));
     },
     [setEdges]
@@ -58,8 +65,8 @@ const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomation
   }, []);
 
   const handleDragStart = (
-    event: React.DragEvent, 
-    nodeType: WorkflowNodeType, 
+    event: React.DragEvent,
+    nodeType: WorkflowNodeType,
     nodeName: string,
     category: NodeCategory
   ) => {
@@ -72,11 +79,9 @@ const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomation
   const handleDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
-
       const type = event.dataTransfer.getData('application/reactflow/type') as WorkflowNodeType;
       const name = event.dataTransfer.getData('application/reactflow/name');
       const category = event.dataTransfer.getData('application/reactflow/category') as NodeCategory;
-
       if (!type) return;
 
       const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
@@ -98,7 +103,6 @@ const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomation
           config: {},
         },
       };
-
       setNodes((nds) => nds.concat(newNode));
     },
     [setNodes]
@@ -113,10 +117,7 @@ const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomation
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
-          const updatedNode = {
-            ...node,
-            data: { ...node.data, ...data },
-          };
+          const updatedNode = { ...node, data: { ...node.data, ...data } };
           setSelectedNode(updatedNode);
           return updatedNode;
         }
@@ -145,15 +146,22 @@ const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomation
     setShowTemplates(false);
   };
 
-  const handleSave = () => {
-    const workflow = {
-      name: workflowName,
-      nodes,
-      edges,
-    };
-    console.log('Saving workflow:', workflow);
-    toast.success('Workflow saved successfully!');
-    onClose();
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      if (automationId) {
+        await updateAutomation({ id: automationId, name: workflowName, nodes, edges });
+        toast.success('Workflow saved');
+      } else {
+        await createAutomation({ name: workflowName, nodes, edges });
+        toast.success('Workflow created');
+      }
+      onClose();
+    } catch {
+      // Error toast handled in hook
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleTestRun = async () => {
@@ -161,15 +169,11 @@ const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomation
       toast.error('Add nodes to your workflow first');
       return;
     }
-
     setIsExecuting(true);
     toast.info('Testing workflow...');
-    
     for (let i = 0; i < nodes.length; i++) {
       await new Promise(resolve => setTimeout(resolve, 800));
-      console.log(`Executing: ${nodes[i].data.name}`);
     }
-    
     setIsExecuting(false);
     toast.success('Workflow test completed!');
   };
@@ -184,7 +188,7 @@ const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomation
           <h2 className="text-xl font-semibold">Create Automation</h2>
         </div>
         <div className="flex-1 overflow-auto p-6">
-          <TemplateGallery 
+          <TemplateGallery
             onSelectTemplate={handleSelectTemplate}
             onStartFromScratch={handleStartFromScratch}
           />
@@ -195,7 +199,6 @@ const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomation
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* Header */}
       <div className="p-3 border-b flex items-center justify-between bg-background flex-shrink-0">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onClose}>
@@ -205,43 +208,34 @@ const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomation
             type="text"
             value={workflowName}
             onChange={(e) => setWorkflowName(e.target.value)}
-            className="text-lg font-semibold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary/20 rounded px-2 py-1"
+            className="text-lg font-semibold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary/20 rounded px-2 py-1 text-foreground"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={handleTestRun}
             disabled={isExecuting || nodes.length === 0}
           >
             {isExecuting ? (
-              <>
-                <Pause className="h-4 w-4 mr-2" />
-                Testing...
-              </>
+              <><Pause className="h-4 w-4 mr-2" />Testing...</>
             ) : (
-              <>
-                <Play className="h-4 w-4 mr-2" />
-                Test Run
-              </>
+              <><Play className="h-4 w-4 mr-2" />Test Run</>
             )}
           </Button>
-          <Button size="sm" onClick={handleSave}>
+          <Button size="sm" onClick={handleSave} disabled={isSaving}>
             <Save className="h-4 w-4 mr-2" />
-            Save
+            {isSaving ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
-        {/* Left Sidebar - Node Palette */}
         <div className="w-64 flex-shrink-0 overflow-hidden">
           <NodePalette onDragStart={handleDragStart} />
         </div>
 
-        {/* Center - Canvas */}
         <div ref={reactFlowWrapper} className="flex-1 min-w-0 h-full">
           <WorkflowCanvas
             nodes={nodes}
@@ -256,7 +250,6 @@ const ModernAutomationBuilderInner = ({ onClose, initialData }: ModernAutomation
           />
         </div>
 
-        {/* Right Sidebar - Config Panel */}
         {selectedNode && (
           <div className="w-80 flex-shrink-0 overflow-hidden">
             <NodeConfigPanel
