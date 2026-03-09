@@ -261,9 +261,11 @@ export type Database = {
           employee_id: string | null
           id: string
           last_message_at: string | null
+          last_message_preview: string | null
           status: string
           subject: string | null
           type: string
+          unread_count: number
           updated_at: string
         }
         Insert: {
@@ -273,9 +275,11 @@ export type Database = {
           employee_id?: string | null
           id?: string
           last_message_at?: string | null
+          last_message_preview?: string | null
           status?: string
           subject?: string | null
           type: string
+          unread_count?: number
           updated_at?: string
         }
         Update: {
@@ -285,9 +289,11 @@ export type Database = {
           employee_id?: string | null
           id?: string
           last_message_at?: string | null
+          last_message_preview?: string | null
           status?: string
           subject?: string | null
           type?: string
+          unread_count?: number
           updated_at?: string
         }
         Relationships: [
@@ -3589,6 +3595,10 @@ export type Database = {
         Returns: string
       }
       mark_overdue_invoices: { Args: never; Returns: undefined }
+      reset_conversation_unread: {
+        Args: { p_conversation_id: string }
+        Returns: undefined
+      }
       validate_invitation_token: {
         Args: { p_token: string }
         Returns: {
