@@ -55,10 +55,10 @@ export const useReadStatus = () => {
 
   const markAllAsRead = useMutation({
     mutationFn: async (conversationId: string) => {
-      const { error } = await supabase
-        .from('messages')
-        .update({ is_read: true })
-        .eq('conversation_id', conversationId);
+      // Use the DB function that resets unread_count + marks messages read atomically
+      const { error } = await supabase.rpc('reset_conversation_unread', {
+        p_conversation_id: conversationId,
+      });
 
       if (error) throw error;
     },

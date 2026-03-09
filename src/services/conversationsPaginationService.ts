@@ -37,7 +37,7 @@ export const loadConversationsPaginated = async (
   try {
     let query = supabase
       .from('conversations')
-      .select('*', { count: 'exact' })
+      .select('*, customers(name, email, phone)', { count: 'exact' })
       .order(sortBy, { ascending: sortOrder === 'asc' })
       .limit(pageSize + 1);
 
