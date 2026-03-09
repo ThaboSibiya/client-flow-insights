@@ -1,20 +1,17 @@
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
-import { Mail, Phone, MessageCircle, FileText, Archive, Pin, Check, User, Send } from 'lucide-react';
+import { Mail, Phone, MessageCircle, FileText, Archive, Pin, Check, User } from 'lucide-react';
 import type { Conversation } from '@/types/conversations';
 
-// Telegram icon component
 const TelegramIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
     <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
   </svg>
 );
 
-// Wrapper component to use TelegramIcon as a Lucide-compatible icon
 const TelegramIconWrapper = ({ className }: { className?: string }) => (
   <TelegramIcon className={className} />
 );
@@ -50,10 +47,16 @@ const ConversationCard = ({
   const TypeIcon = config.icon;
   const hasUnread = conversation.unread_count && conversation.unread_count > 0;
   
-  const customerName = (conversation as any).customers?.name;
-  const displayName = conversation.subject || 
-    customerName ||
-    'Unnamed Conversation';
+  // P3: Resolve customer name from joined data, fallback to recipient_name
+  const conv = conversation as any;
+  const customerName = conv.customers?.name;
+  const recipientName = conv.recipient_name || conv.recipient_email || conv.recipient_phone;
+  const displayName = conversation.subject || customerName || recipientName || 'Unnamed Conversation';
+
+  // Build initials from customer or recipient
+  const initials = customerName 
+    ? customerName.split(' ').map((w: string) => w[0]).join('').substring(0, 2).toUpperCase()
+    : displayName.substring(0, 2).toUpperCase();
 
   const timeAgo = conversation.last_message_at 
     ? formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: false })
@@ -73,11 +76,10 @@ const ConversationCard = ({
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex items-start gap-3">
-        {/* Avatar with type indicator */}
         <div className="relative flex-shrink-0">
           <Avatar className="h-9 w-9">
-            <AvatarFallback className="bg-muted text-muted-foreground text-sm">
-              <User className="h-4 w-4" />
+            <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
+              {initials}
             </AvatarFallback>
           </Avatar>
           <div className={cn(
@@ -88,7 +90,6 @@ const ConversationCard = ({
           </div>
         </div>
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-0.5">
             <span className={cn(
@@ -102,6 +103,13 @@ const ConversationCard = ({
             </span>
           </div>
           
+          {/* Show subject as secondary line if we used customer name as primary */}
+          {customerName && conversation.subject && (
+            <p className="text-xs text-muted-foreground/70 truncate mb-0.5">
+              {conversation.subject}
+            </p>
+          )}
+          
           <p className={cn(
             "text-xs truncate",
             hasUnread ? "text-foreground/80" : "text-muted-foreground"
@@ -110,7 +118,6 @@ const ConversationCard = ({
           </p>
         </div>
 
-        {/* Unread indicator */}
         {hasUnread && !isHovered && (
           <div className="flex-shrink-0 self-center">
             <div className="h-2 w-2 rounded-full bg-primary" />
