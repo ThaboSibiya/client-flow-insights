@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Zap, Webhook, Activity } from 'lucide-react';
 
 import WorkflowSidebar from './automation/WorkflowSidebar';
+import WorkflowPreview from './automation/WorkflowPreview';
 import ModernAutomationBuilder from './ModernAutomationBuilder';
 import ActivityTab from './automation/ActivityTab';
 import IntegrationsTab from './automation/IntegrationsTab';
@@ -13,7 +14,6 @@ const AutomationManager = () => {
   const {
     automations,
     isLoading,
-    createAutomation,
     updateAutomation,
     deleteAutomation,
     duplicateAutomation,
@@ -42,7 +42,7 @@ const AutomationManager = () => {
     await updateAutomation({ id, is_active: !automation.is_active });
   }, [automations, updateAutomation]);
 
-  const handleCreateNew = useCallback(async () => {
+  const handleCreateNew = useCallback(() => {
     setEditingAutomationId(null);
     setIsBuilderOpen(true);
   }, []);
@@ -68,6 +68,10 @@ const AutomationManager = () => {
 
   const editingAutomation = editingAutomationId
     ? automations.find(a => a.id === editingAutomationId)
+    : null;
+
+  const selectedAutomation = selectedAutomationId
+    ? automations.find(a => a.id === selectedAutomationId)
     : null;
 
   if (isBuilderOpen) {
@@ -119,29 +123,27 @@ const AutomationManager = () => {
               onDelete={handleDelete}
             />
 
-            <div className="flex-1 flex items-center justify-center bg-muted/10">
-              {isLoading ? (
+            {isLoading ? (
+              <div className="flex-1 flex items-center justify-center">
                 <div className="text-center p-8">
                   <div className="h-8 w-8 mx-auto mb-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                   <p className="text-sm text-muted-foreground">Loading workflows...</p>
                 </div>
-              ) : selectedAutomationId ? (
-                <div className="text-center p-8">
-                  <Zap className="h-12 w-12 mx-auto mb-4 text-primary/50" />
-                  <h3 className="text-lg font-medium mb-2">
-                    {automations.find(a => a.id === selectedAutomationId)?.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Open the visual builder to edit this workflow
-                  </p>
-                  <button
-                    onClick={() => handleEdit(selectedAutomationId)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-                  >
-                    Open Builder →
-                  </button>
-                </div>
-              ) : (
+              </div>
+            ) : selectedAutomation ? (
+              <ReactFlowProvider>
+                <WorkflowPreview
+                  name={selectedAutomation.name}
+                  nodes={selectedAutomation.nodes}
+                  edges={selectedAutomation.edges}
+                  isActive={selectedAutomation.is_active}
+                  lastTriggered={selectedAutomation.last_triggered_at || undefined}
+                  triggerCount={selectedAutomation.trigger_count}
+                  onEdit={() => handleEdit(selectedAutomation.id)}
+                />
+              </ReactFlowProvider>
+            ) : (
+              <div className="flex-1 flex items-center justify-center bg-muted/10">
                 <div className="text-center p-8">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
                     <Zap className="h-8 w-8 text-muted-foreground" />
@@ -158,8 +160,8 @@ const AutomationManager = () => {
                     Create Workflow
                   </button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </TabsContent>
 

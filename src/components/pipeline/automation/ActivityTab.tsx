@@ -37,7 +37,6 @@ const ActivityTab = ({ automations }: ActivityTabProps) => {
       triggers: automation.triggerCount || 0,
     }));
 
-  // Mock timeline data for the last 7 days
   const timelineData = [
     { day: 'Mon', executions: 12 },
     { day: 'Tue', executions: 19 },
@@ -46,6 +45,13 @@ const ActivityTab = ({ automations }: ActivityTabProps) => {
     { day: 'Fri', executions: 28 },
     { day: 'Sat', executions: 8 },
     { day: 'Sun', executions: 5 },
+  ];
+
+  const statsCards = [
+    { label: 'Total Workflows', value: automations.length, icon: TrendingUp, color: 'text-primary', bgColor: 'bg-primary/10' },
+    { label: 'Active', value: activeAutomations, icon: CheckCircle, color: 'text-primary', bgColor: 'bg-primary/10' },
+    { label: 'Total Runs', value: totalTriggers, icon: Activity, color: 'text-accent-foreground', bgColor: 'bg-accent' },
+    { label: 'Avg per Workflow', value: avgTriggersPerAutomation, icon: Clock, color: 'text-muted-foreground', bgColor: 'bg-muted' },
   ];
 
   return (
@@ -63,66 +69,24 @@ const ActivityTab = ({ automations }: ActivityTabProps) => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 mt-4">
-          {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Card className="border-0 bg-muted/30">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <TrendingUp className="h-4 w-4 text-primary" />
+            {statsCards.map(({ label, value, icon: StatIcon, color, bgColor }) => (
+              <Card key={label} className="border-0 bg-muted/30">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${bgColor}`}>
+                      <StatIcon className={`h-4 w-4 ${color}`} />
+                    </div>
+                    <div>
+                      <p className={`text-2xl font-bold ${color}`}>{value}</p>
+                      <p className="text-xs text-muted-foreground">{label}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold">{automations.length}</p>
-                    <p className="text-xs text-muted-foreground">Total Workflows</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 bg-muted/30">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-green-500/10">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-green-600">{activeAutomations}</p>
-                    <p className="text-xs text-muted-foreground">Active</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 bg-muted/30">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-500/10">
-                    <Activity className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-blue-600">{totalTriggers}</p>
-                    <p className="text-xs text-muted-foreground">Total Runs</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 bg-muted/30">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-orange-500/10">
-                    <Clock className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-orange-600">{avgTriggersPerAutomation}</p>
-                    <p className="text-xs text-muted-foreground">Avg per Workflow</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
-          {/* Charts */}
           <div className="grid md:grid-cols-2 gap-4">
             <Card className="border-0 bg-muted/30">
               <CardHeader className="pb-2">
@@ -135,17 +99,17 @@ const ActivityTab = ({ automations }: ActivityTabProps) => {
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis dataKey="day" className="text-xs" />
                       <YAxis className="text-xs" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          background: 'hsl(var(--popover))', 
+                      <Tooltip
+                        contentStyle={{
+                          background: 'hsl(var(--popover))',
                           border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
-                        }} 
+                          borderRadius: '8px',
+                        }}
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="executions" 
-                        stroke="hsl(var(--primary))" 
+                      <Line
+                        type="monotone"
+                        dataKey="executions"
+                        stroke="hsl(var(--primary))"
                         strokeWidth={2}
                         dot={{ fill: 'hsl(var(--primary))' }}
                       />
@@ -167,12 +131,12 @@ const ActivityTab = ({ automations }: ActivityTabProps) => {
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis type="number" className="text-xs" />
                         <YAxis dataKey="name" type="category" width={100} className="text-xs" />
-                        <Tooltip 
-                          contentStyle={{ 
-                            background: 'hsl(var(--popover))', 
+                        <Tooltip
+                          contentStyle={{
+                            background: 'hsl(var(--popover))',
                             border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px'
-                          }} 
+                            borderRadius: '8px',
+                          }}
                         />
                         <Bar dataKey="triggers" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                       </BarChart>
