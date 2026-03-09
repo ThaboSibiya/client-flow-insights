@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   addEdge,
   useNodesState,
@@ -12,7 +12,7 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, Play, Pause } from 'lucide-react';
+import { ArrowLeft, Save, Play, Pause, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { CustomNode, WorkflowNodeType, NodeCategory, WorkflowTemplate } from './workflow/types';
@@ -21,7 +21,9 @@ import NodePalette from './workflow/NodePalette';
 import WorkflowCanvas from './workflow/WorkflowCanvas';
 import NodeConfigPanel from './workflow/NodeConfigPanel';
 import TemplateGallery from './workflow/TemplateGallery';
+import ExecutionLogPanel from './workflow/ExecutionLog';
 import { useWorkflowAutomations } from '@/hooks/useWorkflowAutomations';
+import { useWorkflowExecutor } from '@/hooks/useWorkflowExecutor';
 
 interface ModernAutomationBuilderProps {
   onClose: () => void;
@@ -35,23 +37,47 @@ interface ModernAutomationBuilderProps {
 
 const ModernAutomationBuilderInner = ({ onClose, automationId, initialData }: ModernAutomationBuilderProps) => {
   const { createAutomation, updateAutomation } = useWorkflowAutomations();
+  const { executionState, execute, reset } = useWorkflowExecutor();
   const [showTemplates, setShowTemplates] = useState(!initialData?.nodes?.length);
   const [nodes, setNodes, onNodesChange] = useNodesState<CustomNode>(initialData?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialData?.edges || []);
   const [selectedNode, setSelectedNode] = useState<CustomNode | null>(null);
-  const [isExecuting, setIsExecuting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [workflowName, setWorkflowName] = useState(initialData?.name || 'Untitled Workflow');
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
+  // Sync execution status onto nodes for visual feedback
+  useEffect(() => {
+    const { results } = executionState;
+    if (Object.keys(results).length === 0) return;
+
+    setNodes((nds) =>
+      nds.map((node) => {
+        const result = results[node.id];
+        if (result) {
+          return {
+            ...node,
+            data: { ...node.data, executionStatus: result.status },
+          };
+        }
+        return node;
+      })
+    );
+  }, [executionState.results, setNodes]);
+
   const onConnect = useCallback(
     (params: Connection) => {
-      setEdges((eds) => addEdge({
-        ...params,
-        animated: true,
-        style: { stroke: 'hsl(var(--muted-foreground))', strokeWidth: 2 }
-      }, eds));
+      setEdges((eds) =>
+        addEdge(
+          {
+            ...params,
+            animated: true,
+            style: { stroke: 'hsl(var(--muted-foreground))', strokeWidth: 2 },
+          },
+          eds
+        )
+      );
     },
     [setEdges]
   );
@@ -149,11 +175,16 @@ const ModernAutomationBuilderInner = ({ onClose, automationId, initialData }: Mo
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // Strip execution status before saving
+      const cleanNodes = nodes.map((n) => ({
+        ...n,
+        data: { ...n.data, executionStatus: undefined },
+      }));
       if (automationId) {
-        await updateAutomation({ id: automationId, name: workflowName, nodes, edges });
+        await updateAutomation({ id: automationId, name: workflowName, nodes: cleanNodes, edges });
         toast.success('Workflow saved');
       } else {
-        await createAutomation({ name: workflowName, nodes, edges });
+        await createAutomation({ name: workflowName, nodes: cleanNodes, edges });
         toast.success('Workflow created');
       }
       onClose();
@@ -165,17 +196,17 @@ const ModernAutomationBuilderInner = ({ onClose, automationId, initialData }: Mo
   };
 
   const handleTestRun = async () => {
-    if (nodes.length === 0) {
-      toast.error('Add nodes to your workflow first');
-      return;
-    }
-    setIsExecuting(true);
-    toast.info('Testing workflow...');
-    for (let i = 0; i < nodes.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 800));
-    }
-    setIsExecuting(false);
-    toast.success('Workflow test completed!');
+    await execute(nodes, edges);
+  };
+
+  const handleResetExecution = () => {
+    reset();
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        data: { ...node.data, executionStatus: undefined },
+      }))
+    );
   };
 
   if (showTemplates) {
@@ -188,10 +219,7 @@ const ModernAutomationBuilderInner = ({ onClose, automationId, initialData }: Mo
           <h2 className="text-xl font-semibold">Create Automation</h2>
         </div>
         <div className="flex-1 overflow-auto p-6">
-          <TemplateGallery
-            onSelectTemplate={handleSelectTemplate}
-            onStartFromScratch={handleStartFromScratch}
-          />
+          <TemplateGallery onSelectTemplate={handleSelectTemplate} onStartFromScratch={handleStartFromScratch} />
         </div>
       </div>
     );
@@ -212,16 +240,28 @@ const ModernAutomationBuilderInner = ({ onClose, automationId, initialData }: Mo
           />
         </div>
         <div className="flex items-center gap-2">
+          {Object.keys(executionState.results).length > 0 && (
+            <Button variant="ghost" size="sm" onClick={handleResetExecution}>
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
             onClick={handleTestRun}
-            disabled={isExecuting || nodes.length === 0}
+            disabled={executionState.isRunning || nodes.length === 0}
           >
-            {isExecuting ? (
-              <><Pause className="h-4 w-4 mr-2" />Testing...</>
+            {executionState.isRunning ? (
+              <>
+                <Pause className="h-4 w-4 mr-2" />
+                Running...
+              </>
             ) : (
-              <><Play className="h-4 w-4 mr-2" />Test Run</>
+              <>
+                <Play className="h-4 w-4 mr-2" />
+                Test Run
+              </>
             )}
           </Button>
           <Button size="sm" onClick={handleSave} disabled={isSaving}>
@@ -236,18 +276,22 @@ const ModernAutomationBuilderInner = ({ onClose, automationId, initialData }: Mo
           <NodePalette onDragStart={handleDragStart} />
         </div>
 
-        <div ref={reactFlowWrapper} className="flex-1 min-w-0 h-full">
-          <WorkflowCanvas
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onNodeClick={onNodeClick}
-            onPaneClick={onPaneClick}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-          />
+        <div className="flex-1 min-w-0 flex flex-col">
+          <div ref={reactFlowWrapper} className="flex-1 min-h-0">
+            <WorkflowCanvas
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onNodeClick={onNodeClick}
+              onPaneClick={onPaneClick}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+            />
+          </div>
+
+          <ExecutionLogPanel logs={executionState.logs} isRunning={executionState.isRunning} />
         </div>
 
         {selectedNode && (
