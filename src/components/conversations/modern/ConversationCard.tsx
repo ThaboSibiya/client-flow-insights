@@ -50,9 +50,9 @@ const ConversationCard = ({
   const TypeIcon = config.icon;
   const hasUnread = conversation.unread_count && conversation.unread_count > 0;
   
+  const customerName = (conversation as any).customers?.name;
   const displayName = conversation.subject || 
-    conversation.customer_id || 
-    conversation.employee_id || 
+    customerName ||
     'Unnamed Conversation';
 
   const timeAgo = conversation.last_message_at 
