@@ -44,20 +44,20 @@ export const useMessageSender = (conversationId: string) => {
         // Fetch conversation to determine type and get recipient info
         const { data: conversation } = await supabase
           .from('conversations')
-          .select('type, customer_id, customers(email, phone)')
+          .select('type, customer_id, recipient_email, recipient_phone, customers(email, phone)')
           .eq('id', conversationId)
           .single();
 
         if (conversation) {
-          const customer = conversation.customers as any;
+          const customer = (conversation as any).customers;
           const dispatchResult = await dispatchToChannel(
             conversation.type,
             conversationId,
             messageData.content,
             {
-              email: customer?.email,
-              phone: customer?.phone,
-              chatId: customer?.phone, // Telegram chat ID stored in phone for now
+              email: (conversation as any).recipient_email || customer?.email,
+              phone: (conversation as any).recipient_phone || customer?.phone,
+              chatId: (conversation as any).recipient_phone || customer?.phone,
             }
           );
 

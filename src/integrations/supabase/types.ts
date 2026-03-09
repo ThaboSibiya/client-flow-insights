@@ -262,6 +262,9 @@ export type Database = {
           id: string
           last_message_at: string | null
           last_message_preview: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          recipient_phone: string | null
           status: string
           subject: string | null
           type: string
@@ -276,6 +279,9 @@ export type Database = {
           id?: string
           last_message_at?: string | null
           last_message_preview?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
           status?: string
           subject?: string | null
           type: string
@@ -290,6 +296,9 @@ export type Database = {
           id?: string
           last_message_at?: string | null
           last_message_preview?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
           status?: string
           subject?: string | null
           type?: string

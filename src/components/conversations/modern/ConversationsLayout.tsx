@@ -8,9 +8,10 @@ import NewConversationSlideOver from './NewConversationSlideOver';
 import MessageThread from '../MessageThread';
 import { useConversationsOptimized } from '@/hooks/useConversationsOptimized';
 import { useRealtimeConversations } from '@/hooks/useRealtimeConversations';
+import { useConversationManagement } from '@/hooks/useConversationManagement';
+import { useReadStatus } from '@/hooks/useReadStatus';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 
 const ConversationsLayout = () => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -28,19 +29,36 @@ const ConversationsLayout = () => {
   
   useRealtimeConversations();
 
-  // Handle conversation selection
+  const { archiveConversation } = useConversationManagement();
+  const { markAllAsRead } = useReadStatus();
+
+  // P4: Wire hover actions
+  const handleArchive = useCallback((id: string) => {
+    archiveConversation(id);
+    if (selectedConversation === id) {
+      setSelectedConversation(null);
+      setIsMobileThreadOpen(false);
+    }
+  }, [archiveConversation, selectedConversation]);
+
+  const handlePin = useCallback((_id: string) => {
+    // Pin functionality — future enhancement (no DB column yet)
+  }, []);
+
+  const handleMarkRead = useCallback((id: string) => {
+    markAllAsRead(id);
+  }, [markAllAsRead]);
+
   const handleSelectConversation = useCallback((id: string) => {
     setSelectedConversation(id);
     setIsMobileThreadOpen(true);
   }, []);
 
-  // Handle mobile back
   const handleMobileBack = useCallback(() => {
     setIsMobileThreadOpen(false);
     setSelectedConversation(null);
   }, []);
 
-  // Filter counts
   const counts = useMemo(() => ({
     all: conversations?.length || 0,
     email: conversations?.filter(c => c.type === 'email').length || 0,
@@ -54,12 +72,10 @@ const ConversationsLayout = () => {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Escape to deselect
       if (e.key === 'Escape' && selectedConversation) {
         setSelectedConversation(null);
         setIsMobileThreadOpen(false);
       }
-      // N for new conversation
       if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setShowNewConversation(true);
@@ -72,7 +88,6 @@ const ConversationsLayout = () => {
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Header */}
       <ConversationHeader
         searchQuery={filters.searchQuery}
         onSearchChange={(query) => updateFilter('searchQuery', query)}
@@ -80,19 +95,16 @@ const ConversationsLayout = () => {
         onNewConversation={() => setShowNewConversation(true)}
       />
 
-      {/* Filter Chips */}
       <ConversationFilterChips
         activeFilter={filters.type as ConversationType}
         onFilterChange={(filter) => updateFilter('type', filter)}
         counts={counts}
       />
 
-      {/* Main Content */}
       <div className="flex-1 overflow-hidden">
         {/* Desktop: Resizable Panels */}
         <div className="hidden md:block h-full">
           <ResizablePanelGroup direction="horizontal">
-            {/* Conversation List Panel */}
             <ResizablePanel 
               defaultSize={35} 
               minSize={25} 
@@ -104,12 +116,14 @@ const ConversationsLayout = () => {
                 selectedId={selectedConversation}
                 onSelect={handleSelectConversation}
                 loading={loading}
+                onArchive={handleArchive}
+                onPin={handlePin}
+                onMarkRead={handleMarkRead}
               />
             </ResizablePanel>
 
             <ResizableHandle withHandle className="bg-border/50 hover:bg-primary/20 transition-colors" />
 
-            {/* Message Thread Panel */}
             <ResizablePanel defaultSize={65} minSize={40}>
               {selectedConversation ? (
                 <MessageThread conversationId={selectedConversation} />
@@ -151,12 +165,14 @@ const ConversationsLayout = () => {
               selectedId={selectedConversation}
               onSelect={handleSelectConversation}
               loading={loading}
+              onArchive={handleArchive}
+              onPin={handlePin}
+              onMarkRead={handleMarkRead}
             />
           )}
         </div>
       </div>
 
-      {/* New Conversation Slide-over */}
       <NewConversationSlideOver
         open={showNewConversation}
         onOpenChange={setShowNewConversation}
