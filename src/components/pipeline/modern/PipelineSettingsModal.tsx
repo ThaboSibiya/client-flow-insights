@@ -24,6 +24,14 @@ interface PipelineSettingsModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const SECTIONS = [
+  { value: 'stale-leads', icon: Clock, iconColor: 'text-amber-500', label: 'Stale Lead Detection', Component: StaleLeadSettings },
+  { value: 'lead-routing', icon: Shuffle, iconColor: 'text-blue-500', label: 'Lead Routing & Assignment', Component: LeadRoutingSettings },
+  { value: 'stage-automations', icon: Zap, iconColor: 'text-amber-500', label: 'Stage Automations', Component: StageAutomationSettings },
+  { value: 'win-loss', icon: Trophy, iconColor: 'text-emerald-500', label: 'Win/Loss Tracking', Component: WinLossSettings },
+  { value: 'display', icon: Eye, iconColor: 'text-violet-500', label: 'Display Preferences', Component: PipelineDisplaySettings },
+] as const;
+
 const PipelineSettingsModal = ({ open, onOpenChange }: PipelineSettingsModalProps) => {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -31,71 +39,26 @@ const PipelineSettingsModal = ({ open, onOpenChange }: PipelineSettingsModalProp
         <SheetHeader>
           <SheetTitle>Pipeline Settings</SheetTitle>
           <SheetDescription>
-            Configure pipeline behavior, lead routing, and display preferences
+            Configure pipeline behavior, lead routing, and display preferences.
+            Settings are saved per-section.
           </SheetDescription>
         </SheetHeader>
 
         <div className="mt-6">
           <Accordion type="single" collapsible defaultValue="stale-leads" className="w-full">
-            <AccordionItem value="stale-leads">
-              <AccordionTrigger className="text-sm">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-amber-500" />
-                  Stale Lead Detection
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <StaleLeadSettings />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="lead-routing">
-              <AccordionTrigger className="text-sm">
-                <div className="flex items-center gap-2">
-                  <Shuffle className="h-4 w-4 text-blue-500" />
-                  Lead Routing & Assignment
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <LeadRoutingSettings />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="stage-automations">
-              <AccordionTrigger className="text-sm">
-                <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-amber-500" />
-                  Stage Automations
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <StageAutomationSettings />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="win-loss">
-              <AccordionTrigger className="text-sm">
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-emerald-500" />
-                  Win/Loss Tracking
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <WinLossSettings />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="display">
-              <AccordionTrigger className="text-sm">
-                <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-violet-500" />
-                  Display Preferences
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <PipelineDisplaySettings />
-              </AccordionContent>
-            </AccordionItem>
+            {SECTIONS.map(({ value, icon: Icon, iconColor, label, Component }) => (
+              <AccordionItem key={value} value={value}>
+                <AccordionTrigger className="text-sm">
+                  <div className="flex items-center gap-2">
+                    <Icon className={`h-4 w-4 ${iconColor}`} />
+                    {label}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <Component />
+                </AccordionContent>
+              </AccordionItem>
+            ))}
           </Accordion>
         </div>
       </SheetContent>
