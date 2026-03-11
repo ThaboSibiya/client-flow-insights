@@ -1,6 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { Users, Ticket, TrendingUp, DollarSign, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import LeadSourceBreakdown from './LeadSourceBreakdown';
 import KPIWidget from './widgets/KPIWidget';
 import ChartWidget from './widgets/ChartWidget';
 import TableWidget from './widgets/TableWidget';
