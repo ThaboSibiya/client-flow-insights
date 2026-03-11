@@ -324,6 +324,7 @@ const UnifiedToolbar = ({
                 <X className="h-3 w-3" />
               </Button>
             </Badge>
+          )}
           {(dateRange.start || dateRange.end) && (
             <Badge variant="secondary" className="text-xs gap-1 pr-1">
               <Calendar className="h-3 w-3" />
