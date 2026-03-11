@@ -63,6 +63,14 @@ export const useCustomerFilters = (customers: Customer[]) => {
       filtered = filtered.filter(customer => customer.status === filters.status);
     }
 
+    // Apply source filter
+    if (filters.source !== 'all') {
+      filtered = filtered.filter(customer => {
+        if (filters.source === 'none') return !customer.source;
+        return customer.source?.toLowerCase() === filters.source.toLowerCase();
+      });
+    }
+
     // Apply date range filter
     if (dateRange.start || dateRange.end) {
       filtered = filtered.filter(customer => {
