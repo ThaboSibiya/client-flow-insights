@@ -17,7 +17,8 @@ import {
   Search,
   ChevronDown,
   ChevronRight,
-  Lock
+  Lock,
+  MessageSquare
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useUserRole } from '@/hooks/useUserRole';

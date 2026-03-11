@@ -50,6 +50,7 @@ import AutomationSettings from "./components/settings/sections/AutomationSetting
 import WebhookSettings from "./components/settings/sections/WebhookSettings";
 import SecuritySettings from "./components/settings/sections/SecuritySettings";
 import BillingSettings from "./components/settings/sections/BillingSettings";
+import CommunicationSettings from "./components/settings/sections/CommunicationSettings";
 
 const queryClient = new QueryClient({
   defaultOptions: {
