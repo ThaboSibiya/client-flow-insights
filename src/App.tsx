@@ -208,6 +208,9 @@ const App = () => (
                           <Route path="ai-agent" element={
                             <AdminProtectedRoute element={<AiAgentSettingsSection />} redirectTo="/settings/general" />
                           } />
+                          <Route path="communications" element={
+                            <AdminProtectedRoute element={<CommunicationSettings />} redirectTo="/settings/general" />
+                          } />
                           <Route path="automations" element={
                             <AdminProtectedRoute element={<AutomationSettings />} redirectTo="/settings/general" />
                           } />
