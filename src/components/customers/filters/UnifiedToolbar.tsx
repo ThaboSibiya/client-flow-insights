@@ -312,6 +312,18 @@ const UnifiedToolbar = ({
               </Button>
             </Badge>
           )}
+          {sourceFilter && sourceFilter !== 'all' && (
+            <Badge variant="secondary" className="text-xs gap-1 pr-1 capitalize">
+              Source: {sourceFilter}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onSourceFilterChange?.('all')}
+                className="h-4 w-4 p-0 hover:bg-transparent"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
           {(dateRange.start || dateRange.end) && (
             <Badge variant="secondary" className="text-xs gap-1 pr-1">
               <Calendar className="h-3 w-3" />
