@@ -387,6 +387,8 @@ async function handleCreateContact(supabase: any, trigger: any, payload: any, en
           if (statusResult.valid && statusResult.value) updateFields.status = statusResult.value;
         }
         if (normalized.address) updateFields.address = normalized.address;
+        if (normalized.reason) updateFields.reason = normalized.reason;
+        if (normalized.source) updateFields.source = normalized.source;
         if (normalized.notes) {
           updateFields.notes = `[Webhook ${new Date().toISOString()}] Source: ${normalized.source || 'API'}\n${normalized.notes}`;
         }
