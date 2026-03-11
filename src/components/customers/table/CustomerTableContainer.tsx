@@ -35,7 +35,8 @@ const CustomerTableContainer = React.memo(() => {
     savedPresets,
     applyPreset,
     saveCurrentAsPreset,
-    getQuickDateRange
+    getQuickDateRange,
+    resetFilters
   } = useCustomerFilters(customers);
 
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -69,10 +70,15 @@ const CustomerTableContainer = React.memo(() => {
     handleBulkDelete,
   } = useCustomerActions();
 
+  // Detect if any filters are active (distinct from "no customers at all")
+  const hasActiveFilters = searchQuery !== '' || statusFilter !== 'all' || 
+    (sourceFilter !== undefined && sourceFilter !== 'all') || 
+    dateRange.start !== null || dateRange.end !== null || ticketCountFilter !== 'all';
+
   // Reset to page 1 when filters or page size change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, dateRange, ticketCountFilter, itemsPerPage]);
+  }, [searchQuery, statusFilter, sourceFilter, dateRange, ticketCountFilter, itemsPerPage]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -150,6 +156,8 @@ const CustomerTableContainer = React.memo(() => {
             isLoading={isLoading}
             itemsPerPage={itemsPerPage}
             onItemsPerPageChange={handleItemsPerPageChange}
+            hasActiveFilters={hasActiveFilters}
+            onClearFilters={resetFilters}
           />
         </ErrorBoundary>
       </div>

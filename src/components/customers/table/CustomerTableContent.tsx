@@ -29,6 +29,8 @@ interface CustomerTableContentProps {
   isLoading: boolean;
   itemsPerPage?: number;
   onItemsPerPageChange?: (value: number) => void;
+  hasActiveFilters?: boolean;
+  onClearFilters?: () => void;
 }
 
 const CustomerTableContent = ({
@@ -48,6 +50,8 @@ const CustomerTableContent = ({
   isLoading,
   itemsPerPage = 10,
   onItemsPerPageChange,
+  hasActiveFilters = false,
+  onClearFilters,
 }: CustomerTableContentProps) => {
   const {
     handleStatusChange,
@@ -94,7 +98,10 @@ const CustomerTableContent = ({
     <>
       <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
         {paginatedCustomers.length === 0 ? (
-          <CustomerEmptyState hasFilters={totalCount === 0} />
+          <CustomerEmptyState 
+            hasFilters={hasActiveFilters} 
+            onClearFilters={onClearFilters}
+          />
         ) : (
           <>
             <div className="overflow-x-auto">
@@ -112,6 +119,7 @@ const CustomerTableContent = ({
                     <SortableHeader field="name">Name</SortableHeader>
                     <SortableHeader field="email">Contact</SortableHeader>
                     <SortableHeader field="status">Status</SortableHeader>
+                    <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wide hidden md:table-cell">Source</TableHead>
                     <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tickets</TableHead>
                     <SortableHeader field="createdAt" className="hidden lg:table-cell">Added</SortableHeader>
                     <TableHead className="w-12" />
@@ -170,7 +178,6 @@ const CustomerTableContent = ({
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
 
-                {/* Page buttons */}
                 {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                   let page: number;
                   if (totalPages <= 5) {

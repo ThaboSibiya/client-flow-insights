@@ -4,7 +4,7 @@ import { Customer } from '@/types/customer';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Ticket, Phone, Mail, MoreHorizontal, Edit, FileText } from 'lucide-react';
+import { Trash2, Ticket, Phone, Mail, MoreHorizontal, Edit, FileText, MessageSquareText, Mic, Globe, Users, Webhook } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Badge } from '@/components/ui/badge';
 import {
@@ -28,6 +28,13 @@ interface CustomerTableRowProps {
   rowIndex: number;
 }
 
+const SOURCE_ICON: Record<string, React.ReactNode> = {
+  'Voice AI Agent': <Mic className="h-3 w-3" />,
+  'Website': <Globe className="h-3 w-3" />,
+  'Referral': <Users className="h-3 w-3" />,
+  'webhook': <Webhook className="h-3 w-3" />,
+};
+
 const CustomerTableRow = ({ 
   customer, 
   isSelected,
@@ -42,14 +49,20 @@ const CustomerTableRow = ({
   const appliedTemplates = customer._appliedTemplates || [];
   
   const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-    }).format(date);
+    try {
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }).format(date);
+    } catch {
+      return '—';
+    }
   };
 
   const ticketCount = customer.ticketCount || 0;
-  const openTickets = (customer.activeTickets || []).filter((t: any) => t.status === 'open' || t.status === 'in-progress').length;
+  const openTickets = (customer.activeTickets || []).filter(
+    (t: any) => t.status === 'open' || t.status === 'in-progress' || t.status === 'in_progress'
+  ).length;
 
   const getKeyTemplateData = () => {
     if (!customData.length) return [];
@@ -150,6 +163,32 @@ const CustomerTableRow = ({
         />
       </TableCell>
 
+      {/* Source */}
+      <TableCell className="py-3 hidden md:table-cell">
+        {customer.source ? (
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="outline" className="text-xs font-normal gap-1 cursor-default">
+                  {SOURCE_ICON[customer.source]}
+                  {customer.source}
+                </Badge>
+              </TooltipTrigger>
+              {customer.reason && (
+                <TooltipContent side="bottom" className="max-w-xs text-xs">
+                  <div className="flex items-start gap-1.5">
+                    <MessageSquareText className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-primary" />
+                    <span>{customer.reason}</span>
+                  </div>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <span className="text-muted-foreground text-xs">—</span>
+        )}
+      </TableCell>
+
       {/* Tickets — compact badge */}
       <TableCell className="py-3">
         <TooltipProvider delayDuration={200}>
@@ -184,7 +223,7 @@ const CustomerTableRow = ({
         {formatDate(customer.createdAt)}
       </TableCell>
 
-      {/* Actions — dropdown only, works on all devices */}
+      {/* Actions */}
       <TableCell className="py-3 w-12">
         <div className="flex justify-end">
           <DropdownMenu>
