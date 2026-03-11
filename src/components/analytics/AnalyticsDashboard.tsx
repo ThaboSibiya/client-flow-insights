@@ -187,6 +187,11 @@ const AnalyticsDashboard: React.FC = () => {
         />
       </div>
 
+      {/* Lead Source Breakdown */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        <LeadSourceBreakdown />
+      </div>
+
       {/* Imported Data Analysis */}
       {activeDataset && importedDataMetrics && (
         <div className="grid lg:grid-cols-2 gap-4">
