@@ -45,6 +45,8 @@ interface DateRange {
 interface UnifiedToolbarProps {
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
+  sourceFilter?: string;
+  onSourceFilterChange?: (value: string) => void;
   searchQuery: string;
   onSearchQueryChange: (value: string) => void;
   dateRange: DateRange;
@@ -63,6 +65,8 @@ interface UnifiedToolbarProps {
 const UnifiedToolbar = ({ 
   statusFilter, 
   onStatusFilterChange, 
+  sourceFilter,
+  onSourceFilterChange,
   searchQuery, 
   onSearchQueryChange,
   dateRange,
@@ -81,12 +85,14 @@ const UnifiedToolbar = ({
 
   const activeFiltersCount = [
     statusFilter !== 'all',
+    sourceFilter && sourceFilter !== 'all',
     dateRange.start || dateRange.end,
     ticketFilter !== 'all'
   ].filter(Boolean).length;
 
   const clearAllFilters = () => {
     onStatusFilterChange('all');
+    onSourceFilterChange?.('all');
     onSearchQueryChange('');
     onDateRangeChange({ start: null, end: null });
     onTicketFilterChange('all');
@@ -193,6 +199,26 @@ const UnifiedToolbar = ({
                 />
               </div>
 
+              {/* Lead Source Filter */}
+              {onSourceFilterChange && (
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Lead Source</label>
+                  <Select value={sourceFilter || 'all'} onValueChange={onSourceFilterChange}>
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Sources</SelectItem>
+                      <SelectItem value="Voice AI Agent">Voice AI Agent</SelectItem>
+                      <SelectItem value="Website">Website</SelectItem>
+                      <SelectItem value="Referral">Referral</SelectItem>
+                      <SelectItem value="webhook">Webhook</SelectItem>
+                      <SelectItem value="none">No Source</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {/* Ticket Filter */}
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">Ticket Status</label>
@@ -280,6 +306,19 @@ const UnifiedToolbar = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onStatusFilterChange('all')}
+                className="h-4 w-4 p-0 hover:bg-transparent"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+          {sourceFilter && sourceFilter !== 'all' && (
+            <Badge variant="secondary" className="text-xs gap-1 pr-1 capitalize">
+              Source: {sourceFilter}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onSourceFilterChange?.('all')}
                 className="h-4 w-4 p-0 hover:bg-transparent"
               >
                 <X className="h-3 w-3" />

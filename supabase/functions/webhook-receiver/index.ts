@@ -453,6 +453,35 @@ async function handleCreateContact(supabase: any, trigger: any, payload: any, en
               },
             });
           }
+
+          // ─── Notify owner about new lead ───
+          const leadSource = normalized.source || 'Webhook';
+          await supabase.from('user_notifications').insert({
+            user_id: trigger.user_id,
+            type: 'lead',
+            title: `New Lead: ${customerName}`,
+            message: `A new lead from ${leadSource} has been added.${normalized.reason ? ` Reason: ${normalized.reason}` : ''}`,
+            link: '/customers',
+            metadata: {
+              customer_id: newCustomer.id,
+              source: leadSource,
+            },
+          });
+
+          // ─── Auto-create ticket from reason ───
+          if (normalized.reason) {
+            const ticketNumber = `TK-${Date.now().toString(36).toUpperCase()}`;
+            await supabase.from('tickets').insert({
+              user_id: trigger.user_id,
+              customer_id: newCustomer.id,
+              ticket_number: ticketNumber,
+              subject: `[${leadSource}] ${customerName} — Inquiry`,
+              description: normalized.reason,
+              status: 'open',
+              priority: 'medium',
+            });
+            console.log(`Auto-created ticket ${ticketNumber} from reason`);
+          }
         }
       }
     } else {

@@ -28,6 +28,7 @@ const CustomerTableHeader = ({
         <TableHead className="font-medium">Email</TableHead>
         <TableHead className="font-medium">Phone</TableHead>
         <TableHead className="font-medium">Status</TableHead>
+        <TableHead className="font-medium">Source</TableHead>
         <TableHead className="font-medium">Tickets</TableHead>
         <TableHead className="font-medium">Created</TableHead>
         <TableHead className="font-medium text-right">Actions</TableHead>

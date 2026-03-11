@@ -5,6 +5,7 @@ import { Customer } from '@/types/customer';
 export interface FilterState {
   search: string;
   status: string;
+  source: string;
   sortBy: string;
   sortOrder: 'asc' | 'desc';
 }
@@ -19,6 +20,7 @@ export const useCustomerFilters = (customers: Customer[]) => {
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     status: 'all',
+    source: 'all',
     sortBy: 'name',
     sortOrder: 'asc'
   });
@@ -59,6 +61,14 @@ export const useCustomerFilters = (customers: Customer[]) => {
     // Apply status filter
     if (filters.status !== 'all') {
       filtered = filtered.filter(customer => customer.status === filters.status);
+    }
+
+    // Apply source filter
+    if (filters.source !== 'all') {
+      filtered = filtered.filter(customer => {
+        if (filters.source === 'none') return !customer.source;
+        return customer.source?.toLowerCase() === filters.source.toLowerCase();
+      });
     }
 
     // Apply date range filter
@@ -129,6 +139,7 @@ export const useCustomerFilters = (customers: Customer[]) => {
     setFilters({
       search: '',
       status: 'all',
+      source: 'all',
       sortBy: 'name',
       sortOrder: 'asc'
     });
@@ -182,6 +193,8 @@ export const useCustomerFilters = (customers: Customer[]) => {
     setSearchQuery: (query: string) => updateFilter('search', query),
     statusFilter: filters.status,
     setStatusFilter: (status: string) => updateFilter('status', status),
+    sourceFilter: filters.source,
+    setSourceFilter: (source: string) => updateFilter('source', source),
     dateRange,
     setDateRange,
     ticketCountFilter,

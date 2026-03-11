@@ -1,6 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { Users, Ticket, TrendingUp, DollarSign, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import LeadSourceBreakdown from './LeadSourceBreakdown';
 import KPIWidget from './widgets/KPIWidget';
 import ChartWidget from './widgets/ChartWidget';
 import TableWidget from './widgets/TableWidget';
@@ -184,6 +185,11 @@ const AnalyticsDashboard: React.FC = () => {
           dataKey="value"
           height={220}
         />
+      </div>
+
+      {/* Lead Source Breakdown */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        <LeadSourceBreakdown />
       </div>
 
       {/* Imported Data Analysis */}
