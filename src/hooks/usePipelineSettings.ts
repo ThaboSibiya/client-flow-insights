@@ -94,7 +94,7 @@ export const DISPLAY_DEFAULTS: DisplayConfig = {
 
 // ── Generic hook for a single pipeline settings slice ─────────────────────────
 
-export function usePipelineSetting<T extends Record<string, unknown>>(
+export function usePipelineSetting<T extends object>(
   settingKey: string,
   defaults: T,
 ) {
