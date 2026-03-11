@@ -85,12 +85,14 @@ const UnifiedToolbar = ({
 
   const activeFiltersCount = [
     statusFilter !== 'all',
+    sourceFilter && sourceFilter !== 'all',
     dateRange.start || dateRange.end,
     ticketFilter !== 'all'
   ].filter(Boolean).length;
 
   const clearAllFilters = () => {
     onStatusFilterChange('all');
+    onSourceFilterChange?.('all');
     onSearchQueryChange('');
     onDateRangeChange({ start: null, end: null });
     onTicketFilterChange('all');
