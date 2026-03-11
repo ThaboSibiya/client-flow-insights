@@ -22,6 +22,8 @@ const CustomerTableContainer = React.memo(() => {
     setSearchQuery,
     statusFilter,
     setStatusFilter,
+    sourceFilter,
+    setSourceFilter,
     dateRange,
     setDateRange,
     ticketCountFilter,
