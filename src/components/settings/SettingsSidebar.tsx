@@ -125,6 +125,13 @@ const SettingsSidebar = () => {
           requiredRole: 'admin'
         },
         { 
+          path: '/settings/communications', 
+          icon: MessageSquare, 
+          label: 'Communications', 
+          description: 'SMS & email provider settings',
+          requiredRole: 'admin'
+        },
+        { 
           path: '/settings/automations', 
           icon: Zap, 
           label: 'Automations', 

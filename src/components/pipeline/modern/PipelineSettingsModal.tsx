@@ -12,10 +12,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { MessageSquare, Mail } from "lucide-react";
-import TwilioSettings from '../settings/TwilioSettings';
-import EmailSettings from '../settings/EmailSettings';
-import TelnyxSettings from '../settings/TelnyxSettings';
+import { Clock, Shuffle, Trophy, Eye, Zap } from "lucide-react";
+import StaleLeadSettings from '../settings/StaleLeadSettings';
+import LeadRoutingSettings from '../settings/LeadRoutingSettings';
+import WinLossSettings from '../settings/WinLossSettings';
+import PipelineDisplaySettings from '../settings/PipelineDisplaySettings';
+import StageAutomationSettings from '../settings/StageAutomationSettings';
 
 interface PipelineSettingsModalProps {
   open: boolean;
@@ -29,45 +31,69 @@ const PipelineSettingsModal = ({ open, onOpenChange }: PipelineSettingsModalProp
         <SheetHeader>
           <SheetTitle>Pipeline Settings</SheetTitle>
           <SheetDescription>
-            Configure communication integrations for your pipeline
+            Configure pipeline behavior, lead routing, and display preferences
           </SheetDescription>
         </SheetHeader>
 
         <div className="mt-6">
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="sms-twilio">
+          <Accordion type="single" collapsible defaultValue="stale-leads" className="w-full">
+            <AccordionItem value="stale-leads">
               <AccordionTrigger className="text-sm">
                 <div className="flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  Twilio SMS
+                  <Clock className="h-4 w-4 text-amber-500" />
+                  Stale Lead Detection
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <TwilioSettings />
+                <StaleLeadSettings />
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="sms-telnyx">
+            <AccordionItem value="lead-routing">
               <AccordionTrigger className="text-sm">
                 <div className="flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  Telnyx SMS
+                  <Shuffle className="h-4 w-4 text-blue-500" />
+                  Lead Routing & Assignment
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <TelnyxSettings />
+                <LeadRoutingSettings />
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="email">
+            <AccordionItem value="stage-automations">
               <AccordionTrigger className="text-sm">
                 <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Email Settings
+                  <Zap className="h-4 w-4 text-amber-500" />
+                  Stage Automations
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <EmailSettings />
+                <StageAutomationSettings />
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="win-loss">
+              <AccordionTrigger className="text-sm">
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-emerald-500" />
+                  Win/Loss Tracking
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <WinLossSettings />
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="display">
+              <AccordionTrigger className="text-sm">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-violet-500" />
+                  Display Preferences
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <PipelineDisplaySettings />
               </AccordionContent>
             </AccordionItem>
           </Accordion>
