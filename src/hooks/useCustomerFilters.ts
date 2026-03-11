@@ -131,6 +131,7 @@ export const useCustomerFilters = (customers: Customer[]) => {
     setFilters({
       search: '',
       status: 'all',
+      source: 'all',
       sortBy: 'name',
       sortOrder: 'asc'
     });
