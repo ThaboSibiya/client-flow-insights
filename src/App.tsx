@@ -50,6 +50,7 @@ import AutomationSettings from "./components/settings/sections/AutomationSetting
 import WebhookSettings from "./components/settings/sections/WebhookSettings";
 import SecuritySettings from "./components/settings/sections/SecuritySettings";
 import BillingSettings from "./components/settings/sections/BillingSettings";
+import CommunicationSettings from "./components/settings/sections/CommunicationSettings";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -206,6 +207,9 @@ const App = () => (
                           } />
                           <Route path="ai-agent" element={
                             <AdminProtectedRoute element={<AiAgentSettingsSection />} redirectTo="/settings/general" />
+                          } />
+                          <Route path="communications" element={
+                            <AdminProtectedRoute element={<CommunicationSettings />} redirectTo="/settings/general" />
                           } />
                           <Route path="automations" element={
                             <AdminProtectedRoute element={<AutomationSettings />} redirectTo="/settings/general" />

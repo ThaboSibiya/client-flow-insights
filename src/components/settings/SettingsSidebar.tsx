@@ -17,7 +17,8 @@ import {
   Search,
   ChevronDown,
   ChevronRight,
-  Lock
+  Lock,
+  MessageSquare
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -122,6 +123,13 @@ const SettingsSidebar = () => {
           icon: Bot, 
           label: 'AI Agent', 
           description: 'Voice agent configuration',
+          requiredRole: 'admin'
+        },
+        { 
+          path: '/settings/communications', 
+          icon: MessageSquare, 
+          label: 'Communications', 
+          description: 'SMS & email provider settings',
           requiredRole: 'admin'
         },
         { 
