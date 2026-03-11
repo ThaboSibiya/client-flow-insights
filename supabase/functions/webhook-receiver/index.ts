@@ -387,6 +387,8 @@ async function handleCreateContact(supabase: any, trigger: any, payload: any, en
           if (statusResult.valid && statusResult.value) updateFields.status = statusResult.value;
         }
         if (normalized.address) updateFields.address = normalized.address;
+        if (normalized.reason) updateFields.reason = normalized.reason;
+        if (normalized.source) updateFields.source = normalized.source;
         if (normalized.notes) {
           updateFields.notes = `[Webhook ${new Date().toISOString()}] Source: ${normalized.source || 'API'}\n${normalized.notes}`;
         }
@@ -412,6 +414,8 @@ async function handleCreateContact(supabase: any, trigger: any, payload: any, en
             })(),
             address: normalized.address || null,
             contact_person: normalized.contact_person || null,
+            reason: normalized.reason || null,
+            source: normalized.source || null,
             notes: normalized.source ? `Lead source: ${normalized.source}` : 'Created via webhook',
           })
           .select('id')
@@ -470,7 +474,8 @@ async function handleCreateContact(supabase: any, trigger: any, payload: any, en
           email: 'string (required)',
           phone: 'string (optional)',
           status: 'string (optional) — allowed: "new", "existing", "pending", "finalised" (case-insensitive, aliases like "qualified"→"existing" supported)',
-          source: 'string (optional)',
+          source: 'string (optional) — e.g. "Voice AI Agent", "Website", "Referral"',
+          reason: 'string (optional) — AI summary of caller pain points or inquiry reason',
           address: 'string (optional)',
           contact_person: 'string (optional)',
           notes: 'string (optional)',
@@ -621,19 +626,20 @@ function normalizePayload(raw: Record<string, any>): Record<string, string | nul
   else if (raw.lead && typeof raw.lead === 'object') data = raw.lead;
   else if (raw.payload && typeof raw.payload === 'object') data = raw.payload;
 
-  const lower: Record<string, any> = {};
-  for (const [key, value] of Object.entries(data)) {
-    lower[key.toLowerCase().replace(/[\s-]/g, '_')] = value;
-  }
+      const lower: Record<string, any> = {};
+      for (const [key, value] of Object.entries(data)) {
+        lower[key.toLowerCase().replace(/[\s-]/g, '_')] = value;
+      }
 
-  return {
-    name: lower.name || lower.full_name || lower.customer_name || lower.lead_name || null,
-    email: lower.email || lower.email_address || lower.customer_email || null,
-    phone: lower.phone || lower.phone_number || lower.mobile || lower.telephone || null,
-    status: lower.status || lower.lead_status || null,
-    source: lower.source || lower.lead_source || lower.utm_source || lower.channel || null,
-    address: lower.address || lower.company_address || lower.location || null,
-    contact_person: lower.contact_person || lower.contact || null,
-    notes: lower.notes || lower.message || lower.description || lower.comments || null,
-  };
+      return {
+        name: lower.name || lower.full_name || lower.customer_name || lower.lead_name || null,
+        email: lower.email || lower.email_address || lower.customer_email || null,
+        phone: lower.phone || lower.phone_number || lower.mobile || lower.telephone || null,
+        status: lower.status || lower.lead_status || null,
+        source: lower.source || lower.lead_source || lower.utm_source || lower.channel || null,
+        reason: lower.reason || lower.pain_point || lower.inquiry_reason || lower.call_reason || null,
+        address: lower.address || lower.company_address || lower.location || null,
+        contact_person: lower.contact_person || lower.contact || null,
+        notes: lower.notes || lower.message || lower.description || lower.comments || null,
+      };
 }

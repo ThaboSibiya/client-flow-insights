@@ -64,6 +64,8 @@ export interface Customer {
   assigned_to?: string; // Employee ID who is assigned to this customer
   assigned_to_email?: string; // Email of assigned employee
   territory?: string; // Customer's territory/region
+  reason?: string; // AI-generated summary of caller pain points
+  source?: string; // Lead source channel (e.g. Voice AI Agent, Website)
   // Performance optimization - pre-loaded related data
   _customData?: CustomerCustomData[];
   _appliedTemplates?: CustomerTemplate[];

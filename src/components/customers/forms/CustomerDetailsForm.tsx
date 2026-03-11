@@ -1,4 +1,5 @@
 import React from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Customer, CustomerStatus } from '@/types/customer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -94,6 +95,21 @@ const CustomerDetailsForm = ({ customer, onClose }: CustomerDetailsFormProps) =>
           </div>
         </div>
         
+        {/* Lead Source & Reason (read-only context from Voice AI / webhooks) */}
+        {(customer.source || customer.reason) && (
+          <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Lead Intelligence</p>
+            {customer.source && (
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">{customer.source}</Badge>
+              </div>
+            )}
+            {customer.reason && (
+              <p className="text-sm text-foreground leading-relaxed">{customer.reason}</p>
+            )}
+          </div>
+        )}
+
         <div className="space-y-1.5">
           <Label htmlFor="notes" className="text-foreground text-sm">Notes</Label>
           <Textarea
