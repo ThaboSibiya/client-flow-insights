@@ -39,7 +39,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
       {/* Active indicator */}
       {isActive && (
         <div className="absolute -top-2.5 right-3">
-          <Badge className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 font-semibold shadow-sm">
+          <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5 font-semibold shadow-sm">
             ACTIVE
           </Badge>
         </div>
