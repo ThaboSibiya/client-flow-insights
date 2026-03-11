@@ -20,6 +20,7 @@ export const useCustomerFilters = (customers: Customer[]) => {
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     status: 'all',
+    source: 'all',
     sortBy: 'name',
     sortOrder: 'asc'
   });
