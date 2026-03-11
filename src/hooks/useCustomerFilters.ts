@@ -5,6 +5,7 @@ import { Customer } from '@/types/customer';
 export interface FilterState {
   search: string;
   status: string;
+  source: string;
   sortBy: string;
   sortOrder: 'asc' | 'desc';
 }
