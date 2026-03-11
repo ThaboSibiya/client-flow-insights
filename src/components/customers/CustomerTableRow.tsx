@@ -56,6 +56,15 @@ const CustomerTableRow = ({
         />
       </TableCell>
       <TableCell>
+        {customer.source ? (
+          <Badge variant="outline" className="text-xs font-normal">
+            {customer.source}
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground text-xs">—</span>
+        )}
+      </TableCell>
+      <TableCell>
         <TicketIndicator 
           tickets={customer.activeTickets || []}
           ticketCount={customer.ticketCount || 0}

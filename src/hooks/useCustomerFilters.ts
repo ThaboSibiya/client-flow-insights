@@ -185,6 +185,8 @@ export const useCustomerFilters = (customers: Customer[]) => {
     setSearchQuery: (query: string) => updateFilter('search', query),
     statusFilter: filters.status,
     setStatusFilter: (status: string) => updateFilter('status', status),
+    sourceFilter: filters.source,
+    setSourceFilter: (source: string) => updateFilter('source', source),
     dateRange,
     setDateRange,
     ticketCountFilter,
