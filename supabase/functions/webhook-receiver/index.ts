@@ -412,6 +412,8 @@ async function handleCreateContact(supabase: any, trigger: any, payload: any, en
             })(),
             address: normalized.address || null,
             contact_person: normalized.contact_person || null,
+            reason: normalized.reason || null,
+            source: normalized.source || null,
             notes: normalized.source ? `Lead source: ${normalized.source}` : 'Created via webhook',
           })
           .select('id')
