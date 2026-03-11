@@ -621,19 +621,20 @@ function normalizePayload(raw: Record<string, any>): Record<string, string | nul
   else if (raw.lead && typeof raw.lead === 'object') data = raw.lead;
   else if (raw.payload && typeof raw.payload === 'object') data = raw.payload;
 
-  const lower: Record<string, any> = {};
-  for (const [key, value] of Object.entries(data)) {
-    lower[key.toLowerCase().replace(/[\s-]/g, '_')] = value;
-  }
+      const lower: Record<string, any> = {};
+      for (const [key, value] of Object.entries(data)) {
+        lower[key.toLowerCase().replace(/[\s-]/g, '_')] = value;
+      }
 
-  return {
-    name: lower.name || lower.full_name || lower.customer_name || lower.lead_name || null,
-    email: lower.email || lower.email_address || lower.customer_email || null,
-    phone: lower.phone || lower.phone_number || lower.mobile || lower.telephone || null,
-    status: lower.status || lower.lead_status || null,
-    source: lower.source || lower.lead_source || lower.utm_source || lower.channel || null,
-    address: lower.address || lower.company_address || lower.location || null,
-    contact_person: lower.contact_person || lower.contact || null,
-    notes: lower.notes || lower.message || lower.description || lower.comments || null,
-  };
+      return {
+        name: lower.name || lower.full_name || lower.customer_name || lower.lead_name || null,
+        email: lower.email || lower.email_address || lower.customer_email || null,
+        phone: lower.phone || lower.phone_number || lower.mobile || lower.telephone || null,
+        status: lower.status || lower.lead_status || null,
+        source: lower.source || lower.lead_source || lower.utm_source || lower.channel || null,
+        reason: lower.reason || lower.pain_point || lower.inquiry_reason || lower.call_reason || null,
+        address: lower.address || lower.company_address || lower.location || null,
+        contact_person: lower.contact_person || lower.contact || null,
+        notes: lower.notes || lower.message || lower.description || lower.comments || null,
+      };
 }
