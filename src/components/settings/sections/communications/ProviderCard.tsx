@@ -58,7 +58,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
         <div className="flex items-center gap-2">
           <h4 className="font-semibold text-foreground">{name}</h4>
           {isConfigured && !isActive && (
-            <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+            <CheckCircle className="h-3.5 w-3.5 text-primary" />
           )}
         </div>
         <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">{description}</p>

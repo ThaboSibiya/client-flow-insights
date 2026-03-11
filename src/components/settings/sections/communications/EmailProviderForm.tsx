@@ -128,7 +128,7 @@ const EmailProviderForm: React.FC<EmailProviderFormProps> = ({
         </button>
         <div className="flex items-center gap-2">
           {isActiveProvider ? (
-            <Badge className="bg-emerald-600 text-white">Active Provider</Badge>
+            <Badge className="bg-primary text-primary-foreground">Active Provider</Badge>
           ) : (
             <Button variant="outline" size="sm" onClick={onSetActive}>
               Set as Active
