@@ -45,6 +45,8 @@ interface DateRange {
 interface UnifiedToolbarProps {
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
+  sourceFilter?: string;
+  onSourceFilterChange?: (value: string) => void;
   searchQuery: string;
   onSearchQueryChange: (value: string) => void;
   dateRange: DateRange;
