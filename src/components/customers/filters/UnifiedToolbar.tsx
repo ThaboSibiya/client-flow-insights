@@ -199,6 +199,26 @@ const UnifiedToolbar = ({
                 />
               </div>
 
+              {/* Lead Source Filter */}
+              {onSourceFilterChange && (
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Lead Source</label>
+                  <Select value={sourceFilter || 'all'} onValueChange={onSourceFilterChange}>
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Sources</SelectItem>
+                      <SelectItem value="Voice AI Agent">Voice AI Agent</SelectItem>
+                      <SelectItem value="Website">Website</SelectItem>
+                      <SelectItem value="Referral">Referral</SelectItem>
+                      <SelectItem value="webhook">Webhook</SelectItem>
+                      <SelectItem value="none">No Source</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {/* Ticket Filter */}
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">Ticket Status</label>
