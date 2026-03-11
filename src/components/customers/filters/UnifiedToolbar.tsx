@@ -65,6 +65,8 @@ interface UnifiedToolbarProps {
 const UnifiedToolbar = ({ 
   statusFilter, 
   onStatusFilterChange, 
+  sourceFilter,
+  onSourceFilterChange,
   searchQuery, 
   onSearchQueryChange,
   dateRange,
