@@ -1,9 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Camera, ImagePlus, X, Loader2 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { JobPhoto } from '../types';
+import { cn } from '@/lib/utils';
 
 interface PhotoUploaderProps {
   photos: JobPhoto[];
@@ -11,10 +13,17 @@ interface PhotoUploaderProps {
   customerId: string;
 }
 
+const PHOTO_TYPES: { value: JobPhoto['type']; label: string }[] = [
+  { value: 'before', label: 'Before' },
+  { value: 'after', label: 'After' },
+  { value: 'general', label: 'General' },
+];
+
 export const PhotoUploader = ({ photos, onPhotosChange, customerId }: PhotoUploaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [pendingType, setPendingType] = useState<JobPhoto['type']>('general');
 
   const uploadFile = async (file: File, type: JobPhoto['type']) => {
     setUploading(true);
@@ -36,7 +45,6 @@ export const PhotoUploader = ({ photos, onPhotosChange, customerId }: PhotoUploa
         .from('ticket-attachments')
         .getPublicUrl(filePath);
 
-      // Use signed URL since bucket is private
       const { data: signedData } = await supabase.storage
         .from('ticket-attachments')
         .createSignedUrl(filePath, 3600);
@@ -75,10 +83,8 @@ export const PhotoUploader = ({ photos, onPhotosChange, customerId }: PhotoUploa
         toast({ title: "File too large", description: "Max 10MB per photo", variant: "destructive" });
         continue;
       }
-      await uploadFile(file, 'general');
+      await uploadFile(file, pendingType);
     }
-
-    // Reset input
     e.target.value = '';
   };
 
@@ -91,29 +97,65 @@ export const PhotoUploader = ({ photos, onPhotosChange, customerId }: PhotoUploa
     onPhotosChange(photos.filter(p => p.id !== photo.id));
   };
 
-  return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-foreground">Photos / Proof of Work</label>
-      
-      {/* Photo grid */}
-      {photos.length > 0 && (
+  const beforePhotos = photos.filter(p => p.type === 'before');
+  const afterPhotos = photos.filter(p => p.type === 'after');
+  const generalPhotos = photos.filter(p => p.type === 'general');
+
+  const renderPhotoGroup = (groupPhotos: JobPhoto[], label: string) => {
+    if (groupPhotos.length === 0) return null;
+    return (
+      <div className="space-y-1.5">
+        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
         <div className="grid grid-cols-3 gap-2">
-          {photos.map((photo) => (
+          {groupPhotos.map((photo) => (
             <div key={photo.id} className="relative group aspect-square rounded-md overflow-hidden border border-border bg-muted">
-              <img
-                src={photo.url}
-                alt={photo.name}
-                className="w-full h-full object-cover"
-              />
+              <img src={photo.url} alt={photo.name} className="w-full h-full object-cover" />
+              <Badge
+                variant="secondary"
+                className="absolute bottom-1 left-1 text-[9px] px-1 py-0 h-4 bg-background/80 backdrop-blur-sm"
+              >
+                {photo.type}
+              </Badge>
               <button
                 type="button"
                 onClick={() => removePhoto(photo)}
-                className="absolute top-1 right-1 h-5 w-5 rounded-full bg-background/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-1 right-1 h-5 w-5 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <X className="h-3 w-3 text-destructive" />
               </button>
             </div>
           ))}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-3">
+      <label className="text-sm font-medium text-foreground">Photos / Proof of Work</label>
+
+      {/* Photo type selector */}
+      <div className="flex gap-1.5">
+        {PHOTO_TYPES.map((pt) => (
+          <Button
+            key={pt.value}
+            type="button"
+            variant={pendingType === pt.value ? 'default' : 'outline'}
+            size="sm"
+            className="flex-1 text-xs h-8"
+            onClick={() => setPendingType(pt.value)}
+          >
+            {pt.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Photo grid grouped by type */}
+      {photos.length > 0 && (
+        <div className="space-y-3">
+          {renderPhotoGroup(beforePhotos, 'Before')}
+          {renderPhotoGroup(afterPhotos, 'After')}
+          {renderPhotoGroup(generalPhotos, 'General')}
         </div>
       )}
 
@@ -146,24 +188,12 @@ export const PhotoUploader = ({ photos, onPhotosChange, customerId }: PhotoUploa
       {photos.length >= 6 && (
         <p className="text-[11px] text-muted-foreground">Maximum 6 photos reached</p>
       )}
+      {photos.length === 0 && (
+        <p className="text-[11px] text-muted-foreground">Select a photo type above, then take or upload a photo</p>
+      )}
 
-      {/* Hidden file inputs */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        className="hidden"
-        onChange={handleFileSelect}
-      />
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={handleFileSelect}
-      />
+      <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelect} />
+      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
     </div>
   );
 };
