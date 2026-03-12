@@ -164,23 +164,21 @@ export const PhotoUploader = ({ photos, onPhotosChange, customerId }: PhotoUploa
         <Button
           type="button"
           variant="outline"
-          size="sm"
-          className="flex-1 gap-1.5 text-xs"
+          className="flex-1 gap-1.5 h-11 text-sm touch-target"
           onClick={() => cameraInputRef.current?.click()}
           disabled={uploading || photos.length >= 6}
         >
-          {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
           Take Photo
         </Button>
         <Button
           type="button"
           variant="outline"
-          size="sm"
-          className="flex-1 gap-1.5 text-xs"
+          className="flex-1 gap-1.5 h-11 text-sm touch-target"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading || photos.length >= 6}
         >
-          {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />}
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
           Upload
         </Button>
       </div>
