@@ -22,7 +22,8 @@ export const JobCompletionStepper = ({ steps }: JobCompletionStepperProps) => {
           <div className="flex flex-col items-center gap-1 flex-1 min-w-0">
             <div
               className={cn(
-                'h-7 w-7 rounded-full flex items-center justify-center transition-all duration-200 shrink-0',
+                'rounded-full flex items-center justify-center transition-all duration-200 shrink-0',
+                'h-8 w-8 sm:h-7 sm:w-7',
                 step.completed
                   ? 'bg-primary text-primary-foreground'
                   : step.active
@@ -31,14 +32,15 @@ export const JobCompletionStepper = ({ steps }: JobCompletionStepperProps) => {
               )}
             >
               {step.completed ? (
-                <Check className="h-3.5 w-3.5" />
+                <Check className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
               ) : (
-                <span className="[&>svg]:h-3 [&>svg]:w-3">{step.icon}</span>
+                <span className="[&>svg]:h-3.5 [&>svg]:w-3.5 sm:[&>svg]:h-3 sm:[&>svg]:w-3">{step.icon}</span>
               )}
             </div>
             <span
               className={cn(
-                'text-[10px] font-medium text-center leading-tight truncate w-full',
+                'font-medium text-center leading-tight truncate w-full',
+                'text-[11px] sm:text-[10px]',
                 step.active ? 'text-primary' : 'text-muted-foreground'
               )}
             >
