@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { DebtorNote, NoteType, NotePriority } from '@/types/finance';
 import { Plus, Phone, Bell, Calendar, AlertTriangle, FileText } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuth } from '@/context/AuthContext';
 
 interface DebtorNotesPanelProps {
   notes: DebtorNote[];
@@ -18,27 +19,26 @@ interface DebtorNotesPanelProps {
 }
 
 const DebtorNotesPanel = ({ notes, onAddNote, hasMore = false, onLoadMore, loadingMore = false }: DebtorNotesPanelProps) => {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [noteType, setNoteType] = useState<NoteType>('general');
   const [priority, setPriority] = useState<NotePriority>('normal');
   const [content, setContent] = useState('');
   const [followUpDate, setFollowUpDate] = useState('');
-  const [createdBy, setCreatedBy] = useState('');
 
   const handleSubmit = () => {
-    if (!content.trim() || !createdBy.trim()) return;
+    if (!content.trim()) return;
 
     onAddNote({
       note_type: noteType,
       note_content: content,
       priority,
       follow_up_date: followUpDate || null,
-      created_by: createdBy
+      created_by: user?.email || 'Unknown',
     });
 
     setContent('');
     setFollowUpDate('');
-    setCreatedBy('');
     setNoteType('general');
     setPriority('normal');
     setOpen(false);
@@ -56,11 +56,11 @@ const DebtorNotesPanel = ({ notes, onAddNote, hasMore = false, onLoadMore, loadi
 
   const getPriorityColor = (priority: NotePriority) => {
     switch (priority) {
-      case 'urgent': return 'text-red-600 bg-red-50';
+      case 'urgent': return 'text-destructive bg-destructive/10';
       case 'high': return 'text-orange-600 bg-orange-50';
-      case 'normal': return 'text-blue-600 bg-blue-50';
-      case 'low': return 'text-gray-600 bg-gray-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case 'normal': return 'text-primary bg-primary/10';
+      case 'low': return 'text-muted-foreground bg-muted';
+      default: return 'text-muted-foreground bg-muted';
     }
   };
 
@@ -124,15 +124,6 @@ const DebtorNotesPanel = ({ notes, onAddNote, hasMore = false, onLoadMore, loadi
               </div>
 
               <div>
-                <label className="text-sm font-medium">Created By</label>
-                <Input
-                  value={createdBy}
-                  onChange={(e) => setCreatedBy(e.target.value)}
-                  placeholder="Your name"
-                />
-              </div>
-
-              <div>
                 <label className="text-sm font-medium">Follow-up Date (Optional)</label>
                 <Input
                   type="date"
@@ -141,7 +132,7 @@ const DebtorNotesPanel = ({ notes, onAddNote, hasMore = false, onLoadMore, loadi
                 />
               </div>
 
-              <Button onClick={handleSubmit} className="w-full">
+              <Button onClick={handleSubmit} className="w-full" disabled={!content.trim()}>
                 Add Note
               </Button>
             </div>

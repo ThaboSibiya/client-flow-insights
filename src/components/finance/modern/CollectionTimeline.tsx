@@ -22,12 +22,14 @@ interface CollectionTimelineProps {
   daysOverdue: number;
   onSendReminder: (type: string) => void;
   compact?: boolean;
+  sendingReminder?: boolean;
 }
 
 const CollectionTimeline = ({ 
   daysOverdue, 
   onSendReminder,
-  compact = false 
+  compact = false,
+  sendingReminder = false,
 }: CollectionTimelineProps) => {
   const steps: TimelineStep[] = [
     {
@@ -83,7 +85,6 @@ const CollectionTimeline = ({
   };
 
   if (compact) {
-    // Compact horizontal timeline
     return (
       <div className="flex items-center gap-1 p-2 bg-muted/50 rounded-lg">
         {steps.map((step, index) => (
@@ -111,7 +112,6 @@ const CollectionTimeline = ({
     );
   }
 
-  // Full vertical timeline
   return (
     <div className="space-y-0">
       {steps.map((step, index) => (
@@ -154,8 +154,13 @@ const CollectionTimeline = ({
                     variant="outline"
                     className="h-7 text-xs"
                     onClick={() => onSendReminder(step.reminderType)}
+                    disabled={sendingReminder}
                   >
-                    <Send className="h-3 w-3 mr-1" />
+                    {sendingReminder ? (
+                      <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    ) : (
+                      <Send className="h-3 w-3 mr-1" />
+                    )}
                     Send
                   </Button>
                 )}
@@ -165,9 +170,11 @@ const CollectionTimeline = ({
                     size="sm"
                     variant="destructive"
                     className="h-7 text-xs"
+                    onClick={() => onSendReminder(step.reminderType)}
+                    disabled={sendingReminder}
                   >
                     <AlertTriangle className="h-3 w-3 mr-1" />
-                    Start
+                    Escalate
                   </Button>
                 )}
               </div>
