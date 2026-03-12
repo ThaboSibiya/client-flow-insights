@@ -119,9 +119,9 @@ export const PhotoUploader = ({ photos, onPhotosChange, customerId }: PhotoUploa
               <button
                 type="button"
                 onClick={() => removePhoto(photo)}
-                className="absolute top-1 right-1 h-5 w-5 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-1 right-1 h-7 w-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-target"
               >
-                <X className="h-3 w-3 text-destructive" />
+                <X className="h-3.5 w-3.5 text-destructive" />
               </button>
             </div>
           ))}
