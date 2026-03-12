@@ -10,6 +10,8 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useToast } from '@/hooks/use-toast';
 import { generateFinanceReport, downloadReport } from '@/utils/financeReportGenerator';
+import { supabase } from '@/integrations/supabase/client';
+import { financeEventBus, FINANCE_EVENTS } from '@/stores/financeStore';
 
 import FinanceHeader from './FinanceHeader';
 import PriorityDebtorList from './PriorityDebtorList';
@@ -66,6 +68,39 @@ const FinanceLayout = () => {
       });
     }
   }, [debtors, toast]);
+
+  const handleSendReminderForDebtor = useCallback(async (debtor: DebtorCustomer) => {
+    try {
+      const invoiceIds = debtor.overdue_invoices?.map(inv => inv.id) || [];
+      
+      const { error } = await supabase.functions.invoke('send-reminder-with-invoices', {
+        body: {
+          customerId: debtor.id,
+          reminderType: 'payment_reminder',
+          invoiceIds,
+        },
+      });
+
+      if (error) throw error;
+
+      financeEventBus.emit(FINANCE_EVENTS.REMINDER_SENT, { 
+        customerId: debtor.id, 
+        reminderType: 'payment_reminder' 
+      });
+
+      toast({
+        title: 'Reminder Sent',
+        description: `Payment reminder sent to ${debtor.name}.`,
+      });
+      refetch();
+    } catch (error) {
+      toast({
+        title: 'Failed to Send',
+        description: 'Could not send reminder. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  }, [toast, refetch]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts([
@@ -162,12 +197,7 @@ const FinanceLayout = () => {
               <DebtorDetailView
                 debtor={selectedDebtor}
                 onRefresh={refetch}
-                onSendReminder={() => {
-                  toast({
-                    title: 'Opening Reminder',
-                    description: 'Prepare to send reminder to ' + selectedDebtor.name,
-                  });
-                }}
+                onSendReminder={() => handleSendReminderForDebtor(selectedDebtor)}
               />
             </div>
           </div>
@@ -222,12 +252,7 @@ const FinanceLayout = () => {
               <DebtorDetailView
                 debtor={selectedDebtor}
                 onRefresh={refetch}
-                onSendReminder={() => {
-                  toast({
-                    title: 'Opening Reminder',
-                    description: 'Prepare to send reminder to ' + selectedDebtor.name,
-                  });
-                }}
+                onSendReminder={() => handleSendReminderForDebtor(selectedDebtor)}
               />
             ) : (
               <div className="h-full flex items-center justify-center text-muted-foreground">

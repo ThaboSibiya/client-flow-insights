@@ -2,26 +2,26 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Mail, 
   Phone, 
-  MapPin, 
   FileText,
   MessageSquare,
   Clock,
   Send,
   Plus,
-  ExternalLink,
-  Copy
+  Copy,
+  CheckCircle
 } from 'lucide-react';
 import { DebtorCustomer } from '@/hooks/useDebtorData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { financeEventBus, FINANCE_EVENTS } from '@/stores/financeStore';
 import CollectionTimeline from './CollectionTimeline';
 import DebtorNotesPanel from '@/components/finance/DebtorNotesPanel';
 import ReminderHistoryPanel from '@/components/finance/ReminderHistoryPanel';
@@ -37,8 +37,10 @@ type ActiveSection = 'overview' | 'invoices' | 'notes' | 'history';
 
 const DebtorDetailView = ({ debtor, onRefresh, onSendReminder }: DebtorDetailViewProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeSection, setActiveSection] = useState<ActiveSection>('overview');
   const [notesPage, setNotesPage] = useState(1);
+  const [sendingReminder, setSendingReminder] = useState(false);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-ZA', {
@@ -62,12 +64,32 @@ const DebtorDetailView = ({ debtor, onRefresh, onSendReminder }: DebtorDetailVie
     },
   });
 
+  // Fetch last reminder date
+  const { data: lastReminder } = useQuery({
+    queryKey: ['last-reminder', debtor.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('finance_audit_logs')
+        .select('created_at')
+        .eq('customer_id', debtor.id)
+        .eq('action_type', 'reminder_sent')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) return null;
+      return data;
+    },
+  });
+
   const notes = rawNotes as DebtorNote[];
 
   const handleAddNote = async (noteData: any) => {
+    if (!user) return;
     try {
       const { error } = await supabase.from('debtor_notes').insert({
         customer_id: debtor.id,
+        user_id: user.id,
+        created_by: user.email || 'Unknown',
         ...noteData,
       });
       if (error) throw error;
@@ -78,12 +100,65 @@ const DebtorDetailView = ({ debtor, onRefresh, onSendReminder }: DebtorDetailVie
     }
   };
 
-  const handleSendReminder = (type: string) => {
-    toast({
-      title: 'Reminder Sent',
-      description: `${type.replace('_', ' ')} reminder has been sent.`,
-    });
-    onRefresh();
+  const handleSendReminder = async (reminderType: string) => {
+    setSendingReminder(true);
+    try {
+      const invoiceIds = debtor.overdue_invoices?.map(inv => inv.id) || [];
+
+      const { error } = await supabase.functions.invoke('send-reminder-with-invoices', {
+        body: {
+          customerId: debtor.id,
+          reminderType,
+          invoiceIds,
+        },
+      });
+
+      if (error) throw error;
+
+      financeEventBus.emit(FINANCE_EVENTS.REMINDER_SENT, { 
+        customerId: debtor.id, 
+        reminderType 
+      });
+
+      toast({
+        title: 'Reminder Sent',
+        description: `${reminderType.replace(/_/g, ' ')} sent to ${debtor.name}.`,
+      });
+      onRefresh();
+    } catch (error) {
+      console.error('Error sending reminder:', error);
+      toast({
+        title: 'Failed to Send',
+        description: 'Could not send reminder. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSendingReminder(false);
+    }
+  };
+
+  const handleMarkPaid = async (invoiceId: string) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ status: 'paid', paid_date: new Date().toISOString() })
+        .eq('id', invoiceId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      financeEventBus.emit(FINANCE_EVENTS.INVOICE_UPDATED, {
+        customerId: debtor.id,
+        invoiceId,
+        newStatus: 'paid',
+      });
+
+      toast({ title: 'Invoice Updated', description: 'Invoice marked as paid.' });
+      onRefresh();
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update invoice.', variant: 'destructive' });
+    }
   };
 
   const copyToClipboard = (text: string, label: string) => {
@@ -133,7 +208,6 @@ const DebtorDetailView = ({ debtor, onRefresh, onSendReminder }: DebtorDetailVie
               >
                 <Mail className="h-3.5 w-3.5" />
                 <span className="truncate">{debtor.email}</span>
-                <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100" />
               </button>
               {debtor.phone && (
                 <button 
@@ -144,13 +218,28 @@ const DebtorDetailView = ({ debtor, onRefresh, onSendReminder }: DebtorDetailVie
                   <span>{debtor.phone}</span>
                 </button>
               )}
+              {lastReminder?.created_at && (
+                <span className="flex items-center gap-1 text-xs">
+                  <Clock className="h-3 w-3" />
+                  Last contacted: {format(new Date(lastReminder.created_at), 'MMM d')}
+                </span>
+              )}
             </div>
           </div>
 
           {/* Quick Actions */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Button size="sm" variant="outline" onClick={onSendReminder}>
-              <Send className="h-4 w-4 mr-2" />
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => handleSendReminder('payment_reminder')}
+              disabled={sendingReminder}
+            >
+              {sendingReminder ? (
+                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
               Remind
             </Button>
             <Button size="sm" variant="outline" onClick={() => setActiveSection('notes')}>
@@ -222,6 +311,7 @@ const DebtorDetailView = ({ debtor, onRefresh, onSendReminder }: DebtorDetailVie
                     <CollectionTimeline 
                       daysOverdue={daysOverdue} 
                       onSendReminder={handleSendReminder}
+                      sendingReminder={sendingReminder}
                     />
                   </CardContent>
                 </Card>
@@ -242,6 +332,12 @@ const DebtorDetailView = ({ debtor, onRefresh, onSendReminder }: DebtorDetailVie
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Next Due Date</span>
                         <span>{format(new Date(debtor.finance_summary.next_due_date), 'MMM d, yyyy')}</span>
+                      </div>
+                    )}
+                    {lastReminder?.created_at && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Last Contacted</span>
+                        <span>{format(new Date(lastReminder.created_at), 'MMM d, yyyy')}</span>
                       </div>
                     )}
                     <div className="flex items-center justify-between">
@@ -270,13 +366,22 @@ const DebtorDetailView = ({ debtor, onRefresh, onSendReminder }: DebtorDetailVie
                             Due: {format(new Date(invoice.due_date), 'MMM d, yyyy')}
                           </p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex flex-col items-end gap-1">
                           <p className="font-semibold text-destructive">
                             {formatCurrency(invoice.total_amount)}
                           </p>
-                          <Badge variant="destructive" className="text-xs mt-1">
+                          <Badge variant="destructive" className="text-xs">
                             {invoice.status}
                           </Badge>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => handleMarkPaid(invoice.id)}
+                          >
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Mark Paid
+                          </Button>
                         </div>
                       </div>
                     </CardContent>

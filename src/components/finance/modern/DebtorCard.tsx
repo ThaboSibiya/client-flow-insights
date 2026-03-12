@@ -4,11 +4,14 @@ import {
   AlertCircle, 
   Mail, 
   Phone, 
-  FileText,
+  Clock,
   ChevronRight 
 } from 'lucide-react';
 import { DebtorCustomer } from '@/hooks/useDebtorData';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
 
 interface DebtorCardProps {
   debtor: DebtorCustomer;
@@ -18,6 +21,23 @@ interface DebtorCardProps {
 }
 
 const DebtorCard = ({ debtor, isSelected, onClick, onQuickAction }: DebtorCardProps) => {
+  // Fetch last contacted date
+  const { data: lastContact } = useQuery({
+    queryKey: ['last-contact', debtor.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('finance_audit_logs')
+        .select('created_at')
+        .eq('customer_id', debtor.id)
+        .eq('action_type', 'reminder_sent')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-ZA', {
       style: 'currency',
@@ -112,6 +132,14 @@ const DebtorCard = ({ debtor, isSelected, onClick, onQuickAction }: DebtorCardPr
           <span>{debtor.overdue_invoices?.length || 0} inv</span>
         </div>
       </div>
+
+      {/* Last Contacted */}
+      {lastContact?.created_at && (
+        <div className="mt-1.5 flex items-center gap-1 text-[10px] text-muted-foreground">
+          <Clock className="h-2.5 w-2.5" />
+          <span>Contacted {formatDistanceToNow(new Date(lastContact.created_at), { addSuffix: true })}</span>
+        </div>
+      )}
 
       {/* Hover Actions */}
       <div className={cn(
