@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { CustomerStatus } from '@/types/customer';
@@ -9,6 +8,7 @@ import { useSecureCustomerData } from '@/hooks/useSecureCustomerData';
 import { useCustomerSearch } from './onsite/hooks/useCustomerSearch';
 import { useLocation } from './onsite/hooks/useLocation';
 import { useSecureJobCompletion } from '@/hooks/useSecureJobCompletion';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { SecureCustomerSearchInput } from './onsite/components/SecureCustomerSearchInput';
 import { CustomerDropdown } from './onsite/components/CustomerDropdown';
 import { SelectedCustomerCard } from './onsite/components/SelectedCustomerCard';
@@ -21,7 +21,9 @@ import { TicketSelector } from './onsite/components/TicketSelector';
 import { PhotoUploader } from './onsite/components/PhotoUploader';
 import { JobCompletionStepper, getStepDefinitions } from './onsite/components/JobCompletionStepper';
 import { JobSummaryReview } from './onsite/components/JobSummaryReview';
+import { MobileJobCompletionWrapper } from './onsite/components/MobileJobCompletionWrapper';
 import { sanitizeInput } from '@/utils/securityUtils';
+import { cn } from '@/lib/utils';
 
 const STEP_IDS = ['customer', 'ticket', 'work', 'photos', 'review'] as const;
 type StepId = typeof STEP_IDS[number];
@@ -40,6 +42,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
   const { customers, loading, error, loadCustomerTickets } = useSecureCustomerData(isOpen);
   const { location, requestLocation } = useLocation();
   const { submitting, handleSubmit } = useSecureJobCompletion();
+  const isMobile = useIsMobile();
 
   const {
     searchTerm,
@@ -130,9 +133,9 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
   const canProceed = useMemo(() => {
     switch (currentStep) {
       case 'customer': return !!selectedCustomer;
-      case 'ticket': return true; // optional
-      case 'work': return true; // work summary optional
-      case 'photos': return true; // photos optional
+      case 'ticket': return true;
+      case 'work': return true;
+      case 'photos': return true;
       case 'review': return !!selectedCustomer;
       default: return false;
     }
@@ -147,8 +150,8 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
         return (
           <div className="space-y-3">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-foreground">Select Client</h3>
-              <p className="text-xs text-muted-foreground">Choose the client for this job completion</p>
+              <h3 className={cn("font-semibold text-foreground", isMobile ? "text-base" : "text-sm")}>Select Client</h3>
+              <p className={cn("text-muted-foreground", isMobile ? "text-sm" : "text-xs")}>Choose the client for this job completion</p>
             </div>
             {!selectedCustomer ? (
               <div className="relative">
@@ -178,8 +181,8 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
         return (
           <div className="space-y-3">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-foreground">Link Ticket</h3>
-              <p className="text-xs text-muted-foreground">Optionally link an open ticket to resolve it</p>
+              <h3 className={cn("font-semibold text-foreground", isMobile ? "text-base" : "text-sm")}>Link Ticket</h3>
+              <p className={cn("text-muted-foreground", isMobile ? "text-sm" : "text-xs")}>Optionally link an open ticket to resolve it</p>
             </div>
             <TicketSelector
               tickets={customerTickets}
@@ -194,16 +197,17 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
         return (
           <div className="space-y-4">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-foreground">Work Details</h3>
-              <p className="text-xs text-muted-foreground">Describe the work performed and update the client status</p>
+              <h3 className={cn("font-semibold text-foreground", isMobile ? "text-base" : "text-sm")}>Work Details</h3>
+              <p className={cn("text-muted-foreground", isMobile ? "text-sm" : "text-xs")}>Describe the work performed and update the client status</p>
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">Work Summary</label>
+              <label className={cn("font-medium text-foreground", isMobile ? "text-base" : "text-sm")}>Work Summary</label>
               <Input
                 placeholder="Brief description of work performed..."
                 value={workSummary}
                 onChange={(e) => setWorkSummary(sanitizeInput(e.target.value, 500))}
                 maxLength={500}
+                className={cn(isMobile && "h-12 text-base")}
               />
             </div>
             {selectedCustomer && (
@@ -227,8 +231,8 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
         return (
           <div className="space-y-3">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-foreground">Photo Evidence</h3>
-              <p className="text-xs text-muted-foreground">Capture before/after photos as proof of work</p>
+              <h3 className={cn("font-semibold text-foreground", isMobile ? "text-base" : "text-sm")}>Photo Evidence</h3>
+              <p className={cn("text-muted-foreground", isMobile ? "text-sm" : "text-xs")}>Capture before/after photos as proof of work</p>
             </div>
             {selectedCustomer && (
               <PhotoUploader
@@ -263,89 +267,106 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col">
-        <SheetHeader className="px-5 pt-5 pb-3 border-b border-border shrink-0">
-          <SheetTitle className="flex items-center gap-2 text-base">
-            <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center">
-              <Check className="h-3.5 w-3.5 text-primary" />
-            </div>
-            Job Completion
-          </SheetTitle>
-          <SheetDescription className="text-xs">
-            Complete a job, update status, and attach proof of work
-          </SheetDescription>
-        </SheetHeader>
-
-        {/* Stepper */}
-        <div className="px-5 py-3 border-b border-border shrink-0 bg-muted/20">
-          <JobCompletionStepper steps={steps} />
+    <MobileJobCompletionWrapper isOpen={isOpen} onClose={onClose}>
+      {/* Header */}
+      <div className={cn(
+        "border-b border-border shrink-0",
+        isMobile ? "px-4 pt-2 pb-3" : "px-5 pt-5 pb-3"
+      )}>
+        <div className={cn("flex items-center gap-2", isMobile ? "text-lg" : "text-base")}>
+          <div className={cn(
+            "rounded-full bg-primary/10 flex items-center justify-center",
+            isMobile ? "h-9 w-9" : "h-7 w-7"
+          )}>
+            <Check className={cn(isMobile ? "h-4 w-4" : "h-3.5 w-3.5", "text-primary")} />
+          </div>
+          <span className="font-semibold text-foreground">Job Completion</span>
         </div>
+        <p className={cn("text-muted-foreground mt-1", isMobile ? "text-sm" : "text-xs")}>
+          Complete a job, update status, and attach proof of work
+        </p>
+      </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          {error && <ErrorDisplay error={error} />}
-          {loading ? <LoadingState /> : renderStepContent()}
-        </div>
+      {/* Stepper */}
+      <div className={cn(
+        "border-b border-border shrink-0 bg-muted/20",
+        isMobile ? "px-3 py-2.5" : "px-5 py-3"
+      )}>
+        <JobCompletionStepper steps={steps} />
+      </div>
 
-        {/* Footer navigation */}
-        <div className="shrink-0 border-t border-border px-5 py-3 flex gap-3 bg-background">
-          {isFirstStep ? (
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-              size="sm"
-              disabled={submitting}
-            >
-              Cancel
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              onClick={goBack}
-              className="flex-1"
-              size="sm"
-              disabled={submitting}
-            >
-              <ChevronLeft className="h-3.5 w-3.5 mr-1" />
-              Back
-            </Button>
-          )}
+      {/* Content */}
+      <div className={cn(
+        "flex-1 overflow-y-auto ios-scroll",
+        isMobile ? "px-4 py-4" : "px-5 py-4"
+      )}>
+        {error && <ErrorDisplay error={error} />}
+        {loading ? <LoadingState /> : renderStepContent()}
+      </div>
 
-          {isLastStep ? (
-            <Button
-              onClick={onSubmit}
-              disabled={!selectedCustomer || submitting}
-              className="flex-1"
-              size="sm"
-            >
-              {submitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-primary-foreground mr-1.5" />
-                  Completing...
-                </>
-              ) : (
-                <>
-                  <Check className="h-3.5 w-3.5 mr-1" />
-                  Complete Job
-                </>
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={goNext}
-              disabled={!canProceed}
-              className="flex-1"
-              size="sm"
-            >
-              Next
-              <ChevronRight className="h-3.5 w-3.5 ml-1" />
-            </Button>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
+      {/* Footer navigation - touch-friendly on mobile */}
+      <div className={cn(
+        "shrink-0 border-t border-border flex gap-3 bg-background bottom-bar-safe",
+        isMobile ? "px-4 py-3" : "px-5 py-3"
+      )}>
+        {isFirstStep ? (
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className={cn("flex-1", isMobile && "h-12 text-base")}
+            size={isMobile ? "lg" : "sm"}
+            disabled={submitting}
+          >
+            Cancel
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            onClick={goBack}
+            className={cn("flex-1", isMobile && "h-12 text-base")}
+            size={isMobile ? "lg" : "sm"}
+            disabled={submitting}
+          >
+            <ChevronLeft className={cn(isMobile ? "h-5 w-5 mr-1.5" : "h-3.5 w-3.5 mr-1")} />
+            Back
+          </Button>
+        )}
+
+        {isLastStep ? (
+          <Button
+            onClick={onSubmit}
+            disabled={!selectedCustomer || submitting}
+            className={cn("flex-1", isMobile && "h-12 text-base")}
+            size={isMobile ? "lg" : "sm"}
+          >
+            {submitting ? (
+              <>
+                <div className={cn(
+                  "animate-spin rounded-full border-b-2 border-primary-foreground mr-1.5",
+                  isMobile ? "h-5 w-5" : "h-3.5 w-3.5"
+                )} />
+                Completing...
+              </>
+            ) : (
+              <>
+                <Check className={cn(isMobile ? "h-5 w-5 mr-1.5" : "h-3.5 w-3.5 mr-1")} />
+                Complete Job
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button
+            onClick={goNext}
+            disabled={!canProceed}
+            className={cn("flex-1", isMobile && "h-12 text-base")}
+            size={isMobile ? "lg" : "sm"}
+          >
+            Next
+            <ChevronRight className={cn(isMobile ? "h-5 w-5 ml-1.5" : "h-3.5 w-3.5 ml-1")} />
+          </Button>
+        )}
+      </div>
+    </MobileJobCompletionWrapper>
   );
 };
 

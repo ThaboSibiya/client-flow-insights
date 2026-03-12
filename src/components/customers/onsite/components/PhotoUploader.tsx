@@ -141,8 +141,7 @@ export const PhotoUploader = ({ photos, onPhotosChange, customerId }: PhotoUploa
             key={pt.value}
             type="button"
             variant={pendingType === pt.value ? 'default' : 'outline'}
-            size="sm"
-            className="flex-1 text-xs h-8"
+            className="flex-1 text-sm h-10 touch-target"
             onClick={() => setPendingType(pt.value)}
           >
             {pt.label}
