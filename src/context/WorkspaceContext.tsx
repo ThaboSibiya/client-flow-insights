@@ -44,6 +44,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null);
   const [loading, setLoading] = useState(true);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   const fetchWorkspaces = useCallback(async () => {
     if (!user) {
