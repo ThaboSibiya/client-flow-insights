@@ -101,7 +101,10 @@ const TeamLayout: React.FC = () => {
           <div>
             <h1 className="text-xl font-bold">Team Management</h1>
             <p className="text-sm text-muted-foreground">
-              Manage your team members and their access
+              Manage employee records, departments, and roles.{' '}
+              <Link to="/settings/workspace" className="text-primary hover:underline inline-flex items-center gap-0.5">
+                Workspace access <ArrowRight className="h-3 w-3" />
+              </Link>
             </p>
           </div>
 
