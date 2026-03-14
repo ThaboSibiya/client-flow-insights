@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface ConversationsPaginationOptions {
   pageSize?: number;
   cursor?: string;
+  workspaceId?: string | null;
   filters?: {
     type?: string;
     status?: string;
