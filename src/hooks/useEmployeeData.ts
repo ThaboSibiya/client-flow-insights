@@ -87,7 +87,7 @@ export const useEmployeeData = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, workspaceId]);
 
   useEffect(() => {
     fetchEmployees();
