@@ -9,6 +9,7 @@ import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export const useCustomerData = () => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const { customers, setCustomers, setLoading, setError, isLoading } = useCustomerStore();
 
   const fetchCustomers = useCallback(async () => {
