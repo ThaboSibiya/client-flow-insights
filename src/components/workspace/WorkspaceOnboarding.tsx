@@ -43,23 +43,9 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
     }
   }, [name, industry, createWorkspace, refetchWorkspaces, onComplete]);
 
-  const handleSkip = useCallback(() => {
-    onComplete();
-  }, [onComplete]);
-
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md [&>button]:hidden">
-        {/* Skip / Close */}
-        <button
-          type="button"
-          onClick={handleSkip}
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-          aria-label="Skip setup"
-        >
-          <X className="h-4 w-4" />
-        </button>
-
         <DialogHeader>
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-2">
             <Building2 className="h-6 w-6" />
@@ -78,7 +64,7 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
               placeholder="e.g. Acme Corp"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateWorkspace()}
+              onKeyDown={(e) => e.key === 'Enter' && !saving && handleCreateWorkspace()}
               autoFocus
             />
           </div>
@@ -89,7 +75,7 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
               placeholder="e.g. Technology, Retail, HVAC"
               value={industry}
               onChange={(e) => setIndustry(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateWorkspace()}
+              onKeyDown={(e) => e.key === 'Enter' && !saving && handleCreateWorkspace()}
             />
           </div>
 
@@ -98,23 +84,18 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
           )}
         </div>
 
-        <div className="flex flex-col gap-2">
-          <Button
-            onClick={handleCreateWorkspace}
-            disabled={!name.trim() || saving}
-            className="w-full"
-          >
-            {saving ? 'Creating...' : 'Create Workspace'}
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={handleSkip}
-            className="w-full text-muted-foreground"
-          >
-            Skip for now
-          </Button>
-        </div>
+        <Button
+          onClick={handleCreateWorkspace}
+          disabled={!name.trim() || saving}
+          className="w-full"
+        >
+          {saving ? 'Creating...' : 'Create Workspace'}
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Button>
+
+        <p className="text-xs text-center text-muted-foreground">
+          You need at least one workspace to get started.
+        </p>
       </DialogContent>
     </Dialog>
   );

@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Building2, Loader2, Save, Trash2, AlertTriangle, Users, ArrowRight } from 'lucide-react';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,7 +23,7 @@ import {
 import WorkspaceMembersManager from '@/components/workspace/WorkspaceMembersManager';
 
 const WorkspaceSettings = () => {
-  const { activeWorkspace, refetchWorkspaces, workspaces, switchWorkspace } = useWorkspace();
+  const { activeWorkspace, refetchWorkspaces, workspaces, switchWorkspace, setNeedsOnboarding } = useWorkspace();
   const { toast } = useToast();
   const [name, setName] = useState('');
   const [industry, setIndustry] = useState('');
@@ -76,10 +75,12 @@ const WorkspaceSettings = () => {
 
       toast({ title: 'Workspace deleted', description: `"${activeWorkspace.name}" has been removed.` });
 
-      // Switch to another workspace
+      // Switch to another workspace or trigger onboarding
       const remaining = workspaces.filter((w) => w.id !== activeWorkspace.id);
       if (remaining.length > 0) {
         switchWorkspace(remaining[0].id);
+      } else {
+        setNeedsOnboarding(true);
       }
       await refetchWorkspaces();
     } catch (error: any) {
@@ -206,7 +207,7 @@ const WorkspaceSettings = () => {
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm" disabled={workspaces.length <= 1}>
+                  <Button variant="destructive" size="sm">
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
                   </Button>
@@ -231,11 +232,6 @@ const WorkspaceSettings = () => {
                 </AlertDialogContent>
               </AlertDialog>
             </div>
-            {workspaces.length <= 1 && (
-              <p className="text-xs text-muted-foreground mt-2">
-                You cannot delete your only workspace. Create another workspace first.
-              </p>
-            )}
           </CardContent>
         </Card>
       )}
