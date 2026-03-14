@@ -143,8 +143,8 @@ const WorkspaceMembersManager = () => {
       const { error } = await supabase.from('workspace_members').insert({
         workspace_id: activeWorkspace.id,
         user_id: profile.id,
-        role: inviteRole,
-      });
+        role: inviteRole as any,
+      } as any);
 
       if (error) throw error;
 
