@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { List, Network, Users } from 'lucide-react';
+import { List, Network, Users, Settings, ArrowRight } from 'lucide-react';
 import { useTeamData, TeamMember } from '@/hooks/useTeamData';
 import { useCompanyProfile } from '@/hooks/useCompanyProfile';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -14,6 +15,7 @@ import { MobileTeamLayout } from '../mobile';
 import EmployeeForm from '@/components/employees/EmployeeForm';
 import EmployeeAccessChecker from '@/components/employees/EmployeeAccessChecker';
 import LoadingSpinner from '@/components/auth/LoadingSpinner';
+import { Button } from '@/components/ui/button';
 
 const TeamLayout: React.FC = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -99,7 +101,10 @@ const TeamLayout: React.FC = () => {
           <div>
             <h1 className="text-xl font-bold">Team Management</h1>
             <p className="text-sm text-muted-foreground">
-              Manage your team members and their access
+              Manage employee records, departments, and roles.{' '}
+              <Link to="/settings/workspace" className="text-primary hover:underline inline-flex items-center gap-0.5">
+                Workspace access <ArrowRight className="h-3 w-3" />
+              </Link>
             </p>
           </div>
 

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Building2, Loader2, Save, Trash2, AlertTriangle } from 'lucide-react';
+import { Building2, Loader2, Save, Trash2, AlertTriangle, Users, ArrowRight } from 'lucide-react';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -159,6 +160,29 @@ const WorkspaceSettings = () => {
 
       {/* Members Management */}
       <WorkspaceMembersManager />
+
+      {/* Link to full Team Management */}
+      <Card>
+        <CardContent className="flex items-center justify-between py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Users className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Full Team Management</p>
+              <p className="text-xs text-muted-foreground">
+                Manage HR records, departments, attendance, and employee privileges
+              </p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/employees">
+              Go to Team
+              <ArrowRight className="h-4 w-4 ml-1.5" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Danger Zone */}
       {isOwner && (

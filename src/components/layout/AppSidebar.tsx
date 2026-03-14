@@ -43,12 +43,16 @@ import NotificationBell from '@/components/notifications/NotificationBell';
 import CollapsibleWorkstationPanel from './CollapsibleWorkstationPanel';
 import HelpPanel from '@/components/help/HelpPanel';
 import WorkspaceSwitcher from '@/components/workspace/WorkspaceSwitcher';
+import PendingWorkspaceInvitations from '@/components/workspace/PendingWorkspaceInvitations';
+import WorkspaceOnboarding from '@/components/workspace/WorkspaceOnboarding';
+import { useWorkspace } from '@/context/WorkspaceContext';
 
 const AppSidebar = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const location = useLocation();
   const { data: employee } = useEmployeeProfile();
   const { state, toggleSidebar } = useSidebar();
+  const { needsOnboarding, setNeedsOnboarding } = useWorkspace();
   const isCollapsed = state === 'collapsed';
 
   // Consolidated from 7 groups to 4 logical groups
@@ -119,14 +123,21 @@ const AppSidebar = () => {
       </SidebarHeader>
 
       {/* Workspace Switcher */}
-      {!isCollapsed && (
-        <div className="border-b border-border/40 px-2 py-2">
-          <WorkspaceSwitcher />
-        </div>
-      )}
+      <div className="border-b border-border/40 px-2 py-2">
+        <WorkspaceSwitcher />
+      </div>
+
+      {/* Pending Workspace Invitations */}
+      {!isCollapsed && <PendingWorkspaceInvitations />}
 
       {/* Workstation Panel - Collapsible */}
       {!isCollapsed && <CollapsibleWorkstationPanel />}
+
+      {/* Workspace Onboarding Wizard */}
+      <WorkspaceOnboarding
+        open={needsOnboarding}
+        onComplete={() => setNeedsOnboarding(false)}
+      />
 
       {/* Navigation Content */}
       <SidebarContent className="px-2">
