@@ -31,6 +31,7 @@ export interface UseProjectManagementReturn extends ProjectEventHandlers {
 
 export const useProjectManagement = (): UseProjectManagementReturn => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [projects, setProjects] = useState<Project[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
