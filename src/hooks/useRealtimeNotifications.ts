@@ -55,12 +55,17 @@ export const useRealtimeNotifications = () => {
     }
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('user_notifications')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
+
+      // Filter by workspace if available (show global + workspace-scoped)
+      if (workspaceId) {
+        query = query.or(`workspace_id.eq.${workspaceId},workspace_id.is.null`);
+      }
 
       if (error) throw error;
 
