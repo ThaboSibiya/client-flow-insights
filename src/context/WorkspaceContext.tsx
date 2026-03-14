@@ -19,6 +19,8 @@ interface WorkspaceContextType {
   workspaces: Workspace[];
   activeWorkspace: Workspace | null;
   loading: boolean;
+  needsOnboarding: boolean;
+  setNeedsOnboarding: (v: boolean) => void;
   switchWorkspace: (workspaceId: string) => void;
   createWorkspace: (name: string, industry?: string) => Promise<Workspace | null>;
   refetchWorkspaces: () => Promise<void>;
