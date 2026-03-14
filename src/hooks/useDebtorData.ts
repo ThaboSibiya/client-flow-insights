@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useFinanceEvents } from './useFinanceEvents';
 import { useFinanceStore } from '@/stores/financeStore';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export interface DebtorCustomer {
   id: string;
@@ -27,6 +28,7 @@ export interface DebtorCustomer {
 
 export const useDebtorData = () => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [debtors, setDebtors] = useState<DebtorCustomer[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -43,19 +45,31 @@ export const useDebtorData = () => {
       setLoading(true);
 
       // Fetch customers with finance summary
-      const { data: customersData, error: customersError } = await supabase
+      let custQuery = supabase
         .from('customers')
         .select('*, customer_finance_summary(*)')
         .eq('user_id', user.id);
 
+      if (workspaceId) {
+        custQuery = custQuery.eq('workspace_id', workspaceId);
+      }
+
+      const { data: customersData, error: customersError } = await custQuery;
+
       if (customersError) throw customersError;
 
       // Fetch overdue invoices
-      const { data: invoicesData, error: invoicesError } = await supabase
+      let invQuery = supabase
         .from('invoices')
         .select('*')
         .eq('user_id', user.id)
-        .in('status', ['overdue', 'sent', 'partial'])
+        .in('status', ['overdue', 'sent', 'partial']);
+
+      if (workspaceId) {
+        invQuery = invQuery.eq('workspace_id', workspaceId);
+      }
+
+      const { data: invoicesData, error: invoicesError } = await invQuery
         .order('due_date', { ascending: true });
 
       if (invoicesError) throw invoicesError;

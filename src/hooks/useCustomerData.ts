@@ -5,9 +5,11 @@ import { Customer, CustomerStatus } from '@/types/customer';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useCustomerStore } from '@/stores/customerStore';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export const useCustomerData = () => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const { customers, setCustomers, setLoading, setError, isLoading } = useCustomerStore();
 
   const fetchCustomers = useCallback(async () => {
@@ -21,7 +23,7 @@ export const useCustomerData = () => {
 
     try {
       // Fetch customers with related data in one query
-      const { data, error } = await supabase
+      let query = supabase
         .from('customers')
         .select(`
           *,
@@ -52,7 +54,13 @@ export const useCustomerData = () => {
             updated_at
           )
         `)
-        .eq('user_id', user.id)
+        .eq('user_id', user.id);
+
+      if (workspaceId) {
+        query = query.eq('workspace_id', workspaceId);
+      }
+
+      const { data, error } = await query
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -112,10 +120,16 @@ export const useCustomerData = () => {
       
       // Fallback to basic query if complex query fails
       try {
-        const { data: basicData, error: basicError } = await supabase
+        let fallbackQuery = supabase
           .from('customers')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', user.id);
+
+        if (workspaceId) {
+          fallbackQuery = fallbackQuery.eq('workspace_id', workspaceId);
+        }
+
+        const { data: basicData, error: basicError } = await fallbackQuery
           .order('created_at', { ascending: false });
 
         if (basicError) throw basicError;

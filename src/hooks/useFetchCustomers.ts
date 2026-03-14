@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export interface Customer {
   id: string;
@@ -12,17 +13,24 @@ export interface Customer {
 
 export const useFetchCustomers = () => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
 
   const { data: customers, isLoading, error } = useQuery({
-    queryKey: ['customers', user?.id],
+    queryKey: ['customers', user?.id, workspaceId],
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('customers')
         .select('id, name, email, phone, user_id')
         .eq('user_id', user.id)
         .order('name', { ascending: true });
+
+      if (workspaceId) {
+        query = query.eq('workspace_id', workspaceId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching customers:', error);

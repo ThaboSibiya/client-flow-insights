@@ -15,6 +15,7 @@ import {
   updateTicket as updateTicketService
 } from '@/services/ticketService';
 import { useAuth } from './AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 import { Customer, CustomerStatus, CustomerTicket, TicketStatus, CRMContextType, TimeEntry } from '@/types/customer';
 
 const CRMContext = createContext<CRMContextType | undefined>(undefined);
@@ -25,6 +26,7 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
   const ticketStore = useTicketStore();
   const { updateCustomerOptimistically, deleteCustomerOptimistically, updateTicketOptimistically } = useOptimisticUpdates();
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
 
   const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'activeTickets' | 'ticketCount'>) => {
     if (!user) return;
@@ -35,7 +37,7 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
         ...customerData,
         activeTickets: [],
         ticketCount: 0
-      }, user.id);
+      }, user.id, workspaceId);
       
       if (actualCustomer) {
         // Immediately update the store with the new customer

@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export interface AnalyticsMetrics {
   totalCustomers: number;
@@ -41,6 +42,7 @@ export interface ImportedDataset {
 
 export const useAnalyticsData = () => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null);
@@ -57,24 +59,30 @@ export const useAnalyticsData = () => {
 
     try {
       // Fetch customers data
-      const { data: customers, error: customersError } = await supabase
+      let custQuery = supabase
         .from('customers')
         .select('id, status, created_at, updated_at')
         .eq('user_id', user.id);
+      if (workspaceId) custQuery = custQuery.eq('workspace_id', workspaceId);
+      const { data: customers, error: customersError } = await custQuery;
 
       if (customersError) throw customersError;
 
       // Fetch tickets data
-      const { data: tickets, error: ticketsError } = await supabase
+      let ticketQuery = supabase
         .from('tickets')
         .select('id, status, created_at, resolved_at, resolution_time_minutes')
         .eq('user_id', user.id);
+      if (workspaceId) ticketQuery = ticketQuery.eq('workspace_id', workspaceId);
+      const { data: tickets, error: ticketsError } = await ticketQuery;
 
       // Fetch invoices for revenue data
-      const { data: invoices, error: invoicesError } = await supabase
+      let invQuery = supabase
         .from('invoices')
         .select('id, total_amount, status, created_at, paid_date')
         .eq('user_id', user.id);
+      if (workspaceId) invQuery = invQuery.eq('workspace_id', workspaceId);
+      const { data: invoices, error: invoicesError } = await invQuery;
 
       // Calculate metrics
       const totalCustomers = customers?.length || 0;
