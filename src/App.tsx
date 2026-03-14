@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CRMProvider } from "./context/CRMContext";
 import { AuthProvider } from "./context/AuthContext";
+import { WorkspaceProvider } from "./context/WorkspaceContext";
 import ErrorBoundary from "./components/error/ErrorBoundary";
 import { TourProvider } from "./components/tour/FeatureTour";
 
