@@ -61,6 +61,17 @@ export const useWorkspaceActions = (
     async (name: string, industry?: string): Promise<Workspace | null> => {
       if (!userId) return null;
 
+      // Ensure auth session is ready so auth.uid() is available for RLS
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        toast({
+          title: 'Authentication error',
+          description: 'Please sign in again and retry.',
+          variant: 'destructive',
+        });
+        return null;
+      }
+
       const slug = generateSlug(name);
 
       const { data: ws, error: wsError } = await supabase
