@@ -29,7 +29,7 @@ interface WorkspaceContextType {
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
 
 export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null);
@@ -52,16 +52,18 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     queryClient,
   );
 
+  // Only fetch workspaces after auth has finished loading
   useEffect(() => {
+    if (authLoading) return;
     fetchWorkspaces();
-  }, [fetchWorkspaces]);
+  }, [authLoading, fetchWorkspaces]);
 
   return (
     <WorkspaceContext.Provider
       value={{
         workspaces,
         activeWorkspace,
-        loading,
+        loading: authLoading || loading,
         needsOnboarding,
         setNeedsOnboarding,
         switchWorkspace,
