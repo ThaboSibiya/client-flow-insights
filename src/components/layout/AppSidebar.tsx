@@ -127,8 +127,17 @@ const AppSidebar = () => {
         <WorkspaceSwitcher />
       </div>
 
+      {/* Pending Workspace Invitations */}
+      {!isCollapsed && <PendingWorkspaceInvitations />}
+
       {/* Workstation Panel - Collapsible */}
       {!isCollapsed && <CollapsibleWorkstationPanel />}
+
+      {/* Workspace Onboarding Wizard */}
+      <WorkspaceOnboarding
+        open={needsOnboarding}
+        onComplete={() => setNeedsOnboarding(false)}
+      />
 
       {/* Navigation Content */}
       <SidebarContent className="px-2">
