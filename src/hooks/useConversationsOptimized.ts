@@ -72,7 +72,7 @@ export const useConversationsOptimized = () => {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [user, filters.type, debouncedSearch, nextCursor]);
+  }, [user, workspaceId, filters.type, debouncedSearch, nextCursor]);
 
   // Memoized filter and load functions
   const updateFilter = useCallback((key: string, value: string) => {
