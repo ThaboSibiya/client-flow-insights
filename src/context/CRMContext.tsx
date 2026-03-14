@@ -26,6 +26,7 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
   const ticketStore = useTicketStore();
   const { updateCustomerOptimistically, deleteCustomerOptimistically, updateTicketOptimistically } = useOptimisticUpdates();
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
 
   const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'activeTickets' | 'ticketCount'>) => {
     if (!user) return;
