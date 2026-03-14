@@ -15,6 +15,7 @@ import {
   updateTicket as updateTicketService
 } from '@/services/ticketService';
 import { useAuth } from './AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 import { Customer, CustomerStatus, CustomerTicket, TicketStatus, CRMContextType, TimeEntry } from '@/types/customer';
 
 const CRMContext = createContext<CRMContextType | undefined>(undefined);
