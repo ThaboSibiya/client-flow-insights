@@ -79,6 +79,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <ErrorBoundary>
+            <WorkspaceProvider>
             <CRMProvider>
               <TooltipProvider>
                 <TourProvider>
