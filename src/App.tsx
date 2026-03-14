@@ -52,6 +52,7 @@ import WebhookSettings from "./components/settings/sections/WebhookSettings";
 import SecuritySettings from "./components/settings/sections/SecuritySettings";
 import BillingSettings from "./components/settings/sections/BillingSettings";
 import CommunicationSettings from "./components/settings/sections/CommunicationSettings";
+import WorkspaceSettings from "./components/settings/sections/WorkspaceSettings";
 
 const queryClient = new QueryClient({
   defaultOptions: {
