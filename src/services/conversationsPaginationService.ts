@@ -30,6 +30,7 @@ export const loadConversationsPaginated = async (
   const {
     pageSize = 20,
     cursor,
+    workspaceId,
     filters = {},
     sortBy = 'last_message_at',
     sortOrder = 'desc',
