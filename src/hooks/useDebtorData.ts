@@ -45,10 +45,16 @@ export const useDebtorData = () => {
       setLoading(true);
 
       // Fetch customers with finance summary
-      const { data: customersData, error: customersError } = await supabase
+      let custQuery = supabase
         .from('customers')
         .select('*, customer_finance_summary(*)')
         .eq('user_id', user.id);
+
+      if (workspaceId) {
+        custQuery = custQuery.eq('workspace_id', workspaceId);
+      }
+
+      const { data: customersData, error: customersError } = await custQuery;
 
       if (customersError) throw customersError;
 
