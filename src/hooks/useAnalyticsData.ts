@@ -42,6 +42,7 @@ export interface ImportedDataset {
 
 export const useAnalyticsData = () => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null);
