@@ -6,6 +6,7 @@ import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export const useAllFinanceData = () => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
