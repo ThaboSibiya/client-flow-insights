@@ -15,6 +15,7 @@ import { MobileTeamLayout } from '../mobile';
 import EmployeeForm from '@/components/employees/EmployeeForm';
 import EmployeeAccessChecker from '@/components/employees/EmployeeAccessChecker';
 import LoadingSpinner from '@/components/auth/LoadingSpinner';
+import { Button } from '@/components/ui/button';
 
 const TeamLayout: React.FC = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
