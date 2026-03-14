@@ -23,13 +23,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Users, UserPlus, Loader2, MoreHorizontal, Trash2, Shield } from 'lucide-react';
+import { Users, UserPlus, Loader2, MoreHorizontal, Trash2, Shield, Clock, Mail } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,6 +48,15 @@ interface WorkspaceMember {
   email?: string;
 }
 
+interface WorkspaceInvitation {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  created_at: string;
+  expires_at: string;
+}
+
 const ROLE_COLORS: Record<string, string> = {
   owner: 'bg-primary/10 text-primary border-primary/20',
   admin: 'bg-accent/50 text-accent-foreground border-accent/30',
@@ -50,11 +64,19 @@ const ROLE_COLORS: Record<string, string> = {
   viewer: 'bg-muted text-muted-foreground border-border',
 };
 
+const ROLE_DESCRIPTIONS: Record<string, string> = {
+  owner: 'Full control, billing, and workspace deletion',
+  admin: 'Manage members, settings, and all data',
+  member: 'View and edit workspace data',
+  viewer: 'Read-only access to workspace data',
+};
+
 const WorkspaceMembersManager = () => {
   const { activeWorkspace } = useWorkspace();
   const { user } = useAuth();
   const { toast } = useToast();
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
+  const [invitations, setInvitations] = useState<WorkspaceInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<string>('member');
@@ -66,6 +88,7 @@ const WorkspaceMembersManager = () => {
     if (!activeWorkspace) return;
     setLoading(true);
     try {
+      // Fetch members
       const { data, error } = await supabase
         .from('workspace_members')
         .select('id, user_id, role, joined_at')
@@ -95,6 +118,18 @@ const WorkspaceMembersManager = () => {
           email: emailMap[m.user_id] || 'Unknown',
         }))
       );
+
+      // Fetch pending invitations
+      const { data: invData, error: invError } = await supabase
+        .from('workspace_invitations')
+        .select('id, email, role, status, created_at, expires_at')
+        .eq('workspace_id', activeWorkspace.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (!invError) {
+        setInvitations((invData || []) as WorkspaceInvitation[]);
+      }
     } catch (error: any) {
       console.error('Error fetching members:', error);
     } finally {
@@ -110,50 +145,72 @@ const WorkspaceMembersManager = () => {
     if (!activeWorkspace || !inviteEmail.trim()) return;
     setInviting(true);
 
+    const email = inviteEmail.trim().toLowerCase();
+
     try {
-      // Look up the user by email in profiles
-      const { data: profile, error: profileError } = await supabase
+      // Check if already a member via profile lookup
+      const { data: profile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', inviteEmail.trim().toLowerCase())
+        .eq('email', email)
         .single();
 
-      if (profileError || !profile) {
+      if (profile) {
+        // User exists — check if already a member
+        const existing = members.find((m) => m.user_id === profile.id);
+        if (existing) {
+          toast({
+            title: 'Already a member',
+            description: 'This user is already part of the workspace.',
+            variant: 'destructive',
+          });
+          setInviting(false);
+          return;
+        }
+
+        // User exists but not a member — add directly
+        const { error } = await supabase.from('workspace_members').insert({
+          workspace_id: activeWorkspace.id,
+          user_id: profile.id,
+          role: inviteRole,
+        } as any);
+
+        if (error) throw error;
+
+        toast({ title: 'Member added', description: `${email} has been added as ${inviteRole}.` });
+      } else {
+        // User doesn't exist — create a pending invitation
+        const existingInvite = invitations.find((i) => i.email === email);
+        if (existingInvite) {
+          toast({
+            title: 'Already invited',
+            description: 'A pending invitation already exists for this email.',
+            variant: 'destructive',
+          });
+          setInviting(false);
+          return;
+        }
+
+        const { error } = await supabase.from('workspace_invitations').insert({
+          workspace_id: activeWorkspace.id,
+          email,
+          role: inviteRole,
+          invited_by: user?.id,
+        } as any);
+
+        if (error) throw error;
+
         toast({
-          title: 'User not found',
-          description: 'No account found with that email. They must sign up first.',
-          variant: 'destructive',
+          title: 'Invitation sent',
+          description: `${email} will be added when they sign up.`,
         });
-        setInviting(false);
-        return;
       }
 
-      // Check if already a member
-      const existing = members.find((m) => m.user_id === profile.id);
-      if (existing) {
-        toast({
-          title: 'Already a member',
-          description: 'This user is already part of the workspace.',
-          variant: 'destructive',
-        });
-        setInviting(false);
-        return;
-      }
-
-      const { error } = await supabase.from('workspace_members').insert({
-        workspace_id: activeWorkspace.id,
-        user_id: profile.id,
-        role: inviteRole as any,
-      } as any);
-
-      if (error) throw error;
-
-      toast({ title: 'Member added', description: `${inviteEmail} has been added as ${inviteRole}.` });
       setInviteEmail('');
       setInviteRole('member');
       await fetchMembers();
     } catch (error: any) {
-      toast({ title: 'Failed to add member', description: error.message, variant: 'destructive' });
+      toast({ title: 'Failed to invite', description: error.message, variant: 'destructive' });
     } finally {
       setInviting(false);
     }
@@ -191,6 +248,22 @@ const WorkspaceMembersManager = () => {
     }
   };
 
+  const handleRevokeInvitation = async (invitationId: string, email: string) => {
+    try {
+      const { error } = await supabase
+        .from('workspace_invitations')
+        .delete()
+        .eq('id', invitationId);
+
+      if (error) throw error;
+
+      toast({ title: 'Invitation revoked', description: `Invitation to ${email} has been revoked.` });
+      await fetchMembers();
+    } catch (error: any) {
+      toast({ title: 'Revoke failed', description: error.message, variant: 'destructive' });
+    }
+  };
+
   if (!activeWorkspace) return null;
 
   return (
@@ -203,7 +276,8 @@ const WorkspaceMembersManager = () => {
           <div className="flex-1">
             <CardTitle className="text-lg">Team Members</CardTitle>
             <CardDescription>
-              {members.length} member{members.length !== 1 ? 's' : ''} in this workspace
+              {members.length} member{members.length !== 1 ? 's' : ''}
+              {invitations.length > 0 && ` · ${invitations.length} pending`}
             </CardDescription>
           </div>
         </div>
@@ -230,9 +304,14 @@ const WorkspaceMembersManager = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="member">Member</SelectItem>
-                  <SelectItem value="viewer">Viewer</SelectItem>
+                  {['admin', 'member', 'viewer'].map((role) => (
+                    <SelectItem key={role} value={role}>
+                      <div>
+                        <span className="capitalize">{role}</span>
+                        <p className="text-[10px] text-muted-foreground">{ROLE_DESCRIPTIONS[role]}</p>
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -242,8 +321,59 @@ const WorkspaceMembersManager = () => {
               ) : (
                 <UserPlus className="h-4 w-4 mr-1" />
               )}
-              Add
+              Invite
             </Button>
+          </div>
+        )}
+
+        {/* Pending Invitations */}
+        {invitations.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pending Invitations</p>
+            {invitations.map((invitation) => {
+              const isExpired = new Date(invitation.expires_at) < new Date();
+              return (
+                <div
+                  key={invitation.id}
+                  className="flex items-center gap-3 rounded-lg border border-dashed border-border/50 p-3 bg-muted/20"
+                >
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback className="bg-muted text-muted-foreground text-xs">
+                      <Mail className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{invitation.email}</p>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      {isExpired ? (
+                        <span className="text-destructive">Expired</span>
+                      ) : (
+                        <span>Expires {new Date(invitation.expires_at).toLocaleDateString()}</span>
+                      )}
+                    </div>
+                  </div>
+                  <Badge variant="outline" className={`capitalize text-[10px] px-2 ${ROLE_COLORS[invitation.role] || ''}`}>
+                    {invitation.role}
+                  </Badge>
+                  {isOwnerOrAdmin && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleRevokeInvitation(invitation.id, invitation.email)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Revoke invitation</TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -256,6 +386,9 @@ const WorkspaceMembersManager = () => {
           </div>
         ) : (
           <div className="space-y-2">
+            {members.length > 0 && (
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Active Members</p>
+            )}
             {members.map((member) => {
               const isSelf = member.user_id === user?.id;
               const isOwnerMember = member.role === 'owner';
@@ -281,12 +414,17 @@ const WorkspaceMembersManager = () => {
                       Joined {new Date(member.joined_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <Badge
-                    variant="outline"
-                    className={`capitalize text-[10px] px-2 ${ROLE_COLORS[member.role] || ''}`}
-                  >
-                    {member.role}
-                  </Badge>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Badge
+                        variant="outline"
+                        className={`capitalize text-[10px] px-2 ${ROLE_COLORS[member.role] || ''}`}
+                      >
+                        {member.role}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>{ROLE_DESCRIPTIONS[member.role] || member.role}</TooltipContent>
+                  </Tooltip>
 
                   {isOwnerOrAdmin && !isSelf && !isOwnerMember && (
                     <DropdownMenu>
