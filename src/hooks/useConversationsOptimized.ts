@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 import { loadConversationsPaginated } from '@/services/conversationsPaginationService';
 import { useDebounce } from '@/hooks/useDebounce';
 
