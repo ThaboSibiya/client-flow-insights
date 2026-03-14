@@ -35,8 +35,9 @@ export const useConversationsOptimized = () => {
 
     try {
       const result = await loadConversationsPaginated({
-        pageSize: 10, // Reduced from 20 for faster initial load
+        pageSize: 10,
         cursor: reset ? undefined : nextCursor,
+        workspaceId,
         filters: {
           type: filters.type,
           searchQuery: debouncedSearch,
