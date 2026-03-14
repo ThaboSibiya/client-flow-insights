@@ -42,6 +42,7 @@ import UserProfile from '@/components/auth/UserProfile';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import CollapsibleWorkstationPanel from './CollapsibleWorkstationPanel';
 import HelpPanel from '@/components/help/HelpPanel';
+import WorkspaceSwitcher from '@/components/workspace/WorkspaceSwitcher';
 
 const AppSidebar = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -116,6 +117,13 @@ const AppSidebar = () => {
           {!isCollapsed && <NotificationBell />}
         </div>
       </SidebarHeader>
+
+      {/* Workspace Switcher */}
+      {!isCollapsed && (
+        <div className="border-b border-border/40 px-2 py-2">
+          <WorkspaceSwitcher />
+        </div>
+      )}
 
       {/* Workstation Panel - Collapsible */}
       {!isCollapsed && <CollapsibleWorkstationPanel />}
