@@ -165,11 +165,14 @@ export const projectService = {
     return projects;
   },
 
-  async createProject(projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<Project> {
+  async createProject(projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>, workspaceId?: string | null): Promise<Project> {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error('User not authenticated');
 
-    const dbProject = transformProjectToDatabaseProject(projectData, user.user.id);
+    const dbProject: any = transformProjectToDatabaseProject(projectData, user.user.id);
+    if (workspaceId) {
+      dbProject.workspace_id = workspaceId;
+    }
 
     const { data, error } = await supabase
       .from('projects')

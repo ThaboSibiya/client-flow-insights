@@ -85,7 +85,7 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
     
     try {
       // Create ticket in Supabase
-      const actualTicket = await createTicketService(customerId, ticketData, user.id);
+      const actualTicket = await createTicketService(customerId, ticketData, user.id, workspaceId);
       
       if (actualTicket) {
         // Update stores with the actual ticket from Supabase
