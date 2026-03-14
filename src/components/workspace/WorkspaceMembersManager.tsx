@@ -163,7 +163,7 @@ const WorkspaceMembersManager = () => {
     try {
       const { error } = await supabase
         .from('workspace_members')
-        .update({ role: newRole })
+        .update({ role: newRole as any })
         .eq('id', memberId);
 
       if (error) throw error;
