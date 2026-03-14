@@ -28,6 +28,7 @@ export interface DebtorCustomer {
 
 export const useDebtorData = () => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [debtors, setDebtors] = useState<DebtorCustomer[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
