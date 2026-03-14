@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { List, Network, Users } from 'lucide-react';
+import { List, Network, Users, Settings, ArrowRight } from 'lucide-react';
 import { useTeamData, TeamMember } from '@/hooks/useTeamData';
 import { useCompanyProfile } from '@/hooks/useCompanyProfile';
 import { useMediaQuery } from '@/hooks/use-media-query';
