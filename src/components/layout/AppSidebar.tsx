@@ -52,6 +52,7 @@ const AppSidebar = () => {
   const location = useLocation();
   const { data: employee } = useEmployeeProfile();
   const { state, toggleSidebar } = useSidebar();
+  const { needsOnboarding, setNeedsOnboarding } = useWorkspace();
   const isCollapsed = state === 'collapsed';
 
   // Consolidated from 7 groups to 4 logical groups
