@@ -91,8 +91,8 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         setActiveWorkspace(mapped[0]);
         localStorage.setItem(ACTIVE_WORKSPACE_KEY, mapped[0].id);
       } else {
-        // No workspaces — auto-create a default one
-        await autoCreateDefaultWorkspace();
+        // No workspaces — show onboarding wizard instead of auto-creating
+        setNeedsOnboarding(true);
       }
     } catch (error) {
       console.error('Error fetching workspaces:', error);
