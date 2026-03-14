@@ -67,6 +67,8 @@ export const useRealtimeNotifications = () => {
         query = query.or(`workspace_id.eq.${workspaceId},workspace_id.is.null`);
       }
 
+      const { data, error } = await query;
+
       if (error) throw error;
 
       const mapped = (data || []).map(mapNotification);
