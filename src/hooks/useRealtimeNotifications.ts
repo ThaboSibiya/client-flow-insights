@@ -79,7 +79,7 @@ export const useRealtimeNotifications = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, workspaceId]);
 
   // Subscribe to real-time changes
   useEffect(() => {
