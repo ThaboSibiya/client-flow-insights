@@ -2,11 +2,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 import { loadConversationsPaginated } from '@/services/conversationsPaginationService';
 import { useDebounce } from '@/hooks/useDebounce';
 
 export const useConversationsOptimized = () => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -33,8 +35,9 @@ export const useConversationsOptimized = () => {
 
     try {
       const result = await loadConversationsPaginated({
-        pageSize: 10, // Reduced from 20 for faster initial load
+        pageSize: 10,
         cursor: reset ? undefined : nextCursor,
+        workspaceId,
         filters: {
           type: filters.type,
           searchQuery: debouncedSearch,
@@ -69,7 +72,7 @@ export const useConversationsOptimized = () => {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [user, filters.type, debouncedSearch, nextCursor]);
+  }, [user, workspaceId, filters.type, debouncedSearch, nextCursor]);
 
   // Memoized filter and load functions
   const updateFilter = useCallback((key: string, value: string) => {
@@ -95,7 +98,7 @@ export const useConversationsOptimized = () => {
       }, 50);
       return () => clearTimeout(timer);
     }
-  }, [user, filters.type, debouncedSearch]);
+  }, [user, workspaceId, filters.type, debouncedSearch]);
 
   return {
     conversations,

@@ -148,7 +148,7 @@ export const useAnalyticsData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, workspaceId]);
 
   useEffect(() => {
     fetchAnalyticsData();

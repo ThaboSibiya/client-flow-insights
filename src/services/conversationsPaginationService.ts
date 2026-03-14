@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface ConversationsPaginationOptions {
   pageSize?: number;
   cursor?: string;
+  workspaceId?: string | null;
   filters?: {
     type?: string;
     status?: string;
@@ -29,6 +30,7 @@ export const loadConversationsPaginated = async (
   const {
     pageSize = 20,
     cursor,
+    workspaceId,
     filters = {},
     sortBy = 'last_message_at',
     sortOrder = 'desc',
@@ -40,6 +42,11 @@ export const loadConversationsPaginated = async (
       .select('*, customers(name, email, phone)', { count: 'exact' })
       .order(sortBy, { ascending: sortOrder === 'asc' })
       .limit(pageSize + 1);
+
+    // Apply workspace filter
+    if (workspaceId) {
+      query = query.eq('workspace_id', workspaceId);
+    }
 
     // Apply filters
     if (filters.type && filters.type !== 'all') {
