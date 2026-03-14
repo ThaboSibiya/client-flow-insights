@@ -6,7 +6,8 @@ import { logSecurityEvent, sanitizeInput } from './securityService';
 export const createTicket = async (
   customerId: string,
   ticketData: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>,
-  userId: string
+  userId: string,
+  workspaceId?: string | null
 ) => {
   if (!userId) {
     await logSecurityEvent({
