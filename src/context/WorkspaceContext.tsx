@@ -229,6 +229,8 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         workspaces,
         activeWorkspace,
         loading,
+        needsOnboarding,
+        setNeedsOnboarding,
         switchWorkspace,
         createWorkspace,
         refetchWorkspaces: fetchWorkspaces,
