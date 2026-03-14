@@ -45,14 +45,18 @@ export const addCustomer = async (
   try {
     console.log("Adding customer with data:", { ...customerData, user_id: userId });
     
-    const sanitizedData = {
+    const sanitizedData: Record<string, any> = {
       name: sanitizeInput(customerData.name, 100),
       email: customerData.email.toLowerCase().trim(),
       phone: sanitizeInput(customerData.phone || '', 20),
       status: customerData.status,
       notes: sanitizeInput(customerData.notes || '', 500),
-      user_id: userId
+      user_id: userId,
     };
+
+    if (workspaceId) {
+      sanitizedData.workspace_id = workspaceId;
+    }
 
     const { data, error } = await supabase
       .from('customers')
