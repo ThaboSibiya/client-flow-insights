@@ -63,7 +63,8 @@ export const useWorkspaceActions = (
 
       // Ensure auth session is ready so auth.uid() is available for RLS
       const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session) {
+      const sessionUserId = sessionData?.session?.user?.id;
+      if (!sessionUserId) {
         toast({
           title: 'Authentication error',
           description: 'Please sign in again and retry.',
@@ -80,7 +81,7 @@ export const useWorkspaceActions = (
           name,
           slug,
           industry: industry || null,
-          created_by: userId,
+          created_by: sessionUserId,
         })
         .select()
         .single();
