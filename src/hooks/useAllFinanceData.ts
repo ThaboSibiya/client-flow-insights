@@ -79,7 +79,7 @@ export const useAllFinanceData = () => {
     };
 
     loadData();
-  }, [user]);
+  }, [user, workspaceId]);
 
   return {
     invoices,

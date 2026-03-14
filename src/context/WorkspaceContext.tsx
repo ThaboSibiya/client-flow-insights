@@ -134,19 +134,36 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     fetchWorkspaces();
   }, [fetchWorkspaces]);
 
+  const queryClient = useQueryClient();
+
   const switchWorkspace = useCallback(
     (workspaceId: string) => {
       const target = workspaces.find((w) => w.id === workspaceId);
       if (target) {
         setActiveWorkspace(target);
         localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId);
+
+        // Invalidate all workspace-scoped queries to prevent stale data
+        queryClient.removeQueries({
+          predicate: (query) => {
+            const key = query.queryKey;
+            // Remove queries that include a workspace-related key segment
+            return Array.isArray(key) && key.some(
+              (k) => typeof k === 'string' && (
+                ['customers', 'invoices', 'payments', 'tickets', 'quotes', 'employees',
+                 'conversations', 'projects', 'analytics', 'debtors', 'finance'].includes(k)
+              )
+            );
+          },
+        });
+
         toast({
           title: 'Workspace switched',
           description: `Now viewing "${target.name}"`,
         });
       }
     },
-    [workspaces, toast]
+    [workspaces, toast, queryClient]
   );
 
   const createWorkspace = useCallback(

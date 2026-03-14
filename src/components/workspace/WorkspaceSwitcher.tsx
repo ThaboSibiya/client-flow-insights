@@ -53,6 +53,61 @@ const WorkspaceSwitcher = () => {
     );
   }
 
+  // Collapsed sidebar: show just the avatar with tooltip
+  if (isCollapsed) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-full h-9"
+              >
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary text-xs font-bold">
+                  {activeWorkspace?.name?.charAt(0).toUpperCase() || 'W'}
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="right" align="start" className="w-64">
+              <DropdownMenuLabel className="text-xs text-muted-foreground">
+                Workspaces
+              </DropdownMenuLabel>
+              {workspaces.map((ws) => (
+                <DropdownMenuItem
+                  key={ws.id}
+                  onClick={() => switchWorkspace(ws.id)}
+                  className="flex items-center justify-between gap-2 cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-primary/10 text-primary text-xs font-bold">
+                      {ws.name.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-sm truncate">{ws.name}</span>
+                  </div>
+                  {activeWorkspace?.id === ws.id && (
+                    <Check className="h-4 w-4 text-primary shrink-0" />
+                  )}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setCreateOpen(true)} className="cursor-pointer">
+                <Plus className="h-4 w-4 mr-2" />
+                <span className="text-sm">Create new workspace</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/settings/workspace')} className="cursor-pointer">
+                <Settings className="h-4 w-4 mr-2" />
+                <span className="text-sm">Workspace settings</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </TooltipTrigger>
+        <TooltipContent side="right">{activeWorkspace?.name || 'Workspace'}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -110,6 +165,13 @@ const WorkspaceSwitcher = () => {
           >
             <Plus className="h-4 w-4 mr-2" />
             <span className="text-sm">Create new workspace</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => navigate('/settings/workspace')}
+            className="cursor-pointer"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            <span className="text-sm">Workspace settings</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

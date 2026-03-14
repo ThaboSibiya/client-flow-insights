@@ -44,9 +44,9 @@ interface WorkspaceMember {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  owner: 'bg-amber-50 text-amber-700 border-amber-200',
-  admin: 'bg-blue-50 text-blue-700 border-blue-200',
-  member: 'bg-green-50 text-green-700 border-green-200',
+  owner: 'bg-primary/10 text-primary border-primary/20',
+  admin: 'bg-accent/50 text-accent-foreground border-accent/30',
+  member: 'bg-secondary text-secondary-foreground border-border',
   viewer: 'bg-muted text-muted-foreground border-border',
 };
 
