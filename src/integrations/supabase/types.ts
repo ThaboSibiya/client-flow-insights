@@ -2381,6 +2381,7 @@ export type Database = {
           type: string
           updated_at: string
           user_id: string
+          workspace_id: string | null
         }
         Insert: {
           budget?: number | null
@@ -2403,6 +2404,7 @@ export type Database = {
           type: string
           updated_at?: string
           user_id: string
+          workspace_id?: string | null
         }
         Update: {
           budget?: number | null
@@ -2425,8 +2427,17 @@ export type Database = {
           type?: string
           updated_at?: string
           user_id?: string
+          workspace_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quote_invoice_items: {
         Row: {
@@ -2488,6 +2499,7 @@ export type Database = {
           updated_at: string
           user_id: string
           valid_until: string | null
+          workspace_id: string | null
         }
         Insert: {
           created_at?: string
@@ -2510,6 +2522,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           valid_until?: string | null
+          workspace_id?: string | null
         }
         Update: {
           created_at?: string
@@ -2532,6 +2545,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           valid_until?: string | null
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -2539,6 +2553,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_invoices_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
