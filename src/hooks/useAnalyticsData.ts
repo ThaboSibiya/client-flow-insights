@@ -59,24 +59,30 @@ export const useAnalyticsData = () => {
 
     try {
       // Fetch customers data
-      const { data: customers, error: customersError } = await supabase
+      let custQuery = supabase
         .from('customers')
         .select('id, status, created_at, updated_at')
         .eq('user_id', user.id);
+      if (workspaceId) custQuery = custQuery.eq('workspace_id', workspaceId);
+      const { data: customers, error: customersError } = await custQuery;
 
       if (customersError) throw customersError;
 
       // Fetch tickets data
-      const { data: tickets, error: ticketsError } = await supabase
+      let ticketQuery = supabase
         .from('tickets')
         .select('id, status, created_at, resolved_at, resolution_time_minutes')
         .eq('user_id', user.id);
+      if (workspaceId) ticketQuery = ticketQuery.eq('workspace_id', workspaceId);
+      const { data: tickets, error: ticketsError } = await ticketQuery;
 
       // Fetch invoices for revenue data
-      const { data: invoices, error: invoicesError } = await supabase
+      let invQuery = supabase
         .from('invoices')
         .select('id, total_amount, status, created_at, paid_date')
         .eq('user_id', user.id);
+      if (workspaceId) invQuery = invQuery.eq('workspace_id', workspaceId);
+      const { data: invoices, error: invoicesError } = await invQuery;
 
       // Calculate metrics
       const totalCustomers = customers?.length || 0;
