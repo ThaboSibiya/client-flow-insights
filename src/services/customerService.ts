@@ -60,7 +60,7 @@ export const addCustomer = async (
 
     const { data, error } = await supabase
       .from('customers')
-      .insert([sanitizedData])
+      .insert([sanitizedData as any])
       .select('*')
       .single();
 
