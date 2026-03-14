@@ -24,6 +24,7 @@ interface DatabaseNotification {
   link: string | null;
   metadata: Record<string, any> | null;
   created_at: string;
+  workspace_id: string | null;
 }
 
 export const useRealtimeNotifications = () => {
