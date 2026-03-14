@@ -97,7 +97,7 @@ export const useWorkspaceActions = (
 
       const { error: memberError } = await supabase
         .from('workspace_members')
-        .insert({ workspace_id: ws.id, user_id: userId, role: 'owner' });
+        .insert({ workspace_id: ws.id, user_id: sessionUserId, role: 'owner' });
 
       if (memberError) {
         // Clean up orphaned workspace
