@@ -42,6 +42,7 @@ import UserProfile from '@/components/auth/UserProfile';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import CollapsibleWorkstationPanel from './CollapsibleWorkstationPanel';
 import HelpPanel from '@/components/help/HelpPanel';
+import WorkspaceSwitcher from '@/components/workspace/WorkspaceSwitcher';
 
 const AppSidebar = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
