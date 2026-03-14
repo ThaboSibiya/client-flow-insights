@@ -6,6 +6,7 @@ import { validateProject, sanitizeProjectInput, sanitizeNumericInput } from '@/u
 import { projectService } from '@/services/projectService';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export interface UseProjectManagementReturn extends ProjectEventHandlers {
   projects: Project[];
