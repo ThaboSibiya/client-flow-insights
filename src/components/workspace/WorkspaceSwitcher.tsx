@@ -26,7 +26,10 @@ import { useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 
 const WorkspaceSwitcher = () => {
+  const navigate = useNavigate();
   const { workspaces, activeWorkspace, switchWorkspace, createWorkspace, loading } = useWorkspace();
+  const { state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
   const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState('');
   const [newIndustry, setNewIndustry] = useState('');
