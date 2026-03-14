@@ -45,7 +45,7 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md" hideCloseButton>
+      <DialogContent className="sm:max-w-md [&>button]:hidden">
         {step === 'name' && (
           <>
             <DialogHeader>
