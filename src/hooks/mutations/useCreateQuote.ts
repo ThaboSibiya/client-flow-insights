@@ -2,11 +2,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 import { QuoteInvoice, QuoteInvoiceInsert } from '@/types/quote';
 import { toast } from '@/hooks/use-toast';
 
 export const useCreateQuote = () => {
     const { user } = useAuth();
+    const workspaceId = useActiveWorkspaceId();
     const queryClient = useQueryClient();
 
     const createQuoteInvoiceMutation = useMutation({
@@ -15,9 +17,12 @@ export const useCreateQuote = () => {
             
             const { items, ...quoteDetails } = quoteData;
     
+            const insertData: any = { ...quoteDetails, user_id: user.id };
+            if (workspaceId) insertData.workspace_id = workspaceId;
+
             const { data: newQuote, error: quoteError } = await supabase
                 .from('quotes_invoices')
-                .insert({ ...quoteDetails, user_id: user.id })
+                .insert(insertData)
                 .select()
                 .single();
     

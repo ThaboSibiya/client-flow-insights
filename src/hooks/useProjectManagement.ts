@@ -6,6 +6,7 @@ import { validateProject, sanitizeProjectInput, sanitizeNumericInput } from '@/u
 import { projectService } from '@/services/projectService';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export interface UseProjectManagementReturn extends ProjectEventHandlers {
   projects: Project[];
@@ -30,6 +31,7 @@ export interface UseProjectManagementReturn extends ProjectEventHandlers {
 
 export const useProjectManagement = (): UseProjectManagementReturn => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [projects, setProjects] = useState<Project[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -308,7 +310,7 @@ export const useProjectManagement = (): UseProjectManagementReturn => {
       };
       
       // Save to database
-      const newProject = await projectService.createProject(projectToCreate);
+      const newProject = await projectService.createProject(projectToCreate, workspaceId);
       setProjects(prev => [newProject, ...prev]);
       console.log('Project created successfully:', newProject.id);
       return true;

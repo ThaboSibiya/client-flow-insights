@@ -6,7 +6,8 @@ import { logSecurityEvent, sanitizeInput } from './securityService';
 export const createTicket = async (
   customerId: string,
   ticketData: Omit<CustomerTicket, 'id' | 'ticketNumber' | 'createdAt' | 'updatedAt'>,
-  userId: string
+  userId: string,
+  workspaceId?: string | null
 ) => {
   if (!userId) {
     await logSecurityEvent({
@@ -26,7 +27,7 @@ export const createTicket = async (
   try {
     const ticketNumber = `TKT-${Date.now().toString().slice(-6)}`;
     
-    const sanitizedData = {
+    const sanitizedData: any = {
       customer_id: customerId,
       user_id: userId,
       ticket_number: ticketNumber,
@@ -37,6 +38,10 @@ export const createTicket = async (
       assigned_to_id: ticketData.assignedTo?.id || null,
       assigned_to_name: ticketData.assignedTo?.name || null,
     };
+
+    if (workspaceId) {
+      sanitizedData.workspace_id = workspaceId;
+    }
 
     const { data, error } = await supabase
       .from('tickets')

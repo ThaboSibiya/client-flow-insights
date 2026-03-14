@@ -87,7 +87,7 @@ class RevenueOptimizationService {
         })
         .eq('id', quoteId);
 
-      return newInvoice as QuoteInvoice;
+      return newInvoice as unknown as QuoteInvoice;
     } catch (error) {
       console.error('Error in auto-convert quote to invoice:', error);
       return null;

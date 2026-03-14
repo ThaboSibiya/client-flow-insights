@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 interface Employee {
   id: string;
@@ -22,6 +23,7 @@ interface Employee {
 
 export const useEmployeeData = () => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -41,13 +43,12 @@ export const useEmployeeData = () => {
         .limit(1);
 
       if (!customerCheck || customerCheck.length === 0) {
-        // User is not a company owner, no employees to fetch
         setEmployees([]);
         setLoading(false);
         return;
       }
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('employees')
         .select(`
           *,
@@ -57,8 +58,13 @@ export const useEmployeeData = () => {
           auth_user_id,
           last_login_at
         `)
-        .eq('company_owner_id', user.id)
-        .order('created_at', { ascending: false });
+        .eq('company_owner_id', user.id);
+
+      if (workspaceId) {
+        query = query.eq('workspace_id', workspaceId);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching employees:', error);
@@ -81,7 +87,7 @@ export const useEmployeeData = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, workspaceId]);
 
   useEffect(() => {
     fetchEmployees();
