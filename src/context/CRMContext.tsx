@@ -37,7 +37,7 @@ export const CRMProvider = ({ children }: { children: ReactNode }) => {
         ...customerData,
         activeTickets: [],
         ticketCount: 0
-      }, user.id);
+      }, user.id, workspaceId);
       
       if (actualCustomer) {
         // Immediately update the store with the new customer
