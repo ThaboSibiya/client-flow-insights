@@ -59,11 +59,17 @@ export const useDebtorData = () => {
       if (customersError) throw customersError;
 
       // Fetch overdue invoices
-      const { data: invoicesData, error: invoicesError } = await supabase
+      let invQuery = supabase
         .from('invoices')
         .select('*')
         .eq('user_id', user.id)
-        .in('status', ['overdue', 'sent', 'partial'])
+        .in('status', ['overdue', 'sent', 'partial']);
+
+      if (workspaceId) {
+        invQuery = invQuery.eq('workspace_id', workspaceId);
+      }
+
+      const { data: invoicesData, error: invoicesError } = await invQuery
         .order('due_date', { ascending: true });
 
       if (invoicesError) throw invoicesError;

@@ -120,10 +120,16 @@ export const useCustomerData = () => {
       
       // Fallback to basic query if complex query fails
       try {
-        const { data: basicData, error: basicError } = await supabase
+        let fallbackQuery = supabase
           .from('customers')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', user.id);
+
+        if (workspaceId) {
+          fallbackQuery = fallbackQuery.eq('workspace_id', workspaceId);
+        }
+
+        const { data: basicData, error: basicError } = await fallbackQuery
           .order('created_at', { ascending: false });
 
         if (basicError) throw basicError;
