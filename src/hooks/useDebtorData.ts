@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useFinanceEvents } from './useFinanceEvents';
 import { useFinanceStore } from '@/stores/financeStore';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export interface DebtorCustomer {
   id: string;
