@@ -72,6 +72,13 @@ const SettingsSidebar = () => {
           requiredRole: 'all'
         },
         { 
+          path: '/settings/workspace', 
+          icon: Building2, 
+          label: 'Workspace', 
+          description: 'Business workspace and team members',
+          requiredRole: 'all'
+        },
+        { 
           path: '/settings/notifications', 
           icon: Bell, 
           label: 'Notifications', 

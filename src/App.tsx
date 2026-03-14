@@ -197,6 +197,7 @@ const App = () => (
                           </ErrorBoundary>
                         }>
                           <Route path="general" element={<GeneralSettings />} />
+                          <Route path="workspace" element={<WorkspaceSettings />} />
                           <Route path="notifications" element={<NotificationSettings />} />
                           <Route path="appearance" element={<AppearanceSettings />} />
                           <Route path="company" element={
