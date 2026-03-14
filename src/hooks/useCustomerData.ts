@@ -23,7 +23,7 @@ export const useCustomerData = () => {
 
     try {
       // Fetch customers with related data in one query
-      const { data, error } = await supabase
+      let query = supabase
         .from('customers')
         .select(`
           *,
@@ -53,6 +53,7 @@ export const useCustomerData = () => {
             created_at,
             updated_at
           )
+        `)
         .eq('user_id', user.id);
 
       if (workspaceId) {
