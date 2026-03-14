@@ -43,6 +43,11 @@ export const loadConversationsPaginated = async (
       .order(sortBy, { ascending: sortOrder === 'asc' })
       .limit(pageSize + 1);
 
+    // Apply workspace filter
+    if (workspaceId) {
+      query = query.eq('workspace_id', workspaceId);
+    }
+
     // Apply filters
     if (filters.type && filters.type !== 'all') {
       query = query.eq('type', filters.type);

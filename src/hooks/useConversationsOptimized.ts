@@ -98,7 +98,7 @@ export const useConversationsOptimized = () => {
       }, 50);
       return () => clearTimeout(timer);
     }
-  }, [user, filters.type, debouncedSearch]);
+  }, [user, workspaceId, filters.type, debouncedSearch]);
 
   return {
     conversations,
