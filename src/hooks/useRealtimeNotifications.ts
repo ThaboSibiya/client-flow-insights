@@ -30,6 +30,7 @@ interface DatabaseNotification {
 
 export const useRealtimeNotifications = () => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [notifications, setNotifications] = useState<RealtimeNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
