@@ -20,6 +20,13 @@ export const useWorkspaceFetch = (
     }
 
     try {
+      // Ensure auth session is ready before querying RLS-protected tables
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('workspace_members')
         .select(`
@@ -41,15 +48,19 @@ export const useWorkspaceFetch = (
 
       setWorkspaces(mapped);
 
-      const savedId = localStorage.getItem(ACTIVE_WORKSPACE_KEY);
-      const saved = mapped.find((w) => w.id === savedId);
-      if (saved) {
-        setActiveWorkspace(saved);
-      } else if (mapped.length > 0) {
-        setActiveWorkspace(mapped[0]);
-        localStorage.setItem(ACTIVE_WORKSPACE_KEY, mapped[0].id);
-      } else {
+      if (mapped.length === 0) {
+        setActiveWorkspace(null);
         setNeedsOnboarding(true);
+      } else {
+        setNeedsOnboarding(false);
+        const savedId = localStorage.getItem(ACTIVE_WORKSPACE_KEY);
+        const saved = mapped.find((w) => w.id === savedId);
+        if (saved) {
+          setActiveWorkspace(saved);
+        } else {
+          setActiveWorkspace(mapped[0]);
+          localStorage.setItem(ACTIVE_WORKSPACE_KEY, mapped[0].id);
+        }
       }
     } catch (error) {
       console.error('Error fetching workspaces:', error);

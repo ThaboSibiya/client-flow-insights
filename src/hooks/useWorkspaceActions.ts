@@ -22,33 +22,39 @@ export const useWorkspaceActions = (
 ) => {
   const { toast } = useToast();
 
+  const invalidateWorkspaceQueries = useCallback(() => {
+    queryClient.removeQueries({
+      predicate: (query: any) => {
+        const key = query.queryKey;
+        return Array.isArray(key) && key.some(
+          (k: any) => typeof k === 'string' && (
+            ['customers', 'invoices', 'payments', 'tickets', 'quotes', 'employees',
+             'conversations', 'projects', 'analytics', 'debtors', 'finance'].includes(k)
+          )
+        );
+      },
+    });
+  }, [queryClient]);
+
   const switchWorkspace = useCallback(
     (workspaceId: string) => {
       const target = workspaces.find((w) => w.id === workspaceId);
-      if (target) {
-        setActiveWorkspace(target);
-        localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId);
+      if (!target) return;
 
-        // Invalidate workspace-scoped queries
-        queryClient.removeQueries({
-          predicate: (query: any) => {
-            const key = query.queryKey;
-            return Array.isArray(key) && key.some(
-              (k: any) => typeof k === 'string' && (
-                ['customers', 'invoices', 'payments', 'tickets', 'quotes', 'employees',
-                 'conversations', 'projects', 'analytics', 'debtors', 'finance'].includes(k)
-              )
-            );
-          },
-        });
+      // Don't re-switch to the same workspace
+      const currentId = localStorage.getItem(ACTIVE_WORKSPACE_KEY);
+      if (currentId === workspaceId) return;
 
-        toast({
-          title: 'Workspace switched',
-          description: `Now viewing "${target.name}"`,
-        });
-      }
+      setActiveWorkspace(target);
+      localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId);
+      invalidateWorkspaceQueries();
+
+      toast({
+        title: 'Workspace switched',
+        description: `Now viewing "${target.name}"`,
+      });
     },
-    [workspaces, toast, queryClient, setActiveWorkspace]
+    [workspaces, toast, invalidateWorkspaceQueries, setActiveWorkspace]
   );
 
   const createWorkspace = useCallback(
@@ -82,8 +88,10 @@ export const useWorkspaceActions = (
         .insert({ workspace_id: ws.id, user_id: userId, role: 'owner' });
 
       if (memberError) {
+        // Clean up orphaned workspace
+        await supabase.from('workspaces').delete().eq('id', ws.id);
         toast({
-          title: 'Workspace created but failed to assign owner',
+          title: 'Failed to create workspace',
           description: memberError.message,
           variant: 'destructive',
         });
@@ -94,6 +102,7 @@ export const useWorkspaceActions = (
       setWorkspaces((prev) => [...prev, newWs]);
       setActiveWorkspace(newWs);
       localStorage.setItem(ACTIVE_WORKSPACE_KEY, ws.id);
+      invalidateWorkspaceQueries();
 
       toast({
         title: 'Workspace created',
@@ -102,7 +111,7 @@ export const useWorkspaceActions = (
 
       return newWs;
     },
-    [userId, toast, setWorkspaces, setActiveWorkspace]
+    [userId, toast, setWorkspaces, setActiveWorkspace, invalidateWorkspaceQueries]
   );
 
   return { switchWorkspace, createWorkspace };
