@@ -5,7 +5,8 @@ import { logSecurityEvent, validateEmail, validatePhone, sanitizeInput } from '.
 
 export const addCustomer = async (
   customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>, 
-  userId: string
+  userId: string,
+  workspaceId?: string | null
 ) => {
   if (!userId) {
     await logSecurityEvent({
