@@ -118,6 +118,13 @@ const AppSidebar = () => {
         </div>
       </SidebarHeader>
 
+      {/* Workspace Switcher */}
+      {!isCollapsed && (
+        <div className="border-b border-border/40 px-2 py-2">
+          <WorkspaceSwitcher />
+        </div>
+      )}
+
       {/* Workstation Panel - Collapsible */}
       {!isCollapsed && <CollapsibleWorkstationPanel />}
 

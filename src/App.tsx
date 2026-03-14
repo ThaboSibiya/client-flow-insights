@@ -233,6 +233,7 @@ const App = () => (
                 </TourProvider>
               </TooltipProvider>
             </CRMProvider>
+            </WorkspaceProvider>
           </ErrorBoundary>
         </AuthProvider>
       </BrowserRouter>
