@@ -310,7 +310,7 @@ export const useProjectManagement = (): UseProjectManagementReturn => {
       };
       
       // Save to database
-      const newProject = await projectService.createProject(projectToCreate);
+      const newProject = await projectService.createProject(projectToCreate, workspaceId);
       setProjects(prev => [newProject, ...prev]);
       console.log('Project created successfully:', newProject.id);
       return true;
