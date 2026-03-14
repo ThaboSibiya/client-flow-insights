@@ -8,6 +8,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 
 export const useConversationsOptimized = () => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
