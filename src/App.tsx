@@ -53,6 +53,7 @@ import SecuritySettings from "./components/settings/sections/SecuritySettings";
 import BillingSettings from "./components/settings/sections/BillingSettings";
 import CommunicationSettings from "./components/settings/sections/CommunicationSettings";
 import WorkspaceSettings from "./components/settings/sections/WorkspaceSettings";
+import DataImportSettings from "./components/settings/sections/DataImportSettings";
 
 const queryClient = new QueryClient({
   defaultOptions: {
