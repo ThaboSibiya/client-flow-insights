@@ -31,13 +31,13 @@ export const checkEmailUniqueness = async (email: string, excludeId?: string): P
   }
 };
 
-export const createEmployee = async (formData: EmployeeFormData): Promise<any> => {
+export const createEmployee = async (formData: EmployeeFormData, workspaceId?: string | null): Promise<any> => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('You must be logged in to manage employees');
   }
 
-  const employeeData = {
+  const employeeData: Record<string, any> = {
     first_name: formData.first_name.trim(),
     last_name: formData.last_name.trim(),
     email: formData.email.toLowerCase().trim(),
@@ -51,7 +51,8 @@ export const createEmployee = async (formData: EmployeeFormData): Promise<any> =
     salary: formData.salary ? parseFloat(formData.salary) : null,
     company_owner_id: user.id,
     user_id: user.id,
-    employee_number: '' // Will be set by database trigger
+    employee_number: '', // Will be set by database trigger
+    workspace_id: workspaceId || null,
   };
 
   const { data, error } = await supabase
