@@ -347,7 +347,7 @@ const DataImportSettings = () => {
 
       await supabase
         .from('import_history')
-        .update({ status: 'undone' } as Record<string, unknown>)
+        .update({ status: 'undone' } as any)
         .eq('id', record.id);
 
       toast.success(`Undone: ${ids.length} ${table} records deleted`);
