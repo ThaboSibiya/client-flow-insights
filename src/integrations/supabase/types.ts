@@ -1663,6 +1663,71 @@ export type Database = {
         }
         Relationships: []
       }
+      import_history: {
+        Row: {
+          created_at: string
+          data_type: string
+          errors: Json | null
+          failed_count: number
+          field_mappings: Json | null
+          id: string
+          imported_record_ids: Json | null
+          skipped_duplicates: number
+          source_crm: string | null
+          source_file: string | null
+          status: string
+          success_count: number
+          total_rows: number
+          updated_at: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_type: string
+          errors?: Json | null
+          failed_count?: number
+          field_mappings?: Json | null
+          id?: string
+          imported_record_ids?: Json | null
+          skipped_duplicates?: number
+          source_crm?: string | null
+          source_file?: string | null
+          status?: string
+          success_count?: number
+          total_rows?: number
+          updated_at?: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_type?: string
+          errors?: Json | null
+          failed_count?: number
+          field_mappings?: Json | null
+          id?: string
+          imported_record_ids?: Json | null
+          skipped_duplicates?: number
+          source_crm?: string | null
+          source_file?: string | null
+          status?: string
+          success_count?: number
+          total_rows?: number
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_history_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       industry_customer_templates: {
         Row: {
           created_at: string
