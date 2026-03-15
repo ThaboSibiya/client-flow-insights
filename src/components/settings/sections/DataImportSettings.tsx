@@ -141,7 +141,7 @@ const DataImportSettings = () => {
   };
 
   const autoMapFields = (headers: string[]) => {
-    const hints = HUBSPOT_HINTS[dataType];
+    const hints = COLUMN_HINTS[dataType];
     const crmFields = CRM_FIELDS[dataType];
     
     const mappings: FieldMapping[] = [];
