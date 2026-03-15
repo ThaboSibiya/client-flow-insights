@@ -136,7 +136,7 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName
         if (onSave) onSave();
       } else {
         // Create new employee with invitation
-        const result = await createEmployeeWithInvitation(formData, companyName || 'Your Company');
+        const result = await createEmployeeWithInvitation(formData, companyName || 'Your Company', workspaceId);
         setCreationResult(result);
 
         if (result.invitationSent) {
