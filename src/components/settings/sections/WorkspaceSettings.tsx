@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import WorkspaceMembersManager from '@/components/workspace/WorkspaceMembersManager';
+import WorkspaceDataMigration from '@/components/workspace/WorkspaceDataMigration';
 
 const WorkspaceSettings = () => {
   const { activeWorkspace, refetchWorkspaces, workspaces, switchWorkspace, setNeedsOnboarding } = useWorkspace();
