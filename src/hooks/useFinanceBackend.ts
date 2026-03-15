@@ -9,6 +9,7 @@ import { financeEventBus, FINANCE_EVENTS, useFinanceStore } from '@/stores/finan
 
 export const useFinanceBackend = (customerId: string) => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [financeNotes, setFinanceNotes] = useState<FinanceNote[]>([]);
