@@ -97,6 +97,7 @@ export const useFinanceBackend = (customerId: string) => {
         .insert([{
           customer_id: customerId,
           user_id: user.id,
+          workspace_id: workspaceId || null,
           ...invoice
         } as any])
         .select()
