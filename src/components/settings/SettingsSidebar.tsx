@@ -18,7 +18,8 @@ import {
   ChevronDown,
   ChevronRight,
   Lock,
-  MessageSquare
+  MessageSquare,
+  Upload
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useUserRole } from '@/hooks/useUserRole';

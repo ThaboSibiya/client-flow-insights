@@ -225,7 +225,10 @@ const App = () => (
                             <AdminProtectedRoute element={<SecuritySettings />} redirectTo="/settings/general" />
                           } />
                           <Route path="billing" element={
-                            <OwnerProtectedRoute element={<BillingSettings />} redirectTo="/settings/general" />
+                          <OwnerProtectedRoute element={<BillingSettings />} redirectTo="/settings/general" />
+                          } />
+                          <Route path="import" element={
+                            <AdminProtectedRoute element={<DataImportSettings />} redirectTo="/settings/general" />
                           } />
                         </Route>
                       </Route>
