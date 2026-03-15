@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
 /** Tables that carry a workspace_id column and belong to a user_id. */
-const WORKSPACE_TABLES = [
+export const WORKSPACE_TABLES = [
   'customers',
   'employees',
   'invoices',
@@ -15,7 +15,19 @@ const WORKSPACE_TABLES = [
   'import_history',
 ] as const;
 
-type TableName = (typeof WORKSPACE_TABLES)[number];
+export type MigratableTable = (typeof WORKSPACE_TABLES)[number];
+
+export const TABLE_LABELS: Record<MigratableTable, string> = {
+  customers: 'Customers',
+  employees: 'Employees',
+  invoices: 'Invoices',
+  payments: 'Payments',
+  projects: 'Projects',
+  conversations: 'Conversations',
+  tickets: 'Tickets',
+  quotes_invoices: 'Quotes & Invoices',
+  import_history: 'Import History',
+};
 
 export interface OrphanedDataCounts {
   customers: number;
@@ -30,9 +42,13 @@ export interface OrphanedDataCounts {
   total: number;
 }
 
+const userIdCol = (table: MigratableTable) =>
+  table === 'conversations' ? 'company_owner_id' : 'user_id';
+
 /**
  * Detects data rows owned by the current user that have no workspace_id,
  * and offers to migrate them to a target workspace.
+ * Supports selective migration by table and reassignment between workspaces.
  */
 export const useOrphanedDataMigration = () => {
   const { user } = useAuth();
@@ -46,9 +62,6 @@ export const useOrphanedDataMigration = () => {
     if (!user) return null;
     setLoading(true);
     try {
-      const userIdCol = (table: TableName) =>
-        table === 'conversations' ? 'company_owner_id' : 'user_id';
-
       const results = await Promise.all(
         WORKSPACE_TABLES.map(async (table) => {
           const { count, error } = await (supabase
@@ -67,7 +80,7 @@ export const useOrphanedDataMigration = () => {
 
       const mapped = results.reduce(
         (acc, { table, count }) => ({ ...acc, [table]: count }),
-        {} as Record<TableName, number>,
+        {} as Record<MigratableTable, number>,
       );
 
       const total = results.reduce((s, r) => s + r.count, 0);
@@ -79,20 +92,22 @@ export const useOrphanedDataMigration = () => {
     }
   }, [user]);
 
-  /** Migrate all orphaned data for the current user to the given workspace. */
+  /**
+   * Migrate orphaned data to a workspace.
+   * @param selectedTables — if provided, only migrate these tables. Otherwise migrate all.
+   */
   const migrateToWorkspace = useCallback(
-    async (workspaceId: string) => {
+    async (workspaceId: string, selectedTables?: MigratableTable[]) => {
       if (!user) return false;
       setMigrating(true);
       setMigratedCount(0);
 
-      try {
-        const userIdCol = (table: TableName) =>
-          table === 'conversations' ? 'company_owner_id' : 'user_id';
+      const tablesToMigrate = selectedTables ?? [...WORKSPACE_TABLES];
 
+      try {
         let migrated = 0;
 
-        for (const table of WORKSPACE_TABLES) {
+        for (const table of tablesToMigrate) {
           const { data, error } = await (supabase
             .from(table as any)
             .update({ workspace_id: workspaceId }) as any)
@@ -108,10 +123,61 @@ export const useOrphanedDataMigration = () => {
           setMigratedCount(migrated);
         }
 
-        setCounts(null);
+        // Refresh counts
+        await detectOrphanedData();
         return true;
       } catch (err) {
         console.error('Migration failed:', err);
+        return false;
+      } finally {
+        setMigrating(false);
+      }
+    },
+    [user, detectOrphanedData],
+  );
+
+  /**
+   * Reassign records from one workspace to another.
+   * @param fromWorkspaceId — source workspace (or null for orphaned)
+   * @param toWorkspaceId — target workspace
+   * @param table — which table to reassign
+   * @param recordIds — specific record IDs to reassign (if empty, reassign all)
+   */
+  const reassignRecords = useCallback(
+    async (
+      fromWorkspaceId: string | null,
+      toWorkspaceId: string,
+      table: MigratableTable,
+      recordIds?: string[],
+    ) => {
+      if (!user) return false;
+      setMigrating(true);
+
+      try {
+        let query = (supabase
+          .from(table as any)
+          .update({ workspace_id: toWorkspaceId }) as any)
+          .eq(userIdCol(table), user.id);
+
+        if (fromWorkspaceId) {
+          query = query.eq('workspace_id', fromWorkspaceId);
+        } else {
+          query = query.is('workspace_id', null);
+        }
+
+        if (recordIds && recordIds.length > 0) {
+          query = query.in('id', recordIds);
+        }
+
+        const { error } = await query;
+
+        if (error) {
+          console.error(`Reassign ${table} failed:`, error.message);
+          return false;
+        }
+        return true;
+      } catch (err) {
+        console.error('Reassign failed:', err);
         return false;
       } finally {
         setMigrating(false);
@@ -127,5 +193,6 @@ export const useOrphanedDataMigration = () => {
     migratedCount,
     detectOrphanedData,
     migrateToWorkspace,
+    reassignRecords,
   };
 };
