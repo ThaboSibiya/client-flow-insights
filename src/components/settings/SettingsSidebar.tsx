@@ -18,7 +18,8 @@ import {
   ChevronDown,
   ChevronRight,
   Lock,
-  MessageSquare
+  MessageSquare,
+  Upload
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -118,6 +119,19 @@ const SettingsSidebar = () => {
           label: 'Team Management', 
           description: 'Employee roles and permissions',
           requiredRole: 'admin'
+        },
+      ]
+    },
+    {
+      label: 'Data',
+      defaultOpen: false,
+      items: [
+        {
+          path: '/settings/import',
+          icon: Upload,
+          label: 'Data Import',
+          description: 'Import from HubSpot or CSV',
+          requiredRole: 'admin',
         },
       ]
     },
