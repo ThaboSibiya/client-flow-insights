@@ -238,7 +238,7 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
 
         {step === 'done' && (
           <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 text-green-600">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
               <CheckCircle2 className="h-8 w-8" />
             </div>
             <DialogTitle className="text-xl">You're all set!</DialogTitle>
