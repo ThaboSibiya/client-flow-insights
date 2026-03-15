@@ -78,3 +78,6 @@ verify_jwt = false
 
 [functions.paystack-cancel]
 verify_jwt = false
+
+[functions.import-scheduler]
+verify_jwt = true
