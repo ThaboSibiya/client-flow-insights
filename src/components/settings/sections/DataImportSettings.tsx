@@ -56,23 +56,45 @@ const CRM_FIELDS: Record<ImportDataType, { field: string; label: string; require
   ],
 };
 
-const HUBSPOT_HINTS: Record<ImportDataType, Record<string, string>> = {
+// Universal column-name hints covering HubSpot, Salesforce, Zoho, Pipedrive, Freshsales, and generic exports
+const COLUMN_HINTS: Record<ImportDataType, Record<string, string>> = {
   customers: {
-    'First Name': 'name', 'Last Name': 'name', 'Company Name': 'name',
-    'Email': 'email', 'Phone Number': 'phone', 'Street Address': 'address',
-    'Contact owner': 'contact_person', 'Lifecycle Stage': 'status',
-    'Lead Source': 'source', 'Notes': 'notes',
+    // Generic
+    'Name': 'name', 'Full Name': 'name', 'Customer Name': 'name', 'Company': 'name', 'Account Name': 'name',
+    'First Name': 'name', 'Last Name': 'name', 'FirstName': 'name', 'LastName': 'name',
+    'Email': 'email', 'Email Address': 'email', 'E-mail': 'email', 'Primary Email': 'email', 'Work Email': 'email',
+    'Phone': 'phone', 'Phone Number': 'phone', 'Mobile': 'phone', 'Mobile Phone': 'phone', 'Work Phone': 'phone', 'Telephone': 'phone',
+    'Address': 'address', 'Street Address': 'address', 'Mailing Address': 'address', 'Street': 'address', 'Billing Address': 'address',
+    'Contact Person': 'contact_person', 'Contact Owner': 'contact_person', 'Owner': 'contact_person', 'Assigned To': 'contact_person', 'Record Owner': 'contact_person',
+    'Company Address': 'company_address', 'Business Address': 'company_address', 'Office Address': 'company_address',
+    'Status': 'status', 'Lead Status': 'status', 'Lifecycle Stage': 'status', 'Contact Status': 'status', 'Stage': 'status',
+    'Notes': 'notes', 'Description': 'notes', 'Comments': 'notes', 'Internal Notes': 'notes',
+    'Source': 'source', 'Lead Source': 'source', 'Original Source': 'source', 'Campaign Source': 'source', 'How did they find us': 'source',
+    'Reason': 'reason', 'Summary': 'reason', 'Pain Points': 'reason',
+    // Salesforce specific
+    'Account': 'name', 'AccountName': 'name', 'OwnerId': 'contact_person', 'LeadSource': 'source',
+    'MailingStreet': 'address', 'BillingStreet': 'company_address',
+    // Zoho specific
+    'Company Name': 'name', 'Lead Owner': 'contact_person', 'Email Opt Out': '_skip',
+    // Pipedrive specific
+    'Organization': 'name', 'Person Name': 'name', 'Deal Owner': 'contact_person',
   },
   tickets: {
-    'Ticket name': 'subject', 'Ticket description': 'description',
-    'Ticket status': 'status', 'Priority': 'priority',
-    'Associated contact email': 'customer_email',
+    'Subject': 'subject', 'Title': 'subject', 'Ticket Name': 'subject', 'Issue': 'subject', 'Case Subject': 'subject',
+    'Description': 'description', 'Details': 'description', 'Body': 'description', 'Case Description': 'description',
+    'Status': 'status', 'Ticket Status': 'status', 'Case Status': 'status', 'State': 'status',
+    'Priority': 'priority', 'Urgency': 'priority', 'Severity': 'priority', 'Case Priority': 'priority',
+    'Customer Email': 'customer_email', 'Contact Email': 'customer_email', 'Associated contact email': 'customer_email',
+    'Requester Email': 'customer_email', 'Email': 'customer_email', 'Client Email': 'customer_email',
   },
   invoices: {
-    'Invoice Number': 'invoice_number', 'Amount': 'amount',
-    'Total': 'total_amount', 'Due Date': 'due_date',
-    'Status': 'status', 'Description': 'description',
-    'Contact Email': 'customer_email',
+    'Invoice Number': 'invoice_number', 'Invoice #': 'invoice_number', 'Invoice No': 'invoice_number', 'Number': 'invoice_number', 'Reference': 'invoice_number',
+    'Amount': 'amount', 'Subtotal': 'amount', 'Net Amount': 'amount', 'Line Total': 'amount',
+    'Total': 'total_amount', 'Total Amount': 'total_amount', 'Grand Total': 'total_amount', 'Invoice Total': 'total_amount',
+    'Due Date': 'due_date', 'Payment Due': 'due_date', 'Due': 'due_date', 'Due By': 'due_date',
+    'Status': 'status', 'Invoice Status': 'status', 'Payment Status': 'status',
+    'Description': 'description', 'Memo': 'description', 'Notes': 'description', 'Line Description': 'description',
+    'Contact Email': 'customer_email', 'Customer Email': 'customer_email', 'Client Email': 'customer_email', 'Bill To Email': 'customer_email',
   },
 };
 
