@@ -607,7 +607,7 @@ const DataImportSettings = () => {
               <CheckCircle2 className="h-12 w-12 mx-auto text-green-500" />
               <h3 className="text-lg font-medium text-foreground">Import Complete</h3>
               <div className="flex justify-center gap-6 text-sm">
-                <span className="text-green-600 font-medium">✓ {importResults.success} imported</span>
+                <span className="text-primary font-medium">✓ {importResults.success} imported</span>
                 {importResults.failed > 0 && (
                   <span className="text-destructive font-medium">✗ {importResults.failed} failed</span>
                 )}
