@@ -93,9 +93,9 @@ export const useOrphanedDataMigration = () => {
         let migrated = 0;
 
         for (const table of WORKSPACE_TABLES) {
-          const { data, error } = await supabase
-            .from(table)
-            .update({ workspace_id: workspaceId } as any)
+          const { data, error } = await (supabase
+            .from(table as any)
+            .update({ workspace_id: workspaceId }) as any)
             .eq(userIdCol(table), user.id)
             .is('workspace_id', null)
             .select('id');
