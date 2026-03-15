@@ -13,6 +13,7 @@ import {
 import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName?: string) => {
+  const workspaceId = useActiveWorkspaceId();
   const [formData, setFormData] = useState<EmployeeFormData>({
     first_name: '',
     last_name: '',
