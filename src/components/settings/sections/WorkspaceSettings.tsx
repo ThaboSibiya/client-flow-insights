@@ -163,6 +163,8 @@ const WorkspaceSettings = () => {
       {/* Members Management */}
       <WorkspaceMembersManager />
 
+      {/* Data Migration & Workspace Split */}
+      <WorkspaceDataMigration />
       {/* Link to full Team Management */}
       <Card>
         <CardContent className="flex items-center justify-between py-4">
