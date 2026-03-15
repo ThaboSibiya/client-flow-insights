@@ -501,7 +501,7 @@ const DataImportSettings = () => {
     }
 
     // Log to import_history
-    const { data: historyRow } = await supabase.from('import_history').insert({
+    const historyPayload = {
       user_id: user.id,
       workspace_id: workspaceId,
       data_type: dataType,
@@ -511,11 +511,16 @@ const DataImportSettings = () => {
       success_count: success,
       failed_count: failed,
       skipped_duplicates: skippedDuplicates,
-      imported_record_ids: importedIds,
-      field_mappings: Object.fromEntries(fieldMappings.map(m => [m.csvColumn, m.crmField])),
-      errors: errors.slice(0, 50),
+      imported_record_ids: JSON.stringify(importedIds),
+      field_mappings: JSON.stringify(Object.fromEntries(fieldMappings.map(m => [m.csvColumn, m.crmField]))),
+      errors: JSON.stringify(errors.slice(0, 50)),
       status: 'completed',
-    } as Record<string, unknown>).select('id').single();
+    };
+    const { data: historyRow } = await supabase
+      .from('import_history')
+      .insert(historyPayload as any)
+      .select('id')
+      .single();
 
     setImportResults({ success, failed, skippedDuplicates, errors: errors.slice(0, 20), importId: historyRow?.id });
     setStep('done');
