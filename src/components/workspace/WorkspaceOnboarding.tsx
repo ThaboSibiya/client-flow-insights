@@ -179,7 +179,7 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
         {step === 'migrate' && counts && (
           <>
             <DialogHeader>
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 mb-2">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-accent-foreground mb-2">
                 <Database className="h-6 w-6" />
               </div>
               <DialogTitle className="text-xl">Existing data found</DialogTitle>
