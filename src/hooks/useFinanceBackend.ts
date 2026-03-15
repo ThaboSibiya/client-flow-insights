@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 import { Invoice, Payment, FinanceNote, AccountFlag } from '@/types/financeBackend';
 import { toast } from '@/hooks/use-toast';
 import { financeAuditService } from '@/services/financeAuditService';
