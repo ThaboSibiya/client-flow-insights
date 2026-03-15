@@ -404,7 +404,7 @@ const DataImportSettings = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-foreground">Data Import</h2>
-          <p className="text-sm text-muted-foreground">Import data from HubSpot, Salesforce, or any CRM via CSV</p>
+          <p className="text-sm text-muted-foreground">Import data from any CRM — HubSpot, Salesforce, Zoho, Pipedrive, or a custom CSV</p>
         </div>
         {step !== 'select' && step !== 'importing' && (
           <Button variant="outline" size="sm" onClick={resetImport}>
