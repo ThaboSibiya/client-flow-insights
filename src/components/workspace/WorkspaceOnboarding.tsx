@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Building2, ArrowRight, Database, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react';
+import { Building2, ArrowRight, Database, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useWorkspace, Workspace } from '@/context/WorkspaceContext';
-import { useOrphanedDataMigration, OrphanedDataCounts } from '@/hooks/useOrphanedDataMigration';
+import {
+  useOrphanedDataMigration,
+  OrphanedDataCounts,
+  MigratableTable,
+  TABLE_LABELS,
+  WORKSPACE_TABLES,
+} from '@/hooks/useOrphanedDataMigration';
 import { toast } from '@/hooks/use-toast';
 
 interface WorkspaceOnboardingProps {
@@ -21,21 +28,16 @@ interface WorkspaceOnboardingProps {
 
 type OnboardingStep = 'create' | 'migrate' | 'done';
 
-const DATA_LABELS: Record<string, string> = {
-  customers: 'Customers',
-  employees: 'Employees',
-  invoices: 'Invoices',
-  payments: 'Payments',
-  projects: 'Projects',
-  conversations: 'Conversations',
-  tickets: 'Tickets',
-  quotes_invoices: 'Quotes & Invoices',
-  import_history: 'Import History',
-};
-
 const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onComplete }) => {
   const { createWorkspace, refetchWorkspaces } = useWorkspace();
-  const { counts, loading: detecting, migrating, migratedCount, detectOrphanedData, migrateToWorkspace } = useOrphanedDataMigration();
+  const {
+    counts,
+    loading: detecting,
+    migrating,
+    migratedCount,
+    detectOrphanedData,
+    migrateToWorkspace,
+  } = useOrphanedDataMigration();
 
   const [step, setStep] = useState<OnboardingStep>('create');
   const [name, setName] = useState('');
@@ -43,8 +45,8 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdWorkspace, setCreatedWorkspace] = useState<Workspace | null>(null);
+  const [selectedTables, setSelectedTables] = useState<Set<MigratableTable>>(new Set(WORKSPACE_TABLES));
 
-  // Reset on open
   useEffect(() => {
     if (open) {
       setStep('create');
@@ -52,8 +54,26 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
       setIndustry('');
       setError(null);
       setCreatedWorkspace(null);
+      setSelectedTables(new Set(WORKSPACE_TABLES));
     }
   }, [open]);
+
+  // When counts arrive, pre-select only tables that have data
+  useEffect(() => {
+    if (counts) {
+      const withData = WORKSPACE_TABLES.filter((t) => (counts as any)[t] > 0);
+      setSelectedTables(new Set(withData));
+    }
+  }, [counts]);
+
+  const toggleTable = (table: MigratableTable) => {
+    setSelectedTables((prev) => {
+      const next = new Set(prev);
+      if (next.has(table)) next.delete(table);
+      else next.add(table);
+      return next;
+    });
+  };
 
   const handleCreateWorkspace = useCallback(async () => {
     if (!name.trim()) return;
@@ -63,7 +83,6 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
       const ws = await createWorkspace(name.trim(), industry.trim() || undefined);
       if (ws) {
         setCreatedWorkspace(ws);
-        // Check for orphaned data before completing
         const orphaned = await detectOrphanedData();
         if (orphaned && orphaned.total > 0) {
           setStep('migrate');
@@ -84,7 +103,12 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
 
   const handleMigrate = useCallback(async () => {
     if (!createdWorkspace) return;
-    const success = await migrateToWorkspace(createdWorkspace.id);
+    const tables = [...selectedTables] as MigratableTable[];
+    if (tables.length === 0) {
+      toast({ title: 'No tables selected', description: 'Select at least one data type to migrate.' });
+      return;
+    }
+    const success = await migrateToWorkspace(createdWorkspace.id, tables);
     if (success) {
       toast({
         title: 'Data migrated successfully',
@@ -100,7 +124,7 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
         variant: 'destructive',
       });
     }
-  }, [createdWorkspace, migrateToWorkspace, refetchWorkspaces, onComplete]);
+  }, [createdWorkspace, selectedTables, migrateToWorkspace, refetchWorkspaces, onComplete]);
 
   const handleSkipMigration = useCallback(async () => {
     await refetchWorkspaces();
@@ -110,6 +134,10 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
     });
     onComplete();
   }, [refetchWorkspaces, onComplete]);
+
+  const selectedCount = counts
+    ? [...selectedTables].reduce((sum, t) => sum + ((counts as any)[t] || 0), 0)
+    : 0;
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
@@ -148,15 +176,10 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
                   onKeyDown={(e) => e.key === 'Enter' && !saving && handleCreateWorkspace()}
                 />
               </div>
-
               {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
 
-            <Button
-              onClick={handleCreateWorkspace}
-              disabled={!name.trim() || saving}
-              className="w-full"
-            >
+            <Button onClick={handleCreateWorkspace} disabled={!name.trim() || saving} className="w-full">
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -184,30 +207,39 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
               </div>
               <DialogTitle className="text-xl">Existing data found</DialogTitle>
               <DialogDescription>
-                We found data from before your workspace was created. Would you like to move it
-                into <strong>"{createdWorkspace?.name}"</strong>?
+                Select the data you'd like to move into{' '}
+                <strong>"{createdWorkspace?.name}"</strong>.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
-              {(Object.entries(DATA_LABELS) as [string, string][]).map(([key, label]) => {
+            <div className="rounded-lg border bg-muted/50 p-3 space-y-1 max-h-64 overflow-y-auto">
+              {(WORKSPACE_TABLES as readonly MigratableTable[]).map((key) => {
                 const count = (counts as any)[key] as number;
                 if (!count) return null;
                 return (
-                  <div key={key} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{label}</span>
-                    <span className="font-medium tabular-nums">{count}</span>
-                  </div>
+                  <label
+                    key={key}
+                    className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-muted cursor-pointer transition-colors"
+                  >
+                    <Checkbox
+                      checked={selectedTables.has(key)}
+                      onCheckedChange={() => toggleTable(key)}
+                    />
+                    <span className="flex-1 text-sm">{TABLE_LABELS[key]}</span>
+                    <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                      {count}
+                    </span>
+                  </label>
                 );
               })}
-              <div className="border-t pt-2 flex items-center justify-between text-sm font-semibold">
-                <span>Total records</span>
-                <span className="tabular-nums">{counts.total}</span>
-              </div>
             </div>
 
-            <div className="flex flex-col gap-2 pt-2">
-              <Button onClick={handleMigrate} disabled={migrating} className="w-full">
+            <p className="text-xs text-muted-foreground text-center">
+              {selectedCount} of {counts.total} records selected
+            </p>
+
+            <div className="flex flex-col gap-2 pt-1">
+              <Button onClick={handleMigrate} disabled={migrating || selectedCount === 0} className="w-full">
                 {migrating ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -215,24 +247,15 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
                   </>
                 ) : (
                   <>
-                    Move data to workspace
+                    Move {selectedCount} records
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </>
                 )}
               </Button>
-              <Button
-                variant="ghost"
-                onClick={handleSkipMigration}
-                disabled={migrating}
-                className="w-full text-muted-foreground"
-              >
+              <Button variant="ghost" onClick={handleSkipMigration} disabled={migrating} className="w-full text-muted-foreground">
                 Skip for now
               </Button>
             </div>
-
-            <p className="text-xs text-center text-muted-foreground">
-              Skipped data will remain unassigned. You can migrate it later.
-            </p>
           </>
         )}
 

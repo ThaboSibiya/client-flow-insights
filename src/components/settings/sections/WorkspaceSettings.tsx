@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import WorkspaceMembersManager from '@/components/workspace/WorkspaceMembersManager';
+import WorkspaceDataMigration from '@/components/workspace/WorkspaceDataMigration';
 
 const WorkspaceSettings = () => {
   const { activeWorkspace, refetchWorkspaces, workspaces, switchWorkspace, setNeedsOnboarding } = useWorkspace();
@@ -162,6 +163,8 @@ const WorkspaceSettings = () => {
       {/* Members Management */}
       <WorkspaceMembersManager />
 
+      {/* Data Migration & Workspace Split */}
+      <WorkspaceDataMigration />
       {/* Link to full Team Management */}
       <Card>
         <CardContent className="flex items-center justify-between py-4">

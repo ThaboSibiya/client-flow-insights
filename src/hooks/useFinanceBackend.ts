@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 import { Invoice, Payment, FinanceNote, AccountFlag } from '@/types/financeBackend';
 import { toast } from '@/hooks/use-toast';
 import { financeAuditService } from '@/services/financeAuditService';
@@ -8,6 +9,7 @@ import { financeEventBus, FINANCE_EVENTS, useFinanceStore } from '@/stores/finan
 
 export const useFinanceBackend = (customerId: string) => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [financeNotes, setFinanceNotes] = useState<FinanceNote[]>([]);
@@ -95,6 +97,7 @@ export const useFinanceBackend = (customerId: string) => {
         .insert([{
           customer_id: customerId,
           user_id: user.id,
+          workspace_id: workspaceId || null,
           ...invoice
         } as any])
         .select()
@@ -132,6 +135,7 @@ export const useFinanceBackend = (customerId: string) => {
         .insert([{
           customer_id: customerId,
           user_id: user.id,
+          workspace_id: workspaceId || null,
           ...payment
         } as any])
         .select()

@@ -10,8 +10,10 @@ import {
   retryInvitation,
   EmployeeCreationResult
 } from '@/services/employeeService';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName?: string) => {
+  const workspaceId = useActiveWorkspaceId();
   const [formData, setFormData] = useState<EmployeeFormData>({
     first_name: '',
     last_name: '',
@@ -134,7 +136,7 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName
         if (onSave) onSave();
       } else {
         // Create new employee with invitation
-        const result = await createEmployeeWithInvitation(formData, companyName || 'Your Company');
+        const result = await createEmployeeWithInvitation(formData, companyName || 'Your Company', workspaceId);
         setCreationResult(result);
 
         if (result.invitationSent) {
