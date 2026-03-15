@@ -604,7 +604,7 @@ const DataImportSettings = () => {
         <div className="space-y-4">
           <Card>
             <CardContent className="p-8 text-center space-y-3">
-              <CheckCircle2 className="h-12 w-12 mx-auto text-green-500" />
+              <CheckCircle2 className="h-12 w-12 mx-auto text-primary" />
               <h3 className="text-lg font-medium text-foreground">Import Complete</h3>
               <div className="flex justify-center gap-6 text-sm">
                 <span className="text-primary font-medium">✓ {importResults.success} imported</span>

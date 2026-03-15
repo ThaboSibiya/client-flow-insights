@@ -122,6 +122,19 @@ const SettingsSidebar = () => {
       ]
     },
     {
+      label: 'Data',
+      defaultOpen: false,
+      items: [
+        {
+          path: '/settings/import',
+          icon: Upload,
+          label: 'Data Import',
+          description: 'Import from HubSpot or CSV',
+          requiredRole: 'admin',
+        },
+      ]
+    },
+    {
       label: 'Integrations',
       defaultOpen: false,
       items: [
