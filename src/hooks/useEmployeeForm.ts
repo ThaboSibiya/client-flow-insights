@@ -10,6 +10,7 @@ import {
   retryInvitation,
   EmployeeCreationResult
 } from '@/services/employeeService';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName?: string) => {
   const [formData, setFormData] = useState<EmployeeFormData>({
