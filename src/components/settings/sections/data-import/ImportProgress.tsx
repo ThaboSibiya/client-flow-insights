@@ -5,9 +5,10 @@ import { Progress } from '@/components/ui/progress';
 
 interface ImportProgressProps {
   progress: number;
+  detail?: string;
 }
 
-const ImportProgress = ({ progress }: ImportProgressProps) => (
+const ImportProgress = ({ progress, detail }: ImportProgressProps) => (
   <Card>
     <CardContent className="p-10 text-center space-y-5">
       <div className="relative w-fit mx-auto">
@@ -15,7 +16,9 @@ const ImportProgress = ({ progress }: ImportProgressProps) => (
       </div>
       <div>
         <h3 className="font-medium text-foreground">Importing your data…</h3>
-        <p className="text-sm text-muted-foreground mt-1">Please don't close this page</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          {detail || "Please don't close this page"}
+        </p>
       </div>
       <div className="max-w-xs mx-auto space-y-2">
         <Progress value={progress} />

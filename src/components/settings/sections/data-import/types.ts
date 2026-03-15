@@ -1,5 +1,5 @@
 export type ImportDataType = 'customers' | 'tickets' | 'invoices';
-export type ImportStep = 'select' | 'upload' | 'map' | 'preview' | 'importing' | 'done';
+export type ImportStep = 'select' | 'upload' | 'map' | 'transform' | 'preview' | 'importing' | 'done';
 export type MainTab = 'import' | 'history' | 'connect';
 
 export interface ParsedRow {
@@ -9,6 +9,11 @@ export interface ParsedRow {
 export interface FieldMapping {
   csvColumn: string;
   crmField: string;
+}
+
+export interface ValueTransform {
+  field: string;
+  rules: { from: string; to: string }[];
 }
 
 export interface ImportHistoryRecord {
@@ -61,6 +66,34 @@ export const CRM_FIELDS: Record<ImportDataType, { field: string; label: string; 
     { field: 'status', label: 'Status', required: false },
     { field: 'description', label: 'Description', required: false },
     { field: 'customer_email', label: 'Customer Email (to match)', required: true },
+  ],
+};
+
+export const STATUS_PRESETS: Record<ImportDataType, { from: string; to: string }[]> = {
+  customers: [
+    { from: 'Lead', to: 'new' },
+    { from: 'Prospect', to: 'new' },
+    { from: 'Subscriber', to: 'new' },
+    { from: 'Active', to: 'existing' },
+    { from: 'Qualified', to: 'existing' },
+    { from: 'Customer', to: 'existing' },
+    { from: 'Won', to: 'finalised' },
+    { from: 'Closed', to: 'finalised' },
+    { from: 'In Progress', to: 'pending' },
+    { from: 'Negotiation', to: 'pending' },
+  ],
+  tickets: [
+    { from: 'New', to: 'open' },
+    { from: 'Assigned', to: 'in-progress' },
+    { from: 'Working', to: 'in-progress' },
+    { from: 'Solved', to: 'resolved' },
+    { from: 'Done', to: 'closed' },
+  ],
+  invoices: [
+    { from: 'Unpaid', to: 'pending' },
+    { from: 'Overdue', to: 'overdue' },
+    { from: 'Paid', to: 'paid' },
+    { from: 'Partial', to: 'partial' },
   ],
 };
 

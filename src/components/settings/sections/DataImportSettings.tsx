@@ -8,6 +8,7 @@ import ImportStepper from './data-import/ImportStepper';
 import DataTypeSelector from './data-import/DataTypeSelector';
 import FileUploadZone from './data-import/FileUploadZone';
 import FieldMapper from './data-import/FieldMapper';
+import ValueTransformEditor from './data-import/ValueTransformEditor';
 import ImportPreview from './data-import/ImportPreview';
 import ImportProgress from './data-import/ImportProgress';
 import ImportResultsView from './data-import/ImportResultsView';
@@ -20,9 +21,10 @@ const DataImportSettings = () => {
     step, setStep,
     dataType, setDataType,
     csvHeaders, csvRows,
-    fieldMappings, updateMapping,
+    fieldMappings, updateMapping, reorderMappings,
+    valueTransforms, setValueTransforms,
     fileName,
-    importProgress,
+    importProgress, importProgressDetail,
     importResults,
     isDragging, setIsDragging,
     skipDuplicates, setSkipDuplicates,
@@ -55,7 +57,6 @@ const DataImportSettings = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-foreground">Data Import</h2>
@@ -83,7 +84,6 @@ const DataImportSettings = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Import Tab */}
         <TabsContent value="import" className="space-y-5 mt-5">
           <ImportStepper currentStep={step} />
 
@@ -118,7 +118,19 @@ const DataImportSettings = () => {
               sampleRow={csvRows[0]}
               missingRequired={missingRequired}
               onUpdateMapping={updateMapping}
+              onReorderMappings={reorderMappings}
               onBack={() => setStep('upload')}
+              onContinue={() => setStep('transform')}
+            />
+          )}
+
+          {step === 'transform' && (
+            <ValueTransformEditor
+              dataType={dataType}
+              fieldMappings={fieldMappings}
+              transforms={valueTransforms}
+              onUpdateTransforms={setValueTransforms}
+              onBack={() => setStep('map')}
               onContinue={() => setStep('preview')}
             />
           )}
@@ -130,13 +142,13 @@ const DataImportSettings = () => {
               totalRows={csvRows.length}
               fieldMappings={fieldMappings}
               skipDuplicates={skipDuplicates}
-              onBack={() => setStep('map')}
+              onBack={() => setStep('transform')}
               onImport={executeImport}
             />
           )}
 
           {step === 'importing' && (
-            <ImportProgress progress={importProgress} />
+            <ImportProgress progress={importProgress} detail={importProgressDetail} />
           )}
 
           {step === 'done' && (
@@ -149,7 +161,6 @@ const DataImportSettings = () => {
           )}
         </TabsContent>
 
-        {/* History Tab */}
         <TabsContent value="history" className="mt-5">
           <ImportHistoryList
             records={importHistory}
@@ -158,7 +169,6 @@ const DataImportSettings = () => {
           />
         </TabsContent>
 
-        {/* API Connect Tab */}
         <TabsContent value="connect" className="mt-5">
           <ApiConnectTab />
         </TabsContent>
