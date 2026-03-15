@@ -466,9 +466,16 @@ const DataImportSettings = () => {
         <div className="space-y-4">
           <Alert>
             <HelpCircle className="h-4 w-4" />
-            <AlertDescription>
-              <strong>HubSpot tip:</strong> Go to HubSpot → Contacts → Export → Choose CSV. 
-              The importer will auto-detect HubSpot column names.
+            <AlertDescription className="space-y-2">
+              <p className="font-medium">How to export from your CRM:</p>
+              <ul className="text-xs space-y-1 text-muted-foreground">
+                <li><strong>HubSpot</strong> — Contacts → Actions → Export → CSV</li>
+                <li><strong>Salesforce</strong> — Reports → Export → CSV / Data Export</li>
+                <li><strong>Zoho CRM</strong> — Module → ⋮ → Export → CSV</li>
+                <li><strong>Pipedrive</strong> — Contacts → Export filter results → CSV</li>
+                <li><strong>Freshsales</strong> — Contacts → Settings → Export</li>
+                <li><strong>Other</strong> — Export your data as CSV; columns will be auto-detected</li>
+              </ul>
             </AlertDescription>
           </Alert>
 
