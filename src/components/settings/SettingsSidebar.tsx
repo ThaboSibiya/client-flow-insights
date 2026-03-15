@@ -19,7 +19,8 @@ import {
   ChevronRight,
   Lock,
   MessageSquare,
-  Upload
+  Upload,
+  UserPlus
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -132,6 +133,13 @@ const SettingsSidebar = () => {
           label: 'Data Import',
           description: 'Import from HubSpot or CSV',
           requiredRole: 'admin',
+        },
+        {
+          path: '/onboarding',
+          icon: UserPlus,
+          label: 'Customer Onboarding',
+          description: 'Onboarding wizard and templates',
+          requiredRole: 'all',
         },
       ]
     },

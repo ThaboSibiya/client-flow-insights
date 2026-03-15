@@ -6,6 +6,7 @@ import MobileNavigation from './MobileNavigation';
 import HelpButton from '@/components/help/HelpButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import CommandPalette from '@/components/command/CommandPalette';
 
 const Layout = () => {
   const isMobile = useIsMobile();
@@ -14,12 +15,11 @@ const Layout = () => {
     return (
       <div className="min-h-screen flex flex-col w-full bg-background overflow-y-auto overflow-x-hidden">
         <MobileNavigation />
-
         <main className="flex-1 pb-20 ios-scroll">
           <Outlet />
         </main>
-
         <HelpButton />
+        <CommandPalette />
       </div>
     );
   }
@@ -30,7 +30,6 @@ const Layout = () => {
         <AppSidebar />
 
         <SidebarInset className="flex flex-col">
-          {/* Minimal header - just sidebar trigger for collapsed state */}
           <header className="h-12 flex items-center gap-2 px-4 border-b border-border/40 bg-background/95 backdrop-blur-sm sticky top-0 z-10">
             <SidebarTrigger className="h-7 w-7" />
             <div className="flex-1" />
@@ -43,6 +42,7 @@ const Layout = () => {
         </SidebarInset>
 
         <HelpButton />
+        <CommandPalette />
       </div>
     </SidebarProvider>
   );
