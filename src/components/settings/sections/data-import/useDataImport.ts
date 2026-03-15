@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -6,7 +6,7 @@ import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import {
-  ImportDataType, ImportStep, ParsedRow, FieldMapping,
+  ImportDataType, ImportStep, ParsedRow, FieldMapping, ValueTransform,
   ImportHistoryRecord, ImportResults, CRM_FIELDS, COLUMN_HINTS,
 } from './types';
 
@@ -27,18 +27,51 @@ export const useDataImport = () => {
   const { user } = useAuth();
   const workspaceId = useActiveWorkspaceId();
   const queryClient = useQueryClient();
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const [step, setStep] = useState<ImportStep>('select');
   const [dataType, setDataType] = useState<ImportDataType>('customers');
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [csvRows, setCsvRows] = useState<ParsedRow[]>([]);
   const [fieldMappings, setFieldMappings] = useState<FieldMapping[]>([]);
+  const [valueTransforms, setValueTransforms] = useState<ValueTransform[]>([]);
   const [fileName, setFileName] = useState('');
   const [importProgress, setImportProgress] = useState(0);
+  const [importProgressDetail, setImportProgressDetail] = useState('');
   const [importResults, setImportResults] = useState<ImportResults>({ success: 0, failed: 0, skippedDuplicates: 0, errors: [] });
   const [isDragging, setIsDragging] = useState(false);
   const [skipDuplicates, setSkipDuplicates] = useState(true);
   const [undoingId, setUndoingId] = useState<string | null>(null);
+
+  // Real-time progress channel
+  useEffect(() => {
+    if (step !== 'importing' || !user) return;
+
+    const channel = supabase.channel(`import-progress-${user.id}`)
+      .on('broadcast', { event: 'progress' }, (payload) => {
+        const { progress, detail } = payload.payload as { progress: number; detail: string };
+        setImportProgress(progress);
+        setImportProgressDetail(detail);
+      })
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      supabase.removeChannel(channel);
+      channelRef.current = null;
+    };
+  }, [step, user]);
+
+  const broadcastProgress = useCallback((progress: number, detail: string) => {
+    setImportProgress(progress);
+    setImportProgressDetail(detail);
+    channelRef.current?.send({
+      type: 'broadcast',
+      event: 'progress',
+      payload: { progress, detail },
+    });
+  }, []);
 
   // History query scoped to workspace
   const { data: importHistory = [], refetch: refetchHistory } = useQuery({
@@ -66,8 +99,10 @@ export const useDataImport = () => {
     setCsvHeaders([]);
     setCsvRows([]);
     setFieldMappings([]);
+    setValueTransforms([]);
     setFileName('');
     setImportProgress(0);
+    setImportProgressDetail('');
     setImportResults({ success: 0, failed: 0, skippedDuplicates: 0, errors: [] });
   }, []);
 
@@ -182,6 +217,18 @@ export const useDataImport = () => {
     setFieldMappings(prev => prev.map(m => m.csvColumn === csvColumn ? { ...m, crmField } : m));
   }, []);
 
+  const reorderMappings = useCallback((newMappings: FieldMapping[]) => {
+    setFieldMappings(newMappings);
+  }, []);
+
+  const applyTransforms = useCallback((value: string, field: string): string => {
+    const transform = valueTransforms.find(t => t.field === field);
+    if (!transform) return value;
+    const lower = (value || '').toLowerCase().trim();
+    const rule = transform.rules.find(r => r.from.toLowerCase().trim() === lower);
+    return rule ? rule.to : value;
+  }, [valueTransforms]);
+
   const getMappedData = useCallback((): Record<string, string>[] => {
     return csvRows.map(row => {
       const mapped: Record<string, string> = {};
@@ -192,12 +239,13 @@ export const useDataImport = () => {
         } else if (mapped[m.crmField] && m.crmField === 'name') {
           mapped[m.crmField] = `${mapped[m.crmField]} ${row[m.csvColumn] || ''}`.trim();
         } else {
-          mapped[m.crmField] = row[m.csvColumn] || '';
+          const rawValue = row[m.csvColumn] || '';
+          mapped[m.crmField] = applyTransforms(rawValue, m.crmField);
         }
       });
       return mapped;
     });
-  }, [csvRows, fieldMappings]);
+  }, [csvRows, fieldMappings, applyTransforms]);
 
   const validateMappings = useCallback((): string[] => {
     const requiredFields = CRM_FIELDS[dataType].filter(f => f.required).map(f => f.field);
@@ -213,7 +261,6 @@ export const useDataImport = () => {
     return new Set((data || []).map(c => c.email?.toLowerCase()));
   };
 
-  // Batch customer lookup for tickets/invoices — avoids N+1
   const batchFetchCustomersByEmail = async (emails: string[]): Promise<Map<string, string>> => {
     const emailMap = new Map<string, string>();
     if (!user || emails.length === 0) return emailMap;
@@ -267,6 +314,7 @@ export const useDataImport = () => {
     if (!user) return;
     setStep('importing');
     setImportProgress(0);
+    setImportProgressDetail('Preparing import…');
 
     const mappedData = getMappedData();
     const total = mappedData.length;
@@ -277,6 +325,7 @@ export const useDataImport = () => {
     const importedIds: string[] = [];
 
     if (dataType === 'customers') {
+      broadcastProgress(2, 'Checking for duplicates…');
       const existingEmails = skipDuplicates ? await fetchExistingEmails() : new Set<string>();
 
       for (let i = 0; i < total; i += BATCH_SIZE) {
@@ -294,7 +343,8 @@ export const useDataImport = () => {
         }
 
         if (filtered.length === 0) {
-          setImportProgress(Math.round(((i + batch.length) / total) * 100));
+          const pct = Math.round(((i + batch.length) / total) * 100);
+          broadcastProgress(pct, `Processing batch ${Math.floor(i / BATCH_SIZE) + 1}…`);
           continue;
         }
 
@@ -321,10 +371,11 @@ export const useDataImport = () => {
           success += filtered.length;
           (inserted || []).forEach(r => importedIds.push(r.id));
         }
-        setImportProgress(Math.round(((i + BATCH_SIZE) / total) * 100));
+        const pct = Math.min(Math.round(((i + BATCH_SIZE) / total) * 100), 98);
+        broadcastProgress(pct, `Imported ${success} of ${total} records…`);
       }
     } else {
-      // Batch pre-fetch all customer emails for ticket/invoice matching
+      broadcastProgress(5, 'Matching customers by email…');
       const allEmails = mappedData.map(r => r.customer_email || '').filter(Boolean);
       const customerMap = await batchFetchCustomersByEmail(allEmails);
 
@@ -380,9 +431,12 @@ export const useDataImport = () => {
             (inserted || []).forEach(r => importedIds.push(r.id));
           }
         }
-        setImportProgress(Math.round(((i + BATCH_SIZE) / total) * 100));
+        const pct = Math.min(Math.round(((i + BATCH_SIZE) / total) * 100), 98);
+        broadcastProgress(pct, `Imported ${success} of ${total} records…`);
       }
     }
+
+    broadcastProgress(99, 'Saving import history…');
 
     // Log to import_history
     const historyPayload = {
@@ -405,6 +459,8 @@ export const useDataImport = () => {
       .insert(historyPayload as any)
       .select('id')
       .single();
+
+    broadcastProgress(100, 'Complete!');
 
     setImportResults({ success, failed, skippedDuplicates, errors: errors.slice(0, 20), importId: historyRow?.id });
     setStep('done');
@@ -434,9 +490,10 @@ export const useDataImport = () => {
     step, setStep,
     dataType, setDataType,
     csvHeaders, csvRows,
-    fieldMappings, updateMapping,
+    fieldMappings, updateMapping, reorderMappings,
+    valueTransforms, setValueTransforms,
     fileName,
-    importProgress,
+    importProgress, importProgressDetail,
     importResults,
     isDragging, setIsDragging,
     skipDuplicates, setSkipDuplicates,

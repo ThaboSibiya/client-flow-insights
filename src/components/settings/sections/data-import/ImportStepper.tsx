@@ -6,11 +6,12 @@ const STEPS = [
   { key: 'select', label: 'Data Type' },
   { key: 'upload', label: 'Upload' },
   { key: 'map', label: 'Map Fields' },
+  { key: 'transform', label: 'Transform' },
   { key: 'preview', label: 'Preview' },
   { key: 'done', label: 'Complete' },
 ] as const;
 
-const STEP_ORDER: ImportStep[] = ['select', 'upload', 'map', 'preview', 'importing', 'done'];
+const STEP_ORDER: ImportStep[] = ['select', 'upload', 'map', 'transform', 'preview', 'importing', 'done'];
 
 interface ImportStepperProps {
   currentStep: ImportStep;
@@ -43,7 +44,7 @@ const ImportStepper = ({ currentStep }: ImportStepperProps) => {
               <span className="hidden sm:inline">{s.label}</span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={`h-px w-6 transition-colors ${isCompleted ? 'bg-primary/40' : 'bg-border'}`} />
+              <div className={`h-px w-4 transition-colors ${isCompleted ? 'bg-primary/40' : 'bg-border'}`} />
             )}
           </React.Fragment>
         );
