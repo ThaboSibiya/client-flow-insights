@@ -57,7 +57,7 @@ export const createEmployee = async (formData: EmployeeFormData, workspaceId?: s
 
   const { data, error } = await supabase
     .from('employees')
-    .insert(employeeData)
+    .insert(employeeData as any)
     .select()
     .single();
 
