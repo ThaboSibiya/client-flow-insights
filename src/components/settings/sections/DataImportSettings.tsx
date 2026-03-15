@@ -298,6 +298,7 @@ const DataImportSettings = () => {
         } else {
           const { error } = await supabase.from('tickets').insert({
             subject: row.subject || 'Imported Ticket',
+            ticket_number: `IMP-${Date.now()}-${i}`,
             description: row.description || null,
             status: row.status || 'open',
             priority: row.priority || 'medium',
