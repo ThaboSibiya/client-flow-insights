@@ -110,11 +110,12 @@ export interface EmployeeCreationResult {
 
 export const createEmployeeWithInvitation = async (
   formData: EmployeeFormData, 
-  companyName: string
+  companyName: string,
+  workspaceId?: string | null,
 ): Promise<EmployeeCreationResult> => {
   try {
     // Step 1: Create employee record
-    const employee = await createEmployee(formData);
+    const employee = await createEmployee(formData, workspaceId);
     
     try {
       // Step 2: Send invitation immediately
