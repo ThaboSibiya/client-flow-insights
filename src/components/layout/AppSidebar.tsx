@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import quikleLogo from '@/assets/quikle-logo.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,8 @@ import {
   ChevronLeft,
   ChevronRight,
   LifeBuoy,
+  Clock,
+  Search,
 } from 'lucide-react';
 import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import {
@@ -43,33 +45,42 @@ import PendingWorkspaceInvitations from '@/components/workspace/PendingWorkspace
 import WorkspaceOnboarding from '@/components/workspace/WorkspaceOnboarding';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { useRecentPages } from '@/hooks/useRecentPages';
+
+interface NavItem {
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}
 
 const AppSidebar = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const location = useLocation();
   const navigate = useNavigate();
   const { data: employee } = useEmployeeProfile();
   const { state, toggleSidebar } = useSidebar();
   const { needsOnboarding, setNeedsOnboarding } = useWorkspace();
   const { unreadCount } = useRealtimeNotifications();
+  const { recentPages } = useRecentPages();
   const isCollapsed = state === 'collapsed';
+  const navRef = useRef<HTMLDivElement>(null);
 
-  // 3 clean groups: Core, Manage, Automate — no group labels, separated by dividers
-  const coreItems = [
+  const coreItems: NavItem[] = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/customers', icon: Users, label: 'Customers' },
     { path: '/conversations', icon: MessageCircle, label: 'Conversations' },
     { path: '/pipeline', icon: Bot, label: 'Pipeline' },
   ];
 
-  const manageItems = [
+  const manageItems: NavItem[] = [
     { path: '/projects', icon: FolderKanban, label: 'Projects' },
     { path: '/quotes', icon: FileText, label: 'Quotes & Invoices' },
     { path: '/finance', icon: DollarSign, label: 'Finance' },
     { path: '/employees', icon: Users, label: 'Team' },
   ];
 
-  const automateItems = [
+  const automateItems: NavItem[] = [
     { path: '/automations', icon: Zap, label: 'Automations' },
     { path: '/integrations', icon: Workflow, label: 'Integrations' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
@@ -78,11 +89,37 @@ const AppSidebar = () => {
       : []),
   ];
 
+  // Flatten all nav items for keyboard navigation
+  const allItems = [...coreItems, ...manageItems, ...automateItems];
+
+  // Keyboard navigation
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setFocusedIndex((prev) => (prev < allItems.length - 1 ? prev + 1 : 0));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusedIndex((prev) => (prev > 0 ? prev - 1 : allItems.length - 1));
+      } else if (e.key === 'Enter' && focusedIndex >= 0) {
+        e.preventDefault();
+        navigate(allItems[focusedIndex].path);
+      }
+    },
+    [allItems, focusedIndex, navigate]
+  );
+
+  // Reset focus index when route changes
+  useEffect(() => {
+    setFocusedIndex(-1);
+  }, [location.pathname]);
+
   const isActive = (path: string) => location.pathname === path;
 
-  const renderNavItem = (item: { path: string; icon: React.ComponentType<{ className?: string }>; label: string }) => {
+  const renderNavItem = (item: NavItem, globalIndex: number) => {
     const Icon = item.icon;
     const active = isActive(item.path);
+    const focused = focusedIndex === globalIndex;
 
     return (
       <SidebarMenuItem key={item.path}>
@@ -95,7 +132,8 @@ const AppSidebar = () => {
                 "relative transition-all duration-200 h-9",
                 active
                   ? "bg-primary/10 text-primary font-medium"
-                  : "text-foreground/70 hover:bg-muted hover:text-foreground"
+                  : "text-foreground/70 hover:bg-muted hover:text-foreground",
+                focused && !active && "bg-muted/80 text-foreground ring-1 ring-primary/30"
               )}
             >
               <Link to={item.path}>
@@ -117,16 +155,17 @@ const AppSidebar = () => {
     );
   };
 
+  // Calculate global indices for each group
+  const coreStartIndex = 0;
+  const manageStartIndex = coreItems.length;
+  const automateStartIndex = coreItems.length + manageItems.length;
+
   return (
     <Sidebar collapsible="icon" className="border-r border-border/40">
-      {/* Header: Logo + Workspace Switcher merged */}
+      {/* Header: Logo + Workspace Switcher */}
       <SidebarHeader className="p-3 space-y-2">
         <div className={cn("flex items-center gap-2.5", isCollapsed && "justify-center")}>
-          <img
-            src={quikleLogo}
-            alt="Quikle Logo"
-            className="h-7 w-7 flex-shrink-0"
-          />
+          <img src={quikleLogo} alt="Quikle Logo" className="h-7 w-7 flex-shrink-0" />
           {!isCollapsed && (
             <h1 className="text-base font-bold text-primary tracking-tight">Quikle</h1>
           )}
@@ -134,35 +173,79 @@ const AppSidebar = () => {
         <WorkspaceSwitcher />
       </SidebarHeader>
 
-      {/* Pending Workspace Invitations — only when expanded */}
       {!isCollapsed && <PendingWorkspaceInvitations />}
 
-      {/* Workspace Onboarding Wizard */}
       <WorkspaceOnboarding
         open={needsOnboarding}
         onComplete={() => setNeedsOnboarding(false)}
       />
 
-      {/* Navigation — no group labels, clean dividers */}
-      <SidebarContent className="px-2 py-1">
+      {/* Navigation */}
+      <SidebarContent
+        className="px-2 py-1 outline-none"
+        ref={navRef}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+      >
+        {/* Recent Pages */}
+        {!isCollapsed && recentPages.length > 0 && (
+          <>
+            <div className="px-2 pt-1 pb-0.5">
+              <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                Recent
+              </span>
+            </div>
+            <SidebarMenu className="space-y-0.5">
+              {recentPages.map((page) => (
+                <SidebarMenuItem key={`recent-${page.path}`}>
+                  <SidebarMenuButton
+                    asChild
+                    className="h-8 text-muted-foreground/80 hover:bg-muted hover:text-foreground transition-all duration-200"
+                  >
+                    <Link to={page.path}>
+                      <span className="truncate text-xs">{page.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+            <Separator className="my-2 mx-2 bg-border/40" />
+          </>
+        )}
+
+        {/* ⌘K hint */}
+        {!isCollapsed && (
+          <button
+            onClick={() => {
+              document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
+            }}
+            className="flex items-center gap-2 mx-2 mb-2 px-2.5 py-1.5 rounded-md border border-border/50 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+          >
+            <Search className="h-3.5 w-3.5" />
+            <span className="text-xs flex-1 text-left">Search...</span>
+            <kbd className="text-[10px] bg-background px-1.5 py-0.5 rounded border border-border/60 font-mono">⌘K</kbd>
+          </button>
+        )}
+
         <SidebarMenu className="space-y-0.5">
-          {coreItems.map(renderNavItem)}
+          {coreItems.map((item, i) => renderNavItem(item, coreStartIndex + i))}
         </SidebarMenu>
 
         <Separator className="my-2 mx-2 bg-border/40" />
 
         <SidebarMenu className="space-y-0.5">
-          {manageItems.map(renderNavItem)}
+          {manageItems.map((item, i) => renderNavItem(item, manageStartIndex + i))}
         </SidebarMenu>
 
         <Separator className="my-2 mx-2 bg-border/40" />
 
         <SidebarMenu className="space-y-0.5">
-          {automateItems.map(renderNavItem)}
+          {automateItems.map((item, i) => renderNavItem(item, automateStartIndex + i))}
         </SidebarMenu>
       </SidebarContent>
 
-      {/* Footer: User profile + utility icons */}
+      {/* Footer */}
       <SidebarFooter className="border-t border-border/40 p-2">
         {!isCollapsed ? (
           <div className="space-y-1">
@@ -234,12 +317,7 @@ const AppSidebar = () => {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9"
-                  onClick={() => navigate('/settings')}
-                >
+                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate('/settings')}>
                   <Settings className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -247,12 +325,7 @@ const AppSidebar = () => {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9"
-                  onClick={() => setIsHelpOpen(true)}
-                >
+                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setIsHelpOpen(true)}>
                   <LifeBuoy className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -261,12 +334,7 @@ const AppSidebar = () => {
             <Separator className="my-1 bg-border/40" />
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9"
-                  onClick={toggleSidebar}
-                >
+                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={toggleSidebar}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>

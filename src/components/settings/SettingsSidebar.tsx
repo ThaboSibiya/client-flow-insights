@@ -133,6 +133,13 @@ const SettingsSidebar = () => {
           description: 'Import from HubSpot or CSV',
           requiredRole: 'admin',
         },
+        {
+          path: '/onboarding',
+          icon: UserPlus,
+          label: 'Customer Onboarding',
+          description: 'Onboarding wizard and templates',
+          requiredRole: 'all',
+        },
       ]
     },
     {
