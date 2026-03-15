@@ -51,17 +51,17 @@ export const useOrphanedDataMigration = () => {
 
       const results = await Promise.all(
         WORKSPACE_TABLES.map(async (table) => {
-          const { count, error } = await supabase
-            .from(table)
-            .select('id', { count: 'exact', head: true })
+          const { count, error } = await (supabase
+            .from(table as any)
+            .select('id', { count: 'exact', head: true }) as any)
             .eq(userIdCol(table), user.id)
             .is('workspace_id', null);
 
           if (error) {
-            console.warn(`Failed to count orphaned ${table}:`, error.message);
+            console.warn(`Failed to count orphaned ${table}:`, error?.message);
             return { table, count: 0 };
           }
-          return { table, count: count ?? 0 };
+          return { table, count: (count as number) ?? 0 };
         }),
       );
 
