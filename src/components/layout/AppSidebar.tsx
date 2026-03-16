@@ -187,40 +187,13 @@ const AppSidebar = () => {
         tabIndex={0}
         onKeyDown={handleKeyDown}
       >
-        {/* Recent Pages */}
-        {!isCollapsed && recentPages.length > 0 && (
-          <>
-            <div className="px-2 pt-1 pb-0.5">
-              <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                Recent
-              </span>
-            </div>
-            <SidebarMenu className="space-y-0.5">
-              {recentPages.map((page) => (
-                <SidebarMenuItem key={`recent-${page.path}`}>
-                  <SidebarMenuButton
-                    asChild
-                    className="h-8 text-muted-foreground/80 hover:bg-muted hover:text-foreground transition-all duration-200"
-                  >
-                    <Link to={page.path}>
-                      <span className="truncate text-xs">{page.label}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-            <Separator className="my-2 mx-2 bg-border/40" />
-          </>
-        )}
-
-        {/* ⌘K hint */}
+        {/* ⌘K Search */}
         {!isCollapsed && (
           <button
             onClick={() => {
               document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
             }}
-            className="flex items-center gap-2 mx-2 mb-2 px-2.5 py-1.5 rounded-md border border-border/50 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+            className="flex items-center gap-2 mx-2 mb-1 px-2.5 py-1.5 rounded-md border border-border/50 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
           >
             <Search className="h-3.5 w-3.5" />
             <span className="text-xs flex-1 text-left">Search...</span>
@@ -228,19 +201,59 @@ const AppSidebar = () => {
           </button>
         )}
 
-        <SidebarMenu className="space-y-0.5">
+        {/* Recent Pages */}
+        {!isCollapsed && recentPages.length > 0 && (
+          <>
+            <div className="px-3 pt-2 pb-1">
+              <span className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">
+                Recent
+              </span>
+            </div>
+            <SidebarMenu className="space-y-0">
+              {recentPages.map((page) => (
+                <SidebarMenuItem key={`recent-${page.path}`}>
+                  <SidebarMenuButton
+                    asChild
+                    className="h-7 text-muted-foreground/70 hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    <Link to={page.path}>
+                      <Clock className="h-3 w-3 flex-shrink-0 opacity-40" />
+                      <span className="truncate text-xs">{page.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </>
+        )}
+
+        {/* Core */}
+        {!isCollapsed && (
+          <div className="px-3 pt-3 pb-1">
+            <span className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">Core</span>
+          </div>
+        )}
+        <SidebarMenu className="space-y-0">
           {coreItems.map((item, i) => renderNavItem(item, coreStartIndex + i))}
         </SidebarMenu>
 
-        <Separator className="my-2 mx-2 bg-border/40" />
-
-        <SidebarMenu className="space-y-0.5">
+        {/* Manage */}
+        {!isCollapsed && (
+          <div className="px-3 pt-3 pb-1">
+            <span className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">Manage</span>
+          </div>
+        )}
+        <SidebarMenu className="space-y-0">
           {manageItems.map((item, i) => renderNavItem(item, manageStartIndex + i))}
         </SidebarMenu>
 
-        <Separator className="my-2 mx-2 bg-border/40" />
-
-        <SidebarMenu className="space-y-0.5">
+        {/* Automate */}
+        {!isCollapsed && (
+          <div className="px-3 pt-3 pb-1">
+            <span className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">Automate</span>
+          </div>
+        )}
+        <SidebarMenu className="space-y-0">
           {automateItems.map((item, i) => renderNavItem(item, automateStartIndex + i))}
         </SidebarMenu>
       </SidebarContent>
