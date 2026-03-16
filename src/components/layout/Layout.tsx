@@ -30,8 +30,18 @@ const Layout = () => {
         <AppSidebar />
 
         <SidebarInset className="flex flex-col">
-          <header className="h-12 flex items-center gap-2 px-4 border-b border-border/40 bg-background/95 backdrop-blur-sm sticky top-0 z-10">
+          <header className="h-11 flex items-center gap-2 px-3 border-b border-border/40 bg-background/95 backdrop-blur-sm sticky top-0 z-10">
             <SidebarTrigger className="h-7 w-7" />
+            <button
+              onClick={() => {
+                document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
+              }}
+              className="flex items-center gap-2 ml-1 px-2.5 py-1 rounded-md border border-border/40 bg-muted/20 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer max-w-[220px]"
+            >
+              <Search className="h-3.5 w-3.5 flex-shrink-0" />
+              <span className="text-xs">Search...</span>
+              <kbd className="text-[10px] bg-background px-1.5 py-0.5 rounded border border-border/50 font-mono ml-auto">⌘K</kbd>
+            </button>
             <div className="flex-1" />
             <NotificationBell />
           </header>
