@@ -71,9 +71,11 @@ const CommandPalette = () => {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Search pages, settings, actions..." />
-      <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+      <CommandInput placeholder="Type to search..." />
+      <CommandList className="max-h-[320px] py-1">
+        <CommandEmpty className="py-8 text-center text-sm text-muted-foreground">
+          No results found.
+        </CommandEmpty>
         <CommandGroup heading="Pages">
           {navPages.map((page) => {
             const Icon = page.icon;
@@ -82,10 +84,10 @@ const CommandPalette = () => {
                 key={page.path}
                 value={`${page.label} ${page.keywords || ''}`}
                 onSelect={() => handleSelect(page.path)}
-                className="gap-3 cursor-pointer"
+                className="gap-2.5 cursor-pointer"
               >
-                <Icon className="h-4 w-4 text-muted-foreground" />
-                <span>{page.label}</span>
+                <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="truncate">{page.label}</span>
               </CommandItem>
             );
           })}
@@ -99,10 +101,10 @@ const CommandPalette = () => {
                 key={page.path}
                 value={`${page.label} ${page.keywords || ''}`}
                 onSelect={() => handleSelect(page.path)}
-                className="gap-3 cursor-pointer"
+                className="gap-2.5 cursor-pointer"
               >
-                <Icon className="h-4 w-4 text-muted-foreground" />
-                <span>{page.label}</span>
+                <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="truncate">{page.label}</span>
               </CommandItem>
             );
           })}
