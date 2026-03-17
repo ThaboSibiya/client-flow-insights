@@ -60,11 +60,11 @@ export const useNotificationPreferences = () => {
           desktop_notifications: data.desktop_notifications ?? true,
           sound_notifications: data.sound_notifications ?? true,
           notification_frequency: (data.notification_frequency as NotificationPreferences['notification_frequency']) ?? 'immediate',
-          customer_notifications: (data as any).customer_notifications ?? true,
-          ticket_notifications: (data as any).ticket_notifications ?? true,
-          project_notifications: (data as any).project_notifications ?? true,
-          task_notifications: (data as any).task_notifications ?? true,
-          system_notifications: (data as any).system_notifications ?? true,
+          customer_notifications: data.customer_notifications ?? true,
+          ticket_notifications: data.ticket_notifications ?? true,
+          project_notifications: data.project_notifications ?? true,
+          task_notifications: data.task_notifications ?? true,
+          system_notifications: data.system_notifications ?? true,
         });
       }
     } catch (error) {
