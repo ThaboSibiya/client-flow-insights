@@ -26,19 +26,19 @@ interface ServiceHistoryTimelineProps {
   loading?: boolean;
 }
 
-const serviceTypeConfig = {
-  maintenance: { icon: Settings, color: 'text-blue-600', bg: 'bg-blue-100' },
-  repair: { icon: Wrench, color: 'text-red-600', bg: 'bg-red-100' },
-  inspection: { icon: Search, color: 'text-amber-600', bg: 'bg-amber-100' },
-  installation: { icon: Package, color: 'text-green-600', bg: 'bg-green-100' },
-  replacement: { icon: RefreshCw, color: 'text-purple-600', bg: 'bg-purple-100' }
+const serviceTypeConfig: Record<string, { icon: React.ElementType; classes: string }> = {
+  maintenance: { icon: Settings, classes: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+  repair: { icon: Wrench, classes: 'bg-destructive/10 text-destructive' },
+  inspection: { icon: Search, classes: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
+  installation: { icon: Package, classes: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+  replacement: { icon: RefreshCw, classes: 'bg-purple-500/10 text-purple-600 dark:text-purple-400' }
 };
 
-const statusConfig = {
-  completed: { icon: CheckCircle, color: 'text-green-600', label: 'Completed' },
-  in_progress: { icon: Clock, color: 'text-blue-600', label: 'In Progress' },
-  scheduled: { icon: Calendar, color: 'text-amber-600', label: 'Scheduled' },
-  cancelled: { icon: XCircle, color: 'text-muted-foreground', label: 'Cancelled' }
+const statusConfig: Record<string, { icon: React.ElementType; classes: string; label: string }> = {
+  completed: { icon: CheckCircle, classes: 'text-emerald-600 dark:text-emerald-400', label: 'Completed' },
+  in_progress: { icon: Clock, classes: 'text-blue-600 dark:text-blue-400', label: 'In Progress' },
+  scheduled: { icon: Calendar, classes: 'text-amber-600 dark:text-amber-400', label: 'Scheduled' },
+  cancelled: { icon: XCircle, classes: 'text-muted-foreground', label: 'Cancelled' }
 };
 
 const ServiceHistoryTimeline = ({ history, onLogService, loading }: ServiceHistoryTimelineProps) => {
@@ -75,7 +75,7 @@ const ServiceHistoryTimeline = ({ history, onLogService, loading }: ServiceHisto
         <div className="absolute left-[19px] top-0 bottom-0 w-0.5 bg-border" />
 
         <div className="space-y-4">
-          {history.map((entry, index) => {
+          {history.map((entry) => {
             const typeConfig = serviceTypeConfig[entry.service_type] || serviceTypeConfig.maintenance;
             const TypeIcon = typeConfig.icon;
             const status = statusConfig[entry.status] || statusConfig.completed;
@@ -86,9 +86,9 @@ const ServiceHistoryTimeline = ({ history, onLogService, loading }: ServiceHisto
                 {/* Timeline dot */}
                 <div className={cn(
                   "absolute left-0 p-2 rounded-full border-2 border-background shadow-sm",
-                  typeConfig.bg
+                  typeConfig.classes
                 )}>
-                  <TypeIcon className={cn("h-4 w-4", typeConfig.color)} />
+                  <TypeIcon className="h-4 w-4" />
                 </div>
 
                 {/* Content card */}
@@ -99,7 +99,7 @@ const ServiceHistoryTimeline = ({ history, onLogService, loading }: ServiceHisto
                         <span className="font-medium capitalize text-foreground">
                           {entry.service_type}
                         </span>
-                        <Badge variant="outline" className={cn("text-xs", status.color)}>
+                        <Badge variant="outline" className={cn("text-xs", status.classes)}>
                           <StatusIcon className="h-3 w-3 mr-1" />
                           {status.label}
                         </Badge>
@@ -134,9 +134,9 @@ const ServiceHistoryTimeline = ({ history, onLogService, loading }: ServiceHisto
                   <p className="text-sm text-foreground mb-2">{entry.description}</p>
 
                   {entry.resolution && (
-                    <div className="bg-green-50 border border-green-200 rounded p-2 mb-2">
-                      <span className="text-xs font-medium text-green-800">Resolution:</span>
-                      <p className="text-sm text-green-700">{entry.resolution}</p>
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded p-2 mb-2">
+                      <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Resolution:</span>
+                      <p className="text-sm text-emerald-700 dark:text-emerald-300">{entry.resolution}</p>
                     </div>
                   )}
 

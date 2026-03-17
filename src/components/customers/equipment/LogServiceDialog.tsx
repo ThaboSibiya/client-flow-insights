@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Wrench, Save, Loader2 } from 'lucide-react';
+import { Wrench, Save, Loader2, DollarSign } from 'lucide-react';
 import { Equipment, ServiceFormData } from './types';
 
 interface LogServiceDialogProps {
@@ -44,6 +44,11 @@ const initialFormData: ServiceFormData = {
 
 const LogServiceDialog = ({ equipment, isOpen, onClose, onSave, saving }: LogServiceDialogProps) => {
   const [formData, setFormData] = useState<ServiceFormData>(initialFormData);
+
+  const totalCost = useMemo(() => 
+    (formData.labor_cost || 0) + (formData.parts_cost || 0),
+    [formData.labor_cost, formData.parts_cost]
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -216,6 +221,19 @@ const LogServiceDialog = ({ equipment, isOpen, onClose, onSave, saving }: LogSer
                   />
                 </div>
               </div>
+
+              {/* Live total cost */}
+              {totalCost > 0 && (
+                <div className="flex items-center justify-between p-2.5 bg-primary/5 border border-primary/20 rounded-lg">
+                  <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <DollarSign className="h-3.5 w-3.5" />
+                    Total Cost
+                  </span>
+                  <span className="text-sm font-semibold text-foreground">
+                    ${totalCost.toFixed(2)}
+                  </span>
+                </div>
+              )}
             </div>
           </ScrollArea>
 

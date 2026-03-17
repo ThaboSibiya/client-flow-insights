@@ -37,11 +37,11 @@ interface EquipmentQuickViewProps {
   loadingHistory?: boolean;
 }
 
-const statusConfig = {
-  active: { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50', label: 'Active' },
-  maintenance: { icon: Settings, color: 'text-amber-600', bg: 'bg-amber-50', label: 'Maintenance' },
-  broken: { icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50', label: 'Broken' },
-  retired: { icon: Clock, color: 'text-muted-foreground', bg: 'bg-muted', label: 'Retired' }
+const statusConfig: Record<string, { icon: React.ElementType; classes: string; label: string }> = {
+  active: { icon: CheckCircle, classes: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30', label: 'Active' },
+  maintenance: { icon: Settings, classes: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30', label: 'Maintenance' },
+  broken: { icon: AlertTriangle, classes: 'bg-destructive/10 text-destructive border-destructive/30', label: 'Broken' },
+  retired: { icon: Clock, classes: 'bg-muted text-muted-foreground border-border', label: 'Retired' }
 };
 
 const EquipmentQuickView = ({
@@ -72,15 +72,15 @@ const EquipmentQuickView = ({
         <SheetHeader className="p-6 pb-4 border-b border-border">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className={cn("p-3 rounded-xl", status.bg)}>
-                <Printer className={cn("h-6 w-6", status.color)} />
+              <div className={cn("p-3 rounded-xl border", status.classes)}>
+                <Printer className="h-6 w-6" />
               </div>
               <div>
                 <SheetTitle className="text-lg">
                   {equipment.brand} {equipment.model}
                 </SheetTitle>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline" className={cn("text-xs", status.bg, status.color)}>
+                  <Badge variant="outline" className={cn("text-xs border", status.classes)}>
                     <StatusIcon className="h-3 w-3 mr-1" />
                     {status.label}
                   </Badge>
@@ -128,11 +128,11 @@ const EquipmentQuickView = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <span className="text-sm text-muted-foreground">Type</span>
-                    <p className="font-medium capitalize">{equipment.equipment_type}</p>
+                    <p className="font-medium capitalize text-foreground">{equipment.equipment_type}</p>
                   </div>
                   <div>
                     <span className="text-sm text-muted-foreground">Total Services</span>
-                    <p className="font-medium">{equipment.total_services}</p>
+                    <p className="font-medium text-foreground">{equipment.total_services}</p>
                   </div>
                 </div>
 
@@ -148,7 +148,7 @@ const EquipmentQuickView = ({
                           <Calendar className="h-4 w-4" />
                           Purchase Date
                         </div>
-                        <p className="font-medium">
+                        <p className="font-medium text-foreground">
                           {format(new Date(equipment.purchase_date), 'MMM dd, yyyy')}
                         </p>
                       </div>
@@ -156,13 +156,13 @@ const EquipmentQuickView = ({
                     {equipment.warranty_expiry && (
                       <div className={cn(
                         "p-3 rounded-lg",
-                        warrantyExpired ? "bg-red-50" : "bg-muted/50"
+                        warrantyExpired ? "bg-destructive/10" : "bg-muted/50"
                       )}>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                           <Shield className="h-4 w-4" />
                           Warranty
                         </div>
-                        <p className={cn("font-medium", warrantyExpired && "text-red-600")}>
+                        <p className={cn("font-medium", warrantyExpired ? "text-destructive" : "text-foreground")}>
                           {format(new Date(equipment.warranty_expiry), 'MMM dd, yyyy')}
                           {warrantyExpired && ' (Expired)'}
                         </p>
@@ -174,7 +174,7 @@ const EquipmentQuickView = ({
                           <Wrench className="h-4 w-4" />
                           Last Service
                         </div>
-                        <p className="font-medium">
+                        <p className="font-medium text-foreground">
                           {format(new Date(equipment.last_service_date), 'MMM dd, yyyy')}
                         </p>
                       </div>
@@ -182,7 +182,7 @@ const EquipmentQuickView = ({
                     {equipment.next_service_due && (
                       <div className={cn(
                         "p-3 rounded-lg",
-                        isPast(new Date(equipment.next_service_due)) ? "bg-orange-50" : "bg-muted/50"
+                        isPast(new Date(equipment.next_service_due)) ? "bg-amber-500/10" : "bg-muted/50"
                       )}>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                           <Clock className="h-4 w-4" />
@@ -190,7 +190,7 @@ const EquipmentQuickView = ({
                         </div>
                         <p className={cn(
                           "font-medium",
-                          isPast(new Date(equipment.next_service_due)) && "text-orange-600"
+                          isPast(new Date(equipment.next_service_due)) ? "text-amber-700 dark:text-amber-400" : "text-foreground"
                         )}>
                           {format(new Date(equipment.next_service_due), 'MMM dd, yyyy')}
                         </p>
@@ -205,12 +205,12 @@ const EquipmentQuickView = ({
                     <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                       Technical Issues
                     </h4>
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                      <div className="flex items-center gap-2 text-amber-800 mb-2">
+                    <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                      <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 mb-2">
                         <AlertTriangle className="h-4 w-4" />
                         <span className="font-medium">Known Issues</span>
                       </div>
-                      <p className="text-sm text-amber-700">{equipment.technical_issues}</p>
+                      <p className="text-sm text-amber-700 dark:text-amber-300">{equipment.technical_issues}</p>
                     </div>
                   </div>
                 )}
