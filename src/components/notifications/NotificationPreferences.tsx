@@ -2,7 +2,6 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -46,15 +45,15 @@ const PreferenceSwitch: React.FC<PreferenceSwitchProps> = ({
 }) => (
   <div className="flex items-center justify-between py-3">
     <div className="flex items-center gap-3">
-      <div className="p-2 rounded-lg bg-quikle-crystal/50 text-quikle-primary">
+      <div className="p-2 rounded-lg bg-accent/50 text-primary">
         {icon}
       </div>
       <div className="space-y-0.5">
-        <Label className="text-sm font-medium text-quikle-charcoal cursor-pointer">
+        <Label className="text-sm font-medium text-foreground cursor-pointer">
           {label}
         </Label>
         {description && (
-          <p className="text-xs text-quikle-slate">{description}</p>
+          <p className="text-xs text-muted-foreground">{description}</p>
         )}
       </div>
     </div>
@@ -85,21 +84,21 @@ const NotificationPreferencesPanel: React.FC = () => {
 
   if (loading) {
     return (
-      <Card className="border-quikle-silver/30 shadow-luxury">
+      <Card className="border-border/50 shadow-sm">
         <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-quikle-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="border-quikle-silver/30 shadow-luxury">
+    <Card className="border-border/50 shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-quikle-primary/10 to-quikle-secondary/10">
-              <Settings className="h-5 w-5 text-quikle-primary" />
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Settings className="h-5 w-5 text-primary" />
             </div>
             <div>
               <CardTitle className="text-lg">Notification Preferences</CardTitle>
@@ -107,7 +106,7 @@ const NotificationPreferencesPanel: React.FC = () => {
             </div>
           </div>
           {saving && (
-            <Badge variant="outline" className="text-quikle-primary border-quikle-primary/30">
+            <Badge variant="outline" className="text-primary border-primary/30">
               <Loader2 className="h-3 w-3 mr-1 animate-spin" />
               Saving...
             </Badge>
@@ -118,11 +117,11 @@ const NotificationPreferencesPanel: React.FC = () => {
       <CardContent className="space-y-6">
         {/* Delivery Methods */}
         <div>
-          <h4 className="text-sm font-semibold text-quikle-charcoal mb-3 flex items-center gap-2">
+          <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
             <Bell className="h-4 w-4" />
             Delivery Methods
           </h4>
-          <div className="space-y-1 rounded-lg border border-quikle-silver/20 p-4 bg-quikle-crystal/10">
+          <div className="space-y-1 rounded-lg border border-border/40 p-4 bg-muted/20">
             <PreferenceSwitch
               icon={<Mail className="h-4 w-4" />}
               label="Email Notifications"
@@ -131,7 +130,7 @@ const NotificationPreferencesPanel: React.FC = () => {
               onCheckedChange={handleToggle('email_notifications')}
               disabled={saving}
             />
-            <Separator className="bg-quikle-silver/20" />
+            <Separator className="bg-border/30" />
             <PreferenceSwitch
               icon={<Monitor className="h-4 w-4" />}
               label="Desktop Notifications"
@@ -140,7 +139,7 @@ const NotificationPreferencesPanel: React.FC = () => {
               onCheckedChange={handleToggle('desktop_notifications')}
               disabled={saving}
             />
-            <Separator className="bg-quikle-silver/20" />
+            <Separator className="bg-border/30" />
             <PreferenceSwitch
               icon={<Volume2 className="h-4 w-4" />}
               label="Sound Notifications"
@@ -154,11 +153,11 @@ const NotificationPreferencesPanel: React.FC = () => {
 
         {/* Notification Types */}
         <div>
-          <h4 className="text-sm font-semibold text-quikle-charcoal mb-3 flex items-center gap-2">
+          <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
             <FolderKanban className="h-4 w-4" />
             Notification Types
           </h4>
-          <div className="space-y-1 rounded-lg border border-quikle-silver/20 p-4 bg-quikle-crystal/10">
+          <div className="space-y-1 rounded-lg border border-border/40 p-4 bg-muted/20">
             <PreferenceSwitch
               icon={<Users className="h-4 w-4" />}
               label="Customer Updates"
@@ -167,7 +166,7 @@ const NotificationPreferencesPanel: React.FC = () => {
               onCheckedChange={handleToggle('customer_notifications')}
               disabled={saving}
             />
-            <Separator className="bg-quikle-silver/20" />
+            <Separator className="bg-border/30" />
             <PreferenceSwitch
               icon={<Ticket className="h-4 w-4" />}
               label="Ticket Updates"
@@ -176,7 +175,7 @@ const NotificationPreferencesPanel: React.FC = () => {
               onCheckedChange={handleToggle('ticket_notifications')}
               disabled={saving}
             />
-            <Separator className="bg-quikle-silver/20" />
+            <Separator className="bg-border/30" />
             <PreferenceSwitch
               icon={<FolderKanban className="h-4 w-4" />}
               label="Project Updates"
@@ -185,7 +184,7 @@ const NotificationPreferencesPanel: React.FC = () => {
               onCheckedChange={handleToggle('project_notifications')}
               disabled={saving}
             />
-            <Separator className="bg-quikle-silver/20" />
+            <Separator className="bg-border/30" />
             <PreferenceSwitch
               icon={<CheckSquare className="h-4 w-4" />}
               label="Task Assignments"
@@ -194,7 +193,7 @@ const NotificationPreferencesPanel: React.FC = () => {
               onCheckedChange={handleToggle('task_notifications')}
               disabled={saving}
             />
-            <Separator className="bg-quikle-silver/20" />
+            <Separator className="bg-border/30" />
             <PreferenceSwitch
               icon={<Settings className="h-4 w-4" />}
               label="System Notifications"
@@ -208,7 +207,7 @@ const NotificationPreferencesPanel: React.FC = () => {
 
         {/* Frequency */}
         <div>
-          <h4 className="text-sm font-semibold text-quikle-charcoal mb-3">
+          <h4 className="text-sm font-semibold text-foreground mb-3">
             Notification Frequency
           </h4>
           <Select
@@ -216,7 +215,7 @@ const NotificationPreferencesPanel: React.FC = () => {
             onValueChange={handleFrequencyChange}
             disabled={saving}
           >
-            <SelectTrigger className="w-full border-quikle-silver/30">
+            <SelectTrigger className="w-full border-border/40">
               <SelectValue placeholder="Select frequency" />
             </SelectTrigger>
             <SelectContent>
@@ -226,7 +225,7 @@ const NotificationPreferencesPanel: React.FC = () => {
               <SelectItem value="never">Never</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-xs text-quikle-slate mt-2">
+          <p className="text-xs text-muted-foreground mt-2">
             {preferences.notification_frequency === 'immediate' && 'Get notified as soon as events occur'}
             {preferences.notification_frequency === 'hourly' && 'Receive a summary every hour'}
             {preferences.notification_frequency === 'daily' && 'Receive a daily summary email'}
