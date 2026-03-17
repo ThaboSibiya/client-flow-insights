@@ -19,7 +19,7 @@ export const LazyCustomerFileUpload = lazy(() =>
 );
 
 export const LazyEquipmentDisplay = lazy(() => 
-  import('./equipment/EquipmentDisplay')
+  import('./equipment/EquipmentManager')
 );
 
 export const LazyCustomDataDisplay = lazy(() => 
