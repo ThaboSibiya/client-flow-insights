@@ -2031,34 +2031,49 @@ export type Database = {
       notification_preferences: {
         Row: {
           created_at: string
+          customer_notifications: boolean
           desktop_notifications: boolean
           email_notifications: boolean
           id: string
           notification_frequency: string
+          project_notifications: boolean
           push_notifications: boolean
           sound_notifications: boolean
+          system_notifications: boolean
+          task_notifications: boolean
+          ticket_notifications: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          customer_notifications?: boolean
           desktop_notifications?: boolean
           email_notifications?: boolean
           id?: string
           notification_frequency?: string
+          project_notifications?: boolean
           push_notifications?: boolean
           sound_notifications?: boolean
+          system_notifications?: boolean
+          task_notifications?: boolean
+          ticket_notifications?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          customer_notifications?: boolean
           desktop_notifications?: boolean
           email_notifications?: boolean
           id?: string
           notification_frequency?: string
+          project_notifications?: boolean
           push_notifications?: boolean
           sound_notifications?: boolean
+          system_notifications?: boolean
+          task_notifications?: boolean
+          ticket_notifications?: boolean
           updated_at?: string
           user_id?: string
         }
