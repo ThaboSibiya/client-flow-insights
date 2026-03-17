@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Printer, Package } from 'lucide-react';
@@ -11,6 +11,7 @@ import EquipmentQuickView from './EquipmentQuickView';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTicketManagement } from '@/hooks/useTicketManagement';
 import { useCustomerCustomData } from '@/hooks/useCustomerCustomData';
+import { toast } from '@/hooks/use-toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -69,6 +70,15 @@ const EquipmentManager = ({ customerId }: EquipmentManagerProps) => {
     setDeletingId(null);
   };
 
+  // Auto-load service history when expanding a card
+  const handleToggleExpand = useCallback((equipmentId: string) => {
+    const isExpanding = expandedId !== equipmentId;
+    setExpandedId(isExpanding ? equipmentId : null);
+    if (isExpanding) {
+      loadServiceHistory(equipmentId);
+    }
+  }, [expandedId, loadServiceHistory]);
+
   // Industry-aware equipment type options
   const getEquipmentTypes = (): { value: string; label: string }[] => {
     const industry = appliedTemplates?.[0]?.industry?.toLowerCase() || '';
@@ -105,7 +115,6 @@ const EquipmentManager = ({ customerId }: EquipmentManagerProps) => {
         { value: 'other', label: 'Other' },
       ];
     }
-    // Generic fallback
     return [
       { value: 'printer', label: 'Printer' },
       { value: 'scanner', label: 'Scanner' },
@@ -135,8 +144,17 @@ const EquipmentManager = ({ customerId }: EquipmentManagerProps) => {
           totalTimeSpent: 0,
           category,
         });
+        toast({
+          title: "Equipment Booked In",
+          description: `${formData.brand} ${formData.model} added and a service ticket has been created automatically.`,
+        });
       } catch (error) {
         console.error('Auto-ticket creation failed (equipment saved successfully):', error);
+        toast({
+          title: "Equipment Added",
+          description: `${formData.brand} ${formData.model} saved, but auto-ticket creation failed. You can create a ticket manually.`,
+          variant: "destructive"
+        });
       }
     }
     
@@ -204,7 +222,7 @@ const EquipmentManager = ({ customerId }: EquipmentManagerProps) => {
               key={eq.id}
               equipment={eq}
               isExpanded={expandedId === eq.id}
-              onToggleExpand={() => setExpandedId(expandedId === eq.id ? null : eq.id)}
+              onToggleExpand={() => handleToggleExpand(eq.id)}
               onEdit={() => setEditingEquipment(eq)}
               onDelete={() => setDeletingId(eq.id)}
               onLogService={() => setLoggingServiceFor(eq)}
