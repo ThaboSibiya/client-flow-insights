@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import WorkspacePlanPaywall from '@/components/workspace/WorkspacePlanPaywall';
 
 const WorkspaceSwitcher = () => {
   const navigate = useNavigate();
