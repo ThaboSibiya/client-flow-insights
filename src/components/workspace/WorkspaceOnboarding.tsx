@@ -115,8 +115,7 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
         description: `Your existing data has been moved to "${createdWorkspace.name}".`,
       });
       await refetchWorkspaces();
-      setStep('done');
-      setTimeout(() => onComplete(), 1200);
+      setStep('plan');
     } else {
       toast({
         title: 'Migration failed',
