@@ -27,7 +27,7 @@ interface WorkspaceOnboardingProps {
   onComplete: () => void;
 }
 
-type OnboardingStep = 'create' | 'migrate' | 'done';
+type OnboardingStep = 'create' | 'migrate' | 'plan' | 'done';
 
 const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onComplete }) => {
   const { createWorkspace, refetchWorkspaces } = useWorkspace();
