@@ -131,8 +131,13 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
       title: 'Migration skipped',
       description: 'You can migrate existing data later from Settings > Workspace.',
     });
-    onComplete();
-  }, [refetchWorkspaces, onComplete]);
+    setStep('plan');
+  }, [refetchWorkspaces]);
+
+  const handlePlanSkip = useCallback(() => {
+    setStep('done');
+    setTimeout(() => onComplete(), 800);
+  }, [onComplete]);
 
   const selectedCount = counts
     ? [...selectedTables].reduce((sum, t) => sum + ((counts as any)[t] || 0), 0)
