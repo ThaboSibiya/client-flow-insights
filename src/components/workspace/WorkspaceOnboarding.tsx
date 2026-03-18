@@ -89,8 +89,7 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
           setStep('migrate');
         } else {
           await refetchWorkspaces();
-          setStep('done');
-          setTimeout(() => onComplete(), 800);
+          setStep('plan');
         }
       } else {
         setError('Failed to create workspace. Please try again.');
