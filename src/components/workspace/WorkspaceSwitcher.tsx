@@ -253,6 +253,12 @@ const WorkspaceSwitcher = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Plan paywall after workspace creation */}
+      <WorkspacePlanPaywall
+        open={paywallOpen}
+        workspaceName={createdWsName}
+        onSkip={handlePaywallSkip}
+      />
     </>
   );
 };
