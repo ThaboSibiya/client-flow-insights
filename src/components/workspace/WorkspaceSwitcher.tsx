@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import WorkspacePlanPaywall from '@/components/workspace/WorkspacePlanPaywall';
 
 const WorkspaceSwitcher = () => {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ const WorkspaceSwitcher = () => {
   const [newIndustry, setNewIndustry] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [createdWsName, setCreatedWsName] = useState('');
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -45,6 +48,8 @@ const WorkspaceSwitcher = () => {
       if (ws) {
         await refetchWorkspaces();
         setCreateOpen(false);
+        setCreatedWsName(ws.name);
+        setPaywallOpen(true);
         setNewName('');
         setNewIndustry('');
       } else {
@@ -55,6 +60,11 @@ const WorkspaceSwitcher = () => {
     } finally {
       setCreating(false);
     }
+  };
+
+  const handlePaywallSkip = () => {
+    setPaywallOpen(false);
+    setCreatedWsName('');
   };
 
   if (loading) {
@@ -243,6 +253,12 @@ const WorkspaceSwitcher = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Plan paywall after workspace creation */}
+      <WorkspacePlanPaywall
+        open={paywallOpen}
+        workspaceName={createdWsName}
+        onSkip={handlePaywallSkip}
+      />
     </>
   );
 };

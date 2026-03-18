@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Building2, ArrowRight, Database, CheckCircle2, Loader2 } from 'lucide-react';
+import WorkspacePlanPaywall from '@/components/workspace/WorkspacePlanPaywall';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,7 +27,7 @@ interface WorkspaceOnboardingProps {
   onComplete: () => void;
 }
 
-type OnboardingStep = 'create' | 'migrate' | 'done';
+type OnboardingStep = 'create' | 'migrate' | 'plan' | 'done';
 
 const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onComplete }) => {
   const { createWorkspace, refetchWorkspaces } = useWorkspace();
@@ -88,8 +89,7 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
           setStep('migrate');
         } else {
           await refetchWorkspaces();
-          setStep('done');
-          setTimeout(() => onComplete(), 800);
+          setStep('plan');
         }
       } else {
         setError('Failed to create workspace. Please try again.');
@@ -115,8 +115,7 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
         description: `Your existing data has been moved to "${createdWorkspace.name}".`,
       });
       await refetchWorkspaces();
-      setStep('done');
-      setTimeout(() => onComplete(), 1200);
+      setStep('plan');
     } else {
       toast({
         title: 'Migration failed',
@@ -132,8 +131,13 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
       title: 'Migration skipped',
       description: 'You can migrate existing data later from Settings > Workspace.',
     });
-    onComplete();
-  }, [refetchWorkspaces, onComplete]);
+    setStep('plan');
+  }, [refetchWorkspaces]);
+
+  const handlePlanSkip = useCallback(() => {
+    setStep('done');
+    setTimeout(() => onComplete(), 800);
+  }, [onComplete]);
 
   const selectedCount = counts
     ? [...selectedTables].reduce((sum, t) => sum + ((counts as any)[t] || 0), 0)
@@ -257,6 +261,14 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
               </Button>
             </div>
           </>
+        )}
+
+        {step === 'plan' && (
+          <WorkspacePlanPaywall
+            open={true}
+            workspaceName={createdWorkspace?.name || ''}
+            onSkip={handlePlanSkip}
+          />
         )}
 
         {step === 'done' && (
