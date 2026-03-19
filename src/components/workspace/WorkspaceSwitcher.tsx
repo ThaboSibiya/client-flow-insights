@@ -103,7 +103,11 @@ const WorkspaceSwitcher = () => {
       <DropdownMenuLabel className="text-xs text-muted-foreground">
         Workspaces
       </DropdownMenuLabel>
-      {workspaces.map((ws) => (
+      {workspaces.map((ws) => {
+        const planInfo = wsPlanMap?.[ws.id];
+        const planLabel = planInfo?.plan && planInfo.plan !== 'free' ? planInfo.plan : null;
+        const isActivePlan = planInfo?.status === 'active' || planInfo?.status === 'trialing';
+        return (
         <DropdownMenuItem
           key={ws.id}
           onClick={() => switchWorkspace(ws.id)}
@@ -117,7 +121,19 @@ const WorkspaceSwitcher = () => {
               {ws.name.charAt(0).toUpperCase()}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-sm truncate">{ws.name}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm truncate">{ws.name}</span>
+                {planLabel && isActivePlan && (
+                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary leading-none">
+                    {planLabel}
+                  </span>
+                )}
+                {(!planLabel || !isActivePlan) && (
+                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground leading-none">
+                    Free
+                  </span>
+                )}
+              </div>
               {ws.industry && (
                 <span className="text-[10px] text-muted-foreground truncate">{ws.industry}</span>
               )}
