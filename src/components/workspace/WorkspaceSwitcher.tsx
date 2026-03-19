@@ -143,7 +143,8 @@ const WorkspaceSwitcher = () => {
             <Check className="h-4 w-4 text-primary shrink-0" />
           )}
         </DropdownMenuItem>
-      ))}
+        );
+      })}
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={() => setCreateOpen(true)} className="cursor-pointer">
         <Plus className="h-4 w-4 mr-2" />
