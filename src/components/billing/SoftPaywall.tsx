@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useWorkspaceSubscription } from '@/hooks/useWorkspaceSubscription';
 
 interface SoftPaywallProps {
   feature?: string;
@@ -16,7 +16,7 @@ const SoftPaywall: React.FC<SoftPaywallProps> = ({
   requiredPlan = 'Team',
   children,
 }) => {
-  const { currentPlan, isActive } = useSubscription();
+  const { currentPlan, isActive } = useWorkspaceSubscription();
   const navigate = useNavigate();
 
   const planHierarchy: Record<string, number> = {
@@ -39,16 +39,16 @@ const SoftPaywall: React.FC<SoftPaywallProps> = ({
         {children}
       </div>
       <div className="absolute inset-0 flex items-center justify-center">
-        <Card className="max-w-sm w-full shadow-luxury border-quikle-primary/20">
+        <Card className="max-w-sm w-full shadow-lg border-primary/20">
           <CardContent className="p-6 text-center space-y-4">
-            <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-br from-quikle-primary to-quikle-secondary flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-white" />
+            <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+              <Sparkles className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg text-quikle-charcoal">
+              <h3 className="font-semibold text-lg text-foreground">
                 Upgrade to {requiredPlan}
               </h3>
-              <p className="text-sm text-quikle-slate mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Unlock {feature} and more with the {requiredPlan} plan.
               </p>
             </div>

@@ -10,7 +10,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { PLANS, detectCurrency, type PlanTier } from '@/components/billing/plans-data';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useWorkspaceSubscription } from '@/hooks/useWorkspaceSubscription';
+import { useWorkspace } from '@/context/WorkspaceContext';
 import { cn } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -31,7 +32,9 @@ const WorkspacePlanPaywall: React.FC<WorkspacePlanPaywallProps> = ({
   onSkip,
 }) => {
   const currency = useMemo(detectCurrency, []);
-  const { initializePayment, isActive, currentPlan } = useSubscription();
+  const { activeWorkspace } = useWorkspace();
+  const wsId = activeWorkspace?.id;
+  const { initializePayment, isActive, currentPlan } = useWorkspaceSubscription(wsId || undefined);
   const [selectedPlan, setSelectedPlan] = React.useState<string | null>(null);
 
   const handleSelect = (plan: PlanTier) => {
@@ -39,10 +42,11 @@ const WorkspacePlanPaywall: React.FC<WorkspacePlanPaywallProps> = ({
       window.open('mailto:sales@quikle.com?subject=Enterprise Plan Inquiry', '_blank');
       return;
     }
+    if (!wsId) return;
     setSelectedPlan(plan.name);
     const priceInfo = plan.price[currency];
     initializePayment.mutate(
-      { planName: plan.name, amount: priceInfo.amount, currency },
+      { planName: plan.name, amount: priceInfo.amount, currency, workspaceId: wsId },
       { onSettled: () => setSelectedPlan(null) },
     );
   };

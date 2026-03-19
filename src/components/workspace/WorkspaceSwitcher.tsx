@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { Building2, Check, ChevronsUpDown, Plus, Settings } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +40,27 @@ const WorkspaceSwitcher = () => {
   const [error, setError] = useState<string | null>(null);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [createdWsName, setCreatedWsName] = useState('');
+
+  // Fetch plan badges for all workspaces
+  const wsIds = workspaces.map(ws => ws.id);
+  const { data: wsPlanMap } = useQuery({
+    queryKey: ['workspace-plans', wsIds.join(',')],
+    queryFn: async () => {
+      if (wsIds.length === 0) return {};
+      const { data } = await supabase
+        .from('workspace_subscriptions' as any)
+        .select('workspace_id, plan_name, status')
+        .in('workspace_id', wsIds);
+      const map: Record<string, { plan: string; status: string }> = {};
+      if (data) {
+        for (const row of data as any[]) {
+          map[row.workspace_id] = { plan: row.plan_name, status: row.status };
+        }
+      }
+      return map;
+    },
+    enabled: wsIds.length > 0,
+  });
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -80,7 +103,11 @@ const WorkspaceSwitcher = () => {
       <DropdownMenuLabel className="text-xs text-muted-foreground">
         Workspaces
       </DropdownMenuLabel>
-      {workspaces.map((ws) => (
+      {workspaces.map((ws) => {
+        const planInfo = wsPlanMap?.[ws.id];
+        const planLabel = planInfo?.plan && planInfo.plan !== 'free' ? planInfo.plan : null;
+        const isActivePlan = planInfo?.status === 'active' || planInfo?.status === 'trialing';
+        return (
         <DropdownMenuItem
           key={ws.id}
           onClick={() => switchWorkspace(ws.id)}
@@ -94,7 +121,19 @@ const WorkspaceSwitcher = () => {
               {ws.name.charAt(0).toUpperCase()}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-sm truncate">{ws.name}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm truncate">{ws.name}</span>
+                {planLabel && isActivePlan && (
+                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary leading-none">
+                    {planLabel}
+                  </span>
+                )}
+                {(!planLabel || !isActivePlan) && (
+                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground leading-none">
+                    Free
+                  </span>
+                )}
+              </div>
               {ws.industry && (
                 <span className="text-[10px] text-muted-foreground truncate">{ws.industry}</span>
               )}
@@ -104,7 +143,8 @@ const WorkspaceSwitcher = () => {
             <Check className="h-4 w-4 text-primary shrink-0" />
           )}
         </DropdownMenuItem>
-      ))}
+        );
+      })}
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={() => setCreateOpen(true)} className="cursor-pointer">
         <Plus className="h-4 w-4 mr-2" />

@@ -25,7 +25,6 @@ Deno.serve(async (req) => {
 
     const body = await req.text();
 
-    // Verify Paystack signature (REQUIRED for production security)
     const signature = req.headers.get('x-paystack-signature');
     if (!signature) {
       console.error('Missing Paystack webhook signature');
@@ -54,17 +53,19 @@ Deno.serve(async (req) => {
     switch (eventType) {
       case 'charge.success': {
         const userId = data.metadata?.user_id;
+        const workspaceId = data.metadata?.workspace_id;
         const planName = data.metadata?.plan_name;
 
-        if (!userId) {
-          console.error('No user_id in metadata');
+        if (!workspaceId) {
+          console.error('No workspace_id in metadata');
           break;
         }
 
-        // Update subscription to active
+        // Update workspace subscription to active
         const { error } = await supabase
-          .from('user_subscriptions')
+          .from('workspace_subscriptions')
           .upsert({
+            workspace_id: workspaceId,
             user_id: userId,
             plan_name: planName || 'Solo',
             plan_amount: data.amount / 100,
@@ -75,13 +76,12 @@ Deno.serve(async (req) => {
             paystack_authorization_code: data.authorization?.authorization_code || null,
             current_period_start: new Date().toISOString(),
             current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          }, { onConflict: 'user_id' });
+          }, { onConflict: 'workspace_id' });
 
         if (error) {
-          console.error('Error updating subscription:', error);
+          console.error('Error updating workspace subscription:', error);
         }
 
-        // Log event
         await supabase.from('subscription_events').insert({
           user_id: userId,
           event_type: 'payment_success',
@@ -90,11 +90,12 @@ Deno.serve(async (req) => {
             amount: data.amount / 100,
             currency: data.currency,
             plan_name: planName,
+            workspace_id: workspaceId,
             channel: data.channel,
           },
         });
 
-        console.log(`Subscription activated for user ${userId}, plan: ${planName}`);
+        console.log(`Workspace subscription activated: ws=${workspaceId}, plan=${planName}`);
         break;
       }
 
@@ -103,24 +104,24 @@ Deno.serve(async (req) => {
         const subCode = data.subscription_code;
         
         const { data: sub } = await supabase
-          .from('user_subscriptions')
-          .select('user_id')
+          .from('workspace_subscriptions')
+          .select('workspace_id, user_id')
           .eq('paystack_subscription_code', subCode)
           .maybeSingle();
 
         if (sub) {
           await supabase
-            .from('user_subscriptions')
+            .from('workspace_subscriptions')
             .update({
               status: 'cancelled',
               cancelled_at: new Date().toISOString(),
             })
-            .eq('user_id', sub.user_id);
+            .eq('workspace_id', sub.workspace_id);
 
           await supabase.from('subscription_events').insert({
             user_id: sub.user_id,
             event_type: eventType,
-            metadata: data,
+            metadata: { ...data, workspace_id: sub.workspace_id },
           });
         }
         break;
@@ -130,23 +131,24 @@ Deno.serve(async (req) => {
         const custCode = data.customer?.customer_code;
         
         if (custCode) {
-          const { data: sub } = await supabase
-            .from('user_subscriptions')
-            .select('user_id')
-            .eq('paystack_customer_code', custCode)
-            .maybeSingle();
+          const { data: subs } = await supabase
+            .from('workspace_subscriptions')
+            .select('workspace_id, user_id')
+            .eq('paystack_customer_code', custCode);
 
-          if (sub) {
-            await supabase
-              .from('user_subscriptions')
-              .update({ status: 'past_due' })
-              .eq('user_id', sub.user_id);
+          if (subs && subs.length > 0) {
+            for (const sub of subs) {
+              await supabase
+                .from('workspace_subscriptions')
+                .update({ status: 'past_due' })
+                .eq('workspace_id', sub.workspace_id);
 
-            await supabase.from('subscription_events').insert({
-              user_id: sub.user_id,
-              event_type: 'payment_failed',
-              metadata: data,
-            });
+              await supabase.from('subscription_events').insert({
+                user_id: sub.user_id,
+                event_type: 'payment_failed',
+                metadata: { ...data, workspace_id: sub.workspace_id },
+              });
+            }
           }
         }
         break;

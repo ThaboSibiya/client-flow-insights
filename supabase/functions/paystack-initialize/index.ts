@@ -19,7 +19,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -44,10 +43,10 @@ Deno.serve(async (req) => {
     }
 
     const user = { id: claimsData.claims.sub as string, email: claimsData.claims.email as string };
-    const { plan_name, amount, currency, callback_url } = await req.json();
+    const { plan_name, amount, currency, callback_url, workspace_id } = await req.json();
 
-    if (!plan_name || !amount) {
-      return new Response(JSON.stringify({ error: 'Plan name and amount required' }), {
+    if (!plan_name || !amount || !workspace_id) {
+      return new Response(JSON.stringify({ error: 'Plan name, amount, and workspace_id required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -62,12 +61,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Amount in kobo/cents (Paystack expects smallest currency unit)
     const amountInSmallestUnit = Math.round(amount * 100);
+    const reference = `ws_${workspace_id.slice(0, 8)}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-    const reference = `sub_${user.id.slice(0, 8)}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-
-    // Initialize Paystack transaction
     const paystackRes = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
       headers: {
@@ -82,9 +78,11 @@ Deno.serve(async (req) => {
         callback_url: callback_url || '',
         metadata: {
           user_id: user.id,
+          workspace_id,
           plan_name,
           custom_fields: [
             { display_name: 'Plan', variable_name: 'plan', value: plan_name },
+            { display_name: 'Workspace', variable_name: 'workspace_id', value: workspace_id },
           ],
         },
       }),
@@ -100,30 +98,31 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Store pending subscription
-    await supabase.from('user_subscriptions').upsert({
+    // Store pending workspace subscription
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    await adminClient.from('workspace_subscriptions').upsert({
+      workspace_id,
       user_id: user.id,
       plan_name,
       plan_amount: amount,
       currency: currency === 'ZAR' ? 'ZAR' : 'USD',
       status: 'pending',
       paystack_reference: reference,
-    }, { onConflict: 'user_id' });
+    }, { onConflict: 'workspace_id' });
 
-    // Log event (use admin client to bypass RLS)
-    const adminClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
-    
+    // Log event
     await adminClient.from('subscription_events').insert({
       user_id: user.id,
       event_type: 'payment_initialized',
       paystack_reference: reference,
-      metadata: { plan_name, amount, currency },
+      metadata: { plan_name, amount, currency, workspace_id },
     });
 
-    console.log(`Payment initialized for user ${user.id}, plan: ${plan_name}, ref: ${reference}`);
+    console.log(`Payment initialized for workspace ${workspace_id}, user ${user.id}, plan: ${plan_name}, ref: ${reference}`);
 
     return new Response(JSON.stringify({
       authorization_url: paystackData.data.authorization_url,

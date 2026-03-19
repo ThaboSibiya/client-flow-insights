@@ -19,7 +19,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -61,26 +60,27 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify transaction with Paystack API
     const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${paystackSecretKey}`,
-      },
+      headers: { 'Authorization': `Bearer ${paystackSecretKey}` },
     });
 
     const verifyData = await verifyRes.json();
 
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
     if (!verifyData.status || verifyData.data?.status !== 'success') {
       console.error('Paystack verification failed:', verifyData);
 
-      // Update subscription status to failed
-      await supabase.from('user_subscriptions').update({
+      // Update workspace subscription status to failed
+      await adminClient.from('workspace_subscriptions').update({
         status: 'cancelled',
-      }).eq('paystack_reference', reference).eq('user_id', user.id);
+      }).eq('paystack_reference', reference);
 
-      // Log the failed verification
-      await supabase.from('subscription_events').insert({
+      await adminClient.from('subscription_events').insert({
         user_id: user.id,
         event_type: 'payment_verification_failed',
         paystack_reference: reference,
@@ -98,22 +98,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Payment verified successfully — activate subscription using admin client
     const paystackTx = verifyData.data;
     const planName = paystackTx.metadata?.plan_name || 'Solo';
+    const workspaceId = paystackTx.metadata?.workspace_id;
 
-    // Use service role to bypass RLS for subscription updates
-    const adminClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
-
-    // Check if already active to prevent duplicate processing
+    // Check if already active (idempotency)
     const { data: existingSub } = await adminClient
-      .from('user_subscriptions')
+      .from('workspace_subscriptions')
       .select('status')
       .eq('paystack_reference', reference)
-      .eq('user_id', user.id)
       .maybeSingle();
 
     if (existingSub?.status === 'active') {
@@ -121,6 +114,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({
         verified: true,
         plan_name: planName,
+        workspace_id: workspaceId,
         status: 'active',
         already_processed: true,
       }), {
@@ -128,29 +122,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { error: updateError } = await adminClient.from('user_subscriptions').update({
+    const { error: updateError } = await adminClient.from('workspace_subscriptions').update({
       status: 'active',
+      plan_name: planName,
       paystack_customer_code: paystackTx.customer?.customer_code || null,
       paystack_authorization_code: paystackTx.authorization?.authorization_code || null,
       current_period_start: new Date().toISOString(),
       current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    }).eq('paystack_reference', reference).eq('user_id', user.id);
+    }).eq('paystack_reference', reference);
 
     if (updateError) {
-      console.error('Error updating subscription:', updateError);
+      console.error('Error updating workspace subscription:', updateError);
       return new Response(JSON.stringify({ error: 'Failed to activate subscription' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Log successful verification
     await adminClient.from('subscription_events').insert({
       user_id: user.id,
       event_type: 'payment_verified',
       paystack_reference: reference,
       metadata: {
         plan_name: planName,
+        workspace_id: workspaceId,
         amount: paystackTx.amount / 100,
         currency: paystackTx.currency,
         customer_code: paystackTx.customer?.customer_code,
@@ -159,11 +154,12 @@ Deno.serve(async (req) => {
       },
     });
 
-    console.log(`Payment verified for user ${user.id}, ref: ${reference}, plan: ${planName}`);
+    console.log(`Payment verified for workspace ${workspaceId}, ref: ${reference}, plan: ${planName}`);
 
     return new Response(JSON.stringify({
       verified: true,
       plan_name: planName,
+      workspace_id: workspaceId,
       status: 'active',
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
