@@ -41,6 +41,27 @@ const WorkspaceSwitcher = () => {
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [createdWsName, setCreatedWsName] = useState('');
 
+  // Fetch plan badges for all workspaces
+  const wsIds = workspaces.map(ws => ws.id);
+  const { data: wsPlanMap } = useQuery({
+    queryKey: ['workspace-plans', wsIds.join(',')],
+    queryFn: async () => {
+      if (wsIds.length === 0) return {};
+      const { data } = await supabase
+        .from('workspace_subscriptions' as any)
+        .select('workspace_id, plan_name, status')
+        .in('workspace_id', wsIds);
+      const map: Record<string, { plan: string; status: string }> = {};
+      if (data) {
+        for (const row of data as any[]) {
+          map[row.workspace_id] = { plan: row.plan_name, status: row.status };
+        }
+      }
+      return map;
+    },
+    enabled: wsIds.length > 0,
+  });
+
   const handleCreate = async () => {
     if (!newName.trim()) return;
     setCreating(true);
