@@ -3740,6 +3740,80 @@ export type Database = {
           },
         ]
       }
+      workspace_subscriptions: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string | null
+          currency: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          paystack_authorization_code: string | null
+          paystack_customer_code: string | null
+          paystack_email_token: string | null
+          paystack_plan_code: string | null
+          paystack_reference: string | null
+          paystack_subscription_code: string | null
+          plan_amount: number
+          plan_name: string
+          status: string
+          trial_ends_at: string | null
+          updated_at: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string | null
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          paystack_authorization_code?: string | null
+          paystack_customer_code?: string | null
+          paystack_email_token?: string | null
+          paystack_plan_code?: string | null
+          paystack_reference?: string | null
+          paystack_subscription_code?: string | null
+          plan_amount?: number
+          plan_name?: string
+          status?: string
+          trial_ends_at?: string | null
+          updated_at?: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string | null
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          paystack_authorization_code?: string | null
+          paystack_customer_code?: string | null
+          paystack_email_token?: string | null
+          paystack_plan_code?: string | null
+          paystack_reference?: string | null
+          paystack_subscription_code?: string | null
+          plan_amount?: number
+          plan_name?: string
+          status?: string
+          trial_ends_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_subscriptions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspaces: {
         Row: {
           created_at: string
@@ -3835,6 +3909,10 @@ export type Database = {
         }
       }
       get_user_workspace_ids: { Args: { _user_id: string }; Returns: string[] }
+      get_workspace_plan_limits: {
+        Args: { p_workspace_id: string }
+        Returns: Json
+      }
       has_finance_permission: {
         Args: { p_permission: string; p_user_id: string }
         Returns: boolean
