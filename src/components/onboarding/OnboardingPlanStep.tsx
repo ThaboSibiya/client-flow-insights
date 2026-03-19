@@ -3,7 +3,7 @@ import { Crown, Sparkles, Building2, CheckCircle2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PLANS, detectCurrency, type PlanTier, type Currency } from '@/components/billing/plans-data';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useWorkspaceSubscription } from '@/hooks/useWorkspaceSubscription';
 import { cn } from '@/lib/utils';
 
 const ICON_MAP = {
@@ -18,7 +18,7 @@ interface OnboardingPlanStepProps {
 
 const OnboardingPlanStep: React.FC<OnboardingPlanStepProps> = ({ onSkip }) => {
   const currency = useMemo(detectCurrency, []);
-  const { initializePayment, isActive, currentPlan } = useSubscription();
+  const { initializePayment, isActive, currentPlan } = useWorkspaceSubscription();
   const [selectedPlan, setSelectedPlan] = React.useState<string | null>(null);
 
   const handleSelect = (plan: PlanTier) => {

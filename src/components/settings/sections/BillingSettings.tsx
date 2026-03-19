@@ -4,7 +4,8 @@ import { AlertCircle, Crown, Sparkles, Building2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useWorkspaceSubscription } from '@/hooks/useWorkspaceSubscription';
+import { useWorkspace } from '@/context/WorkspaceContext';
 import PlanCard from '@/components/billing/PlanCard';
 import PaymentVerification from '@/components/billing/PaymentVerification';
 import CancellationPolicySummary from '@/components/billing/CancellationPolicySummary';
@@ -20,6 +21,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 const BillingSettings = () => {
   const currency = useMemo(detectCurrency, []);
   const [selectedPlan, setSelectedPlan] = React.useState<string | null>(null);
+  const { activeWorkspace } = useWorkspace();
   const {
     subscription,
     isLoading,
@@ -28,7 +30,7 @@ const BillingSettings = () => {
     isPastDue,
     initializePayment,
     cancelSubscription,
-  } = useSubscription();
+  } = useWorkspaceSubscription();
 
   const handleSelectPlan = (plan: PlanTier) => {
     if (plan.name === 'Enterprise') {
@@ -49,16 +51,25 @@ const BillingSettings = () => {
       {/* Payment Verification Banner */}
       <PaymentVerification />
 
+      {/* Active Workspace Context */}
+      {activeWorkspace && (
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-xs">
+            Billing for: {activeWorkspace.name}
+          </Badge>
+        </div>
+      )}
+
       {/* Current Status */}
       {isActive && subscription && (
-        <Card className="border-green-300/50 bg-green-50/30">
+        <Card className="border-green-300/50 bg-green-50/30 dark:border-green-700/30 dark:bg-green-950/20">
           <CardContent className="p-4 flex items-center gap-3">
-            <Shield className="h-5 w-5 text-green-600" />
+            <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
             <div>
-              <p className="font-medium text-green-800">
+              <p className="font-medium text-green-800 dark:text-green-300">
                 Active {subscription.plan_name} Plan
               </p>
-              <p className="text-sm text-green-600">
+              <p className="text-sm text-green-600 dark:text-green-400">
                 {subscription.current_period_end
                   ? `Renews ${new Date(subscription.current_period_end).toLocaleDateString()}`
                   : 'Subscription active'}
@@ -69,12 +80,12 @@ const BillingSettings = () => {
       )}
 
       {isPastDue && (
-        <Card className="border-orange-300/50 bg-orange-50/30">
+        <Card className="border-orange-300/50 bg-orange-50/30 dark:border-orange-700/30 dark:bg-orange-950/20">
           <CardContent className="p-4 flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-orange-600" />
+            <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
             <div>
-              <p className="font-medium text-orange-800">Payment Past Due</p>
-              <p className="text-sm text-orange-600">
+              <p className="font-medium text-orange-800 dark:text-orange-300">Payment Past Due</p>
+              <p className="text-sm text-orange-600 dark:text-orange-400">
                 Please update your payment method to avoid service interruption.
               </p>
             </div>
@@ -84,8 +95,8 @@ const BillingSettings = () => {
 
       {/* Plans Header */}
       <div>
-        <h2 className="text-xl font-semibold text-quikle-charcoal">Choose Your Plan</h2>
-        <p className="text-sm text-quikle-slate mt-1">
+        <h2 className="text-xl font-semibold text-foreground">Choose Your Plan</h2>
+        <p className="text-sm text-muted-foreground mt-1">
           Simple, transparent pricing. Currency auto-detected as{' '}
           <Badge variant="outline" className="ml-1 text-xs">{currency}</Badge>
         </p>
@@ -126,10 +137,10 @@ const BillingSettings = () => {
       {/* Secure Payment Notice */}
       <Card>
         <CardContent className="p-4 flex items-center gap-3">
-          <Shield className="h-5 w-5 text-quikle-primary" />
+          <Shield className="h-5 w-5 text-primary" />
           <div>
             <p className="font-medium text-sm">Secure Payments by Paystack</p>
-            <p className="text-xs text-quikle-slate">
+            <p className="text-xs text-muted-foreground">
               All payments are processed securely through Paystack. Your card details are never stored on our servers.
             </p>
           </div>
@@ -147,23 +158,21 @@ const BillingSettings = () => {
 
       {/* Cancel Subscription — only for active subscribers */}
       {isActive && (
-        <>
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <AlertCircle className="h-5 w-5" />
-                Cancel Subscription
-              </CardTitle>
-              <CardDescription>Cancel your subscription and downgrade to free</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CancelSubscriptionDialog
-                isPending={cancelSubscription.isPending}
-                onConfirm={() => cancelSubscription.mutate()}
-              />
-            </CardContent>
-          </Card>
-        </>
+        <Card className="border-destructive/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              Cancel Subscription
+            </CardTitle>
+            <CardDescription>Cancel your subscription and downgrade to free</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CancelSubscriptionDialog
+              isPending={cancelSubscription.isPending}
+              onConfirm={() => cancelSubscription.mutate()}
+            />
+          </CardContent>
+        </Card>
       )}
     </div>
   );
