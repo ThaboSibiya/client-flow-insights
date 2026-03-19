@@ -19,7 +19,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -44,17 +43,25 @@ Deno.serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub as string;
+    const { workspace_id } = await req.json();
 
-    // Fetch the user's active subscription
+    if (!workspace_id) {
+      return new Response(JSON.stringify({ error: 'workspace_id is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Fetch the workspace's active subscription
     const { data: subscription, error: subError } = await supabase
-      .from('user_subscriptions')
+      .from('workspace_subscriptions')
       .select('*')
-      .eq('user_id', userId)
+      .eq('workspace_id', workspace_id)
       .in('status', ['active', 'trialing', 'past_due'])
       .maybeSingle();
 
     if (subError || !subscription) {
-      return new Response(JSON.stringify({ error: 'No active subscription found' }), {
+      return new Response(JSON.stringify({ error: 'No active subscription found for this workspace' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -69,7 +76,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // If there's a Paystack subscription code, disable it via Paystack API
     if (subscription.paystack_subscription_code) {
       const disableRes = await fetch('https://api.paystack.co/subscription/disable', {
         method: 'POST',
@@ -87,45 +93,43 @@ Deno.serve(async (req) => {
       console.log('Paystack disable response:', disableData);
 
       if (!disableRes.ok && disableRes.status !== 404) {
-        // 404 means subscription not found on Paystack — still cancel locally
         console.error('Paystack disable failed:', disableData);
       }
     }
 
-    // Update local subscription to cancelled regardless
     const adminClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
     const { error: updateError } = await adminClient
-      .from('user_subscriptions')
+      .from('workspace_subscriptions')
       .update({
         status: 'cancelled',
         cancelled_at: new Date().toISOString(),
       })
-      .eq('user_id', userId);
+      .eq('workspace_id', workspace_id);
 
     if (updateError) {
-      console.error('Error updating subscription:', updateError);
+      console.error('Error updating workspace subscription:', updateError);
       return new Response(JSON.stringify({ error: 'Failed to cancel subscription' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Log the cancellation event
     await adminClient.from('subscription_events').insert({
       user_id: userId,
       event_type: 'subscription_cancelled',
       metadata: {
+        workspace_id,
         plan_name: subscription.plan_name,
         cancelled_by: 'user',
         had_paystack_subscription: !!subscription.paystack_subscription_code,
       },
     });
 
-    console.log(`Subscription cancelled for user ${userId}, plan: ${subscription.plan_name}`);
+    console.log(`Subscription cancelled for workspace ${workspace_id}, plan: ${subscription.plan_name}`);
 
     return new Response(JSON.stringify({
       cancelled: true,
