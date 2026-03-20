@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Building2, ArrowRight, Database, CheckCircle2, Loader2 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import WorkspacePlanPaywall from '@/components/workspace/WorkspacePlanPaywall';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
