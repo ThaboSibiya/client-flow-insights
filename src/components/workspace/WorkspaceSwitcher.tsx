@@ -85,7 +85,27 @@ const WorkspaceSwitcher = () => {
     }
   };
 
-  const handlePaywallSkip = () => {
+  const queryClient = useQueryClient();
+
+  const handlePaywallSkip = async () => {
+    // Create trial subscription record for the new workspace
+    const ws = workspaces.find(w => w.name === createdWsName);
+    if (ws) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const trialEnd = new Date();
+        trialEnd.setDate(trialEnd.getDate() + 14);
+        await supabase.from('workspace_subscriptions' as any).upsert({
+          workspace_id: ws.id,
+          user_id: session.user.id,
+          plan_name: 'free',
+          status: 'trialing',
+          trial_ends_at: trialEnd.toISOString(),
+        }, { onConflict: 'workspace_id' } as any);
+        queryClient.invalidateQueries({ queryKey: ['workspace-subscription'] });
+        queryClient.invalidateQueries({ queryKey: ['workspace-plans'] });
+      }
+    }
     setPaywallOpen(false);
     setCreatedWsName('');
   };
