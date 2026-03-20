@@ -17,6 +17,7 @@ const Layout = () => {
     return (
       <div className="min-h-screen flex flex-col w-full bg-background overflow-y-auto overflow-x-hidden">
         <MobileNavigation />
+        <TrialBanner />
         <main className="flex-1 pb-20 ios-scroll">
           <Outlet />
         </main>
