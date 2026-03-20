@@ -7,6 +7,7 @@ import HelpButton from '@/components/help/HelpButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import CommandPalette from '@/components/command/CommandPalette';
+import TrialBanner from '@/components/billing/TrialBanner';
 import { Search } from 'lucide-react';
 
 const Layout = () => {
