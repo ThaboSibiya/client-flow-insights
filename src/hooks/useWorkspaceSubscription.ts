@@ -148,12 +148,24 @@ export const useWorkspaceSubscription = (overrideWorkspaceId?: string) => {
   const isActive = sub?.status === 'active' || sub?.status === 'trialing';
   const isPastDue = sub?.status === 'past_due';
 
+  const trialEndsAt = sub?.trial_ends_at ? new Date(sub.trial_ends_at) : null;
+  const now = new Date();
+  const isTrialing = sub?.status === 'trialing' || (currentPlan === 'free' && trialEndsAt && trialEndsAt > now);
+  const isTrialExpired = currentPlan === 'free' && trialEndsAt ? trialEndsAt <= now : false;
+  const trialDaysLeft = trialEndsAt && trialEndsAt > now
+    ? Math.ceil((trialEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
   return {
     subscription: sub,
     isLoading,
     currentPlan,
     isActive,
     isPastDue,
+    isTrialing,
+    isTrialExpired,
+    trialEndsAt,
+    trialDaysLeft,
     workspaceId,
     initializePayment,
     verifyPayment,

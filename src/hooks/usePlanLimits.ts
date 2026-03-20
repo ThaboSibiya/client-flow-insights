@@ -26,9 +26,13 @@ const PLAN_LIMITS: Record<string, PlanLimits> = {
 
 export const usePlanLimits = () => {
   const workspaceId = useActiveWorkspaceId();
-  const { currentPlan, isActive } = useWorkspaceSubscription();
+  const { currentPlan, isActive, isTrialExpired, isTrialing, trialDaysLeft } = useWorkspaceSubscription();
 
+  const effectivePlan = isActive ? currentPlan : (isTrialing ? 'free' : 'free');
   const limits = isActive ? (PLAN_LIMITS[currentPlan] || DEFAULT_FREE_LIMITS) : DEFAULT_FREE_LIMITS;
+
+  // If trial expired and no paid plan, block all writes
+  const canWrite = !isTrialExpired;
 
   // Fetch current usage counts
   const { data: usage } = useQuery({
@@ -55,15 +59,19 @@ export const usePlanLimits = () => {
     enabled: !!workspaceId,
   });
 
-  const canAddCustomer = (usage?.customers || 0) < limits.max_customers;
-  const canAddMember = (usage?.members || 0) < limits.max_users;
+  const canAddCustomer = canWrite && (usage?.customers || 0) < limits.max_customers;
+  const canAddMember = canWrite && (usage?.members || 0) < limits.max_users;
 
   return {
     limits,
     usage: usage || { customers: 0, members: 0 },
     canAddCustomer,
     canAddMember,
+    canWrite,
     currentPlan,
     isActive,
+    isTrialExpired,
+    isTrialing,
+    trialDaysLeft,
   };
 };

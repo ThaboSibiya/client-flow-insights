@@ -7,6 +7,7 @@ import HelpButton from '@/components/help/HelpButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import CommandPalette from '@/components/command/CommandPalette';
+import TrialBanner from '@/components/billing/TrialBanner';
 import { Search } from 'lucide-react';
 
 const Layout = () => {
@@ -16,6 +17,7 @@ const Layout = () => {
     return (
       <div className="min-h-screen flex flex-col w-full bg-background overflow-y-auto overflow-x-hidden">
         <MobileNavigation />
+        <TrialBanner />
         <main className="flex-1 pb-20 ios-scroll">
           <Outlet />
         </main>
@@ -31,6 +33,7 @@ const Layout = () => {
         <AppSidebar />
 
         <SidebarInset className="flex flex-col">
+          <TrialBanner />
           <header className="h-11 flex items-center gap-2 px-3 border-b border-border/40 bg-background/95 backdrop-blur-sm sticky top-0 z-10">
             <SidebarTrigger className="h-7 w-7" />
             <button

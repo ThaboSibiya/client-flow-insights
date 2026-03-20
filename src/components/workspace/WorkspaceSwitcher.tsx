@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { Building2, Check, ChevronsUpDown, Plus, Settings } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
   DropdownMenu,
@@ -85,7 +85,27 @@ const WorkspaceSwitcher = () => {
     }
   };
 
-  const handlePaywallSkip = () => {
+  const queryClient = useQueryClient();
+
+  const handlePaywallSkip = async () => {
+    // Create trial subscription record for the new workspace
+    const ws = workspaces.find(w => w.name === createdWsName);
+    if (ws) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const trialEnd = new Date();
+        trialEnd.setDate(trialEnd.getDate() + 14);
+        await supabase.from('workspace_subscriptions' as any).upsert({
+          workspace_id: ws.id,
+          user_id: session.user.id,
+          plan_name: 'free',
+          status: 'trialing',
+          trial_ends_at: trialEnd.toISOString(),
+        }, { onConflict: 'workspace_id' } as any);
+        queryClient.invalidateQueries({ queryKey: ['workspace-subscription'] });
+        queryClient.invalidateQueries({ queryKey: ['workspace-plans'] });
+      }
+    }
     setPaywallOpen(false);
     setCreatedWsName('');
   };
@@ -129,8 +149,8 @@ const WorkspaceSwitcher = () => {
                   </span>
                 )}
                 {(!planLabel || !isActivePlan) && (
-                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground leading-none">
-                    Free
+                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 leading-none">
+                    Trial
                   </span>
                 )}
               </div>

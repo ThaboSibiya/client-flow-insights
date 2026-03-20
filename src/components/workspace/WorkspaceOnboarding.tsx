@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Building2, ArrowRight, Database, CheckCircle2, Loader2 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import WorkspacePlanPaywall from '@/components/workspace/WorkspacePlanPaywall';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -134,10 +136,28 @@ const WorkspaceOnboarding: React.FC<WorkspaceOnboardingProps> = ({ open, onCompl
     setStep('plan');
   }, [refetchWorkspaces]);
 
-  const handlePlanSkip = useCallback(() => {
+  const queryClient = useQueryClient();
+
+  const handlePlanSkip = useCallback(async () => {
+    // Create trial subscription for the new workspace
+    if (createdWorkspace) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const trialEnd = new Date();
+        trialEnd.setDate(trialEnd.getDate() + 14);
+        await supabase.from('workspace_subscriptions' as any).upsert({
+          workspace_id: createdWorkspace.id,
+          user_id: session.user.id,
+          plan_name: 'free',
+          status: 'trialing',
+          trial_ends_at: trialEnd.toISOString(),
+        }, { onConflict: 'workspace_id' } as any);
+        queryClient.invalidateQueries({ queryKey: ['workspace-subscription'] });
+      }
+    }
     setStep('done');
     setTimeout(() => onComplete(), 800);
-  }, [onComplete]);
+  }, [onComplete, createdWorkspace, queryClient]);
 
   const selectedCount = counts
     ? [...selectedTables].reduce((sum, t) => sum + ((counts as any)[t] || 0), 0)

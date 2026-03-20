@@ -16,7 +16,7 @@ const SoftPaywall: React.FC<SoftPaywallProps> = ({
   requiredPlan = 'Team',
   children,
 }) => {
-  const { currentPlan, isActive } = useWorkspaceSubscription();
+  const { currentPlan, isActive, isTrialExpired } = useWorkspaceSubscription();
   const navigate = useNavigate();
 
   const planHierarchy: Record<string, number> = {
@@ -29,9 +29,15 @@ const SoftPaywall: React.FC<SoftPaywallProps> = ({
   const currentLevel = planHierarchy[currentPlan] ?? 0;
   const requiredLevel = planHierarchy[requiredPlan] ?? 0;
 
-  if (currentLevel >= requiredLevel && isActive) {
+  // Allow access during active trial for features that match the trial tier
+  const hasAccess = (currentLevel >= requiredLevel && isActive) || 
+    (!isTrialExpired && currentPlan === 'free' && requiredLevel <= 0);
+
+  if (hasAccess && !isTrialExpired) {
     return <>{children}</>;
   }
+
+  const isExpired = isTrialExpired;
 
   return (
     <div className="relative">
@@ -46,17 +52,19 @@ const SoftPaywall: React.FC<SoftPaywallProps> = ({
             </div>
             <div>
               <h3 className="font-semibold text-lg text-foreground">
-                Upgrade to {requiredPlan}
+                {isExpired ? 'Trial Expired' : `Upgrade to ${requiredPlan}`}
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Unlock {feature} and more with the {requiredPlan} plan.
+                {isExpired
+                  ? 'Your 14-day trial has ended. Subscribe to regain full access.'
+                  : `Unlock ${feature} and more with the ${requiredPlan} plan.`}
               </p>
             </div>
             <Button
               onClick={() => navigate('/settings/billing')}
               className="w-full gap-2"
             >
-              View Plans <ArrowRight className="h-4 w-4" />
+              {isExpired ? 'Subscribe Now' : 'View Plans'} <ArrowRight className="h-4 w-4" />
             </Button>
           </CardContent>
         </Card>
