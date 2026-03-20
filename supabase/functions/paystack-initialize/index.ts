@@ -112,6 +112,7 @@ Deno.serve(async (req) => {
       currency: currency === 'ZAR' ? 'ZAR' : 'USD',
       status: 'pending',
       paystack_reference: reference,
+      trial_ends_at: null, // Clear trial when upgrading
     }, { onConflict: 'workspace_id' });
 
     // Log event
