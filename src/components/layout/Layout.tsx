@@ -33,6 +33,7 @@ const Layout = () => {
         <AppSidebar />
 
         <SidebarInset className="flex flex-col">
+          <TrialBanner />
           <header className="h-11 flex items-center gap-2 px-3 border-b border-border/40 bg-background/95 backdrop-blur-sm sticky top-0 z-10">
             <SidebarTrigger className="h-7 w-7" />
             <button

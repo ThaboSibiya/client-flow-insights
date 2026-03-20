@@ -129,8 +129,8 @@ const WorkspaceSwitcher = () => {
                   </span>
                 )}
                 {(!planLabel || !isActivePlan) && (
-                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground leading-none">
-                    Free
+                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 leading-none">
+                    Trial
                   </span>
                 )}
               </div>

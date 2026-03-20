@@ -142,8 +142,11 @@ const WorkspacePlanPaywall: React.FC<WorkspacePlanPaywallProps> = ({
             onClick={onSkip}
             className="block mx-auto text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
           >
-            Skip — start on free tier
+            Start 14-day free trial instead
           </button>
+          <p className="text-[10px] text-muted-foreground text-center">
+            Full access for 14 days. After that, your workspace becomes read-only until you subscribe.
+          </p>
         </div>
       </DialogContent>
     </Dialog>
