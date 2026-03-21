@@ -16,10 +16,10 @@ const Settings = () => {
   return (
     <div className="min-h-[calc(100vh-8rem)]">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-quikle-primary via-quikle-secondary to-quikle-accent bg-clip-text text-transparent drop-shadow-lg">
+        <h1 className="text-2xl font-bold text-foreground">
           Settings
         </h1>
-        <p className="text-quikle-charcoal/70 font-medium">
+        <p className="text-muted-foreground font-medium">
           Manage your account and application preferences
         </p>
       </div>

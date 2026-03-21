@@ -9,12 +9,12 @@ const alertVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-quikle-crystal to-quikle-platinum border-quikle-silver/30 text-quikle-charcoal shadow-platinum",
+        default: "bg-card border-border text-foreground shadow-sm",
         destructive:
-          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive bg-gradient-to-r from-red-50 to-red-100",
-        warning: "bg-gradient-to-r from-quikle-crystal to-quikle-platinum border-quikle-accent/30 text-quikle-charcoal shadow-platinum [&>svg]:text-quikle-accent",
-        success: "bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-300 text-emerald-800 [&>svg]:text-emerald-600",
-        info: "bg-gradient-to-r from-quikle-crystal to-quikle-platinum border-quikle-primary/30 text-quikle-charcoal shadow-platinum [&>svg]:text-quikle-primary",
+          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive bg-destructive/10",
+        warning: "bg-amber-500/10 border-amber-500/30 text-foreground [&>svg]:text-amber-500",
+        success: "bg-emerald-500/10 border-emerald-500/30 text-foreground [&>svg]:text-emerald-500",
+        info: "bg-primary/10 border-primary/30 text-foreground [&>svg]:text-primary",
       },
     },
     defaultVariants: {
