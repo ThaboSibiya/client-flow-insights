@@ -74,11 +74,11 @@ const PipelineStageColumn = memo(({
     <>
       <div
         ref={setNodeRef}
-        className={`min-w-[280px] max-w-[300px] flex-shrink-0 transition-all duration-200 ${
+        className={`min-w-[280px] max-w-[300px] flex-shrink-0 transition-transform duration-100 will-change-transform ${
           isOver ? 'scale-[1.01]' : ''
         }`}
       >
-        <Card className={`h-[calc(100vh-220px)] min-h-[400px] flex flex-col border-border/50 transition-shadow ${
+        <Card className={`h-[calc(100vh-220px)] min-h-[400px] flex flex-col border-border/50 transition-shadow duration-100 ${
           isOver ? 'shadow-lg ring-2 ring-primary/20' : 'hover:shadow-md'
         }`}>
           <CardHeader 
