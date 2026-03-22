@@ -69,7 +69,7 @@ const PipelineCard = memo(({
         ref={setNodeRef}
         style={style}
         onClick={() => onSelect(customer)}
-        className={`group relative cursor-pointer transition-all duration-150 border-border/50 hover:border-primary/30 ${
+        className={`group relative cursor-pointer transition-[border-color,box-shadow] duration-100 border-border/50 hover:border-primary/30 ${
           isDragging ? 'shadow-xl scale-105 ring-2 ring-primary/20' : 'hover:shadow-sm'
         } ${isSelected ? 'ring-2 ring-primary border-primary' : ''}`}
       >
