@@ -22,20 +22,20 @@ const PrivilegeItem: React.FC<PrivilegeItemProps> = ({ privilege, checked, onCha
                      privilege.key.includes('financial');
 
   return (
-    <div className="flex items-center justify-between space-x-4 p-3 rounded-lg bg-quikle-crystal/20">
+    <div className="flex items-center justify-between space-x-4 p-3 rounded-lg bg-muted/50">
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <Label htmlFor={privilege.key} className="text-quikle-charcoal font-medium">
+          <Label htmlFor={privilege.key} className="text-foreground font-medium">
             {privilege.label}
           </Label>
           {isHighRisk && (
-            <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+            <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/30">
               <AlertTriangle className="h-3 w-3 mr-1" />
               High Risk
             </Badge>
           )}
         </div>
-        <p className="text-sm text-quikle-slate mt-1">{privilege.description}</p>
+        <p className="text-sm text-muted-foreground mt-1">{privilege.description}</p>
       </div>
       <Switch
         id={privilege.key}

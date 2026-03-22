@@ -79,7 +79,6 @@ const EnhancedPrivilegesManager: React.FC<EnhancedPrivilegesManagerProps> = ({ e
         requires_financial_approval: data.requires_financial_approval !== false
       } : getDefaultPrivileges();
 
-      // Store the existing record ID if it exists
       setExistingPrivilegeId(data?.id || null);
       setPrivileges(currentPrivileges);
       setOriginalPrivileges(currentPrivileges);
@@ -124,14 +123,12 @@ const EnhancedPrivilegesManager: React.FC<EnhancedPrivilegesManagerProps> = ({ e
       let error;
       
       if (existingPrivilegeId) {
-        // Update existing record
         const { error: updateError } = await supabase
           .from('employee_privileges')
           .update(privilegeData)
           .eq('id', existingPrivilegeId);
         error = updateError;
       } else {
-        // Insert new record
         const { data, error: insertError } = await supabase
           .from('employee_privileges')
           .insert([privilegeData])
@@ -146,7 +143,6 @@ const EnhancedPrivilegesManager: React.FC<EnhancedPrivilegesManagerProps> = ({ e
 
       if (error) throw error;
 
-      // Log changes for audit trail
       for (const [key, value] of Object.entries(privileges)) {
         const oldValue = originalPrivileges[key as keyof EnhancedEmployeePrivileges];
         if (typeof value === 'boolean' && typeof oldValue === 'boolean' && value !== oldValue) {
@@ -178,18 +174,18 @@ const EnhancedPrivilegesManager: React.FC<EnhancedPrivilegesManagerProps> = ({ e
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-quikle-slate">Loading enhanced privileges...</div>;
+    return <div className="text-center py-8 text-muted-foreground">Loading enhanced privileges...</div>;
   }
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-quikle-charcoal">
-            <Shield className="h-5 w-5 text-quikle-primary" />
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Shield className="h-5 w-5 text-primary" />
             Enhanced Security Privileges
           </CardTitle>
-          <p className="text-sm text-quikle-slate">
+          <p className="text-sm text-muted-foreground">
             Configure granular access controls for automation, settings, and data access
           </p>
         </CardHeader>
@@ -222,11 +218,10 @@ const EnhancedPrivilegesManager: React.FC<EnhancedPrivilegesManagerProps> = ({ e
             hasChanges={hasChanges()}
           />
 
-          <div className="flex justify-end pt-4 border-t border-quikle-silver">
+          <div className="flex justify-end pt-4 border-t border-border">
             <Button
               onClick={savePrivileges}
               disabled={saving || !hasChanges()}
-              className="bg-quikle-primary hover:bg-quikle-secondary text-white"
             >
               <Save className="h-4 w-4 mr-2" />
               {saving ? 'Saving...' : 'Save Enhanced Privileges'}

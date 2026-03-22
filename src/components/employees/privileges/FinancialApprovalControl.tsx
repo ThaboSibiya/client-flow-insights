@@ -15,12 +15,12 @@ const FinancialApprovalControl: React.FC<FinancialApprovalControlProps> = ({
   onChange
 }) => {
   return (
-    <Card className="border-orange-200 bg-orange-50">
+    <Card className="border-orange-500/30 bg-orange-500/10">
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div>
-            <Label className="text-orange-800 font-medium">Requires Financial Approval</Label>
-            <p className="text-sm text-orange-700">Financial operations require manager approval</p>
+            <Label className="text-orange-700 dark:text-orange-400 font-medium">Requires Financial Approval</Label>
+            <p className="text-sm text-orange-600 dark:text-orange-400/80">Financial operations require manager approval</p>
           </div>
           <Switch
             checked={checked}

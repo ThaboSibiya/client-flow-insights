@@ -14,11 +14,11 @@ const EmployeeRoleInfo: React.FC<EmployeeRoleInfoProps> = ({ formData, onInputCh
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-2">
-        <Label htmlFor="role" className="text-quikle-charcoal font-medium">
+        <Label htmlFor="role" className="text-foreground font-medium">
           Role *
         </Label>
         <Select value={formData.role} onValueChange={(value) => onInputChange('role', value)}>
-          <SelectTrigger className="border-quikle-silver/50 focus:border-quikle-primary focus:ring-quikle-primary/20">
+          <SelectTrigger>
             <SelectValue placeholder="Select role" />
           </SelectTrigger>
           <SelectContent>
@@ -30,11 +30,11 @@ const EmployeeRoleInfo: React.FC<EmployeeRoleInfoProps> = ({ formData, onInputCh
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="status" className="text-quikle-charcoal font-medium">
+        <Label htmlFor="status" className="text-foreground font-medium">
           Status *
         </Label>
         <Select value={formData.status} onValueChange={(value) => onInputChange('status', value)}>
-          <SelectTrigger className="border-quikle-silver/50 focus:border-quikle-primary focus:ring-quikle-primary/20">
+          <SelectTrigger>
             <SelectValue placeholder="Select status" />
           </SelectTrigger>
           <SelectContent>
@@ -47,7 +47,7 @@ const EmployeeRoleInfo: React.FC<EmployeeRoleInfoProps> = ({ formData, onInputCh
       </div>
 
       <div className="space-y-2 md:col-span-2">
-        <Label htmlFor="hire_date" className="text-quikle-charcoal font-medium">
+        <Label htmlFor="hire_date" className="text-foreground font-medium">
           Hire Date *
         </Label>
         <Input
@@ -55,13 +55,12 @@ const EmployeeRoleInfo: React.FC<EmployeeRoleInfoProps> = ({ formData, onInputCh
           type="date"
           value={formData.hire_date}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange('hire_date', e.target.value)}
-          className="border-quikle-silver/50 focus:border-quikle-primary focus:ring-quikle-primary/20"
           required
         />
       </div>
 
       <div className="space-y-2 md:col-span-2">
-        <Label htmlFor="salary" className="text-quikle-charcoal font-medium">
+        <Label htmlFor="salary" className="text-foreground font-medium">
           Salary
         </Label>
         <Input
@@ -72,7 +71,6 @@ const EmployeeRoleInfo: React.FC<EmployeeRoleInfoProps> = ({ formData, onInputCh
           placeholder="Enter salary amount"
           value={formData.salary}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange('salary', e.target.value)}
-          className="border-quikle-silver/50 focus:border-quikle-primary focus:ring-quikle-primary/20"
         />
       </div>
     </div>
