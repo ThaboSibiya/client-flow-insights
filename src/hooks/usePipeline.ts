@@ -81,8 +81,13 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
     }));
   }, [customers]);
 
-  // Sync stages when type or data changes
+  // Track whether we're in the middle of an optimistic drag update
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Sync stages when type or data changes (skip during active drag to preserve optimistic state)
   useEffect(() => {
+    if (isDragging) return;
+    
     const config = type === 'customer' ? CUSTOMER_STAGES_CONFIG : TICKET_STAGES_CONFIG;
     const data = type === 'customer' ? customers : tickets;
 
@@ -106,7 +111,7 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
     });
 
     setStages(newStages);
-  }, [type, customers, tickets]);
+  }, [type, customers, tickets, isDragging]);
 
   // Filter stages based on search
   const filteredStages = useMemo(() => {

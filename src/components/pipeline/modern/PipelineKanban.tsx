@@ -35,13 +35,13 @@ const PipelineKanban = ({
   const sensors = useSensors(
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 200,
-        tolerance: 5,
+        delay: 100,
+        tolerance: 8,
       },
     }),
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
