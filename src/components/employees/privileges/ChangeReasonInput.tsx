@@ -18,14 +18,13 @@ const ChangeReasonInput: React.FC<ChangeReasonInputProps> = ({
 
   return (
     <div className="space-y-2">
-      <Label className="text-sm font-medium text-quikle-charcoal">
+      <Label className="text-sm font-medium text-foreground">
         Reason for Changes (Optional)
       </Label>
       <Textarea
         placeholder="Describe why these privilege changes are being made..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="border-quikle-silver"
       />
     </div>
   );

@@ -22,24 +22,24 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSave, onCancel,
   } = useEmployeeForm(employee, onSave, companyName);
 
   return (
-    <div className="bg-gradient-to-br from-white to-quikle-crystal p-6 rounded-xl border border-quikle-silver/30 shadow-platinum">
+    <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Show invitation status for new employees */}
         {!employee && creationResult && (
-          <Alert className={creationResult.invitationSent ? "border-green-200 bg-green-50" : "border-orange-200 bg-orange-50"}>
+          <Alert className={creationResult.invitationSent ? "border-green-500/30 bg-green-500/10" : "border-orange-500/30 bg-orange-500/10"}>
             {creationResult.invitationSent ? (
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CheckCircle className="h-4 w-4 text-green-500" />
             ) : (
-              <AlertCircle className="h-4 w-4 text-orange-600" />
+              <AlertCircle className="h-4 w-4 text-orange-500" />
             )}
             <AlertDescription className="flex items-center justify-between">
               <div>
                 {creationResult.invitationSent ? (
-                  <span className="text-green-800">
+                  <span className="text-green-600 dark:text-green-400">
                     Team member created successfully! Invitation sent to {formData.email}
                   </span>
                 ) : (
-                  <span className="text-orange-800">
+                  <span className="text-orange-600 dark:text-orange-400">
                     {creationResult.error}
                   </span>
                 )}
@@ -50,7 +50,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSave, onCancel,
                   onClick={retryEmployeeInvitation}
                   disabled={loading}
                   size="sm"
-                  className="ml-4 bg-orange-600 hover:bg-orange-700 text-white"
+                  className="ml-4"
+                  variant="destructive"
                 >
                   <Mail className="h-4 w-4 mr-2" />
                   {loading ? 'Sending...' : 'Retry Invitation'}
@@ -61,38 +62,38 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSave, onCancel,
         )}
 
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-quikle-crystal/50 to-quikle-crystal/30 border border-quikle-silver/30 p-1">
+          <TabsList className="grid w-full grid-cols-5 bg-muted border border-border p-1">
             <TabsTrigger 
               value="basic" 
-              className="flex items-center gap-2 text-quikle-slate/70 font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-quikle-primary/20 data-[state=active]:font-semibold hover:text-quikle-primary hover:bg-white/50"
+              className="flex items-center gap-2 text-muted-foreground font-medium transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold hover:text-foreground hover:bg-accent"
             >
               <User className="h-4 w-4" />
               Basic Info
             </TabsTrigger>
             <TabsTrigger 
               value="role" 
-              className="flex items-center gap-2 text-quikle-slate/70 font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-quikle-primary/20 data-[state=active]:font-semibold hover:text-quikle-primary hover:bg-white/50"
+              className="flex items-center gap-2 text-muted-foreground font-medium transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold hover:text-foreground hover:bg-accent"
             >
               <Shield className="h-4 w-4" />
               Role & Status
             </TabsTrigger>
             <TabsTrigger 
               value="privileges" 
-              className="flex items-center gap-2 text-quikle-slate/70 font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-quikle-primary/20 data-[state=active]:font-semibold hover:text-quikle-primary hover:bg-white/50"
+              className="flex items-center gap-2 text-muted-foreground font-medium transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold hover:text-foreground hover:bg-accent"
             >
               <Calendar className="h-4 w-4" />
               Privileges
             </TabsTrigger>
             <TabsTrigger 
               value="automation" 
-              className="flex items-center gap-2 text-quikle-slate/70 font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-quikle-primary/20 data-[state=active]:font-semibold hover:text-quikle-primary hover:bg-white/50"
+              className="flex items-center gap-2 text-muted-foreground font-medium transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold hover:text-foreground hover:bg-accent"
             >
               <Lock className="h-4 w-4" />
               Automation
             </TabsTrigger>
             <TabsTrigger 
               value="audit" 
-              className="flex items-center gap-2 text-quikle-slate/70 font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-quikle-primary data-[state=active]:to-quikle-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-quikle-primary/20 data-[state=active]:font-semibold hover:text-quikle-primary hover:bg-white/50"
+              className="flex items-center gap-2 text-muted-foreground font-medium transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold hover:text-foreground hover:bg-accent"
             >
               <FileText className="h-4 w-4" />
               Audit Log
@@ -134,12 +135,11 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSave, onCancel,
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end gap-4 pt-6 border-t border-quikle-silver/30">
+        <div className="flex justify-end gap-4 pt-6 border-t border-border">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
-            className="border-quikle-silver/50 text-quikle-charcoal hover:bg-quikle-crystal hover:border-quikle-silver"
             disabled={loading}
           >
             Cancel
@@ -150,11 +150,10 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSave, onCancel,
             <Button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-quikle-primary to-quikle-secondary hover:from-quikle-primary/90 hover:to-quikle-secondary/90 text-white shadow-md hover:shadow-luxury"
             >
               {loading ? (
                 <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
                   {employee ? 'Updating...' : 'Creating & Sending Invitation...'}
                 </div>
               ) : (

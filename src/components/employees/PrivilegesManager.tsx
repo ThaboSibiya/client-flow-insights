@@ -12,11 +12,11 @@ const PrivilegesManager: React.FC<PrivilegesManagerProps> = ({ employeeId }) => 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-quikle-charcoal">
-          <Shield className="h-5 w-5 text-quikle-primary" />
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <Shield className="h-5 w-5 text-primary" />
           Employee Privileges
         </CardTitle>
-        <p className="text-sm text-quikle-slate">
+        <p className="text-sm text-muted-foreground">
           Configure what this employee can access and manage in the system
         </p>
       </CardHeader>

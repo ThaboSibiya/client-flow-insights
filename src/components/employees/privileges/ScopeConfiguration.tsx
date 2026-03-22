@@ -14,9 +14,9 @@ const ScopeConfiguration: React.FC<ScopeConfigurationProps> = ({
   onPrivilegeChange
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-quikle-crystal/30 rounded-lg">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg border border-border">
       <div>
-        <Label className="text-sm font-medium text-quikle-charcoal">Automation Scope</Label>
+        <Label className="text-sm font-medium text-foreground">Automation Scope</Label>
         <Select
           value={privileges.automation_scope}
           onValueChange={(value) => onPrivilegeChange('automation_scope', value)}
@@ -32,7 +32,7 @@ const ScopeConfiguration: React.FC<ScopeConfigurationProps> = ({
         </Select>
       </div>
       <div>
-        <Label className="text-sm font-medium text-quikle-charcoal">Customer Access Scope</Label>
+        <Label className="text-sm font-medium text-foreground">Customer Access Scope</Label>
         <Select
           value={privileges.customer_access_scope}
           onValueChange={(value) => onPrivilegeChange('customer_access_scope', value)}
