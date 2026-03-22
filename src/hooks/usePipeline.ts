@@ -167,6 +167,8 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
     const { active } = event;
     const prefix = type === 'customer' ? 'customer-' : 'ticket-';
     
+    setIsDragging(true);
+    
     if (active.id.toString().startsWith(prefix)) {
       const itemId = active.id.toString().replace(prefix, '');
       const allItems = stages.flatMap(s => s.items);
@@ -180,6 +182,7 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     setActiveItem(null);
+    setIsDragging(false);
 
     if (!over) return;
 
@@ -189,14 +192,30 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
       const itemId = active.id.toString().replace(prefix, '').replace('ticket-', '');
       const targetStageId = over.id.toString();
 
-      // Find source stage
-      const sourceStage = stages.find(s => 
-        s.items.some(i => i.id === itemId || i.id === `ticket-${itemId}`)
-      );
+      // Optimistic update: move item in local state immediately
+      setStages(prevStages => {
+        const sourceStage = prevStages.find(s => 
+          s.items.some(i => i.id === itemId || i.id === `ticket-${itemId}`)
+        );
+        
+        if (!sourceStage || sourceStage.id === targetStageId) return prevStages;
+        
+        const movedItem = sourceStage.items.find(i => i.id === itemId || i.id === `ticket-${itemId}`);
+        if (!movedItem) return prevStages;
 
-      if (sourceStage && sourceStage.id !== targetStageId) {
-        handleItemMove(itemId, sourceStage.id, targetStageId);
-      }
+        return prevStages.map(stage => {
+          if (stage.id === sourceStage.id) {
+            return { ...stage, items: stage.items.filter(i => i.id !== movedItem.id) };
+          }
+          if (stage.id === targetStageId) {
+            return { ...stage, items: [...stage.items, movedItem] };
+          }
+          return stage;
+        });
+      });
+
+      // Fire async status update in background
+      handleItemMove(itemId, '', targetStageId);
       return;
     }
 
@@ -208,7 +227,7 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
         return arrayMove(items, oldIndex, newIndex);
       });
     }
-  }, [type, stages, handleItemMove]);
+  }, [type, handleItemMove]);
 
   const addStage = useCallback((stageName: string, color: string) => {
     const newStage: PipelineStage = {
