@@ -53,7 +53,7 @@ const WorkspacePlanPaywall: React.FC<WorkspacePlanPaywallProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-lg [&>button.absolute]:hidden">
+      <DialogContent className="sm:max-w-lg [&>button.absolute]:hidden" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
         <DialogHeader>
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-2 mx-auto">
             <Zap className="h-6 w-6" />
