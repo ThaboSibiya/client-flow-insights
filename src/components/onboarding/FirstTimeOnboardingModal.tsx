@@ -154,7 +154,7 @@ const FirstTimeOnboardingModal: React.FC = () => {
   if (loading) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent className={cn(
         "p-0 overflow-hidden border-quikle-silver/30 shadow-luxury",
         currentStepData.isCustomContent ? "sm:max-w-2xl" : "sm:max-w-lg"
