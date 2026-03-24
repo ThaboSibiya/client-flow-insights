@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
-import { Crown, Sparkles, Building2, CheckCircle2, Loader2, Zap } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
+import { ShieldAlert, CheckCircle2, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -9,60 +8,57 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { PLANS, detectCurrency, type PlanTier } from '@/components/billing/plans-data';
 import { useWorkspaceSubscription } from '@/hooks/useWorkspaceSubscription';
-import { useWorkspace } from '@/context/WorkspaceContext';
 import { cn } from '@/lib/utils';
 
-const ICON_MAP: Record<string, React.ReactNode> = {
-  Crown: <Crown className="h-5 w-5" />,
-  Sparkles: <Sparkles className="h-5 w-5" />,
-  Building2: <Building2 className="h-5 w-5" />,
+const ICON_MAP: Record<string, string> = {
+  Crown: '👑',
+  Sparkles: '✨',
+  Building2: '🏢',
 };
 
-interface WorkspacePlanPaywallProps {
-  open: boolean;
-  workspaceName: string;
-  onSkip: () => void;
-}
-
-const WorkspacePlanPaywall: React.FC<WorkspacePlanPaywallProps> = ({
-  open,
-  workspaceName,
-  onSkip,
-}) => {
+const HardPaywall: React.FC = () => {
+  const navigate = useNavigate();
   const currency = useMemo(detectCurrency, []);
-  const { activeWorkspace } = useWorkspace();
-  const wsId = activeWorkspace?.id;
-  const { initializePayment, isActive, currentPlan } = useWorkspaceSubscription(wsId || undefined);
+  const { isTrialExpired, isActive, currentPlan, isLoading, workspaceId, initializePayment } =
+    useWorkspaceSubscription();
   const [selectedPlan, setSelectedPlan] = React.useState<string | null>(null);
+
+  // Show hard paywall only when trial has expired and no active paid plan
+  const shouldShow = !isLoading && isTrialExpired && !isActive;
 
   const handleSelect = (plan: PlanTier) => {
     if (plan.name === 'Enterprise') {
       window.open('mailto:sales@quikle.com?subject=Enterprise Plan Inquiry', '_blank');
       return;
     }
-    if (!wsId) return;
+    if (!workspaceId) return;
     setSelectedPlan(plan.name);
     const priceInfo = plan.price[currency];
     initializePayment.mutate(
-      { planName: plan.name, amount: priceInfo.amount, currency, workspaceId: wsId },
+      { planName: plan.name, amount: priceInfo.amount, currency, workspaceId },
       { onSettled: () => setSelectedPlan(null) },
     );
   };
 
+  if (!shouldShow) return null;
+
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open={true} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-lg [&>button.absolute]:hidden" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
         <DialogHeader>
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-2 mx-auto">
-            <Zap className="h-6 w-6" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive mb-2 mx-auto">
+            <ShieldAlert className="h-7 w-7" />
           </div>
           <DialogTitle className="text-xl text-center">
-            Choose a plan for "{workspaceName}"
+            Your Free Trial Has Ended
           </DialogTitle>
           <DialogDescription className="text-center">
-            Each workspace is billed independently. Pick a plan to unlock features for this business.
+            Your 14-day trial has expired. Choose a plan to continue using your workspace.
+            All your data is safe and will be available once you subscribe.
           </DialogDescription>
         </DialogHeader>
 
@@ -73,7 +69,6 @@ const WorkspacePlanPaywall: React.FC<WorkspacePlanPaywallProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {PLANS.map((plan) => {
-              const isCurrent = plan.name === currentPlan && isActive;
               const priceInfo = plan.price[currency];
               return (
                 <div
@@ -83,7 +78,6 @@ const WorkspacePlanPaywall: React.FC<WorkspacePlanPaywallProps> = ({
                     plan.highlighted
                       ? 'border-primary/40 shadow-md ring-1 ring-primary/20 scale-[1.02]'
                       : 'border-border',
-                    isCurrent && 'border-green-500/50 ring-1 ring-green-500/30',
                   )}
                 >
                   {plan.badge && (
@@ -92,10 +86,7 @@ const WorkspacePlanPaywall: React.FC<WorkspacePlanPaywallProps> = ({
                     </Badge>
                   )}
 
-                  <div className="p-2 rounded-lg bg-muted text-primary mb-2">
-                    {ICON_MAP[plan.iconName]}
-                  </div>
-
+                  <div className="text-2xl mb-2">{ICON_MAP[plan.iconName]}</div>
                   <p className="font-semibold text-sm text-foreground">{plan.name}</p>
 
                   <div className="my-2">
@@ -112,23 +103,17 @@ const WorkspacePlanPaywall: React.FC<WorkspacePlanPaywallProps> = ({
                       <CheckCircle2 className="h-3 w-3 text-green-500 flex-shrink-0" />
                       {plan.customers}
                     </li>
-                    <li className="flex items-center gap-1 justify-center">
-                      <CheckCircle2 className="h-3 w-3 text-green-500 flex-shrink-0" />
-                      {plan.support}
-                    </li>
                   </ul>
 
                   <Button
                     size="sm"
                     className="w-full text-xs"
-                    variant={isCurrent ? 'outline' : plan.highlighted ? 'default' : 'secondary'}
-                    disabled={isCurrent || (initializePayment.isPending && selectedPlan !== null)}
+                    variant={plan.highlighted ? 'default' : 'secondary'}
+                    disabled={initializePayment.isPending && selectedPlan !== null}
                     onClick={() => handleSelect(plan)}
                   >
                     {initializePayment.isPending && selectedPlan === plan.name ? (
                       <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                    ) : isCurrent ? (
-                      'Current'
                     ) : (
                       plan.cta
                     )}
@@ -138,15 +123,8 @@ const WorkspacePlanPaywall: React.FC<WorkspacePlanPaywallProps> = ({
             })}
           </div>
 
-          <Button
-            variant="outline"
-            onClick={onSkip}
-            className="w-full border-dashed border-primary/30 text-primary hover:bg-primary/5"
-          >
-            Start 14-day free trial instead
-          </Button>
           <p className="text-xs text-muted-foreground text-center">
-            Full access for 14 days — no card required. After that, your workspace becomes read-only until you subscribe.
+            Your data is preserved. Subscribe to regain full access immediately.
           </p>
         </div>
       </DialogContent>
@@ -154,4 +132,4 @@ const WorkspacePlanPaywall: React.FC<WorkspacePlanPaywallProps> = ({
   );
 };
 
-export default WorkspacePlanPaywall;
+export default HardPaywall;
