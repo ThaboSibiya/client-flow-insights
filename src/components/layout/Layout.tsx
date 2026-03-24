@@ -24,6 +24,7 @@ const Layout = () => {
         </main>
         <HelpButton />
         <CommandPalette />
+        <HardPaywall />
       </div>
     );
   }
