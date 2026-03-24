@@ -158,7 +158,7 @@ const FirstTimeOnboardingModal: React.FC = () => {
       <DialogContent className={cn(
         "p-0 overflow-hidden border-quikle-silver/30 shadow-luxury",
         currentStepData.isCustomContent ? "sm:max-w-2xl" : "sm:max-w-lg"
-      )}>
+      )} onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
         {/* Progress bar */}
         <div className="h-1 bg-muted">
           <div 

@@ -59,6 +59,7 @@ const Layout = () => {
 
         <HelpButton />
         <CommandPalette />
+        <HardPaywall />
       </div>
     </SidebarProvider>
   );
