@@ -110,12 +110,16 @@ const OnboardingPlanStep: React.FC<OnboardingPlanStepProps> = ({ onSkip }) => {
         })}
       </div>
 
-      <button
+      <Button
+        variant="outline"
         onClick={onSkip}
-        className="block mx-auto text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+        className="w-full border-dashed border-primary/30 text-primary hover:bg-primary/5"
       >
-        Skip — start free
-      </button>
+        Start 14-day free trial instead
+      </Button>
+      <p className="text-xs text-muted-foreground text-center">
+        Full access for 14 days — no card required.
+      </p>
     </div>
   );
 };

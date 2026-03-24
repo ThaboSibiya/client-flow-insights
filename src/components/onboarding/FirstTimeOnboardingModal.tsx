@@ -232,43 +232,45 @@ const FirstTimeOnboardingModal: React.FC = () => {
             </div>
           )}
 
-          {/* Navigation buttons */}
-          <div className="flex items-center justify-between mt-8 pt-4 border-t border-border">
-            <Button
-              variant="ghost"
-              onClick={handleSkip}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Skip Tour
-            </Button>
-            
-            <div className="flex items-center gap-2">
-              {currentStep > 0 && (
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentStep(currentStep - 1)}
-                >
-                  Back
-                </Button>
-              )}
+          {/* Navigation buttons — hidden on plan step to prevent paywall bypass */}
+          {!currentStepData.isCustomContent && (
+            <div className="flex items-center justify-between mt-8 pt-4 border-t border-border">
               <Button
-                onClick={handleNext}
-                className="bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary text-primary-foreground shadow-lg"
+                variant="ghost"
+                onClick={handleSkip}
+                className="text-muted-foreground hover:text-foreground"
               >
-                {currentStep === steps.length - 1 ? (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Get Started
-                  </>
-                ) : (
-                  <>
-                    Next
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </>
-                )}
+                Skip Tour
               </Button>
+              
+              <div className="flex items-center gap-2">
+                {currentStep > 0 && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentStep(currentStep - 1)}
+                  >
+                    Back
+                  </Button>
+                )}
+                <Button
+                  onClick={handleNext}
+                  className="bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary text-primary-foreground shadow-lg"
+                >
+                  {currentStep === steps.length - 1 ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Get Started
+                    </>
+                  ) : (
+                    <>
+                      Next
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

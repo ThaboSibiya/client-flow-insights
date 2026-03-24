@@ -3849,7 +3849,44 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_reconciliation_overview: {
+        Row: {
+          customer_id: string | null
+          invoice_id: string | null
+          invoice_number: string | null
+          last_activity_at: string | null
+          matched_amount: number | null
+          payment_id: string | null
+          payment_number: string | null
+          reconciliation_id: string | null
+          reconciliation_status:
+            | Database["public"]["Enums"]["reconciliation_status"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliations_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliations_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_workspace_invitation: {
