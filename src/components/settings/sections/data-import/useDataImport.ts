@@ -369,15 +369,6 @@ export const useDataImport = () => {
             workspace_id: workspaceId,
           };
         }).filter(Boolean);
-          contact_person: row.contact_person || null,
-          company_address: row.company_address || null,
-          status: normalizeStatus(row.status),
-          notes: row.notes || null,
-          source: row.source || 'Import',
-          reason: row.reason || null,
-          user_id: user.id,
-          workspace_id: workspaceId,
-        }));
 
         const { data: inserted, error } = await supabase.from('customers').insert(records).select('id');
         if (error) {
