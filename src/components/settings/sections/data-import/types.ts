@@ -1,5 +1,5 @@
 export type ImportDataType = 'customers' | 'tickets' | 'invoices';
-export type ImportStep = 'select' | 'upload' | 'map' | 'transform' | 'preview' | 'importing' | 'done';
+export type ImportStep = 'select' | 'map' | 'transform' | 'preview' | 'importing' | 'done';
 export type MainTab = 'import' | 'history' | 'connect';
 
 export interface ParsedRow {
