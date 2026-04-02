@@ -348,20 +348,27 @@ export const useDataImport = () => {
           continue;
         }
 
-        const records = filtered.map(row => ({
-          name: row.name || 'Unknown',
-          email: row.email || `import-${Date.now()}-${Math.random().toString(36).slice(2)}@placeholder.com`,
-          phone: row.phone || null,
-          address: row.address || null,
-          contact_person: row.contact_person || null,
-          company_address: row.company_address || null,
-          status: normalizeStatus(row.status),
-          notes: row.notes || null,
-          source: row.source || 'Import',
-          reason: row.reason || null,
-          user_id: user.id,
-          workspace_id: workspaceId,
-        }));
+        const records = filtered.map(row => {
+          const email = (row.email || '').trim();
+          if (!email) {
+            // Skip rows without email - don't create placeholder
+            return null;
+          }
+          return {
+            name: row.name || 'Unknown',
+            email,
+            phone: row.phone || null,
+            address: row.address || null,
+            contact_person: row.contact_person || null,
+            company_address: row.company_address || null,
+            status: normalizeStatus(row.status),
+            notes: row.notes || null,
+            source: row.source || 'Import',
+            reason: row.reason || null,
+            user_id: user.id,
+            workspace_id: workspaceId,
+          };
+        }).filter(Boolean);
 
         const { data: inserted, error } = await supabase.from('customers').insert(records).select('id');
         if (error) {
@@ -474,9 +481,23 @@ export const useDataImport = () => {
     if (failed > 0) toast.error(`${failed} records failed to import`);
   };
 
+  const hasTransformableFields = useCallback((): boolean => {
+    const transformableFieldNames = ['status', 'priority'];
+    return CRM_FIELDS[dataType].some(f =>
+      transformableFieldNames.includes(f.field) &&
+      fieldMappings.some(m => m.crmField === f.field && m.crmField !== '_skip')
+    );
+  }, [dataType, fieldMappings]);
+
   const downloadTemplate = useCallback(() => {
     const fields = CRM_FIELDS[dataType];
-    const csv = fields.map(f => f.label).join(',') + '\n';
+    const headers = fields.map(f => f.label).join(',');
+    const sampleRows: Record<ImportDataType, string> = {
+      customers: 'John Doe,john@example.com,+1234567890,123 Main St,Jane Smith,456 Corp Ave,new,VIP customer,Website,Interested in premium',
+      tickets: 'Login issue,User cannot login to dashboard,open,high,john@example.com',
+      invoices: 'INV-001,1500.00,1725.00,2026-05-01,pending,Monthly retainer,john@example.com',
+    };
+    const csv = headers + '\n' + sampleRows[dataType] + '\n';
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -506,5 +527,6 @@ export const useDataImport = () => {
     executeImport,
     undoImport,
     downloadTemplate,
+    hasTransformableFields,
   };
 };

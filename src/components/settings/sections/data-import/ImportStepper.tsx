@@ -3,15 +3,13 @@ import { Check } from 'lucide-react';
 import { ImportStep } from './types';
 
 const STEPS = [
-  { key: 'select', label: 'Data Type' },
-  { key: 'upload', label: 'Upload' },
+  { key: 'select', label: 'Upload' },
   { key: 'map', label: 'Map Fields' },
-  { key: 'transform', label: 'Transform' },
   { key: 'preview', label: 'Preview' },
   { key: 'done', label: 'Complete' },
 ] as const;
 
-const STEP_ORDER: ImportStep[] = ['select', 'upload', 'map', 'transform', 'preview', 'importing', 'done'];
+const STEP_ORDER: ImportStep[] = ['select', 'map', 'transform', 'preview', 'importing', 'done'];
 
 interface ImportStepperProps {
   currentStep: ImportStep;
@@ -24,7 +22,9 @@ const ImportStepper = ({ currentStep }: ImportStepperProps) => {
     <div className="flex items-center gap-1.5">
       {STEPS.map((s, i) => {
         const stepIdx = STEP_ORDER.indexOf(s.key as ImportStep);
-        const isActive = currentStep === s.key || (s.key === 'done' && currentStep === 'importing');
+        const isActive = currentStep === s.key
+          || (s.key === 'done' && currentStep === 'importing')
+          || (s.key === 'map' && currentStep === 'transform');
         const isCompleted = currentIdx > stepIdx;
 
         return (
