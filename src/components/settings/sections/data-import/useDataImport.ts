@@ -527,5 +527,6 @@ export const useDataImport = () => {
     executeImport,
     undoImport,
     downloadTemplate,
+    hasTransformableFields,
   };
 };
