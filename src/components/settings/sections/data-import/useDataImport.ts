@@ -481,9 +481,23 @@ export const useDataImport = () => {
     if (failed > 0) toast.error(`${failed} records failed to import`);
   };
 
+  const hasTransformableFields = useCallback((): boolean => {
+    const transformableFieldNames = ['status', 'priority'];
+    return CRM_FIELDS[dataType].some(f =>
+      transformableFieldNames.includes(f.field) &&
+      fieldMappings.some(m => m.crmField === f.field && m.crmField !== '_skip')
+    );
+  }, [dataType, fieldMappings]);
+
   const downloadTemplate = useCallback(() => {
     const fields = CRM_FIELDS[dataType];
-    const csv = fields.map(f => f.label).join(',') + '\n';
+    const headers = fields.map(f => f.label).join(',');
+    const sampleRows: Record<ImportDataType, string> = {
+      customers: 'John Doe,john@example.com,+1234567890,123 Main St,Jane Smith,456 Corp Ave,new,VIP customer,Website,Interested in premium',
+      tickets: 'Login issue,User cannot login to dashboard,open,high,john@example.com',
+      invoices: 'INV-001,1500.00,1725.00,2026-05-01,pending,Monthly retainer,john@example.com',
+    };
+    const csv = headers + '\n' + sampleRows[dataType] + '\n';
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
