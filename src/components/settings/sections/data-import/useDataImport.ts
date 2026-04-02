@@ -348,11 +348,27 @@ export const useDataImport = () => {
           continue;
         }
 
-        const records = filtered.map(row => ({
-          name: row.name || 'Unknown',
-          email: row.email || `import-${Date.now()}-${Math.random().toString(36).slice(2)}@placeholder.com`,
-          phone: row.phone || null,
-          address: row.address || null,
+        const records = filtered.map(row => {
+          const email = (row.email || '').trim();
+          if (!email) {
+            // Skip rows without email - don't create placeholder
+            return null;
+          }
+          return {
+            name: row.name || 'Unknown',
+            email,
+            phone: row.phone || null,
+            address: row.address || null,
+            contact_person: row.contact_person || null,
+            company_address: row.company_address || null,
+            status: normalizeStatus(row.status),
+            notes: row.notes || null,
+            source: row.source || 'Import',
+            reason: row.reason || null,
+            user_id: user.id,
+            workspace_id: workspaceId,
+          };
+        }).filter(Boolean);
           contact_person: row.contact_person || null,
           company_address: row.company_address || null,
           status: normalizeStatus(row.status),

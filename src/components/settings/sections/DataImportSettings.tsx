@@ -6,7 +6,6 @@ import { useDataImport } from './data-import/useDataImport';
 import { MainTab } from './data-import/types';
 import ImportStepper from './data-import/ImportStepper';
 import DataTypeSelector from './data-import/DataTypeSelector';
-import FileUploadZone from './data-import/FileUploadZone';
 import FieldMapper from './data-import/FieldMapper';
 import ValueTransformEditor from './data-import/ValueTransformEditor';
 import ImportPreview from './data-import/ImportPreview';
@@ -37,6 +36,7 @@ const DataImportSettings = () => {
     executeImport,
     undoImport,
     downloadTemplate,
+    hasTransformableFields,
   } = useDataImport();
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -54,6 +54,14 @@ const DataImportSettings = () => {
   const missingRequired = validateMappings();
   const previewData = getMappedData().slice(0, 5);
   const showReset = mainTab === 'import' && step !== 'select' && step !== 'importing';
+
+  const handleMapContinue = () => {
+    if (hasTransformableFields()) {
+      setStep('transform');
+    } else {
+      setStep('preview');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -93,18 +101,11 @@ const DataImportSettings = () => {
               onDataTypeChange={setDataType}
               skipDuplicates={skipDuplicates}
               onSkipDuplicatesChange={setSkipDuplicates}
-              onContinue={() => setStep('upload')}
-              onDownloadTemplate={downloadTemplate}
-            />
-          )}
-
-          {step === 'upload' && (
-            <FileUploadZone
               isDragging={isDragging}
               onDragging={setIsDragging}
               onDrop={handleDrop}
               onFileInput={handleFileInput}
-              onBack={() => setStep('select')}
+              onDownloadTemplate={downloadTemplate}
             />
           )}
 
@@ -119,8 +120,8 @@ const DataImportSettings = () => {
               missingRequired={missingRequired}
               onUpdateMapping={updateMapping}
               onReorderMappings={reorderMappings}
-              onBack={() => setStep('upload')}
-              onContinue={() => setStep('transform')}
+              onBack={resetImport}
+              onContinue={handleMapContinue}
             />
           )}
 
@@ -142,7 +143,7 @@ const DataImportSettings = () => {
               totalRows={csvRows.length}
               fieldMappings={fieldMappings}
               skipDuplicates={skipDuplicates}
-              onBack={() => setStep('transform')}
+              onBack={() => hasTransformableFields() ? setStep('transform') : setStep('map')}
               onImport={executeImport}
             />
           )}
