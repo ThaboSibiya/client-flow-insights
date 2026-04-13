@@ -4,6 +4,7 @@ import { useCRM } from '@/context/CRMContext';
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { ticketEventBus, TICKET_EVENTS } from '@/stores/ticketEventBus';
+import { TicketStatus } from '@/types/customer';
 import { 
   TicketPipelineStage, 
   TicketPipelineItem, 
