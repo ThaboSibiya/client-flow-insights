@@ -14,6 +14,7 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
   const { customers, updateTicketStatus } = useCRM();
   const allTickets = customers.flatMap(c => c.activeTickets || []);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [stages, setStages] = useState<TicketPipelineStage[]>([
     {
@@ -49,8 +50,10 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
     }
   ]);
 
-  // Sync tickets with stages whenever allTickets changes
+  // Sync tickets with stages — skip during drag to preserve optimistic state
   useEffect(() => {
+    if (isDragging) return;
+    
     setStages(prevStages => prevStages.map(stage => {
       let stageTickets;
       
@@ -63,13 +66,12 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
       } else if (stage.id === 'closed') {
         stageTickets = allTickets.filter(t => t.status === 'closed');
       } else {
-        // For 'review' or custom stages
         stageTickets = stage.tickets;
       }
       
       return { ...stage, tickets: stageTickets };
     }));
-  }, [allTickets, refreshTrigger]);
+  }, [allTickets, refreshTrigger, isDragging]);
 
   const [isAddStageOpen, setIsAddStageOpen] = useState<boolean>(false);
   const [activeItem, setActiveItem] = useState<TicketPipelineItem | null>(null);
@@ -84,46 +86,38 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
   }, []);
 
   const handleTicketMove = useCallback(async (ticketId: string, fromStageId: string, toStageId: string) => {
-    // Early return if moving to same stage
     if (fromStageId === toStageId) return;
 
-    // Update local state immediately for responsive UI
+    // Optimistic update with immutable state
     setStages(prevStages => {
-      const newStages = [...prevStages];
-      const fromStage = newStages.find(s => s.id === fromStageId);
-      const toStage = newStages.find(s => s.id === toStageId);
-      
-      if (fromStage && toStage) {
-        const ticket = fromStage.tickets.find(t => t.id === ticketId);
-        if (ticket) {
-          fromStage.tickets = fromStage.tickets.filter(t => t.id !== ticketId);
-          toStage.tickets.push(ticket);
+      return prevStages.map(stage => {
+        if (stage.id === fromStageId) {
+          return { ...stage, tickets: stage.tickets.filter(t => t.id !== ticketId) };
         }
-      }
-      
-      return newStages;
+        if (stage.id === toStageId) {
+          const ticket = prevStages
+            .find(s => s.id === fromStageId)?.tickets
+            .find(t => t.id === ticketId);
+          if (ticket) {
+            return { ...stage, tickets: [...stage.tickets, ticket] };
+          }
+        }
+        return stage;
+      });
     });
 
-    // Map stage IDs to ticket status
-    const statusMap: Record<string, any> = {
+    const statusMap: Record<string, string> = {
       'open': 'open',
       'in-progress': 'in-progress',
-      'review': 'in-progress',
       'resolved': 'resolved',
       'closed': 'closed'
     };
 
     const newStatus = statusMap[toStageId];
     if (newStatus) {
-      // Save to Supabase
       await updateTicketStatus(ticketId, newStatus);
-      
-      // Emit ticket moved to stage event
       ticketEventBus.emit(TICKET_EVENTS.TICKET_MOVED_TO_STAGE, { 
-        ticketId, 
-        fromStageId, 
-        toStageId,
-        newStatus
+        ticketId, fromStageId, toStageId, newStatus
       });
     }
   }, [updateTicketStatus]);
