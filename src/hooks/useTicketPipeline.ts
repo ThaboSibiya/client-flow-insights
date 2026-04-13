@@ -33,14 +33,6 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
       target: 15
     },
     {
-      id: 'review',
-      name: 'Under Review',
-      color: '#374151',
-      tickets: [],
-      automationEnabled: false,
-      target: 5
-    },
-    {
       id: 'resolved',
       name: 'Resolved',
       color: '#059669',
