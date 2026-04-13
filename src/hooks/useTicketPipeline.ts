@@ -127,9 +127,10 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     
+    setIsDragging(true);
+    
     if (active.id.toString().startsWith('ticket-')) {
       const ticketId = active.id.toString().replace('ticket-', '');
-      // Search through allTickets array directly instead of stages
       const ticket = allTickets.find(t => t.id === ticketId);
       setActiveItem(ticket || null);
     } else {
@@ -140,6 +141,7 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     setActiveItem(null);
+    setIsDragging(false);
 
     if (!over) return;
 
