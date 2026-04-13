@@ -3,6 +3,7 @@ import { useCRM } from '@/context/CRMContext';
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { Customer, CustomerTicket, CustomerStatus, TicketStatus } from '@/types/customer';
+import { ticketEventBus, TICKET_EVENTS } from '@/stores/ticketEventBus';
 
 export type PipelineType = 'customer' | 'ticket';
 
@@ -56,35 +57,21 @@ const TICKET_STAGES_CONFIG = [
 ];
 
 export const usePipeline = (initialType: PipelineType = 'customer'): UsePipelineReturn => {
-  const { customers, updateCustomerStatus } = useCRM();
+  const { customers, updateCustomerStatus, updateTicketStatus } = useCRM();
   const [type, setType] = useState<PipelineType>(initialType);
   const [stages, setStages] = useState<PipelineStage[]>([]);
   const [isAddStageOpen, setIsAddStageOpen] = useState(false);
   const [activeItem, setActiveItem] = useState<Customer | CustomerTicket | null>(null);
   const [selectedItem, setSelectedItem] = useState<Customer | CustomerTicket | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Generate mock tickets for demo
-  const tickets = useMemo((): CustomerTicket[] => {
-    return customers.slice(0, 8).map((customer, index) => ({
-      id: `ticket-${customer.id}`,
-      ticketNumber: `TKT-${1000 + index}`,
-      subject: `Support request from ${customer.name}`,
-      description: 'Sample ticket description',
-      priority: (['low', 'medium', 'high', 'urgent'] as const)[index % 4],
-      status: (['open', 'in-progress', 'closed', 'resolved'] as const)[index % 4] as TicketStatus,
-      createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-      updatedAt: new Date(),
-      assignedTo: index % 2 === 0 ? { id: 'emp-1', name: 'John Smith', email: 'john@example.com', role: 'Support' } : undefined,
-      totalTimeSpent: Math.floor(Math.random() * 480),
-      timeEntries: [],
-    }));
-  }, [customers]);
-
-  // Track whether we're in the middle of an optimistic drag update
   const [isDragging, setIsDragging] = useState(false);
 
-  // Sync stages when type or data changes (skip during active drag to preserve optimistic state)
+  // Collect real tickets from customer data
+  const tickets = useMemo((): CustomerTicket[] => {
+    return customers.flatMap(c => c.activeTickets || []);
+  }, [customers]);
+
+  // Sync stages when type or data changes — skip during active drag to preserve optimistic state
   useEffect(() => {
     if (isDragging) return;
     
@@ -159,9 +146,26 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
       if (newStatus) {
         await updateCustomerStatus(itemId, newStatus);
       }
+    } else {
+      // Ticket pipeline: update ticket status
+      const ticketStatusMap: Record<string, TicketStatus> = {
+        'open': 'open',
+        'in-progress': 'in-progress',
+        'pending': 'pending' as TicketStatus,
+        'resolved': 'resolved',
+      };
+      const newStatus = ticketStatusMap[toStageId];
+      if (newStatus) {
+        await updateTicketStatus(itemId, newStatus);
+        ticketEventBus.emit(TICKET_EVENTS.TICKET_MOVED_TO_STAGE, {
+          ticketId: itemId,
+          fromStageId,
+          toStageId,
+          newStatus,
+        });
+      }
     }
-    // For tickets, would update ticket status similarly
-  }, [type, updateCustomerStatus]);
+  }, [type, updateCustomerStatus, updateTicketStatus]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
@@ -172,7 +176,7 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
     if (active.id.toString().startsWith(prefix)) {
       const itemId = active.id.toString().replace(prefix, '');
       const allItems = stages.flatMap(s => s.items);
-      const item = allItems.find(i => i.id === itemId || i.id === `ticket-${itemId}`);
+      const item = allItems.find(i => i.id === itemId);
       setActiveItem(item || null);
     } else {
       setActiveItem(null);
@@ -189,23 +193,21 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
     const prefix = type === 'customer' ? 'customer-' : 'ticket-';
     
     if (active.id.toString().startsWith(prefix)) {
-      const itemId = active.id.toString().replace(prefix, '').replace('ticket-', '');
+      const itemId = active.id.toString().replace(prefix, '');
       const targetStageId = over.id.toString();
+
+      // Find the source stage for this item
+      const sourceStage = stages.find(s => s.items.some(i => i.id === itemId));
+      if (!sourceStage || sourceStage.id === targetStageId) return;
+
+      const movedItem = sourceStage.items.find(i => i.id === itemId);
+      if (!movedItem) return;
 
       // Optimistic update: move item in local state immediately
       setStages(prevStages => {
-        const sourceStage = prevStages.find(s => 
-          s.items.some(i => i.id === itemId || i.id === `ticket-${itemId}`)
-        );
-        
-        if (!sourceStage || sourceStage.id === targetStageId) return prevStages;
-        
-        const movedItem = sourceStage.items.find(i => i.id === itemId || i.id === `ticket-${itemId}`);
-        if (!movedItem) return prevStages;
-
         return prevStages.map(stage => {
           if (stage.id === sourceStage.id) {
-            return { ...stage, items: stage.items.filter(i => i.id !== movedItem.id) };
+            return { ...stage, items: stage.items.filter(i => i.id !== itemId) };
           }
           if (stage.id === targetStageId) {
             return { ...stage, items: [...stage.items, movedItem] };
@@ -215,7 +217,7 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
       });
 
       // Fire async status update in background
-      handleItemMove(itemId, '', targetStageId);
+      handleItemMove(itemId, sourceStage.id, targetStageId);
       return;
     }
 
@@ -227,7 +229,7 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
         return arrayMove(items, oldIndex, newIndex);
       });
     }
-  }, [type, handleItemMove]);
+  }, [type, stages, handleItemMove]);
 
   const addStage = useCallback((stageName: string, color: string) => {
     const newStage: PipelineStage = {
@@ -256,7 +258,6 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
     if (!stage) return;
 
     if (type === 'customer') {
-      // Create a placeholder customer inline
       const newCustomer: Customer = {
         id: `new-${Date.now()}`,
         name: `New Customer`,
@@ -268,7 +269,6 @@ export const usePipeline = (initialType: PipelineType = 'customer'): UsePipeline
         updatedAt: new Date(),
         ticketCount: 0,
       };
-      // Select the new item to open detail panel for editing
       setSelectedItem(newCustomer);
     } else {
       const newTicket: CustomerTicket = {
