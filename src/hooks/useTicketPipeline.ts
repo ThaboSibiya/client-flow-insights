@@ -106,11 +106,11 @@ export const useTicketPipeline = (): TicketPipelineHookReturn => {
       });
     });
 
-    const statusMap: Record<string, string> = {
-      'open': 'open',
-      'in-progress': 'in-progress',
-      'resolved': 'resolved',
-      'closed': 'closed'
+    const statusMap: Record<string, TicketStatus> = {
+      'open': 'open' as TicketStatus,
+      'in-progress': 'in-progress' as TicketStatus,
+      'resolved': 'resolved' as TicketStatus,
+      'closed': 'closed' as TicketStatus,
     };
 
     const newStatus = statusMap[toStageId];
