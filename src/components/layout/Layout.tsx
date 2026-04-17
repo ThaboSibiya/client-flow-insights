@@ -9,6 +9,7 @@ import NotificationBell from '@/components/notifications/NotificationBell';
 import CommandPalette from '@/components/command/CommandPalette';
 import TrialBanner from '@/components/billing/TrialBanner';
 import HardPaywall from '@/components/billing/HardPaywall';
+import QuikleAgent from '@/components/quikle-agent/QuikleAgent';
 import { Search } from 'lucide-react';
 
 const Layout = () => {
@@ -25,6 +26,7 @@ const Layout = () => {
         <HelpButton />
         <CommandPalette />
         <HardPaywall />
+        <QuikleAgent />
       </div>
     );
   }
@@ -60,6 +62,7 @@ const Layout = () => {
         <HelpButton />
         <CommandPalette />
         <HardPaywall />
+        <QuikleAgent />
       </div>
     </SidebarProvider>
   );

@@ -1618,6 +1618,53 @@ export type Database = {
           },
         ]
       }
+      followups: {
+        Row: {
+          contact: string
+          created_at: string
+          customer_id: string | null
+          date: string | null
+          id: string
+          method: string
+          notes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact: string
+          created_at?: string
+          customer_id?: string | null
+          date?: string | null
+          id?: string
+          method?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact?: string
+          created_at?: string
+          customer_id?: string | null
+          date?: string | null
+          id?: string
+          method?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followups_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_submissions: {
         Row: {
           company_owner_id: string
@@ -1964,6 +2011,45 @@ export type Database = {
           file_name?: string
           file_path?: string
           id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meeting_notes: {
+        Row: {
+          action_items: Json
+          created_at: string
+          decisions: Json
+          follow_up_date: string | null
+          id: string
+          raw_transcript: string | null
+          summary: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_items?: Json
+          created_at?: string
+          decisions?: Json
+          follow_up_date?: string | null
+          id?: string
+          raw_transcript?: string | null
+          summary?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_items?: Json
+          created_at?: string
+          decisions?: Json
+          follow_up_date?: string | null
+          id?: string
+          raw_transcript?: string | null
+          summary?: string | null
+          title?: string | null
           updated_at?: string
           user_id?: string
         }
