@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Play, Pause, Square, RotateCcw, AlertTriangle } from 'lucide-react';
 import { useSpeechTranscript } from '../useSpeechTranscript';
+import { cn } from '@/lib/utils';
 
 interface Props {
   onSave: (transcript: string, title: string) => void;
@@ -13,18 +14,16 @@ const fmtTime = (s: number) => {
 };
 
 const StatusPill: React.FC<{ state: string }> = ({ state }) => {
-  const map: Record<string, { label: string; bg: string; color: string }> = {
-    idle: { label: 'Ready', bg: '#334155', color: '#e2e8f0' },
-    recording: { label: '🔴 Recording', bg: 'rgba(239,68,68,0.2)', color: '#ef4444' },
-    paused: { label: '⏸ Paused', bg: 'rgba(245,158,11,0.2)', color: '#f59e0b' },
-    done: { label: '✓ Done', bg: 'rgba(34,197,94,0.2)', color: '#22c55e' },
+  const map: Record<string, { label: string; cls: string; dot: string }> = {
+    idle: { label: 'Ready', cls: 'bg-muted text-muted-foreground', dot: 'bg-muted-foreground' },
+    recording: { label: 'Recording', cls: 'bg-destructive/10 text-destructive', dot: 'bg-destructive animate-pulse' },
+    paused: { label: 'Paused', cls: 'bg-amber-500/10 text-amber-600 dark:text-amber-500', dot: 'bg-amber-500' },
+    done: { label: 'Done', cls: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500', dot: 'bg-emerald-500' },
   };
   const s = map[state] || map.idle;
   return (
-    <span
-      className="text-xs px-2.5 py-1 font-medium"
-      style={{ background: s.bg, color: s.color, borderRadius: 999 }}
-    >
+    <span className={cn('inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 font-medium rounded-full', s.cls)}>
+      <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
       {s.label}
     </span>
   );
@@ -47,114 +46,83 @@ const MeetingTab: React.FC<Props> = ({ onSave }) => {
   };
 
   return (
-    <div
-      className="flex-1 overflow-y-auto p-3 space-y-3"
-      style={{ background: '#0f172a' }}
-    >
+    <div className="flex-1 overflow-y-auto p-3 space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium" style={{ color: '#94a3b8' }}>STATUS</span>
+        <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Status</span>
         <StatusPill state={sp.state} />
       </div>
 
       {!sp.supported ? (
         <>
-          <div
-            className="flex items-start gap-2 p-3 text-xs"
-            style={{
-              background: 'rgba(245,158,11,0.1)',
-              border: '1px solid rgba(245,158,11,0.3)',
-              color: '#f59e0b',
-              borderRadius: 8,
-            }}
-          >
-            <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 p-2.5 text-xs rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-500">
+            <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
             <span>Live transcription not supported in this browser. Paste your transcript manually.</span>
           </div>
           <textarea
             value={manual}
             onChange={e => setManual(e.target.value)}
             placeholder="Paste meeting transcript here…"
-            className="w-full p-3 text-sm outline-none resize-none"
+            className="w-full p-3 text-sm rounded-md bg-muted/40 border border-border outline-none focus:ring-2 focus:ring-ring resize-none placeholder:text-muted-foreground"
             rows={8}
-            style={{
-              background: '#1e293b',
-              color: '#e2e8f0',
-              border: '1px solid #334155',
-              borderRadius: 10,
-              minHeight: 150,
-            }}
+            style={{ minHeight: 150 }}
           />
         </>
       ) : (
         <>
           <div
-            className="p-3 text-sm overflow-y-auto"
-            style={{
-              background: '#1e293b',
-              border: '1px solid #334155',
-              borderRadius: 10,
-              minHeight: 150,
-              maxHeight: 200,
-              color: '#e2e8f0',
-            }}
+            className="p-3 text-sm overflow-y-auto rounded-md bg-muted/40 border border-border"
+            style={{ minHeight: 150, maxHeight: 200 }}
           >
             {sp.finalText || sp.interim ? (
               <>
-                <span>{sp.finalText}</span>
+                <span className="text-foreground">{sp.finalText}</span>
                 {sp.interim && (
-                  <span style={{ color: '#64748b', fontStyle: 'italic' }}>{sp.interim}</span>
+                  <span className="italic text-muted-foreground">{sp.interim}</span>
                 )}
               </>
             ) : (
-              <span style={{ color: '#64748b' }}>Your transcript will appear here as you speak…</span>
+              <span className="text-muted-foreground">Your transcript will appear here as you speak…</span>
             )}
           </div>
 
-          <div className="flex items-center justify-between text-xs" style={{ color: '#94a3b8' }}>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{sp.wordCount} words</span>
-            <span>{fmtTime(sp.elapsed)}</span>
+            <span className="font-mono">{fmtTime(sp.elapsed)}</span>
           </div>
 
           <div className="flex items-center gap-2">
             {sp.state === 'idle' && (
-              <button onClick={sp.start} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium"
-                style={{ background: '#22c55e', color: 'white', borderRadius: 8 }}>
-                <Play size={14} /> Start
+              <button onClick={sp.start} className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                <Play className="h-3.5 w-3.5" /> Start
               </button>
             )}
             {sp.state === 'recording' && (
               <>
-                <button onClick={sp.pause} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium"
-                  style={{ background: '#f59e0b', color: 'white', borderRadius: 8 }}>
-                  <Pause size={14} /> Pause
+                <button onClick={sp.pause} className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors">
+                  <Pause className="h-3.5 w-3.5" /> Pause
                 </button>
-                <button onClick={sp.stop} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium"
-                  style={{ background: '#ef4444', color: 'white', borderRadius: 8 }}>
-                  <Square size={14} /> Stop
+                <button onClick={sp.stop} className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors">
+                  <Square className="h-3.5 w-3.5" /> Stop
                 </button>
               </>
             )}
             {sp.state === 'paused' && (
               <>
-                <button onClick={sp.resume} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium"
-                  style={{ background: '#22c55e', color: 'white', borderRadius: 8 }}>
-                  <Play size={14} /> Resume
+                <button onClick={sp.resume} className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                  <Play className="h-3.5 w-3.5" /> Resume
                 </button>
-                <button onClick={sp.stop} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium"
-                  style={{ background: '#ef4444', color: 'white', borderRadius: 8 }}>
-                  <Square size={14} /> Stop
+                <button onClick={sp.stop} className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors">
+                  <Square className="h-3.5 w-3.5" /> Stop
                 </button>
               </>
             )}
             {sp.state === 'done' && (
-              <button onClick={sp.start} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium"
-                style={{ background: '#22c55e', color: 'white', borderRadius: 8 }}>
-                <Play size={14} /> Start new
+              <button onClick={sp.start} className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                <Play className="h-3.5 w-3.5" /> Start new
               </button>
             )}
-            <button onClick={sp.reset} className="flex items-center gap-1 px-2 py-2 text-xs"
-              style={{ color: '#64748b', background: 'transparent', border: 'none' }}>
-              <RotateCcw size={12} /> Reset
+            <button onClick={sp.reset} className="inline-flex items-center gap-1 px-2 h-9 text-xs text-muted-foreground hover:text-foreground transition-colors">
+              <RotateCcw className="h-3 w-3" /> Reset
             </button>
           </div>
         </>
@@ -164,25 +132,13 @@ const MeetingTab: React.FC<Props> = ({ onSave }) => {
         value={title}
         onChange={e => setTitle(e.target.value)}
         placeholder="Meeting title (optional)"
-        className="w-full px-3 py-2 text-sm outline-none"
-        style={{
-          background: '#1e293b',
-          color: '#e2e8f0',
-          border: '1px solid #334155',
-          borderRadius: 10,
-        }}
+        className="w-full h-9 px-3 text-sm rounded-md bg-background border border-border outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
       />
 
       <button
         onClick={handleSave}
         disabled={!canSave}
-        className="w-full py-2.5 text-sm font-semibold transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-        style={{
-          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-          color: 'white',
-          borderRadius: 10,
-          border: 'none',
-        }}
+        className="w-full h-10 text-sm font-semibold rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         Save & Summarise
       </button>
