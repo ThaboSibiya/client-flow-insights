@@ -37,4 +37,4 @@ export interface PendingAction {
   preview: { title: string; lines: string[] };
 }
 
-export type AgentTab = 'chat' | 'meeting' | 'updates';
+export type AgentTab = 'chat' | 'meeting';
