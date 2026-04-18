@@ -1,19 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle2, XCircle, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { AgentMessage } from '../types';
+import type { AgentMessage, PendingAction } from '../types';
 
 interface Props {
   messages: AgentMessage[];
   isThinking: boolean;
   onSuggestion: (text: string) => void;
+  onConfirm: (messageId: string, action: PendingAction) => void;
+  onCancel: (messageId: string) => void;
 }
 
 const SUGGESTIONS = [
-  'What are my open tasks?',
-  'Show new leads',
-  'Schedule a call with Acme',
-  'Create a task',
+  'Show my open tasks',
+  'List overdue invoices',
+  'Create a workflow when a new lead comes in',
+  'Show my workflows',
+  'Add a lead: Acme Corp, hello@acme.com',
+  'Move ticket "login bug" to in_progress',
 ];
 
 const TypingDots: React.FC = () => (
@@ -43,6 +47,46 @@ const ActionCard: React.FC<{ ok: boolean; summary: string }> = ({ ok, summary })
       ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
       : <XCircle className="h-3.5 w-3.5 text-destructive flex-shrink-0 mt-0.5" />}
     <span className="text-foreground">{summary}</span>
+  </div>
+);
+
+const PendingCard: React.FC<{
+  msgId: string;
+  pending: PendingAction;
+  resolved?: 'confirmed' | 'cancelled';
+  onConfirm: (id: string, a: PendingAction) => void;
+  onCancel: (id: string) => void;
+}> = ({ msgId, pending, resolved, onConfirm, onCancel }) => (
+  <div className="mt-2 p-3 text-xs space-y-2 rounded-md bg-background border border-border">
+    <div className="flex items-center gap-1.5 font-semibold text-sm text-foreground">
+      <Sparkles className="h-3.5 w-3.5 text-primary" />
+      {pending.preview.title}
+    </div>
+    <ul className="space-y-0.5 text-foreground/90">
+      {pending.preview.lines.map((l, i) => <li key={i}>{l}</li>)}
+    </ul>
+    {!resolved && (
+      <div className="flex gap-2 pt-1">
+        <button
+          onClick={() => onConfirm(msgId, pending)}
+          className="flex-1 h-7 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          Confirm
+        </button>
+        <button
+          onClick={() => onCancel(msgId)}
+          className="flex-1 h-7 text-xs font-medium rounded-md bg-muted text-foreground hover:bg-muted/70 border border-border transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    )}
+    {resolved === 'confirmed' && (
+      <div className="text-[11px] text-emerald-600 dark:text-emerald-400">Confirmed.</div>
+    )}
+    {resolved === 'cancelled' && (
+      <div className="text-[11px] text-muted-foreground">Cancelled.</div>
+    )}
   </div>
 );
 
@@ -114,7 +158,7 @@ const UpdateCard: React.FC<{ r: NonNullable<AgentMessage['updateReport']> }> = (
   );
 };
 
-const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion }) => {
+const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion, onConfirm, onCancel }) => {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isThinking]);
 
@@ -123,7 +167,7 @@ const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion }) => {
       {messages.length === 0 && !isThinking && (
         <div className="space-y-3">
           <div className="text-sm text-muted-foreground">
-            Hi! I'm Quikle AI. Ask me to manage your tasks, leads, and follow-ups.
+            Hi! I'm Quikle AI. I can manage tasks, leads, pipelines, quotes, invoices, and build automations.
           </div>
           <div className="flex flex-wrap gap-1.5">
             {SUGGESTIONS.map(s => (
@@ -152,6 +196,15 @@ const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion }) => {
             <div className="whitespace-pre-wrap">{m.content}</div>
             {m.actionResult && (
               <ActionCard ok={m.actionResult.ok} summary={m.actionResult.summary} />
+            )}
+            {m.pendingAction && (
+              <PendingCard
+                msgId={m.id}
+                pending={m.pendingAction}
+                resolved={m.pendingResolved}
+                onConfirm={onConfirm}
+                onCancel={onCancel}
+              />
             )}
             {m.meetingNotes && <MeetingCard m={m.meetingNotes} />}
             {m.updateReport && <UpdateCard r={m.updateReport} />}
