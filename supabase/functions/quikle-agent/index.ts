@@ -6,10 +6,20 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY')!;
+const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY') ?? '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
-const MODEL = 'minimax/minimax-m2.5:free';
+
+// Provider chain: Lovable AI Gateway (primary, reliable) → OpenRouter fallbacks.
+// Each entry is tried in order; on 5xx/429 we move to the next.
+type Provider = { name: string; url: string; key: string; model: string };
+const PROVIDERS: Provider[] = [
+  { name: 'lovable-gemini-flash', url: 'https://ai.gateway.lovable.dev/v1/chat/completions', key: LOVABLE_API_KEY, model: 'google/gemini-2.5-flash' },
+  { name: 'lovable-gemini-flash-lite', url: 'https://ai.gateway.lovable.dev/v1/chat/completions', key: LOVABLE_API_KEY, model: 'google/gemini-2.5-flash-lite' },
+  { name: 'openrouter-minimax', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'minimax/minimax-m2.5:free' },
+  { name: 'openrouter-llama', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'meta-llama/llama-3.3-70b-instruct:free' },
+].filter(p => p.key);
 
 const SYSTEM_PROMPT = `You are Quikle AI, a CRM agent for Quikle Innovation Suite. When the user asks you to do something in the CRM, respond with ONLY a fenced code block tagged "action" containing JSON:
 
