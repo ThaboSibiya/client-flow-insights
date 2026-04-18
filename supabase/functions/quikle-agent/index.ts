@@ -39,23 +39,47 @@ Execute without asking for confirmation. After a tool result is returned to you,
 
 interface ChatMessage { role: 'user' | 'assistant' | 'system'; content: string }
 
-async function callOpenRouter(messages: ChatMessage[]): Promise<string> {
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://quikle-innovation-suite.lovable.app',
-      'X-Title': 'Quikle AI Agent',
-    },
-    body: JSON.stringify({ model: MODEL, messages, temperature: 0.4 }),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`OpenRouter ${res.status}: ${t}`);
+async function callLLM(messages: ChatMessage[]): Promise<string> {
+  if (PROVIDERS.length === 0) throw new Error('No LLM providers configured (set LOVABLE_API_KEY or OPENROUTER_API_KEY)');
+  let lastErr = '';
+  for (const p of PROVIDERS) {
+    try {
+      const res = await fetch(p.url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${p.key}`,
+          'Content-Type': 'application/json',
+          ...(p.url.includes('openrouter.ai') ? {
+            'HTTP-Referer': 'https://quikle-innovation-suite.lovable.app',
+            'X-Title': 'Quikle AI Agent',
+          } : {}),
+        },
+        body: JSON.stringify({ model: p.model, messages, temperature: 0.4 }),
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        lastErr = `${p.name} ${res.status}: ${t.slice(0, 200)}`;
+        // 5xx, 429, 408 → try next provider. 4xx (auth/validation) → stop.
+        if (res.status >= 500 || res.status === 429 || res.status === 408) {
+          console.warn(`[quikle-agent] ${p.name} unavailable (${res.status}), falling back…`);
+          continue;
+        }
+        throw new Error(lastErr);
+      }
+      const data = await res.json();
+      const content = data?.choices?.[0]?.message?.content;
+      if (!content) {
+        lastErr = `${p.name}: empty response`;
+        continue;
+      }
+      return content;
+    } catch (e) {
+      lastErr = `${p.name}: ${e instanceof Error ? e.message : String(e)}`;
+      console.warn(`[quikle-agent] ${lastErr}`);
+      continue;
+    }
   }
-  const data = await res.json();
-  return data?.choices?.[0]?.message?.content ?? '';
+  throw new Error(`All LLM providers failed. Last error: ${lastErr}`);
 }
 
 function parseAction(text: string): { tool: string; args: Record<string, unknown> } | null {
