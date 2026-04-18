@@ -6,10 +6,20 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY')!;
+const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY') ?? '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
-const MODEL = 'minimax/minimax-m2.5:free';
+
+// Provider chain: Lovable AI Gateway (primary, reliable) → OpenRouter fallbacks.
+// Each entry is tried in order; on 5xx/429 we move to the next.
+type Provider = { name: string; url: string; key: string; model: string };
+const PROVIDERS: Provider[] = [
+  { name: 'lovable-gemini-flash', url: 'https://ai.gateway.lovable.dev/v1/chat/completions', key: LOVABLE_API_KEY, model: 'google/gemini-2.5-flash' },
+  { name: 'lovable-gemini-flash-lite', url: 'https://ai.gateway.lovable.dev/v1/chat/completions', key: LOVABLE_API_KEY, model: 'google/gemini-2.5-flash-lite' },
+  { name: 'openrouter-minimax', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'minimax/minimax-m2.5:free' },
+  { name: 'openrouter-llama', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'meta-llama/llama-3.3-70b-instruct:free' },
+].filter(p => p.key);
 
 const SYSTEM_PROMPT = `You are Quikle AI, a CRM agent for Quikle Innovation Suite. When the user asks you to do something in the CRM, respond with ONLY a fenced code block tagged "action" containing JSON:
 
@@ -29,23 +39,47 @@ Execute without asking for confirmation. After a tool result is returned to you,
 
 interface ChatMessage { role: 'user' | 'assistant' | 'system'; content: string }
 
-async function callOpenRouter(messages: ChatMessage[]): Promise<string> {
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://quikle-innovation-suite.lovable.app',
-      'X-Title': 'Quikle AI Agent',
-    },
-    body: JSON.stringify({ model: MODEL, messages, temperature: 0.4 }),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`OpenRouter ${res.status}: ${t}`);
+async function callLLM(messages: ChatMessage[]): Promise<string> {
+  if (PROVIDERS.length === 0) throw new Error('No LLM providers configured (set LOVABLE_API_KEY or OPENROUTER_API_KEY)');
+  let lastErr = '';
+  for (const p of PROVIDERS) {
+    try {
+      const res = await fetch(p.url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${p.key}`,
+          'Content-Type': 'application/json',
+          ...(p.url.includes('openrouter.ai') ? {
+            'HTTP-Referer': 'https://quikle-innovation-suite.lovable.app',
+            'X-Title': 'Quikle AI Agent',
+          } : {}),
+        },
+        body: JSON.stringify({ model: p.model, messages, temperature: 0.4 }),
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        lastErr = `${p.name} ${res.status}: ${t.slice(0, 200)}`;
+        // 5xx, 429, 408 → try next provider. 4xx (auth/validation) → stop.
+        if (res.status >= 500 || res.status === 429 || res.status === 408) {
+          console.warn(`[quikle-agent] ${p.name} unavailable (${res.status}), falling back…`);
+          continue;
+        }
+        throw new Error(lastErr);
+      }
+      const data = await res.json();
+      const content = data?.choices?.[0]?.message?.content;
+      if (!content) {
+        lastErr = `${p.name}: empty response`;
+        continue;
+      }
+      return content;
+    } catch (e) {
+      lastErr = `${p.name}: ${e instanceof Error ? e.message : String(e)}`;
+      console.warn(`[quikle-agent] ${lastErr}`);
+      continue;
+    }
   }
-  const data = await res.json();
-  return data?.choices?.[0]?.message?.content ?? '';
+  throw new Error(`All LLM providers failed. Last error: ${lastErr}`);
 }
 
 function parseAction(text: string): { tool: string; args: Record<string, unknown> } | null {
@@ -181,7 +215,7 @@ Deno.serve(async (req) => {
         ...history,
         { role: 'user', content: message },
       ];
-      const first = await callOpenRouter(messages);
+      const first = await callLLM(messages);
       const action = parseAction(first);
 
       if (!action) {
@@ -191,7 +225,7 @@ Deno.serve(async (req) => {
       }
 
       const result = await execTool(supabase, user.id, action.tool, action.args);
-      const followup = await callOpenRouter([
+      const followup = await callLLM([
         ...messages,
         { role: 'assistant', content: first },
         { role: 'user', content: `Tool result: ${JSON.stringify(result)}. Reply with ONE short plain sentence confirming the outcome (no JSON, no code).` },
@@ -212,7 +246,7 @@ Deno.serve(async (req) => {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      const raw = await callOpenRouter([
+      const raw = await callLLM([
         { role: 'system', content: 'You extract structured notes from meeting transcripts. Return ONLY a JSON object, no code fences, no commentary.' },
         { role: 'user', content: `Transcript:\n${transcript}\n\nReturn:\n{ "summary": "...", "decisions": ["..."], "action_items": ["..."], "follow_up_date": "YYYY-MM-DD or null" }` },
       ]);
@@ -252,7 +286,7 @@ Deno.serve(async (req) => {
       const { data, error } = await supabase.from(cfg.table).select(cfg.cols)
         .eq('user_id', user.id).order('created_at', { ascending: false }).limit(20);
       if (error) throw error;
-      const summary = await callOpenRouter([
+      const summary = await callLLM([
         { role: 'system', content: 'Summarise CRM data for a busy manager in plain language under 80 words. No bullet points, no JSON.' },
         { role: 'user', content: `${entity} (latest ${data?.length ?? 0}):\n${JSON.stringify(data)}` },
       ]);
