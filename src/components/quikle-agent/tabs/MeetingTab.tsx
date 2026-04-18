@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Pause, Square, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Mic, Pause, Square, RotateCcw, AlertTriangle, Play } from 'lucide-react';
 import { useSpeechTranscript } from '../useSpeechTranscript';
 import { cn } from '@/lib/utils';
 
@@ -22,12 +22,35 @@ const StatusPill: React.FC<{ state: string }> = ({ state }) => {
   };
   const s = map[state] || map.idle;
   return (
-    <span className={cn('inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 font-medium rounded-full', s.cls)}>
+    <span className={cn('inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 font-medium rounded-full', s.cls)}>
       <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
       {s.label}
     </span>
   );
 };
+
+// Animated waveform bars for recording feedback
+const Waveform: React.FC<{ active: boolean }> = ({ active }) => (
+  <div className="flex items-center justify-center gap-0.5 h-4">
+    {[0, 1, 2, 3, 4].map(i => (
+      <span
+        key={i}
+        className={cn(
+          'w-0.5 rounded-full bg-destructive/70',
+          active ? 'quikle-wave' : 'h-1'
+        )}
+        style={active ? { animationDelay: `${i * 0.12}s` } : undefined}
+      />
+    ))}
+    <style>{`
+      @keyframes quikle-wave-anim {
+        0%, 100% { height: 4px; }
+        50% { height: 16px; }
+      }
+      .quikle-wave { animation: quikle-wave-anim 0.9s ease-in-out infinite; }
+    `}</style>
+  </div>
+);
 
 const MeetingTab: React.FC<Props> = ({ onSave }) => {
   const sp = useSpeechTranscript();
@@ -36,6 +59,7 @@ const MeetingTab: React.FC<Props> = ({ onSave }) => {
 
   const transcript = sp.supported ? sp.finalText.trim() : manual.trim();
   const canSave = transcript.length > 0;
+  const isRecording = sp.state === 'recording';
 
   const handleSave = () => {
     if (!canSave) return;
@@ -45,13 +69,16 @@ const MeetingTab: React.FC<Props> = ({ onSave }) => {
     sp.reset();
   };
 
-  return (
-    <div className="flex-1 overflow-y-auto p-3 space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Status</span>
-        <StatusPill state={sp.state} />
-      </div>
+  const handlePrimaryAction = () => {
+    if (sp.state === 'idle' || sp.state === 'done') sp.start();
+    else if (sp.state === 'recording') sp.pause();
+    else if (sp.state === 'paused') sp.resume();
+  };
 
+  const PrimaryIcon = isRecording ? Pause : (sp.state === 'paused' ? Play : Mic);
+
+  return (
+    <div className="flex-1 overflow-y-auto p-4 space-y-4">
       {!sp.supported ? (
         <>
           <div className="flex items-start gap-2 p-2.5 text-xs rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-500">
@@ -62,86 +89,115 @@ const MeetingTab: React.FC<Props> = ({ onSave }) => {
             value={manual}
             onChange={e => setManual(e.target.value)}
             placeholder="Paste meeting transcript here…"
-            className="w-full p-3 text-sm rounded-md bg-muted/40 border border-border outline-none focus:ring-2 focus:ring-ring resize-none placeholder:text-muted-foreground"
-            rows={8}
-            style={{ minHeight: 150 }}
+            className="w-full p-3 text-sm rounded-lg bg-muted/30 border border-border outline-none focus:ring-2 focus:ring-ring focus:border-primary/50 resize-none placeholder:text-muted-foreground transition-all"
+            rows={12}
+            style={{ minHeight: 280 }}
           />
         </>
       ) : (
         <>
-          <div
-            className="p-3 text-sm overflow-y-auto rounded-md bg-muted/40 border border-border"
-            style={{ minHeight: 150, maxHeight: 200 }}
-          >
-            {sp.finalText || sp.interim ? (
-              <>
-                <span className="text-foreground">{sp.finalText}</span>
-                {sp.interim && (
-                  <span className="italic text-muted-foreground">{sp.interim}</span>
+          {/* Transcript area — dominant */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Transcript</span>
+              <StatusPill state={sp.state} />
+            </div>
+            <div
+              className={cn(
+                'p-3.5 text-sm overflow-y-auto rounded-lg border transition-colors',
+                'bg-muted/30 border-border',
+                isRecording && 'border-destructive/30 bg-destructive/[0.02]'
+              )}
+              style={{ minHeight: 240, maxHeight: 280 }}
+            >
+              {sp.finalText || sp.interim ? (
+                <>
+                  <span className="text-foreground leading-relaxed">{sp.finalText}</span>
+                  {sp.interim && (
+                    <span className="italic text-muted-foreground">{sp.interim}</span>
+                  )}
+                </>
+              ) : (
+                <span className="text-muted-foreground text-xs">
+                  {isRecording ? 'Listening… start speaking' : 'Tap the microphone below to begin recording'}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Meta row */}
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
+            <span>{sp.wordCount} {sp.wordCount === 1 ? 'word' : 'words'}</span>
+            <Waveform active={isRecording} />
+            <span className="font-mono tabular-nums">{fmtTime(sp.elapsed)}</span>
+          </div>
+
+          {/* Centered circular record button */}
+          <div className="flex flex-col items-center gap-3 py-2">
+            <div className="relative">
+              {isRecording && (
+                <span className="absolute inset-0 rounded-full bg-destructive/30 animate-ping" />
+              )}
+              <button
+                onClick={handlePrimaryAction}
+                aria-label={isRecording ? 'Pause recording' : 'Start recording'}
+                className={cn(
+                  'relative h-14 w-14 flex items-center justify-center rounded-full transition-all duration-200',
+                  'shadow-lg hover:shadow-xl active:scale-95',
+                  isRecording
+                    ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                    : 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground hover:scale-105'
                 )}
-              </>
-            ) : (
-              <span className="text-muted-foreground">Your transcript will appear here as you speak…</span>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{sp.wordCount} words</span>
-            <span className="font-mono">{fmtTime(sp.elapsed)}</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {sp.state === 'idle' && (
-              <button onClick={sp.start} className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
-                <Play className="h-3.5 w-3.5" /> Start
+              >
+                <PrimaryIcon className={cn('h-5 w-5', isRecording && 'fill-current')} />
               </button>
-            )}
-            {sp.state === 'recording' && (
-              <>
-                <button onClick={sp.pause} className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors">
-                  <Pause className="h-3.5 w-3.5" /> Pause
+            </div>
+
+            {/* Secondary actions row */}
+            <div className="flex items-center gap-1">
+              {(sp.state === 'recording' || sp.state === 'paused') && (
+                <button
+                  onClick={sp.stop}
+                  className="inline-flex items-center gap-1 px-2.5 h-7 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                >
+                  <Square className="h-3 w-3" /> Stop
                 </button>
-                <button onClick={sp.stop} className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors">
-                  <Square className="h-3.5 w-3.5" /> Stop
+              )}
+              {(sp.finalText || sp.state !== 'idle') && (
+                <button
+                  onClick={sp.reset}
+                  className="inline-flex items-center gap-1 px-2.5 h-7 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                >
+                  <RotateCcw className="h-3 w-3" /> Reset
                 </button>
-              </>
-            )}
-            {sp.state === 'paused' && (
-              <>
-                <button onClick={sp.resume} className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
-                  <Play className="h-3.5 w-3.5" /> Resume
-                </button>
-                <button onClick={sp.stop} className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors">
-                  <Square className="h-3.5 w-3.5" /> Stop
-                </button>
-              </>
-            )}
-            {sp.state === 'done' && (
-              <button onClick={sp.start} className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
-                <Play className="h-3.5 w-3.5" /> Start new
-              </button>
-            )}
-            <button onClick={sp.reset} className="inline-flex items-center gap-1 px-2 h-9 text-xs text-muted-foreground hover:text-foreground transition-colors">
-              <RotateCcw className="h-3 w-3" /> Reset
-            </button>
+              )}
+            </div>
           </div>
         </>
       )}
 
-      <input
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        placeholder="Meeting title (optional)"
-        className="w-full h-9 px-3 text-sm rounded-md bg-background border border-border outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
-      />
+      {/* Save section */}
+      <div className="space-y-2 pt-2 border-t border-border/60">
+        <input
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          placeholder="Meeting title (optional)"
+          className="w-full h-9 px-3 text-sm rounded-md bg-background border border-border outline-none focus:ring-2 focus:ring-ring focus:border-primary/50 placeholder:text-muted-foreground transition-all"
+        />
 
-      <button
-        onClick={handleSave}
-        disabled={!canSave}
-        className="w-full h-10 text-sm font-semibold rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-      >
-        Save & Summarise
-      </button>
+        <button
+          onClick={handleSave}
+          disabled={!canSave}
+          className={cn(
+            'w-full h-10 text-sm font-semibold rounded-md transition-all',
+            'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground',
+            'hover:shadow-md hover:scale-[1.01] active:scale-[0.99]',
+            'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none'
+          )}
+        >
+          Save & Summarise
+        </button>
+      </div>
     </div>
   );
 };
