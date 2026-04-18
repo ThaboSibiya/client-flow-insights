@@ -26,19 +26,19 @@ const Analytics: React.FC = () => {
         {/* Simplified Tab Structure */}
         <Tabs defaultValue="dashboard" className="space-y-6">
           <TabsList className="bg-muted/50 p-1 h-auto">
-            <TabsTrigger value="dashboard" className="gap-2 data-[state=active]:bg-background">
+            <TabsTrigger value="dashboard" className="gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Dashboard</span>
             </TabsTrigger>
-            <TabsTrigger value="reports" className="gap-2 data-[state=active]:bg-background">
+            <TabsTrigger value="reports" className="gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
               <FileBarChart className="h-4 w-4" />
               <span className="hidden sm:inline">Reports</span>
             </TabsTrigger>
-            <TabsTrigger value="advanced" className="gap-2 data-[state=active]:bg-background">
+            <TabsTrigger value="advanced" className="gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
               <Settings2 className="h-4 w-4" />
               <span className="hidden sm:inline">Advanced</span>
             </TabsTrigger>
-            <TabsTrigger value="data" className="gap-2 data-[state=active]:bg-background">
+            <TabsTrigger value="data" className="gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
               <Database className="h-4 w-4" />
               <span className="hidden sm:inline">Data Center</span>
             </TabsTrigger>
