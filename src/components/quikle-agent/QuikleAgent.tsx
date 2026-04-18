@@ -156,7 +156,7 @@ const QuikleAgent: React.FC = () => {
               <div className={cn(
                 'flex items-center gap-2 pl-3 pr-1.5 h-11 rounded-full',
                 'bg-background border border-border/60',
-                'focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20',
+                'focus-within:border-primary/50',
                 'transition-all'
               )}>
                 <input
