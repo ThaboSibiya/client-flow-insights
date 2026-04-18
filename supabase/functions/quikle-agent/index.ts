@@ -215,7 +215,7 @@ Deno.serve(async (req) => {
         ...history,
         { role: 'user', content: message },
       ];
-      const first = await callOpenRouter(messages);
+      const first = await callLLM(messages);
       const action = parseAction(first);
 
       if (!action) {
@@ -225,7 +225,7 @@ Deno.serve(async (req) => {
       }
 
       const result = await execTool(supabase, user.id, action.tool, action.args);
-      const followup = await callOpenRouter([
+      const followup = await callLLM([
         ...messages,
         { role: 'assistant', content: first },
         { role: 'user', content: `Tool result: ${JSON.stringify(result)}. Reply with ONE short plain sentence confirming the outcome (no JSON, no code).` },
@@ -246,7 +246,7 @@ Deno.serve(async (req) => {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      const raw = await callOpenRouter([
+      const raw = await callLLM([
         { role: 'system', content: 'You extract structured notes from meeting transcripts. Return ONLY a JSON object, no code fences, no commentary.' },
         { role: 'user', content: `Transcript:\n${transcript}\n\nReturn:\n{ "summary": "...", "decisions": ["..."], "action_items": ["..."], "follow_up_date": "YYYY-MM-DD or null" }` },
       ]);
@@ -286,7 +286,7 @@ Deno.serve(async (req) => {
       const { data, error } = await supabase.from(cfg.table).select(cfg.cols)
         .eq('user_id', user.id).order('created_at', { ascending: false }).limit(20);
       if (error) throw error;
-      const summary = await callOpenRouter([
+      const summary = await callLLM([
         { role: 'system', content: 'Summarise CRM data for a busy manager in plain language under 80 words. No bullet points, no JSON.' },
         { role: 'user', content: `${entity} (latest ${data?.length ?? 0}):\n${JSON.stringify(data)}` },
       ]);
