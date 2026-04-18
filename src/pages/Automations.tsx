@@ -1,5 +1,6 @@
 import React from 'react';
 import AutomationManager from '@/components/pipeline/AutomationManagerNew';
+import AIAgentBanner from '@/components/pipeline/automation/AIAgentBanner';
 
 const Automations = () => {
   return (
@@ -12,9 +13,11 @@ const Automations = () => {
           Build and manage automated workflows
         </p>
       </div>
+      <AIAgentBanner />
       <AutomationManager />
     </div>
   );
 };
 
 export default Automations;
+

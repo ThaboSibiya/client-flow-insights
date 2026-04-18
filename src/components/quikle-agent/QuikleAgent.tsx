@@ -22,6 +22,22 @@ const QuikleAgent: React.FC = () => {
     return () => { delete document.body.dataset.quikleAgentOpen; };
   }, [agent.isOpen]);
 
+  // Allow other parts of the app to open the agent with a prefilled prompt.
+  // Usage: window.dispatchEvent(new CustomEvent('quikle-agent:open', { detail: { prompt: '...' } }))
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ prompt?: string }>).detail;
+      agent.setActiveTab('chat');
+      agent.setIsOpen(true);
+      if (detail?.prompt) {
+        setDraft(detail.prompt);
+        setTimeout(() => inputRef.current?.focus(), 260);
+      }
+    };
+    window.addEventListener('quikle-agent:open', handler);
+    return () => window.removeEventListener('quikle-agent:open', handler);
+  }, [agent]);
+
   const handleSend = () => {
     if (!draft.trim()) return;
     agent.sendChat(draft);
