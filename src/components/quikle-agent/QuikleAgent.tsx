@@ -3,7 +3,6 @@ import { X, Send, Sparkles, Square } from 'lucide-react';
 import { useAgent } from './useAgent';
 import ChatTab from './tabs/ChatTab';
 import MeetingTab from './tabs/MeetingTab';
-import UpdatesTab from './tabs/UpdatesTab';
 import { cn } from '@/lib/utils';
 
 const QuikleAgent: React.FC = () => {
@@ -29,10 +28,9 @@ const QuikleAgent: React.FC = () => {
     setDraft('');
   };
 
-  const tabs: Array<{ key: 'chat' | 'meeting' | 'updates'; label: string }> = [
+  const tabs: Array<{ key: 'chat' | 'meeting'; label: string }> = [
     { key: 'chat', label: 'Chat' },
     { key: 'meeting', label: 'Meeting' },
-    { key: 'updates', label: 'Updates' },
   ];
 
   return (
@@ -82,8 +80,7 @@ const QuikleAgent: React.FC = () => {
             bottom: 142,
             width: 400,
             maxWidth: 'calc(100vw - 32px)',
-            height: 600,
-            maxHeight: 'calc(100vh - 180px)',
+            height: 'min(600px, calc(100vh - 160px))',
           }}
         >
           {/* Header — gradient accent strip */}
@@ -150,9 +147,6 @@ const QuikleAgent: React.FC = () => {
             )}
             {agent.activeTab === 'meeting' && (
               <MeetingTab onSave={(t, title) => agent.saveMeeting(t, title)} />
-            )}
-            {agent.activeTab === 'updates' && (
-              <UpdatesTab onPick={agent.requestUpdate} />
             )}
           </div>
 
