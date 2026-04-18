@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Send, Sparkles } from 'lucide-react';
+import { X, Send, Sparkles, Square } from 'lucide-react';
 import { useAgent } from './useAgent';
 import ChatTab from './tabs/ChatTab';
 import MeetingTab from './tabs/MeetingTab';
@@ -37,126 +37,164 @@ const QuikleAgent: React.FC = () => {
 
   return (
     <>
-      {/* Floating button — minimal, single-color, stacked above HelpButton */}
+      {/* Floating button — branded, gradient, soft glow */}
       <button
         aria-label={agent.isOpen ? 'Close Quikle AI' : 'Open Quikle AI'}
         onClick={() => agent.setIsOpen(o => !o)}
         className={cn(
           'fixed right-6 z-50 flex items-center justify-center rounded-full',
-          'h-11 w-11 bg-primary text-primary-foreground',
-          'shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95',
-          'border border-border/40'
+          'h-12 w-12 text-primary-foreground',
+          'bg-gradient-to-br from-primary to-primary/70',
+          'shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95',
+          'ring-1 ring-primary/30',
+          !agent.isOpen && 'quikle-fab-glow'
         )}
         style={{ bottom: 80 }}
       >
-        {agent.isOpen ? <X className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+        {agent.isOpen ? <X className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+        <style>{`
+          @keyframes quikle-fab-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.35), 0 10px 25px -5px hsl(var(--primary) / 0.4); }
+            50% { box-shadow: 0 0 0 12px hsl(var(--primary) / 0), 0 10px 25px -5px hsl(var(--primary) / 0.4); }
+          }
+          .quikle-fab-glow { animation: quikle-fab-pulse 2.8s ease-in-out infinite; }
+          @keyframes quikle-panel-in {
+            from { opacity: 0; transform: translateY(16px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+          }
+          .quikle-panel-in { animation: quikle-panel-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
+        `}</style>
       </button>
 
       {/* Panel */}
-      <div
-        role="dialog"
-        aria-label="Quikle AI"
-        className={cn(
-          'fixed right-6 z-50 origin-bottom-right',
-          'flex flex-col overflow-hidden rounded-xl',
-          'bg-popover text-popover-foreground border border-border shadow-2xl',
-          'transition-all duration-200'
-        )}
-        style={{
-          bottom: 138,
-          width: 380,
-          maxWidth: 'calc(100vw - 32px)',
-          height: 560,
-          maxHeight: 'calc(100vh - 160px)',
-          transform: agent.isOpen ? 'scale(1)' : 'scale(0.95)',
-          opacity: agent.isOpen ? 1 : 0,
-          pointerEvents: agent.isOpen ? 'auto' : 'none',
-        }}
-      >
-        {/* Header — minimal */}
-        <div className="flex items-center justify-between px-4 h-12 border-b border-border bg-card">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center h-7 w-7 rounded-md bg-primary/10">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">Quikle AI</span>
-              <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Online
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={() => agent.setIsOpen(false)}
-            aria-label="Close"
-            className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Tabs — segmented pill (ClickUp style) */}
-        <div className="px-3 pt-3 pb-2 bg-card border-b border-border">
-          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-muted/60">
-            {tabs.map(t => (
+      {agent.isOpen && (
+        <div
+          role="dialog"
+          aria-label="Quikle AI"
+          className={cn(
+            'fixed right-6 z-50 origin-bottom-right quikle-panel-in',
+            'flex flex-col overflow-hidden rounded-2xl',
+            'bg-popover/95 backdrop-blur-xl text-popover-foreground',
+            'border border-border/60 shadow-2xl',
+            'ring-1 ring-black/5 dark:ring-white/5'
+          )}
+          style={{
+            bottom: 142,
+            width: 400,
+            maxWidth: 'calc(100vw - 32px)',
+            height: 600,
+            maxHeight: 'calc(100vh - 180px)',
+          }}
+        >
+          {/* Header — gradient accent strip */}
+          <div className="relative">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+            <div className="flex items-center justify-between px-4 h-14 bg-gradient-to-b from-card to-card/60 border-b border-border/60">
+              <div className="flex items-center gap-2.5">
+                <div className="relative flex items-center justify-center h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 shadow-sm ring-1 ring-primary/30">
+                  <Sparkles className="h-4 w-4 text-primary-foreground" />
+                </div>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-sm font-semibold text-foreground">Quikle AI</span>
+                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    </span>
+                    Online · Ready to help
+                  </span>
+                </div>
+              </div>
               <button
-                key={t.key}
-                onClick={() => agent.setActiveTab(t.key)}
-                className={cn(
-                  'flex-1 h-7 text-xs font-medium rounded-md transition-all',
-                  agent.activeTab === t.key
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
+                onClick={() => agent.setIsOpen(false)}
+                aria-label="Close"
+                className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
-                {t.label}
+                <X className="h-4 w-4" />
               </button>
-            ))}
+            </div>
           </div>
-        </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-hidden flex flex-col bg-background">
+          {/* Tabs — underline indicator (ClickUp-style) */}
+          <div className="flex items-center gap-0 px-3 bg-card border-b border-border/60">
+            {tabs.map(t => {
+              const active = agent.activeTab === t.key;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => agent.setActiveTab(t.key)}
+                  className={cn(
+                    'relative flex-1 h-10 text-xs font-medium transition-colors',
+                    active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {t.label}
+                  {active && (
+                    <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-t-full bg-primary" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Body */}
+          <div className="flex-1 overflow-hidden flex flex-col bg-background/40">
+            {agent.activeTab === 'chat' && (
+              <ChatTab
+                messages={agent.messages}
+                isThinking={agent.isThinking}
+                onSuggestion={(t) => agent.sendChat(t)}
+                onConfirm={agent.confirmAction}
+                onCancel={agent.cancelAction}
+              />
+            )}
+            {agent.activeTab === 'meeting' && (
+              <MeetingTab onSave={(t, title) => agent.saveMeeting(t, title)} />
+            )}
+            {agent.activeTab === 'updates' && (
+              <UpdatesTab onPick={agent.requestUpdate} />
+            )}
+          </div>
+
+          {/* Composer — only on chat */}
           {agent.activeTab === 'chat' && (
-            <ChatTab
-              messages={agent.messages}
-              isThinking={agent.isThinking}
-              onSuggestion={(t) => agent.sendChat(t)}
-              onConfirm={agent.confirmAction}
-              onCancel={agent.cancelAction}
-            />
-          )}
-          {agent.activeTab === 'meeting' && (
-            <MeetingTab onSave={(t, title) => agent.saveMeeting(t, title)} />
-          )}
-          {agent.activeTab === 'updates' && (
-            <UpdatesTab onPick={agent.requestUpdate} />
+            <div className="p-3 border-t border-border/60 bg-card">
+              <div className={cn(
+                'flex items-center gap-2 pl-3 pr-1.5 h-11 rounded-full',
+                'bg-background border border-border/60',
+                'focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20',
+                'transition-all'
+              )}>
+                <input
+                  ref={inputRef}
+                  value={draft}
+                  onChange={e => setDraft(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                  placeholder={agent.isThinking ? 'Quikle is thinking…' : 'Ask Quikle AI anything…'}
+                  disabled={agent.isThinking}
+                  className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={!draft.trim() || agent.isThinking}
+                  aria-label="Send"
+                  className={cn(
+                    'h-8 w-8 flex items-center justify-center rounded-full transition-all',
+                    'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground',
+                    'hover:shadow-md hover:scale-105 active:scale-95',
+                    'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none'
+                  )}
+                >
+                  {agent.isThinking ? <Square className="h-3 w-3 fill-current" /> : <Send className="h-3.5 w-3.5" />}
+                </button>
+              </div>
+              <div className="mt-1.5 px-3 text-[10px] text-muted-foreground/70 text-center">
+                Press <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[9px]">Enter</kbd> to send
+              </div>
+            </div>
           )}
         </div>
-
-        {/* Input — only on chat */}
-        {agent.activeTab === 'chat' && (
-          <div className="flex items-center gap-2 p-3 border-t border-border bg-card">
-            <input
-              ref={inputRef}
-              value={draft}
-              onChange={e => setDraft(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder="Ask Quikle AI…"
-              className="flex-1 h-9 px-3 text-sm rounded-md bg-background border border-border outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 placeholder:text-muted-foreground"
-            />
-            <button
-              onClick={handleSend}
-              disabled={!draft.trim() || agent.isThinking}
-              aria-label="Send"
-              className="h-9 w-9 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <Send className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-      </div>
+      )}
     </>
   );
 };
