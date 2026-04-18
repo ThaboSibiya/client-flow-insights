@@ -26,7 +26,15 @@ export interface AgentMessage {
     count: number;
     items: any[];
   };
+  pendingAction?: PendingAction;
+  pendingResolved?: 'confirmed' | 'cancelled';
   createdAt: number;
+}
+
+export interface PendingAction {
+  tool: string;
+  args: Record<string, unknown>;
+  preview: { title: string; lines: string[] };
 }
 
 export type AgentTab = 'chat' | 'meeting' | 'updates';

@@ -123,6 +123,8 @@ const QuikleAgent: React.FC = () => {
               messages={agent.messages}
               isThinking={agent.isThinking}
               onSuggestion={(t) => agent.sendChat(t)}
+              onConfirm={agent.confirmAction}
+              onCancel={agent.cancelAction}
             />
           )}
           {agent.activeTab === 'meeting' && (

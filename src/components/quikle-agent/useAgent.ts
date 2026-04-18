@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { AgentMessage, AgentTab } from './types';
+import type { AgentMessage, AgentTab, PendingAction } from './types';
 
 const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 
@@ -35,6 +35,7 @@ export function useAgent() {
         content: data?.reply ?? 'Sorry, no response.',
         actionTaken: data?.actionTaken,
         actionResult: data?.actionResult,
+        pendingAction: data?.pendingAction,
         createdAt: Date.now(),
       });
     } catch (e) {
@@ -48,6 +49,41 @@ export function useAgent() {
       setIsThinking(false);
     }
   }, [messages, append]);
+
+  const confirmAction = useCallback(async (messageId: string, action: PendingAction) => {
+    setIsThinking(true);
+    setMessages(prev => prev.map(m => m.id === messageId ? { ...m, pendingResolved: 'confirmed' } : m));
+    try {
+      const { data, error } = await supabase.functions.invoke('quikle-agent', {
+        body: { type: 'confirm', action },
+      });
+      if (error) throw error;
+      append({
+        id: uid(), role: 'assistant',
+        content: data?.reply ?? 'Done.',
+        actionTaken: data?.actionTaken,
+        actionResult: data?.actionResult,
+        createdAt: Date.now(),
+      });
+    } catch (e) {
+      append({
+        id: uid(), role: 'assistant',
+        content: `Error: ${e instanceof Error ? e.message : String(e)}`,
+        createdAt: Date.now(),
+      });
+    } finally {
+      setIsThinking(false);
+    }
+  }, [append]);
+
+  const cancelAction = useCallback((messageId: string) => {
+    setMessages(prev => prev.map(m => m.id === messageId ? { ...m, pendingResolved: 'cancelled' } : m));
+    append({
+      id: uid(), role: 'assistant',
+      content: 'Cancelled — nothing was changed.',
+      createdAt: Date.now(),
+    });
+  }, [append]);
 
   const saveMeeting = useCallback(async (transcript: string, title: string) => {
     if (!transcript.trim()) return;
@@ -123,5 +159,6 @@ export function useAgent() {
     messages, isThinking, activeTab, setActiveTab,
     isOpen, setIsOpen,
     sendChat, saveMeeting, requestUpdate,
+    confirmAction, cancelAction,
   };
 }
