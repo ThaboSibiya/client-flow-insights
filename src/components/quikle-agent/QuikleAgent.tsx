@@ -30,6 +30,14 @@ const QuikleAgent: React.FC = () => {
   // Usage: window.dispatchEvent(new CustomEvent('quikle-agent:open', { detail: { prompt: '...' } }))
   useEffect(() => {
     const handler = (e: Event) => {
+      if (!canUseAgent) {
+        toast({
+          title: 'AI Agent disabled',
+          description: reason ?? 'Your account does not have AI Agent access.',
+          variant: 'destructive',
+        });
+        return;
+      }
       const detail = (e as CustomEvent<{ prompt?: string }>).detail;
       agent.setActiveTab('chat');
       agent.setIsOpen(true);
@@ -40,10 +48,18 @@ const QuikleAgent: React.FC = () => {
     };
     window.addEventListener('quikle-agent:open', handler);
     return () => window.removeEventListener('quikle-agent:open', handler);
-  }, [agent]);
+  }, [agent, canUseAgent, reason]);
 
   const handleSend = () => {
     if (!draft.trim()) return;
+    if (!canCreateWorkflows && /workflow|automat|build|create/i.test(draft)) {
+      toast({
+        title: 'Workflow creation disabled',
+        description: 'You can chat but cannot create workflows. Ask your admin for access.',
+        variant: 'destructive',
+      });
+      return;
+    }
     agent.sendChat(draft);
     setDraft('');
   };
