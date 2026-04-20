@@ -1,5 +1,18 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { debounce } from 'lodash';
+
+// Lightweight debounce to avoid the lodash dependency
+function debounce<T extends (...args: any[]) => void>(fn: T, wait: number) {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  const debounced = (...args: Parameters<T>) => {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => fn(...args), wait);
+  };
+  debounced.cancel = () => {
+    if (timeout) clearTimeout(timeout);
+    timeout = null;
+  };
+  return debounced as T & { cancel: () => void };
+}
 
 export interface SearchOptions<T> {
   searchFields: (keyof T)[];
