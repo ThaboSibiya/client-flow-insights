@@ -1,5 +1,5 @@
 
-import { Users, Settings, Lock, DollarSign, Zap, Shield } from 'lucide-react';
+import { Users, Settings, Lock, DollarSign, Zap, Shield, Sparkles } from 'lucide-react';
 
 export const privilegeGroups = [
   {
