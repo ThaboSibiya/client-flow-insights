@@ -70,35 +70,64 @@ const QuikleAgent: React.FC = () => {
   ];
 
   return (
-    <>
+    <TooltipProvider delayDuration={150}>
       {/* Floating button — branded, gradient, soft glow */}
-      <button
-        aria-label={agent.isOpen ? 'Close Quikle AI' : 'Open Quikle AI'}
-        onClick={() => agent.setIsOpen(o => !o)}
-        className={cn(
-          'fixed right-6 z-50 flex items-center justify-center rounded-full',
-          'h-12 w-12 text-primary-foreground',
-          'bg-gradient-to-br from-primary to-primary/70',
-          'shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95',
-          'ring-1 ring-primary/30',
-          !agent.isOpen && 'quikle-fab-glow'
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            aria-label={
+              !canUseAgent
+                ? 'AI Agent disabled'
+                : agent.isOpen ? 'Close Quikle AI' : 'Open Quikle AI'
+            }
+            onClick={() => {
+              if (!canUseAgent) {
+                toast({
+                  title: 'AI Agent disabled',
+                  description: reason ?? 'Your account does not have AI Agent access.',
+                  variant: 'destructive',
+                });
+                return;
+              }
+              agent.setIsOpen(o => !o);
+            }}
+            aria-disabled={!canUseAgent}
+            className={cn(
+              'fixed right-6 z-50 flex items-center justify-center rounded-full',
+              'h-12 w-12 text-primary-foreground',
+              'bg-gradient-to-br from-primary to-primary/70',
+              'shadow-lg transition-all duration-300',
+              'ring-1 ring-primary/30',
+              canUseAgent
+                ? 'hover:shadow-xl hover:scale-110 active:scale-95'
+                : 'opacity-50 grayscale cursor-not-allowed',
+              canUseAgent && !agent.isOpen && 'quikle-fab-glow'
+            )}
+            style={{ bottom: 80 }}
+          >
+            {!canUseAgent
+              ? <Lock className="h-5 w-5" />
+              : agent.isOpen ? <X className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+            <style>{`
+              @keyframes quikle-fab-pulse {
+                0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.35), 0 10px 25px -5px hsl(var(--primary) / 0.4); }
+                50% { box-shadow: 0 0 0 12px hsl(var(--primary) / 0), 0 10px 25px -5px hsl(var(--primary) / 0.4); }
+              }
+              .quikle-fab-glow { animation: quikle-fab-pulse 2.8s ease-in-out infinite; }
+              @keyframes quikle-panel-in {
+                from { opacity: 0; transform: translateY(16px) scale(0.96); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+              }
+              .quikle-panel-in { animation: quikle-panel-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
+            `}</style>
+          </button>
+        </TooltipTrigger>
+        {!canUseAgent && (
+          <TooltipContent side="left" className="max-w-[220px] text-xs">
+            {reason ?? 'Ask your administrator for AI Agent access.'}
+          </TooltipContent>
         )}
-        style={{ bottom: 80 }}
-      >
-        {agent.isOpen ? <X className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
-        <style>{`
-          @keyframes quikle-fab-pulse {
-            0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.35), 0 10px 25px -5px hsl(var(--primary) / 0.4); }
-            50% { box-shadow: 0 0 0 12px hsl(var(--primary) / 0), 0 10px 25px -5px hsl(var(--primary) / 0.4); }
-          }
-          .quikle-fab-glow { animation: quikle-fab-pulse 2.8s ease-in-out infinite; }
-          @keyframes quikle-panel-in {
-            from { opacity: 0; transform: translateY(16px) scale(0.96); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-          }
-          .quikle-panel-in { animation: quikle-panel-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
-        `}</style>
-      </button>
+      </Tooltip>
 
       {/* Panel */}
       {agent.isOpen && (
