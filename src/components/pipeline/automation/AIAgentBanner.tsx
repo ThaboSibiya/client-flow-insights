@@ -1,6 +1,8 @@
 import React from 'react';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAIAgentAccess } from '@/hooks/useAIAgentAccess';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const EXAMPLES = [
   'Welcome new leads with a 3-step email series',
