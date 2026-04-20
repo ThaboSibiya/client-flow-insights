@@ -38,6 +38,10 @@ export interface EnhancedEmployeePrivileges {
   can_access_financial_automations: boolean;
   can_modify_pricing_automations: boolean;
   requires_financial_approval: boolean;
+
+  // AI Agent (Quikle AI) controls
+  can_use_ai_agent: boolean;
+  can_create_ai_workflows: boolean;
 }
 
 export interface AutomationPermission {

@@ -1,5 +1,5 @@
 
-import { Users, Settings, Lock, DollarSign, Zap, Shield } from 'lucide-react';
+import { Users, Settings, Lock, DollarSign, Zap, Shield, Sparkles } from 'lucide-react';
 
 export const privilegeGroups = [
   {
@@ -68,6 +68,15 @@ export const privilegeGroups = [
     color: "text-indigo-600",
     privileges: [
       { key: 'can_view_analytics', label: 'View Analytics', description: 'Access reports and analytics dashboards' }
+    ]
+  },
+  {
+    title: "AI Agent (Quikle AI)",
+    icon: Sparkles,
+    color: "text-pink-600",
+    privileges: [
+      { key: 'can_use_ai_agent', label: 'Use AI Agent', description: 'Open and chat with the Quikle AI assistant' },
+      { key: 'can_create_ai_workflows', label: 'Create AI Workflows', description: 'Ask the AI to build automations and workflows' }
     ]
   }
 ];

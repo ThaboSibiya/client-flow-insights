@@ -146,7 +146,9 @@ export const useSecurePrivileges = () => {
         can_export_customer_data: privilegeData.can_export_customer_data || false,
         can_access_financial_automations: privilegeData.can_access_financial_automations || false,
         can_modify_pricing_automations: privilegeData.can_modify_pricing_automations || false,
-        requires_financial_approval: privilegeData.requires_financial_approval !== false
+        requires_financial_approval: privilegeData.requires_financial_approval !== false,
+        can_use_ai_agent: (privilegeData as any).can_use_ai_agent !== false,
+        can_create_ai_workflows: (privilegeData as any).can_create_ai_workflows !== false
       } : getDefaultPrivileges();
 
       setPrivileges(currentPrivileges);

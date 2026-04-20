@@ -1186,6 +1186,7 @@ export type Database = {
           can_access_customer_pii: boolean | null
           can_access_financial_automations: boolean | null
           can_access_sensitive_automations: boolean | null
+          can_create_ai_workflows: boolean | null
           can_create_automations: boolean | null
           can_create_quotes: boolean | null
           can_delete_automations: boolean | null
@@ -1206,6 +1207,7 @@ export type Database = {
           can_manage_employees: boolean | null
           can_modify_pricing_automations: boolean | null
           can_update_customer_status_onsite: boolean | null
+          can_use_ai_agent: boolean | null
           can_view_analytics: boolean | null
           can_view_automations: boolean | null
           can_view_company_settings: boolean | null
@@ -1226,6 +1228,7 @@ export type Database = {
           can_access_customer_pii?: boolean | null
           can_access_financial_automations?: boolean | null
           can_access_sensitive_automations?: boolean | null
+          can_create_ai_workflows?: boolean | null
           can_create_automations?: boolean | null
           can_create_quotes?: boolean | null
           can_delete_automations?: boolean | null
@@ -1246,6 +1249,7 @@ export type Database = {
           can_manage_employees?: boolean | null
           can_modify_pricing_automations?: boolean | null
           can_update_customer_status_onsite?: boolean | null
+          can_use_ai_agent?: boolean | null
           can_view_analytics?: boolean | null
           can_view_automations?: boolean | null
           can_view_company_settings?: boolean | null
@@ -1266,6 +1270,7 @@ export type Database = {
           can_access_customer_pii?: boolean | null
           can_access_financial_automations?: boolean | null
           can_access_sensitive_automations?: boolean | null
+          can_create_ai_workflows?: boolean | null
           can_create_automations?: boolean | null
           can_create_quotes?: boolean | null
           can_delete_automations?: boolean | null
@@ -1286,6 +1291,7 @@ export type Database = {
           can_manage_employees?: boolean | null
           can_modify_pricing_automations?: boolean | null
           can_update_customer_status_onsite?: boolean | null
+          can_use_ai_agent?: boolean | null
           can_view_analytics?: boolean | null
           can_view_automations?: boolean | null
           can_view_company_settings?: boolean | null

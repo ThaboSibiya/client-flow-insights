@@ -33,7 +33,10 @@ export const getDefaultPrivileges = (): EnhancedEmployeePrivileges => ({
   can_export_customer_data: false,
   can_access_financial_automations: false,
   can_modify_pricing_automations: false,
-  requires_financial_approval: true
+  requires_financial_approval: true,
+  // AI Agent — employees get chat + create by default
+  can_use_ai_agent: true,
+  can_create_ai_workflows: true
 });
 
 export const getEnhancedUserPrivileges = async (): Promise<EnhancedEmployeePrivileges | null> => {
@@ -119,7 +122,9 @@ export const getEnhancedUserPrivileges = async (): Promise<EnhancedEmployeePrivi
       can_export_customer_data: privileges.can_export_customer_data || false,
       can_access_financial_automations: privileges.can_access_financial_automations || false,
       can_modify_pricing_automations: privileges.can_modify_pricing_automations || false,
-      requires_financial_approval: privileges.requires_financial_approval !== false
+      requires_financial_approval: privileges.requires_financial_approval !== false,
+      can_use_ai_agent: (privileges as any).can_use_ai_agent !== false,
+      can_create_ai_workflows: (privileges as any).can_create_ai_workflows !== false
     };
   } catch (error) {
     await logSecureSecurityEvent({
