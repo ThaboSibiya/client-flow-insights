@@ -1,12 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Send, Sparkles, Square } from 'lucide-react';
+import { X, Send, Sparkles, Square, Lock } from 'lucide-react';
 import { useAgent } from './useAgent';
 import ChatTab from './tabs/ChatTab';
 import MeetingTab from './tabs/MeetingTab';
 import { cn } from '@/lib/utils';
+import { useAIAgentAccess } from '@/hooks/useAIAgentAccess';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { toast } from '@/hooks/use-toast';
 
 const QuikleAgent: React.FC = () => {
   const agent = useAgent();
+  const { canUseAgent, canCreateWorkflows, reason } = useAIAgentAccess();
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
