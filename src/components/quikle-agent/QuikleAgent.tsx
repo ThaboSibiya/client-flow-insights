@@ -254,7 +254,7 @@ const QuikleAgent: React.FC = () => {
           )}
         </div>
       )}
-    </>
+    </TooltipProvider>
   );
 };
 
