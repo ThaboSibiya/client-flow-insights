@@ -13,13 +13,11 @@ interface Props {
 
 const SUGGESTIONS = [
   'Show my open tasks',
-  'Show new leads this week',
-  'Show today\'s follow-ups',
-  'List overdue invoices',
-  'Create a workflow when a new lead comes in',
-  'Show my workflows',
-  'Add a lead: Acme Corp, hello@acme.com',
-  'Move ticket "login bug" to in_progress',
+  'New leads this week',
+  'Overdue invoices',
+  'Show my projects',
+  'Business snapshot',
+  'Build a workflow for new leads',
 ];
 
 const TypingDots: React.FC = () => (
@@ -169,7 +167,7 @@ const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion, onConfir
       {messages.length === 0 && !isThinking && (
         <div className="space-y-3">
           <div className="text-sm text-muted-foreground">
-            Hi! I'm Quikle AI. I can manage tasks, leads, pipelines, quotes, invoices, and build automations.
+            Hi 👋 — what can I help you with?
           </div>
           <div className="flex flex-wrap gap-1.5">
             {SUGGESTIONS.map(s => (
