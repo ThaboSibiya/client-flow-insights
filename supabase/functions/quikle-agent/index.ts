@@ -175,6 +175,15 @@ async function resolveWorkflow(supabase: SBClient, userId: string, ref: string) 
   const { data } = await supabase.from('workflow_automations').select('id, name, is_active')
     .eq('user_id', userId).ilike('name', `%${ref}%`).limit(1).maybeSingle();
   return data;
+async function resolveProject(supabase: SBClient, userId: string, ref: string) {
+  if (!ref) return null;
+  if (isUuid(ref)) {
+    const { data } = await supabase.from('projects').select('id, name, status').eq('id', ref).eq('user_id', userId).maybeSingle();
+    return data;
+  }
+  const { data } = await supabase.from('projects').select('id, name, status')
+    .eq('user_id', userId).ilike('name', `%${ref}%`).limit(1).maybeSingle();
+  return data;
 }
 
 // ─── Workflow templates ──────────────────────────────────────────────────
