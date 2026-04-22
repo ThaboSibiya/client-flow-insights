@@ -13,13 +13,11 @@ interface Props {
 
 const SUGGESTIONS = [
   'Show my open tasks',
-  'Show new leads this week',
-  'Show today\'s follow-ups',
-  'List overdue invoices',
-  'Create a workflow when a new lead comes in',
-  'Show my workflows',
-  'Add a lead: Acme Corp, hello@acme.com',
-  'Move ticket "login bug" to in_progress',
+  'New leads this week',
+  'Overdue invoices',
+  'Show my projects',
+  'Business snapshot',
+  'Build a workflow for new leads',
 ];
 
 const TypingDots: React.FC = () => (
