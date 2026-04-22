@@ -59,7 +59,17 @@ AVAILABLE TOOLS:
 - create_workflow: { name, description, template? (welcome/support/pipeline/webhook), trigger?, actions? }
 - toggle_workflow: { workflow_id_or_name, active (true/false) }
 
-If a customer/lead/ticket/invoice is referenced by name or partial id, pass the string the user gave — the backend will resolve it. Always prefer action over chat when a clear instruction is given.`;
+— Projects —
+- list_projects: { status? (not-started/in-progress/on-hold/completed/cancelled) }
+- create_project: { name, description?, type? (development/marketing/design/research/maintenance), priority? (low/medium/high/urgent), due_date (YYYY-MM-DD)?, client? }
+- list_project_tasks: { project_id_or_name }
+- create_project_task: { project_id_or_name, title, priority?, due (YYYY-MM-DD)? }
+- update_project_status: { project_id_or_name, status }
+
+— Analytics —
+- analytics_summary: {}   // counts of leads, tickets, tasks, invoices, revenue, overdue
+
+If a customer/lead/ticket/invoice/project is referenced by name or partial id, pass the string the user gave — the backend will resolve it. Always prefer action over chat when a clear instruction is given. Keep replies short and friendly.`;
 
 interface ChatMessage { role: 'user' | 'assistant' | 'system'; content: string }
 type SBClient = ReturnType<typeof createClient>;
