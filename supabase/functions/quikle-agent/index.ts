@@ -175,6 +175,7 @@ async function resolveWorkflow(supabase: SBClient, userId: string, ref: string) 
   const { data } = await supabase.from('workflow_automations').select('id, name, is_active')
     .eq('user_id', userId).ilike('name', `%${ref}%`).limit(1).maybeSingle();
   return data;
+}
 async function resolveProject(supabase: SBClient, userId: string, ref: string) {
   if (!ref) return null;
   if (isUuid(ref)) {
