@@ -167,7 +167,7 @@ const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion, onConfir
       {messages.length === 0 && !isThinking && (
         <div className="space-y-3">
           <div className="text-sm text-muted-foreground">
-            Hi! I'm Quikle AI. I can manage tasks, leads, pipelines, quotes, invoices, and build automations.
+            Hi 👋 — what can I help you with?
           </div>
           <div className="flex flex-wrap gap-1.5">
             {SUGGESTIONS.map(s => (
