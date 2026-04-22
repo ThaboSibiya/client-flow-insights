@@ -495,6 +495,104 @@ async function execTool(supabase: SBClient, userId: string, tool: string, args: 
         if (error) throw error;
         return { ok: true, summary: `${active ? 'Activated' : 'Paused'} workflow “${wf.name}”.`, data };
       }
+
+      // ─── Projects ───
+      case 'list_projects': {
+        let q = supabase.from('projects').select('id, name, status, priority, progress, due_date, client')
+          .eq('user_id', userId).order('created_at', { ascending: false }).limit(20);
+        if (args.status) q = q.eq('status', args.status);
+        const { data, error } = await q; if (error) throw error;
+        return { ok: true, summary: `Found ${data?.length ?? 0} project(s).`, data };
+      }
+      case 'create_project': {
+        const insert = {
+          user_id: userId,
+          name: String(args.name || 'New Project'),
+          description: args.description ?? '',
+          type: ['development','marketing','design','research','maintenance'].includes(args.type) ? args.type : 'development',
+          priority: ['low','medium','high','urgent'].includes(args.priority) ? args.priority : 'medium',
+          status: 'not-started',
+          start_date: new Date().toISOString(),
+          due_date: args.due_date ? new Date(args.due_date).toISOString() : new Date(Date.now() + 30 * 86400000).toISOString(),
+          budget: 0, spent: 0, progress: 0,
+          owner_id: userId, owner_name: '', owner_email: '',
+          team: [], tags: [],
+          client: args.client ?? null,
+        };
+        const { data, error } = await supabase.from('projects').insert(insert).select().single();
+        if (error) throw error;
+        return { ok: true, summary: `Created project “${insert.name}”.`, data };
+      }
+      case 'list_project_tasks': {
+        const proj = await resolveProject(supabase, userId, String(args.project_id_or_name || ''));
+        if (!proj) return { ok: false, summary: 'Project not found.', error: 'not_found' };
+        const { data, error } = await supabase.from('project_tasks')
+          .select('id, title, status, priority, due_date, progress')
+          .eq('user_id', userId).eq('project_id', proj.id).order('created_at', { ascending: false }).limit(30);
+        if (error) throw error;
+        return { ok: true, summary: `${data?.length ?? 0} task(s) in “${proj.name}”.`, data };
+      }
+      case 'create_project_task': {
+        const proj = await resolveProject(supabase, userId, String(args.project_id_or_name || ''));
+        if (!proj) return { ok: false, summary: 'Project not found.', error: 'not_found' };
+        const insert = {
+          user_id: userId,
+          project_id: proj.id,
+          title: String(args.title || 'Untitled task'),
+          description: '',
+          status: 'todo',
+          priority: ['low','medium','high','urgent'].includes(args.priority) ? args.priority : 'medium',
+          assigned_to: [],
+          start_date: new Date().toISOString(),
+          due_date: args.due ? new Date(args.due).toISOString() : new Date(Date.now() + 7 * 86400000).toISOString(),
+          estimated_hours: 0, actual_hours: 0, progress: 0,
+          tags: [], dependencies: [], attachments: [],
+        };
+        const { data, error } = await supabase.from('project_tasks').insert(insert).select().single();
+        if (error) throw error;
+        return { ok: true, summary: `Added “${insert.title}” to ${proj.name}.`, data };
+      }
+      case 'update_project_status': {
+        const proj = await resolveProject(supabase, userId, String(args.project_id_or_name || ''));
+        if (!proj) return { ok: false, summary: 'Project not found.', error: 'not_found' };
+        const status = ['not-started','in-progress','on-hold','completed','cancelled'].includes(args.status) ? args.status : 'in-progress';
+        const { data, error } = await supabase.from('projects')
+          .update({ status }).eq('id', proj.id).eq('user_id', userId).select().single();
+        if (error) throw error;
+        return { ok: true, summary: `Set “${proj.name}” to ${status}.`, data };
+      }
+
+      // ─── Analytics ───
+      case 'analytics_summary': {
+        const today = new Date().toISOString();
+        const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+        const [leads, newLeads, openTickets, openTasks, projects, paidInvoices, overdueInvoices] = await Promise.all([
+          supabase.from('customers').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+          supabase.from('customers').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('created_at', weekAgo),
+          supabase.from('tickets').select('id', { count: 'exact', head: true }).eq('user_id', userId).in('status', ['open','in_progress']),
+          supabase.from('project_tasks').select('id', { count: 'exact', head: true }).eq('user_id', userId).in('status', ['todo','in-progress','review']),
+          supabase.from('projects').select('id', { count: 'exact', head: true }).eq('user_id', userId).in('status', ['not-started','in-progress']),
+          supabase.from('quotes_invoices').select('total').eq('user_id', userId).eq('type', 'invoice').eq('status', 'paid'),
+          supabase.from('quotes_invoices').select('id, total', { count: 'exact' }).eq('user_id', userId).eq('type', 'invoice').in('status', ['sent','overdue','partial']).lt('due_date', today),
+        ]);
+        const revenue = (paidInvoices.data ?? []).reduce((s: number, r: any) => s + Number(r.total || 0), 0);
+        const overdueAmount = (overdueInvoices.data ?? []).reduce((s: number, r: any) => s + Number(r.total || 0), 0);
+        const data = {
+          total_leads: leads.count ?? 0,
+          new_leads_week: newLeads.count ?? 0,
+          open_tickets: openTickets.count ?? 0,
+          open_tasks: openTasks.count ?? 0,
+          active_projects: projects.count ?? 0,
+          revenue_paid: revenue,
+          overdue_count: overdueInvoices.count ?? 0,
+          overdue_amount: overdueAmount,
+        };
+        return {
+          ok: true,
+          summary: `Snapshot: ${data.total_leads} leads (${data.new_leads_week} new this week), ${data.active_projects} active projects, ${data.open_tickets} open tickets, ${data.open_tasks} open tasks. Revenue: R${revenue.toFixed(2)}. Overdue: ${data.overdue_count} invoice(s) totalling R${overdueAmount.toFixed(2)}.`,
+          data,
+        };
+      }
     }
     return { ok: false, summary: `Unknown tool: ${tool}`, error: 'unknown_tool' };
   } catch (e) {
