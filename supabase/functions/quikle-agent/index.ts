@@ -86,10 +86,15 @@ interface PendingAction { tool: string; args: Record<string, unknown>; preview: 
 
 const HIGH_IMPACT = new Set(['create_quote', 'create_invoice', 'send_invoice_reminder', 'mark_invoice_paid', 'create_workflow', 'toggle_workflow']);
 
-async function callLLM(messages: ChatMessage[]): Promise<string> {
-  if (PROVIDERS.length === 0) throw new Error('No LLM providers configured');
+async function callLLM(messages: ChatMessage[], freeOnly = false): Promise<string> {
+  const providers = getProviders(freeOnly);
+  if (providers.length === 0) {
+    throw new Error(freeOnly
+      ? 'Free-only mode enabled but no OpenRouter free providers configured. Add OPENROUTER_API_KEY.'
+      : 'No LLM providers configured');
+  }
   let lastErr = '';
-  for (const p of PROVIDERS) {
+  for (const p of providers) {
     try {
       const res = await fetch(p.url, {
         method: 'POST',
@@ -123,6 +128,21 @@ async function callLLM(messages: ChatMessage[]): Promise<string> {
     }
   }
   throw new Error(`All LLM providers failed. Last: ${lastErr}`);
+}
+
+async function isFreeOnly(supabase: SBClient, userId: string): Promise<boolean> {
+  try {
+    const { data } = await supabase
+      .from('company_settings')
+      .select('value')
+      .eq('user_id', userId)
+      .eq('key', 'ai_agent_free_only')
+      .maybeSingle();
+    const v = (data?.value as { value?: unknown } | null)?.value;
+    return v === true || v === 'true';
+  } catch {
+    return false;
+  }
 }
 
 function parseAction(text: string): { tool: string; args: Record<string, any> } | null {
