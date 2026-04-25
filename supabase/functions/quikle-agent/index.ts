@@ -685,6 +685,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const type = body?.type as string;
+    const freeOnly = await isFreeOnly(supabase, user.id);
 
     // Confirm a previously-previewed action
     if (type === 'confirm') {
@@ -704,7 +705,7 @@ Deno.serve(async (req) => {
         ...history,
         { role: 'user', content: message },
       ];
-      const first = await callLLM(messages);
+      const first = await callLLM(messages, freeOnly);
       const action = parseAction(first);
 
       if (!action) {
@@ -729,7 +730,7 @@ Deno.serve(async (req) => {
           ...messages,
           { role: 'assistant', content: first },
           { role: 'user', content: `Tool result: ${JSON.stringify(result)}. Reply with ONE short plain sentence confirming the outcome (no JSON, no code).` },
-        ]);
+        ], freeOnly);
       } catch { /* fall back to raw summary */ }
 
       return new Response(JSON.stringify({
@@ -750,7 +751,7 @@ Deno.serve(async (req) => {
       const raw = await callLLM([
         { role: 'system', content: 'You extract structured notes from meeting transcripts. Return ONLY a JSON object, no code fences, no commentary.' },
         { role: 'user', content: `Transcript:\n${transcript}\n\nReturn:\n{ "summary": "...", "decisions": ["..."], "action_items": ["..."], "follow_up_date": "YYYY-MM-DD or null" }` },
-      ]);
+      ], freeOnly);
       let parsed: any = {};
       try { parsed = JSON.parse(raw); } catch {
         const m = raw.match(/\{[\s\S]*\}/); if (m) try { parsed = JSON.parse(m[0]); } catch { /* ignore */ }
@@ -789,7 +790,7 @@ Deno.serve(async (req) => {
       const summary = await callLLM([
         { role: 'system', content: 'Summarise CRM data for a busy manager in plain language under 80 words. No bullet points, no JSON.' },
         { role: 'user', content: `${entity} (latest ${data?.length ?? 0}):\n${JSON.stringify(data)}` },
-      ]);
+      ], freeOnly);
       return new Response(JSON.stringify({ summary, count: data?.length ?? 0, items: data ?? [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
