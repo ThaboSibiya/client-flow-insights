@@ -11,13 +11,21 @@ const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY') ?? '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 
-// Provider chain: Lovable AI Gateway (primary) → OpenRouter fallbacks.
-type Provider = { name: string; url: string; key: string; model: string };
-const PROVIDERS: Provider[] = [
-  { name: 'lovable-gemini-flash', url: 'https://ai.gateway.lovable.dev/v1/chat/completions', key: LOVABLE_API_KEY, model: 'google/gemini-2.5-flash' },
-  { name: 'lovable-gemini-flash-lite', url: 'https://ai.gateway.lovable.dev/v1/chat/completions', key: LOVABLE_API_KEY, model: 'google/gemini-2.5-flash-lite' },
-  { name: 'openrouter-llama', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'meta-llama/llama-3.3-70b-instruct:free' },
+// Provider chain: Lovable AI Gateway (primary, paid) → OpenRouter free models.
+// When `freeOnly` is enabled (per-user via company_settings), paid providers
+// (Lovable Gateway) are excluded and only OpenRouter `:free` models are used.
+type Provider = { name: string; url: string; key: string; model: string; free: boolean };
+const ALL_PROVIDERS: Provider[] = [
+  { name: 'lovable-gemini-flash', url: 'https://ai.gateway.lovable.dev/v1/chat/completions', key: LOVABLE_API_KEY, model: 'google/gemini-2.5-flash', free: false },
+  { name: 'lovable-gemini-flash-lite', url: 'https://ai.gateway.lovable.dev/v1/chat/completions', key: LOVABLE_API_KEY, model: 'google/gemini-2.5-flash-lite', free: false },
+  { name: 'openrouter-deepseek-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'deepseek/deepseek-chat-v3.1:free', free: true },
+  { name: 'openrouter-llama-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'meta-llama/llama-3.3-70b-instruct:free', free: true },
+  { name: 'openrouter-gemini-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'google/gemini-2.0-flash-exp:free', free: true },
 ].filter(p => p.key);
+
+function getProviders(freeOnly: boolean): Provider[] {
+  return freeOnly ? ALL_PROVIDERS.filter(p => p.free) : ALL_PROVIDERS;
+}
 
 const SYSTEM_PROMPT = `You are Quikle AI, an action-taking CRM agent for the Quikle Innovation Suite.
 When the user asks you to DO something, respond with ONLY a fenced code block tagged "action" containing JSON:
@@ -78,10 +86,15 @@ interface PendingAction { tool: string; args: Record<string, unknown>; preview: 
 
 const HIGH_IMPACT = new Set(['create_quote', 'create_invoice', 'send_invoice_reminder', 'mark_invoice_paid', 'create_workflow', 'toggle_workflow']);
 
-async function callLLM(messages: ChatMessage[]): Promise<string> {
-  if (PROVIDERS.length === 0) throw new Error('No LLM providers configured');
+async function callLLM(messages: ChatMessage[], freeOnly = false): Promise<string> {
+  const providers = getProviders(freeOnly);
+  if (providers.length === 0) {
+    throw new Error(freeOnly
+      ? 'Free-only mode enabled but no OpenRouter free providers configured. Add OPENROUTER_API_KEY.'
+      : 'No LLM providers configured');
+  }
   let lastErr = '';
-  for (const p of PROVIDERS) {
+  for (const p of providers) {
     try {
       const res = await fetch(p.url, {
         method: 'POST',
@@ -115,6 +128,21 @@ async function callLLM(messages: ChatMessage[]): Promise<string> {
     }
   }
   throw new Error(`All LLM providers failed. Last: ${lastErr}`);
+}
+
+async function isFreeOnly(supabase: SBClient, userId: string): Promise<boolean> {
+  try {
+    const { data } = await supabase
+      .from('company_settings')
+      .select('value')
+      .eq('user_id', userId)
+      .eq('key', 'ai_agent_free_only')
+      .maybeSingle();
+    const v = (data?.value as { value?: unknown } | null)?.value;
+    return v === true || v === 'true';
+  } catch {
+    return false;
+  }
 }
 
 function parseAction(text: string): { tool: string; args: Record<string, any> } | null {
@@ -657,6 +685,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const type = body?.type as string;
+    const freeOnly = await isFreeOnly(supabase, user.id);
 
     // Confirm a previously-previewed action
     if (type === 'confirm') {
@@ -676,7 +705,7 @@ Deno.serve(async (req) => {
         ...history,
         { role: 'user', content: message },
       ];
-      const first = await callLLM(messages);
+      const first = await callLLM(messages, freeOnly);
       const action = parseAction(first);
 
       if (!action) {
@@ -701,7 +730,7 @@ Deno.serve(async (req) => {
           ...messages,
           { role: 'assistant', content: first },
           { role: 'user', content: `Tool result: ${JSON.stringify(result)}. Reply with ONE short plain sentence confirming the outcome (no JSON, no code).` },
-        ]);
+        ], freeOnly);
       } catch { /* fall back to raw summary */ }
 
       return new Response(JSON.stringify({
@@ -722,7 +751,7 @@ Deno.serve(async (req) => {
       const raw = await callLLM([
         { role: 'system', content: 'You extract structured notes from meeting transcripts. Return ONLY a JSON object, no code fences, no commentary.' },
         { role: 'user', content: `Transcript:\n${transcript}\n\nReturn:\n{ "summary": "...", "decisions": ["..."], "action_items": ["..."], "follow_up_date": "YYYY-MM-DD or null" }` },
-      ]);
+      ], freeOnly);
       let parsed: any = {};
       try { parsed = JSON.parse(raw); } catch {
         const m = raw.match(/\{[\s\S]*\}/); if (m) try { parsed = JSON.parse(m[0]); } catch { /* ignore */ }
@@ -761,7 +790,7 @@ Deno.serve(async (req) => {
       const summary = await callLLM([
         { role: 'system', content: 'Summarise CRM data for a busy manager in plain language under 80 words. No bullet points, no JSON.' },
         { role: 'user', content: `${entity} (latest ${data?.length ?? 0}):\n${JSON.stringify(data)}` },
-      ]);
+      ], freeOnly);
       return new Response(JSON.stringify({ summary, count: data?.length ?? 0, items: data ?? [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
