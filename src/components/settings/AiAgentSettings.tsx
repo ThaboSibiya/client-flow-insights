@@ -119,8 +119,8 @@ export const AiAgentSettings = () => {
               <p className="text-xs text-muted-foreground max-w-md">
                 Block paid providers (Lovable Gateway, Gemini Pro/Flash) and route the agent
                 exclusively through OpenRouter models tagged <code className="px-1 py-0.5 rounded bg-muted font-mono text-[11px]">:free</code>
-                {' '}(DeepSeek v3.1, Llama 3.3 70B, Gemini 2.0 Flash Exp). Recommended for cost
-                control. May be slower or rate-limited during peak hours.
+                {' '}(DeepSeek v3.1, Llama 3.3 70B, Qwen 2.5 72B, MiniMax M2, Gemini 2.0 Flash Exp).
+                Recommended for cost control. May be slower or rate-limited during peak hours.
               </p>
             </div>
             <div className="flex items-center gap-2 pt-1">
