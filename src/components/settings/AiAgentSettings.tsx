@@ -100,41 +100,6 @@ export const AiAgentSettings = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Leaf className="h-5 w-5 text-primary" />
-            Model Provider Mode
-          </CardTitle>
-          <CardDescription>
-            Control which language models the Quikle AI agent is allowed to use.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-4">
-            <div className="space-y-1">
-              <Label htmlFor="free-only-toggle" className="text-sm font-medium">
-                Free-only mode
-              </Label>
-              <p className="text-xs text-muted-foreground max-w-md">
-                Block paid providers (Lovable Gateway, Gemini Pro/Flash) and route the agent
-                exclusively through OpenRouter models tagged <code className="px-1 py-0.5 rounded bg-muted font-mono text-[11px]">:free</code>
-                {' '}(DeepSeek v3.1, Llama 3.3 70B, Qwen 2.5 72B, MiniMax M2, Gemini 2.0 Flash Exp).
-                Recommended for cost control. May be slower or rate-limited during peak hours.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 pt-1">
-              {isFreeOnlyUpdating && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-              <Switch
-                id="free-only-toggle"
-                checked={freeOnly}
-                disabled={isFreeOnlyLoading || isFreeOnlyUpdating}
-                onCheckedChange={handleToggleFreeOnly}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
