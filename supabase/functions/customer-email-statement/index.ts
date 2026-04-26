@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       success: true,
-      email_id: emailResult.id,
+      email_id: (emailResult as any)?.data?.id ?? (emailResult as any)?.id ?? null,
       recipient: customerEmail,
       customer_name: customer.name,
       message: 'Statement emailed successfully'
