@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { Resend } from 'npm:resend@4.0.0';
+import { Resend } from 'npm:resend@2.0.0';
 
 const allowedOrigins = [
   'https://quikle-innovation-suite.lovable.app',

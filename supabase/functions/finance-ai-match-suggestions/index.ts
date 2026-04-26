@@ -215,7 +215,7 @@ Return only the top 5 most confident matches.`;
     }
 
     // Enrich suggestions with invoice and payment details
-    const enrichedSuggestions: MatchSuggestion[] = suggestions
+    const enrichedSuggestions: MatchSuggestion[] = (suggestions
       .map((s: any) => {
         const invoice = invoices.find((i: Invoice) => i.id === s.invoice_id);
         const payment = payments.find((p: Payment) => p.id === s.payment_id);
