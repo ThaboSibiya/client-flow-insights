@@ -84,3 +84,6 @@ verify_jwt = true
 
 [functions.cyberlsi-mfa-callback]
 verify_jwt = false
+
+[functions.cyberlsi-validate]
+verify_jwt = false
