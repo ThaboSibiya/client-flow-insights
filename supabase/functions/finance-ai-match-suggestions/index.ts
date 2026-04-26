@@ -215,8 +215,8 @@ Return only the top 5 most confident matches.`;
     }
 
     // Enrich suggestions with invoice and payment details
-    const enrichedSuggestions: MatchSuggestion[] = (suggestions
-      .map((s: any) => {
+    const enrichedSuggestions: MatchSuggestion[] = suggestions
+      .map((s: any): MatchSuggestion | null => {
         const invoice = invoices.find((i: Invoice) => i.id === s.invoice_id);
         const payment = payments.find((p: Payment) => p.id === s.payment_id);
         
@@ -233,7 +233,7 @@ Return only the top 5 most confident matches.`;
           payment_amount: payment.amount,
         };
       })
-      .filter((s: any) => s !== null)
+      .filter((s): s is MatchSuggestion => s !== null)
       .slice(0, 5); // Top 5 suggestions
 
     console.log(`Generated ${enrichedSuggestions.length} match suggestions`);
