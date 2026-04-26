@@ -181,7 +181,7 @@ serve(async (req) => {
 
       } catch (error) {
         console.error(`Error processing invoice ${invoice.invoice_number}:`, error);
-        results.errors.push(`Error processing ${invoice.invoice_number}: ${error.message}`);
+        results.errors.push(`Error processing ${invoice.invoice_number}: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 

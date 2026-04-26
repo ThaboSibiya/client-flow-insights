@@ -304,7 +304,7 @@ const handler = async (req: Request): Promise<Response> => {
           <p>${error.message || 'An unexpected error occurred'}</p>
           <script>
             setTimeout(() => {
-              window.opener?.postMessage({ success: false, error: '${error.message}' }, '*');
+              window.opener?.postMessage({ success: false, error: '${error instanceof Error ? error.message : String(error)}' }, '*');
               window.close();
             }, 2000);
           </script>
