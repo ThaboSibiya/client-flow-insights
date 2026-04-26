@@ -22,6 +22,19 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Body-size cap to defend against abuse via the (non-JWT-protected) endpoint.
+const MAX_CALLBACK_BODY_BYTES = 32 * 1024; // 32 KB
+
+// Constant-time string comparison to prevent timing attacks on the shared secret.
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
+
 // Per CyberLSI docs: result values
 //   "Full success" | "Partial success" | "No success" | "Error"
 // Map them to our internal status enum.
