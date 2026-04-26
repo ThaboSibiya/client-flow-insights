@@ -181,7 +181,7 @@ serve(async (req) => {
 
       } catch (error) {
         console.error(`Error processing invoice ${invoice.invoice_number}:`, error);
-        results.errors.push(`Error processing ${invoice.invoice_number}: ${error.message}`);
+        results.errors.push(`Error processing ${invoice.invoice_number}: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 
@@ -200,7 +200,7 @@ serve(async (req) => {
     console.error('Error in automated reminder scheduler:', error);
     return new Response(JSON.stringify({
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

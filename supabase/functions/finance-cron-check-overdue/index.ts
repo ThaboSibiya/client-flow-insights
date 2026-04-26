@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
 
       } catch (error) {
         console.error(`Error processing customer ${record.customer_id}:`, error);
-        results.errors.push({ customer_id: record.customer_id, error: error.message });
+        results.errors.push({ customer_id: record.customer_id, error: error instanceof Error ? error.message : String(error) });
       }
     }
 
@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error in overdue check cron:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
