@@ -95,9 +95,36 @@ Deno.serve(async (req) => {
       method: pay.payment_method,
     }));
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY') ?? '';
+    const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
+
+    // Check if user has free-only mode enabled
+    let freeOnly = false;
+    try {
+      const { data: settingRow } = await supabaseClient
+        .from('company_settings')
+        .select('value')
+        .eq('user_id', user.id)
+        .eq('key', 'ai_agent_free_only')
+        .maybeSingle();
+      const v = (settingRow?.value as { value?: unknown } | null)?.value;
+      freeOnly = v === true || v === 'true';
+    } catch (_) { /* default false */ }
+
+    // Provider chain: Lovable AI Gateway (paid) → OpenRouter free models.
+    // Free-only mode skips paid providers. Model identities never leave the server.
+    type Provider = { url: string; key: string; model: string; free: boolean; isOpenRouter: boolean };
+    const ALL_PROVIDERS: Provider[] = [
+      { url: 'https://ai.gateway.lovable.dev/v1/chat/completions', key: LOVABLE_API_KEY, model: 'google/gemini-2.5-flash', free: false, isOpenRouter: false },
+      { url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'deepseek/deepseek-chat-v3.1:free', free: true, isOpenRouter: true },
+      { url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'meta-llama/llama-3.3-70b-instruct:free', free: true, isOpenRouter: true },
+      { url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'google/gemini-2.0-flash-exp:free', free: true, isOpenRouter: true },
+    ];
+    const providers = (freeOnly ? ALL_PROVIDERS.filter(p => p.free) : ALL_PROVIDERS).filter(p => p.key);
+    if (providers.length === 0) {
+      throw new Error(freeOnly
+        ? 'Free-only mode enabled but OPENROUTER_API_KEY is not configured.'
+        : 'No AI provider keys configured (LOVABLE_API_KEY / OPENROUTER_API_KEY).');
     }
 
     const systemPrompt = `You are an expert financial reconciliation AI. Your task is to analyze invoices and payments to suggest the best matches.
