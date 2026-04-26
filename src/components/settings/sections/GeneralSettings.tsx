@@ -14,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Loader2, User, Mail, Phone, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import CyberLSISettings from '@/components/settings/CyberLSISettings';
 
 const profileSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
@@ -219,6 +220,8 @@ const GeneralSettings = () => {
           </Form>
         </CardContent>
       </Card>
+
+      <CyberLSISettings />
     </div>
   );
 };
