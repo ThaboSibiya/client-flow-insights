@@ -35,12 +35,29 @@ Deno.serve(async (req) => {
     // Mark overdue invoices
     await supabaseClient.rpc('mark_overdue_invoices');
 
-    // Find all customers with overdue invoices
-    const { data: overdueInvoices } = await supabaseClient
+    // Find all customers with overdue invoices (aggregate in JS since PostgREST has no .group)
+    const { data: rawOverdueInvoices } = await supabaseClient
       .from('invoices')
-      .select('customer_id, user_id, COUNT(*) as count, SUM(total_amount) as total')
-      .eq('status', 'overdue')
-      .group('customer_id, user_id');
+      .select('customer_id, user_id, total_amount')
+      .eq('status', 'overdue');
+
+    const overdueMap = new Map<string, { customer_id: string; user_id: string; count: number; total: number }>();
+    for (const inv of rawOverdueInvoices || []) {
+      const key = `${inv.customer_id}|${inv.user_id}`;
+      const existing = overdueMap.get(key);
+      if (existing) {
+        existing.count += 1;
+        existing.total += parseFloat(String(inv.total_amount || 0));
+      } else {
+        overdueMap.set(key, {
+          customer_id: inv.customer_id,
+          user_id: inv.user_id,
+          count: 1,
+          total: parseFloat(String(inv.total_amount || 0)),
+        });
+      }
+    }
+    const overdueInvoices = Array.from(overdueMap.values());
 
     if (!overdueInvoices || overdueInvoices.length === 0) {
       console.log('No overdue invoices found');
@@ -53,7 +70,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    const results = {
+    const results: {
+      processed: number;
+      notifications_sent: number;
+      errors: Array<{ customer_id: string; error: string }>;
+    } = {
       processed: 0,
       notifications_sent: 0,
       errors: []

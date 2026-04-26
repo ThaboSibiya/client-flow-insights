@@ -18,6 +18,9 @@ const getCorsHeaders = (origin: string | null) => {
   };
 };
 
+// Module-level default CORS headers for use in helper functions outside the request handler
+const corsHeaders = getCorsHeaders(null);
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req.headers.get('origin'));
 

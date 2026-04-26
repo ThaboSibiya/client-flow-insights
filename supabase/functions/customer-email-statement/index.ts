@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { Resend } from 'npm:resend@4.0.0';
+import { Resend } from 'https://esm.sh/resend@2.0.0';
 
 const allowedOrigins = [
   'https://quikle-innovation-suite.lovable.app',
@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       success: true,
-      email_id: emailResult.id,
+      email_id: (emailResult as any)?.data?.id ?? (emailResult as any)?.id ?? null,
       recipient: customerEmail,
       customer_name: customer.name,
       message: 'Statement emailed successfully'

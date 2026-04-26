@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
       }
 
       // Allow company owners and admins to view audit logs
-      const canViewLogs = isOwner.data?.length > 0 || 
+      const canViewLogs = (isOwner.data?.length ?? 0) > 0 || 
                          employee?.role === 'admin' || 
                          employee?.company_owner_id === user.id
 
