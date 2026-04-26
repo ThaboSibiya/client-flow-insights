@@ -29,6 +29,26 @@ interface CyberLSIValidationResponse {
   duplicateAttempt: boolean;
 }
 
+// --- Hardening limits ---
+const MAX_BODY_BYTES = 8 * 1024;          // 8 KB — authParam payloads are small
+const MAX_AUTHPARAM_LEN = 4096;           // CyberLSI authParam strings stay well under this
+const MAX_BIZPARAM_BYTES = 2 * 1024;      // 2 KB cap on caller-supplied bizParam
+const RATE_LIMIT_MAX = 10;                // max requests per IP per window
+const RATE_LIMIT_WINDOW_MS = 60_000;      // 1 minute
+
+// In-memory IP rate limiter (per warm instance)
+const ipHits = new Map<string, { count: number; resetAt: number }>();
+function rateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = ipHits.get(ip);
+  if (!entry || entry.resetAt < now) {
+    ipHits.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  entry.count += 1;
+  return entry.count <= RATE_LIMIT_MAX;
+}
+
 // --- Token cache (per warm instance) ---
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
@@ -107,7 +127,10 @@ async function validateAuthParam(
 }
 
 async function hashAuthParam(authParam: string): Promise<string> {
-  const buf = new TextEncoder().encode(authParam);
+  // Optional server-side pepper makes the auth_param_hash column resistant to
+  // rainbow-table lookup if the audit log is ever exfiltrated.
+  const pepper = Deno.env.get("CYBERLSI_HASH_PEPPER") ?? "";
+  const buf = new TextEncoder().encode(`${pepper}:${authParam}`);
   const digest = await crypto.subtle.digest("SHA-256", buf);
   return Array.from(new Uint8Array(digest))
     .map((b) => b.toString(16).padStart(2, "0"))
@@ -130,12 +153,59 @@ serve(async (req: Request) => {
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const userAgent = req.headers.get("user-agent") ?? null;
+
+  // --- Per-IP rate limit (defends against brute-forcing authParam values
+  //     and against an attacker burning our CyberLSI client_credentials quota) ---
+  if (!rateLimit(ip)) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests" }),
+      {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+          "Retry-After": "60",
+        },
+      },
+    );
+  }
+
+  // --- Body size guard ---
+  const contentLength = Number(req.headers.get("content-length") ?? "0");
+  if (contentLength > MAX_BODY_BYTES) {
+    return new Response(
+      JSON.stringify({ error: "Payload too large" }),
+      {
+        status: 413,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  }
+
+  let raw: string;
+  try {
+    raw = await req.text();
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid body" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  if (raw.length > MAX_BODY_BYTES) {
+    return new Response(
+      JSON.stringify({ error: "Payload too large" }),
+      {
+        status: 413,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  }
 
   let body: ValidateRequest;
   try {
-    body = await req.json();
+    body = JSON.parse(raw);
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
       status: 400,
@@ -143,17 +213,45 @@ serve(async (req: Request) => {
     });
   }
 
-  if (!body.authParam || typeof body.authParam !== "string") {
-    return new Response(JSON.stringify({ error: "authParam is required" }), {
+  // --- Strict input validation ---
+  if (
+    !body.authParam ||
+    typeof body.authParam !== "string" ||
+    body.authParam.length === 0 ||
+    body.authParam.length > MAX_AUTHPARAM_LEN
+  ) {
+    return new Response(JSON.stringify({ error: "Invalid authParam" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
+  let safeBizParam: Record<string, unknown> | undefined;
+  if (body.bizParam !== undefined) {
+    if (
+      body.bizParam === null ||
+      typeof body.bizParam !== "object" ||
+      Array.isArray(body.bizParam)
+    ) {
+      return new Response(JSON.stringify({ error: "Invalid bizParam" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const serialized = JSON.stringify(body.bizParam);
+    if (serialized.length > MAX_BIZPARAM_BYTES) {
+      return new Response(JSON.stringify({ error: "bizParam too large" }), {
+        status: 413,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    safeBizParam = body.bizParam;
+  }
+
   const authParamHash = await hashAuthParam(body.authParam);
 
   try {
-    const validation = await validateAuthParam(body.authParam, body.bizParam);
+    const validation = await validateAuthParam(body.authParam, safeBizParam);
 
     if (!validation.isValid || !validation.userId) {
       await supabaseAdmin.from("cyberlsi_auth_log").insert({
