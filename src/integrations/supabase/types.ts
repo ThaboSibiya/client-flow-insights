@@ -667,6 +667,48 @@ export type Database = {
           },
         ]
       }
+      cyberlsi_auth_log: {
+        Row: {
+          auth_param_hash: string
+          created_at: string
+          cyberlsi_user_id: string | null
+          duplicate_attempt: boolean
+          error_message: string | null
+          id: string
+          ip_address: string | null
+          is_valid: boolean
+          metadata: Json | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          auth_param_hash: string
+          created_at?: string
+          cyberlsi_user_id?: string | null
+          duplicate_attempt?: boolean
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          is_valid?: boolean
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          auth_param_hash?: string
+          created_at?: string
+          cyberlsi_user_id?: string | null
+          duplicate_attempt?: boolean
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          is_valid?: boolean
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       data_sync_rules: {
         Row: {
           config: Json | null
@@ -2407,6 +2449,9 @@ export type Database = {
           company_logo_url: string | null
           company_phone: string | null
           created_at: string
+          cyberlsi_enabled: boolean
+          cyberlsi_linked_at: string | null
+          cyberlsi_user_id: string | null
           email: string | null
           employee_count: number | null
           first_name: string | null
@@ -2427,6 +2472,9 @@ export type Database = {
           company_logo_url?: string | null
           company_phone?: string | null
           created_at?: string
+          cyberlsi_enabled?: boolean
+          cyberlsi_linked_at?: string | null
+          cyberlsi_user_id?: string | null
           email?: string | null
           employee_count?: number | null
           first_name?: string | null
@@ -2447,6 +2495,9 @@ export type Database = {
           company_logo_url?: string | null
           company_phone?: string | null
           created_at?: string
+          cyberlsi_enabled?: boolean
+          cyberlsi_linked_at?: string | null
+          cyberlsi_user_id?: string | null
           email?: string | null
           employee_count?: number | null
           first_name?: string | null
