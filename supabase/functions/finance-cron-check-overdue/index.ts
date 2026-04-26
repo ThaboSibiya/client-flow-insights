@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
 
       } catch (error) {
         console.error(`Error processing customer ${record.customer_id}:`, error);
-        results.errors.push({ customer_id: record.customer_id, error: error.message });
+        results.errors.push({ customer_id: record.customer_id, error: error instanceof Error ? error.message : String(error) });
       }
     }
 

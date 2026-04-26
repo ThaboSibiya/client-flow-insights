@@ -106,7 +106,7 @@ const testImapConnection = async (config: any): Promise<{ success: boolean; erro
     
   } catch (error: any) {
     console.error('IMAP validation failed:', error);
-    return { success: false, error: error.message || 'Connection test failed' };
+    return { success: false, error: error instanceof Error ? error.message : String(error) || 'Connection test failed' };
   }
 };
 
@@ -177,7 +177,7 @@ const testExchangeConnection = async (config: any): Promise<{ success: boolean; 
     
   } catch (error: any) {
     console.error('Exchange validation failed:', error);
-    return { success: false, error: error.message || 'Connection test failed' };
+    return { success: false, error: error instanceof Error ? error.message : String(error) || 'Connection test failed' };
   }
 };
 
@@ -285,7 +285,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || "Connection test failed. Please check your settings and try again." 
+        error: error instanceof Error ? error.message : String(error) || "Connection test failed. Please check your settings and try again." 
       }),
       {
         status: 500,

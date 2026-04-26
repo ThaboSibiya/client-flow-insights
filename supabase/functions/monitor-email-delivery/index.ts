@@ -85,7 +85,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.error("Error monitoring email delivery:", error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         success: false 
       }),
       {

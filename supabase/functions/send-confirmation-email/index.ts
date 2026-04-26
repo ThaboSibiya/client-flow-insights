@@ -166,7 +166,7 @@ const handler = async (req: Request): Promise<Response> => {
         event_type: 'email_failed',
         resource_type: 'confirmation_email',
         metadata: {
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           status: 'failed'
         }
       });
@@ -176,7 +176,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         success: false 
       }),
       {
