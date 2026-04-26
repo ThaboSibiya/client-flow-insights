@@ -100,7 +100,7 @@ const testImapConnection = async (config: any): Promise<{ success: boolean; erro
       console.error('IMAP connection error:', error);
       return { 
         success: false, 
-        error: `Unable to connect to server: ${error.message || 'Connection failed'}` 
+        error: `Unable to connect to server: ${error instanceof Error ? error.message : 'Connection failed'}` 
       };
     }
     
@@ -171,7 +171,7 @@ const testExchangeConnection = async (config: any): Promise<{ success: boolean; 
       console.error('Exchange connection error:', error);
       return { 
         success: false, 
-        error: `Unable to connect to Exchange server: ${error.message || 'Connection failed'}` 
+        error: `Unable to connect to Exchange server: ${error instanceof Error ? error.message : 'Connection failed'}` 
       };
     }
     
