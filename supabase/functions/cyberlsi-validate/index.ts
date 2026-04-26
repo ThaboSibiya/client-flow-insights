@@ -29,6 +29,26 @@ interface CyberLSIValidationResponse {
   duplicateAttempt: boolean;
 }
 
+// --- Hardening limits ---
+const MAX_BODY_BYTES = 8 * 1024;          // 8 KB — authParam payloads are small
+const MAX_AUTHPARAM_LEN = 4096;           // CyberLSI authParam strings stay well under this
+const MAX_BIZPARAM_BYTES = 2 * 1024;      // 2 KB cap on caller-supplied bizParam
+const RATE_LIMIT_MAX = 10;                // max requests per IP per window
+const RATE_LIMIT_WINDOW_MS = 60_000;      // 1 minute
+
+// In-memory IP rate limiter (per warm instance)
+const ipHits = new Map<string, { count: number; resetAt: number }>();
+function rateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = ipHits.get(ip);
+  if (!entry || entry.resetAt < now) {
+    ipHits.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  entry.count += 1;
+  return entry.count <= RATE_LIMIT_MAX;
+}
+
 // --- Token cache (per warm instance) ---
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
