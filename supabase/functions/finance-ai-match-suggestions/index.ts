@@ -118,6 +118,8 @@ Deno.serve(async (req) => {
       { url: 'https://ai.gateway.lovable.dev/v1/chat/completions', key: LOVABLE_API_KEY, model: 'google/gemini-2.5-flash', free: false, isOpenRouter: false },
       { url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'deepseek/deepseek-chat-v3.1:free', free: true, isOpenRouter: true },
       { url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'meta-llama/llama-3.3-70b-instruct:free', free: true, isOpenRouter: true },
+      { url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'qwen/qwen-2.5-72b-instruct:free', free: true, isOpenRouter: true },
+      { url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'minimax/minimax-m2:free', free: true, isOpenRouter: true },
       { url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'google/gemini-2.0-flash-exp:free', free: true, isOpenRouter: true },
     ];
     const providers = (freeOnly ? ALL_PROVIDERS.filter(p => p.free) : ALL_PROVIDERS).filter(p => p.key);
