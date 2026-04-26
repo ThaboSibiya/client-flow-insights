@@ -251,7 +251,7 @@ serve(async (req: Request) => {
   const authParamHash = await hashAuthParam(body.authParam);
 
   try {
-    const validation = await validateAuthParam(body.authParam, body.bizParam);
+    const validation = await validateAuthParam(body.authParam, safeBizParam);
 
     if (!validation.isValid || !validation.userId) {
       await supabaseAdmin.from("cyberlsi_auth_log").insert({
