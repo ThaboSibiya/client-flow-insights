@@ -29,6 +29,83 @@ const GeneralSettings = () => {
   const { profile, loading, refetch } = useProfile();
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = React.useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile?.id) return;
+
+    // Validation
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please upload a JPG, PNG, WebP, or GIF image.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    const maxBytes = 5 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      toast({
+        title: 'File too large',
+        description: 'Avatar must be smaller than 5MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+      // Path MUST start with the user's id to satisfy storage RLS policies
+      const filePath = `${profile.id}/avatar-${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: file.type,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const publicUrl = publicUrlData.publicUrl;
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+        .eq('id', profile.id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: 'Photo updated',
+        description: 'Your profile photo has been updated.',
+      });
+      refetch();
+    } catch (error: any) {
+      console.error('Avatar upload error:', error);
+      toast({
+        title: 'Upload failed',
+        description: error?.message || 'Could not update your profile photo.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -131,10 +208,25 @@ const GeneralSettings = () => {
               <Button
                 size="icon"
                 variant="outline"
+                type="button"
+                onClick={handleAvatarClick}
+                disabled={isUploadingAvatar}
+                aria-label="Upload profile photo"
                 className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full border-2 border-white bg-quikle-crystal hover:bg-quikle-primary hover:text-white"
               >
-                <Camera className="h-3.5 w-3.5" />
+                {isUploadingAvatar ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Camera className="h-3.5 w-3.5" />
+                )}
               </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
             </div>
             <div>
               <h3 className="font-semibold text-quikle-charcoal">
