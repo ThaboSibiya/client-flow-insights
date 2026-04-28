@@ -208,10 +208,25 @@ const GeneralSettings = () => {
               <Button
                 size="icon"
                 variant="outline"
+                type="button"
+                onClick={handleAvatarClick}
+                disabled={isUploadingAvatar}
+                aria-label="Upload profile photo"
                 className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full border-2 border-white bg-quikle-crystal hover:bg-quikle-primary hover:text-white"
               >
-                <Camera className="h-3.5 w-3.5" />
+                {isUploadingAvatar ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Camera className="h-3.5 w-3.5" />
+                )}
               </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
             </div>
             <div>
               <h3 className="font-semibold text-quikle-charcoal">
