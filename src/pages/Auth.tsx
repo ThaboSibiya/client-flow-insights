@@ -38,7 +38,10 @@ const Auth: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+  const [cyberlsiStatus, setCyberlsiStatus] = useState<'idle' | 'validating' | 'redirecting' | 'error'>('idle');
+  const [cyberlsiMessage, setCyberlsiMessage] = useState<string>('');
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Validate form inputs
   const validateForm = () => {
