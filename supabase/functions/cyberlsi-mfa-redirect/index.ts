@@ -91,8 +91,6 @@ serve(async (req: Request) => {
 
   if (callbackUrl) {
     redirectUrl.searchParams.set("callback", callbackUrl);
-    redirectUrl.searchParams.set("redirect_uri", callbackUrl);
-    redirectUrl.searchParams.set("returnUrl", callbackUrl);
   }
 
   return new Response(
