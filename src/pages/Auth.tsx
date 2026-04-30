@@ -452,6 +452,31 @@ const Auth: React.FC = () => {
                     <LogIn className="mr-2 h-4 w-4" />
                     {loading ? 'Signing in...' : 'Sign In'}
                   </Button>
+
+                  <div className="relative w-full py-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-border" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card px-2 text-muted-foreground">Or</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleCyberLSILogin}
+                    disabled={loading || cyberlsiStatus === 'redirecting'}
+                  >
+                    {cyberlsiStatus === 'redirecting' ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <ShieldCheck className="mr-2 h-4 w-4" />
+                    )}
+                    {cyberlsiStatus === 'redirecting' ? 'Redirecting…' : 'Login with CyberLSI'}
+                  </Button>
+
                   <Button 
                     type="button"
                     variant="ghost"
