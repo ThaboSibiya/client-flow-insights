@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS public.cyberlsi_mfa_challenges CASCADE;

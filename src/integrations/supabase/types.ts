@@ -709,66 +709,6 @@ export type Database = {
         }
         Relationships: []
       }
-      cyberlsi_mfa_challenges: {
-        Row: {
-          challenge_ref: string | null
-          created_at: string
-          cyberlsi_app_id: string | null
-          cyberlsi_user_id: string
-          error_message: string | null
-          expires_at: string
-          id: string
-          ip_address: string | null
-          placeholders: Json | null
-          resolved_at: string | null
-          response_payload: Json | null
-          security_mode: number | null
-          status: string
-          template_code: string | null
-          updated_at: string
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          challenge_ref?: string | null
-          created_at?: string
-          cyberlsi_app_id?: string | null
-          cyberlsi_user_id: string
-          error_message?: string | null
-          expires_at?: string
-          id?: string
-          ip_address?: string | null
-          placeholders?: Json | null
-          resolved_at?: string | null
-          response_payload?: Json | null
-          security_mode?: number | null
-          status?: string
-          template_code?: string | null
-          updated_at?: string
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          challenge_ref?: string | null
-          created_at?: string
-          cyberlsi_app_id?: string | null
-          cyberlsi_user_id?: string
-          error_message?: string | null
-          expires_at?: string
-          id?: string
-          ip_address?: string | null
-          placeholders?: Json | null
-          resolved_at?: string | null
-          response_payload?: Json | null
-          security_mode?: number | null
-          status?: string
-          template_code?: string | null
-          updated_at?: string
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       data_sync_rules: {
         Row: {
           config: Json | null
