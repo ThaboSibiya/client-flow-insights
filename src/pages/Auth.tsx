@@ -163,6 +163,24 @@ const Auth: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleCyberLSILogin = async () => {
+    try {
+      setCyberlsiStatus('redirecting');
+      setCyberlsiMessage('Redirecting to CyberLSI…');
+      const callbackUrl = `${window.location.origin}/auth`;
+      const { data, error } = await supabase.functions.invoke('cyberlsi-mfa-redirect', {
+        body: { callbackUrl },
+      });
+      if (error || !data?.redirectUrl) {
+        throw new Error(error?.message || "Couldn't start CyberLSI sign-in.");
+      }
+      window.location.href = data.redirectUrl;
+    } catch (err) {
+      setCyberlsiStatus('error');
+      setCyberlsiMessage(err instanceof Error ? err.message : 'Failed to start CyberLSI sign-in.');
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
