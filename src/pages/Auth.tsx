@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { Mail, Lock, UserPlus, LogIn, RefreshCw, AlertCircle } from 'lucide-react';
+import { Mail, Lock, UserPlus, LogIn, RefreshCw, AlertCircle, ShieldCheck, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import quikleLogo from '@/assets/quikle-logo.png';
 
@@ -38,7 +38,10 @@ const Auth: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+  const [cyberlsiStatus, setCyberlsiStatus] = useState<'idle' | 'validating' | 'redirecting' | 'error'>('idle');
+  const [cyberlsiMessage, setCyberlsiMessage] = useState<string>('');
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Validate form inputs
   const validateForm = () => {
@@ -84,6 +87,81 @@ const Auth: React.FC = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // CyberLSI MFA redirect handler — runs when user is sent back from the
+  // CyberLSI MFA page with a login identifier in the query string.
+  useEffect(() => {
+    const candidateKeys = [
+      'authParam',
+      'auth_param',
+      'loginIdentifier',
+      'login_identifier',
+      'identifier',
+      'token',
+      'code',
+    ];
+    let authParam: string | null = null;
+    for (const key of candidateKeys) {
+      const v = searchParams.get(key);
+      if (v) {
+        authParam = v;
+        break;
+      }
+    }
+    if (!authParam) return;
+
+    let cancelled = false;
+    setCyberlsiStatus('validating');
+    setCyberlsiMessage('Verifying your CyberLSI sign-in…');
+
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('cyberlsi-validate', {
+          body: { authParam },
+        });
+
+        if (cancelled) return;
+
+        if (error) {
+          setCyberlsiStatus('error');
+          setCyberlsiMessage(error.message || "We couldn't verify your CyberLSI sign-in.");
+        } else if (!data?.isValid) {
+          setCyberlsiStatus('error');
+          setCyberlsiMessage(data?.message || 'Your CyberLSI sign-in could not be verified.');
+        } else if (!data.linked) {
+          setCyberlsiStatus('error');
+          setCyberlsiMessage(
+            data.message ||
+              "Your CyberLSI account isn't linked to a CRM user yet. Sign in with email and link CyberLSI from your profile.",
+          );
+        } else if (data.signInUrl) {
+          setCyberlsiStatus('redirecting');
+          setCyberlsiMessage('Sign-in verified. Redirecting…');
+          window.location.replace(data.signInUrl);
+          return;
+        } else {
+          setCyberlsiStatus('error');
+          setCyberlsiMessage('Unexpected response from CyberLSI verification.');
+        }
+      } catch (err) {
+        if (cancelled) return;
+        setCyberlsiStatus('error');
+        setCyberlsiMessage(err instanceof Error ? err.message : 'Unexpected error during verification.');
+      } finally {
+        // Strip the auth param from the URL so refresh doesn't replay it.
+        if (!cancelled) {
+          const next = new URLSearchParams(searchParams);
+          for (const key of candidateKeys) next.delete(key);
+          setSearchParams(next, { replace: true });
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -285,7 +363,21 @@ const Auth: React.FC = () => {
             <CardTitle className="text-center">Welcome</CardTitle>
             <CardDescription className="text-center">Sign in to your account or create a new one</CardDescription>
           </CardHeader>
-          
+
+          {cyberlsiStatus !== 'idle' && (
+            <div className="mx-6 mb-2 rounded-md border border-border/60 bg-muted/40 p-3 flex items-start gap-2">
+              {cyberlsiStatus === 'validating' || cyberlsiStatus === 'redirecting' ? (
+                <Loader2 className="h-4 w-4 mt-0.5 animate-spin text-primary shrink-0" />
+              ) : cyberlsiStatus === 'error' ? (
+                <AlertCircle className="h-4 w-4 mt-0.5 text-destructive shrink-0" />
+              ) : (
+                <ShieldCheck className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+              )}
+              <p className="text-sm text-foreground">{cyberlsiMessage}</p>
+            </div>
+          )}
+
+
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-3 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
               <TabsTrigger value="login" className="flex-1 md:flex-initial">Login</TabsTrigger>
