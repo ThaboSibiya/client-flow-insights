@@ -88,6 +88,81 @@ const Auth: React.FC = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // CyberLSI MFA redirect handler — runs when user is sent back from the
+  // CyberLSI MFA page with a login identifier in the query string.
+  useEffect(() => {
+    const candidateKeys = [
+      'authParam',
+      'auth_param',
+      'loginIdentifier',
+      'login_identifier',
+      'identifier',
+      'token',
+      'code',
+    ];
+    let authParam: string | null = null;
+    for (const key of candidateKeys) {
+      const v = searchParams.get(key);
+      if (v) {
+        authParam = v;
+        break;
+      }
+    }
+    if (!authParam) return;
+
+    let cancelled = false;
+    setCyberlsiStatus('validating');
+    setCyberlsiMessage('Verifying your CyberLSI sign-in…');
+
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('cyberlsi-validate', {
+          body: { authParam },
+        });
+
+        if (cancelled) return;
+
+        if (error) {
+          setCyberlsiStatus('error');
+          setCyberlsiMessage(error.message || "We couldn't verify your CyberLSI sign-in.");
+        } else if (!data?.isValid) {
+          setCyberlsiStatus('error');
+          setCyberlsiMessage(data?.message || 'Your CyberLSI sign-in could not be verified.');
+        } else if (!data.linked) {
+          setCyberlsiStatus('error');
+          setCyberlsiMessage(
+            data.message ||
+              "Your CyberLSI account isn't linked to a CRM user yet. Sign in with email and link CyberLSI from your profile.",
+          );
+        } else if (data.signInUrl) {
+          setCyberlsiStatus('redirecting');
+          setCyberlsiMessage('Sign-in verified. Redirecting…');
+          window.location.replace(data.signInUrl);
+          return;
+        } else {
+          setCyberlsiStatus('error');
+          setCyberlsiMessage('Unexpected response from CyberLSI verification.');
+        }
+      } catch (err) {
+        if (cancelled) return;
+        setCyberlsiStatus('error');
+        setCyberlsiMessage(err instanceof Error ? err.message : 'Unexpected error during verification.');
+      } finally {
+        // Strip the auth param from the URL so refresh doesn't replay it.
+        if (!cancelled) {
+          const next = new URLSearchParams(searchParams);
+          for (const key of candidateKeys) next.delete(key);
+          setSearchParams(next, { replace: true });
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
