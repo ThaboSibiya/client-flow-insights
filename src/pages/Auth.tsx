@@ -89,25 +89,9 @@ const Auth: React.FC = () => {
   }, [navigate]);
 
   // CyberLSI MFA redirect handler — runs when user is sent back from the
-  // CyberLSI MFA page with a login identifier in the query string.
+  // CyberLSI MFA page with the login identifier in the `authParam` query string.
   useEffect(() => {
-    const candidateKeys = [
-      'authParam',
-      'auth_param',
-      'loginIdentifier',
-      'login_identifier',
-      'identifier',
-      'token',
-      'code',
-    ];
-    let authParam: string | null = null;
-    for (const key of candidateKeys) {
-      const v = searchParams.get(key);
-      if (v) {
-        authParam = v;
-        break;
-      }
-    }
+    const authParam = searchParams.get('authParam');
     if (!authParam) return;
 
     let cancelled = false;
