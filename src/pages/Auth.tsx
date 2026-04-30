@@ -135,7 +135,7 @@ const Auth: React.FC = () => {
         // Strip the auth param from the URL so refresh doesn't replay it.
         if (!cancelled) {
           const next = new URLSearchParams(searchParams);
-          for (const key of candidateKeys) next.delete(key);
+          next.delete('authParam');
           setSearchParams(next, { replace: true });
         }
       }
