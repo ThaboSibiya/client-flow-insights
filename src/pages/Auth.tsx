@@ -363,7 +363,21 @@ const Auth: React.FC = () => {
             <CardTitle className="text-center">Welcome</CardTitle>
             <CardDescription className="text-center">Sign in to your account or create a new one</CardDescription>
           </CardHeader>
-          
+
+          {cyberlsiStatus !== 'idle' && (
+            <div className="mx-6 mb-2 rounded-md border border-border/60 bg-muted/40 p-3 flex items-start gap-2">
+              {cyberlsiStatus === 'validating' || cyberlsiStatus === 'redirecting' ? (
+                <Loader2 className="h-4 w-4 mt-0.5 animate-spin text-primary shrink-0" />
+              ) : cyberlsiStatus === 'error' ? (
+                <AlertCircle className="h-4 w-4 mt-0.5 text-destructive shrink-0" />
+              ) : (
+                <ShieldCheck className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+              )}
+              <p className="text-sm text-foreground">{cyberlsiMessage}</p>
+            </div>
+          )}
+
+
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="w-full overflow-x-auto flex md:grid md:grid-cols-3 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
               <TabsTrigger value="login" className="flex-1 md:flex-initial">Login</TabsTrigger>
