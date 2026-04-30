@@ -163,6 +163,24 @@ const Auth: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleCyberLSILogin = async () => {
+    try {
+      setCyberlsiStatus('redirecting');
+      setCyberlsiMessage('Redirecting to CyberLSI…');
+      const callbackUrl = `${window.location.origin}/auth`;
+      const { data, error } = await supabase.functions.invoke('cyberlsi-mfa-redirect', {
+        body: { callbackUrl },
+      });
+      if (error || !data?.redirectUrl) {
+        throw new Error(error?.message || "Couldn't start CyberLSI sign-in.");
+      }
+      window.location.href = data.redirectUrl;
+    } catch (err) {
+      setCyberlsiStatus('error');
+      setCyberlsiMessage(err instanceof Error ? err.message : 'Failed to start CyberLSI sign-in.');
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -452,6 +470,31 @@ const Auth: React.FC = () => {
                     <LogIn className="mr-2 h-4 w-4" />
                     {loading ? 'Signing in...' : 'Sign In'}
                   </Button>
+
+                  <div className="relative w-full py-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-border" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card px-2 text-muted-foreground">Or</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleCyberLSILogin}
+                    disabled={loading || cyberlsiStatus === 'redirecting'}
+                  >
+                    {cyberlsiStatus === 'redirecting' ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <ShieldCheck className="mr-2 h-4 w-4" />
+                    )}
+                    {cyberlsiStatus === 'redirecting' ? 'Redirecting…' : 'Login with CyberLSI'}
+                  </Button>
+
                   <Button 
                     type="button"
                     variant="ghost"
