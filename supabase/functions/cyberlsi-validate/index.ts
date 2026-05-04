@@ -277,17 +277,35 @@ serve(async (req: Request) => {
       );
     }
 
-    // Look up the CRM user that has linked this CyberLSI userId AND opted in
-    const { data: profile, error: profileError } = await supabaseAdmin
+    // Look up the CRM user that has opted in to CyberLSI sign-in.
+    // CyberLSI may return either the configured user handle (e.g. "sl#thabo.sibiya")
+    // or the user's email (e.g. "Thabo622@gmail.com"), and casing is not guaranteed.
+    // We therefore match case-insensitively on BOTH cyberlsi_user_id and email.
+    const identifier = validation.userId.trim();
+    const { data: profiles, error: profileError } = await supabaseAdmin
       .from("profiles")
-      .select("id, email, cyberlsi_enabled")
-      .eq("cyberlsi_user_id", validation.userId)
+      .select("id, email, cyberlsi_enabled, cyberlsi_user_id")
       .eq("cyberlsi_enabled", true)
-      .maybeSingle();
+      .or(
+        `cyberlsi_user_id.ilike.${identifier},email.ilike.${identifier}`,
+      )
+      .limit(2);
 
     if (profileError) {
       console.error("Profile lookup error:", profileError);
     }
+
+    // Prefer an explicit cyberlsi_user_id match over an email match.
+    const profile =
+      profiles?.find(
+        (p) =>
+          p.cyberlsi_user_id &&
+          p.cyberlsi_user_id.toLowerCase() === identifier.toLowerCase(),
+      ) ??
+      profiles?.find(
+        (p) => p.email && p.email.toLowerCase() === identifier.toLowerCase(),
+      ) ??
+      null;
 
     if (!profile || !profile.email) {
       await supabaseAdmin.from("cyberlsi_auth_log").insert({
