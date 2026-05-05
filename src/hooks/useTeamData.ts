@@ -98,7 +98,22 @@ export const useTeamData = (): UseTeamDataReturn => {
         setMembers([]);
       } else {
         setIsCompanyOwner(true);
-        setMembers((data || []) as TeamMember[]);
+        const ids = (data || []).map((e: any) => e.id);
+        const salaryMap: Record<string, number | null> = {};
+        if (ids.length > 0) {
+          const { data: sensitive } = await supabase
+            .from('employee_sensitive')
+            .select('employee_id, salary')
+            .in('employee_id', ids);
+          for (const row of (sensitive || []) as any[]) {
+            salaryMap[row.employee_id] = row.salary;
+          }
+        }
+        const merged = (data || []).map((e: any) => ({
+          ...e,
+          salary: salaryMap[e.id] ?? null,
+        }));
+        setMembers(merged as TeamMember[]);
       }
     } catch (error: any) {
       console.error('Error fetching team members:', error);
