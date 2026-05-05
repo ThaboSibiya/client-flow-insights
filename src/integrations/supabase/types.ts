@@ -3880,6 +3880,32 @@ export type Database = {
         }
         Relationships: []
       }
+      workspace_invitation_tokens: {
+        Row: {
+          created_at: string
+          invitation_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          invitation_id: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          invitation_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_invitation_tokens_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: true
+            referencedRelation: "workspace_invitations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_invitations: {
         Row: {
           accepted_at: string | null
@@ -3890,7 +3916,6 @@ export type Database = {
           invited_by: string
           role: string
           status: string
-          token: string
           workspace_id: string
         }
         Insert: {
@@ -3902,7 +3927,6 @@ export type Database = {
           invited_by: string
           role?: string
           status?: string
-          token?: string
           workspace_id: string
         }
         Update: {
@@ -3914,7 +3938,6 @@ export type Database = {
           invited_by?: string
           role?: string
           status?: string
-          token?: string
           workspace_id?: string
         }
         Relationships: [
