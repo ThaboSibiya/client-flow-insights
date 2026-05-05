@@ -183,7 +183,6 @@ export const updateEmployee = async (employeeId: string, formData: EmployeeFormD
     role: formData.role,
     status: formData.status,
     hire_date: formData.hire_date,
-    salary: formData.salary ? parseFloat(formData.salary) : null,
     company_owner_id: user.id,
     user_id: user.id
   };
@@ -198,4 +197,11 @@ export const updateEmployee = async (employeeId: string, formData: EmployeeFormD
     console.error('Database error:', error);
     throw new Error(error.message);
   }
+
+  // Persist salary in side table
+  await supabase.from('employee_sensitive').upsert({
+    employee_id: employeeId,
+    company_owner_id: user.id,
+    salary: formData.salary && formData.salary.trim() ? parseFloat(formData.salary) : null,
+  }, { onConflict: 'employee_id' });
 };
