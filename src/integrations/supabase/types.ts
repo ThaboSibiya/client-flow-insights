@@ -1359,6 +1359,47 @@ export type Database = {
           },
         ]
       }
+      employee_sensitive: {
+        Row: {
+          company_owner_id: string
+          created_at: string
+          employee_id: string
+          invitation_expires_at: string | null
+          invitation_sent_at: string | null
+          invitation_token: string | null
+          salary: number | null
+          updated_at: string
+        }
+        Insert: {
+          company_owner_id: string
+          created_at?: string
+          employee_id: string
+          invitation_expires_at?: string | null
+          invitation_sent_at?: string | null
+          invitation_token?: string | null
+          salary?: number | null
+          updated_at?: string
+        }
+        Update: {
+          company_owner_id?: string
+          created_at?: string
+          employee_id?: string
+          invitation_expires_at?: string | null
+          invitation_sent_at?: string | null
+          invitation_token?: string | null
+          salary?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_sensitive_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           auth_user_id: string | null
@@ -1371,16 +1412,12 @@ export type Database = {
           first_name: string
           hire_date: string
           id: string
-          invitation_expires_at: string | null
-          invitation_sent_at: string | null
-          invitation_token: string | null
           is_invited: boolean | null
           last_login_at: string | null
           last_name: string
           manager_id: string | null
           phone: string | null
           role: Database["public"]["Enums"]["employee_role"]
-          salary: number | null
           status: Database["public"]["Enums"]["employee_status"]
           title: string
           updated_at: string
@@ -1398,16 +1435,12 @@ export type Database = {
           first_name: string
           hire_date?: string
           id?: string
-          invitation_expires_at?: string | null
-          invitation_sent_at?: string | null
-          invitation_token?: string | null
           is_invited?: boolean | null
           last_login_at?: string | null
           last_name: string
           manager_id?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["employee_role"]
-          salary?: number | null
           status?: Database["public"]["Enums"]["employee_status"]
           title: string
           updated_at?: string
@@ -1425,16 +1458,12 @@ export type Database = {
           first_name?: string
           hire_date?: string
           id?: string
-          invitation_expires_at?: string | null
-          invitation_sent_at?: string | null
-          invitation_token?: string | null
           is_invited?: boolean | null
           last_login_at?: string | null
           last_name?: string
           manager_id?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["employee_role"]
-          salary?: number | null
           status?: Database["public"]["Enums"]["employee_status"]
           title?: string
           updated_at?: string
@@ -3886,6 +3915,44 @@ export type Database = {
           },
         ]
       }
+      workspace_subscription_secrets: {
+        Row: {
+          created_at: string
+          paystack_authorization_code: string | null
+          paystack_customer_code: string | null
+          paystack_email_token: string | null
+          paystack_subscription_code: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          paystack_authorization_code?: string | null
+          paystack_customer_code?: string | null
+          paystack_email_token?: string | null
+          paystack_subscription_code?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          paystack_authorization_code?: string | null
+          paystack_customer_code?: string | null
+          paystack_email_token?: string | null
+          paystack_subscription_code?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_subscription_secrets_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_subscriptions: {
         Row: {
           cancelled_at: string | null
@@ -3894,12 +3961,8 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           id: string
-          paystack_authorization_code: string | null
-          paystack_customer_code: string | null
-          paystack_email_token: string | null
           paystack_plan_code: string | null
           paystack_reference: string | null
-          paystack_subscription_code: string | null
           plan_amount: number
           plan_name: string
           status: string
@@ -3915,12 +3978,8 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
-          paystack_authorization_code?: string | null
-          paystack_customer_code?: string | null
-          paystack_email_token?: string | null
           paystack_plan_code?: string | null
           paystack_reference?: string | null
-          paystack_subscription_code?: string | null
           plan_amount?: number
           plan_name?: string
           status?: string
@@ -3936,12 +3995,8 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
-          paystack_authorization_code?: string | null
-          paystack_customer_code?: string | null
-          paystack_email_token?: string | null
           paystack_plan_code?: string | null
           paystack_reference?: string | null
-          paystack_subscription_code?: string | null
           plan_amount?: number
           plan_name?: string
           status?: string
