@@ -46,6 +46,20 @@ export const useEmployeeForm = (employee?: any, onSave?: () => void, companyName
         hire_date: employee.hire_date ? employee.hire_date.split('T')[0] : new Date().toISOString().split('T')[0],
         salary: employee.salary?.toString() || ''
       });
+
+      // Fetch salary from sensitive table if not already provided
+      if (employee.id && employee.salary == null) {
+        import('@/integrations/supabase/client').then(async ({ supabase }) => {
+          const { data } = await supabase
+            .from('employee_sensitive')
+            .select('salary')
+            .eq('employee_id', employee.id)
+            .maybeSingle();
+          if (data?.salary != null) {
+            setFormData(prev => ({ ...prev, salary: String(data.salary) }));
+          }
+        });
+      }
     }
   }, [employee]);
 
