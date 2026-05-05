@@ -48,7 +48,6 @@ export const createEmployee = async (formData: EmployeeFormData, workspaceId?: s
     role: formData.role,
     status: formData.status,
     hire_date: formData.hire_date,
-    salary: formData.salary ? parseFloat(formData.salary) : null,
     company_owner_id: user.id,
     user_id: user.id,
     employee_number: '', // Will be set by database trigger
@@ -69,6 +68,15 @@ export const createEmployee = async (formData: EmployeeFormData, workspaceId?: s
     }
     
     throw new Error(error.message);
+  }
+
+  // Persist sensitive salary in side table
+  if (data?.id && formData.salary && formData.salary.trim()) {
+    await supabase.from('employee_sensitive').upsert({
+      employee_id: data.id,
+      company_owner_id: user.id,
+      salary: parseFloat(formData.salary),
+    }, { onConflict: 'employee_id' });
   }
 
   return data;
@@ -175,7 +183,6 @@ export const updateEmployee = async (employeeId: string, formData: EmployeeFormD
     role: formData.role,
     status: formData.status,
     hire_date: formData.hire_date,
-    salary: formData.salary ? parseFloat(formData.salary) : null,
     company_owner_id: user.id,
     user_id: user.id
   };
@@ -190,4 +197,11 @@ export const updateEmployee = async (employeeId: string, formData: EmployeeFormD
     console.error('Database error:', error);
     throw new Error(error.message);
   }
+
+  // Persist salary in side table
+  await supabase.from('employee_sensitive').upsert({
+    employee_id: employeeId,
+    company_owner_id: user.id,
+    salary: formData.salary && formData.salary.trim() ? parseFloat(formData.salary) : null,
+  }, { onConflict: 'employee_id' });
 };

@@ -52,8 +52,6 @@ export const useEmployeeData = () => {
         .from('employees')
         .select(`
           *,
-          invitation_sent_at,
-          invitation_expires_at,
           is_invited,
           auth_user_id,
           last_login_at
@@ -76,7 +74,28 @@ export const useEmployeeData = () => {
         return;
       }
 
-      setEmployees(data || []);
+      const ids = (data || []).map((e: any) => e.id);
+      const sensitiveMap: Record<string, { invitation_sent_at: string | null; invitation_expires_at: string | null }> = {};
+      if (ids.length > 0) {
+        const { data: sensitive } = await supabase
+          .from('employee_sensitive')
+          .select('employee_id, invitation_sent_at, invitation_expires_at')
+          .in('employee_id', ids);
+        for (const row of (sensitive || []) as any[]) {
+          sensitiveMap[row.employee_id] = {
+            invitation_sent_at: row.invitation_sent_at,
+            invitation_expires_at: row.invitation_expires_at,
+          };
+        }
+      }
+
+      const merged: Employee[] = (data || []).map((e: any) => ({
+        ...e,
+        invitation_sent_at: sensitiveMap[e.id]?.invitation_sent_at ?? null,
+        invitation_expires_at: sensitiveMap[e.id]?.invitation_expires_at ?? null,
+      }));
+
+      setEmployees(merged);
     } catch (error: any) {
       console.error('Error fetching employees:', error);
       toast({
