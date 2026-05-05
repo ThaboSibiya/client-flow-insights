@@ -59,8 +59,6 @@ export const useEmployeeDetails = () => {
           status,
           hire_date,
           is_invited,
-          invitation_sent_at,
-          invitation_expires_at,
           auth_user_id,
           last_login_at
         `)
@@ -68,11 +66,27 @@ export const useEmployeeDetails = () => {
 
       if (error) throw error;
 
+      const { data: sensitive } = await supabase
+        .from('employee_sensitive')
+        .select('employee_id, invitation_sent_at, invitation_expires_at')
+        .in('employee_id', idsToLoad);
+      const sensitiveMap: Record<string, { invitation_sent_at?: string; invitation_expires_at?: string }> = {};
+      for (const row of (sensitive || []) as any[]) {
+        sensitiveMap[row.employee_id] = {
+          invitation_sent_at: row.invitation_sent_at ?? undefined,
+          invitation_expires_at: row.invitation_expires_at ?? undefined,
+        };
+      }
+
       // Cache the detailed data
       setDetailedEmployees(prev => {
         const newState = { ...prev };
-        data?.forEach(employee => {
-          newState[employee.id] = employee as DetailedEmployee;
+        data?.forEach((employee: any) => {
+          newState[employee.id] = {
+            ...employee,
+            invitation_sent_at: sensitiveMap[employee.id]?.invitation_sent_at,
+            invitation_expires_at: sensitiveMap[employee.id]?.invitation_expires_at,
+          } as DetailedEmployee;
         });
         return newState;
       });
