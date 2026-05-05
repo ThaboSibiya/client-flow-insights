@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
           break;
         }
 
-        // Update workspace subscription to active
+        // Update workspace subscription (non-sensitive fields)
         const { error } = await supabase
           .from('workspace_subscriptions')
           .upsert({
@@ -85,14 +85,25 @@ Deno.serve(async (req) => {
             currency: data.currency,
             status: 'active',
             paystack_reference: data.reference,
-            paystack_customer_code: data.customer?.customer_code || null,
-            paystack_authorization_code: data.authorization?.authorization_code || null,
             current_period_start: new Date().toISOString(),
             current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           }, { onConflict: 'workspace_id' });
 
         if (error) {
           console.error('Error updating workspace subscription:', error);
+        }
+
+        // Store sensitive Paystack credentials in owner-only table
+        const { error: secretError } = await supabase
+          .from('workspace_subscription_secrets')
+          .upsert({
+            workspace_id: workspaceId,
+            paystack_customer_code: data.customer?.customer_code || null,
+            paystack_authorization_code: data.authorization?.authorization_code || null,
+          }, { onConflict: 'workspace_id' });
+
+        if (secretError) {
+          console.error('Error updating workspace subscription secrets:', secretError);
         }
 
         await supabase.from('subscription_events').insert({
