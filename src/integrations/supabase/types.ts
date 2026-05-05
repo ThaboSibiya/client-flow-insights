@@ -3569,10 +3569,41 @@ export type Database = {
           },
         ]
       }
+      user_oauth_app_secrets: {
+        Row: {
+          client_secret: string | null
+          created_at: string
+          oauth_app_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_secret?: string | null
+          created_at?: string
+          oauth_app_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_secret?: string | null
+          created_at?: string
+          oauth_app_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_oauth_app_secrets_oauth_app_id_fkey"
+            columns: ["oauth_app_id"]
+            isOneToOne: true
+            referencedRelation: "user_oauth_apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_oauth_apps: {
         Row: {
           client_id: string
-          client_secret: string
           created_at: string
           id: string
           provider_id: string
@@ -3582,7 +3613,6 @@ export type Database = {
         }
         Insert: {
           client_id: string
-          client_secret: string
           created_at?: string
           id?: string
           provider_id: string
@@ -3592,7 +3622,6 @@ export type Database = {
         }
         Update: {
           client_id?: string
-          client_secret?: string
           created_at?: string
           id?: string
           provider_id?: string
@@ -3629,6 +3658,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_subscription_secrets: {
+        Row: {
+          created_at: string
+          paystack_authorization_code: string | null
+          paystack_customer_code: string | null
+          paystack_subscription_code: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          paystack_authorization_code?: string | null
+          paystack_customer_code?: string | null
+          paystack_subscription_code?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          paystack_authorization_code?: string | null
+          paystack_customer_code?: string | null
+          paystack_subscription_code?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           cancelled_at: string | null
@@ -3637,11 +3693,8 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           id: string
-          paystack_authorization_code: string | null
-          paystack_customer_code: string | null
           paystack_plan_code: string | null
           paystack_reference: string | null
-          paystack_subscription_code: string | null
           plan_amount: number
           plan_name: string
           status: string
@@ -3656,11 +3709,8 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
-          paystack_authorization_code?: string | null
-          paystack_customer_code?: string | null
           paystack_plan_code?: string | null
           paystack_reference?: string | null
-          paystack_subscription_code?: string | null
           plan_amount?: number
           plan_name?: string
           status?: string
@@ -3675,11 +3725,8 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
-          paystack_authorization_code?: string | null
-          paystack_customer_code?: string | null
           paystack_plan_code?: string | null
           paystack_reference?: string | null
-          paystack_subscription_code?: string | null
           plan_amount?: number
           plan_name?: string
           status?: string

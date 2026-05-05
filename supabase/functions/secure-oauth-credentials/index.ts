@@ -109,7 +109,6 @@ const handler = async (req: Request): Promise<Response> => {
             user_id: user.id,
             provider_id,
             client_id,
-            client_secret: '***VAULT_PROTECTED***', // Placeholder indicating secret is in vault
             redirect_uri: redirect_uri || defaultRedirectUri,
             updated_at: new Date().toISOString()
           }, {
