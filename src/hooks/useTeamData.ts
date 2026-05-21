@@ -298,7 +298,7 @@ export const useTeamData = (): UseTeamDataReturn => {
         });
       }
     },
-    [user, fetchMembers]
+    [user, workspaceId, fetchMembers]
   );
 
   return {
