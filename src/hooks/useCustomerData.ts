@@ -1,5 +1,5 @@
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, CustomerStatus } from '@/types/customer';
 import { useAuth } from '@/context/AuthContext';
@@ -7,10 +7,15 @@ import { toast } from '@/hooks/use-toast';
 import { useCustomerStore } from '@/stores/customerStore';
 import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
+const CUSTOMER_COLUMNS =
+  'id, name, email, phone, status, notes, address, contact_person, company_address, reason, source, created_at, updated_at, workspace_id';
+
 export const useCustomerData = () => {
   const { user } = useAuth();
   const workspaceId = useActiveWorkspaceId();
   const { customers, setCustomers, setLoading, setError, isLoading } = useCustomerStore();
+  const customersRef = useRef(customers);
+  customersRef.current = customers;
 
   const fetchCustomers = useCallback(async () => {
     if (!user) {
