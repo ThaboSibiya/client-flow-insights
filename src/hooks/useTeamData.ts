@@ -234,12 +234,17 @@ export const useTeamData = (): UseTeamDataReturn => {
       if (!user) return;
 
       try {
-        const { error } = await supabase
+        let updateQuery = supabase
           .from('employees')
           .update({ status })
           .in('id', ids)
           .eq('company_owner_id', user.id);
 
+        if (workspaceId) {
+          updateQuery = updateQuery.eq('workspace_id', workspaceId);
+        }
+
+        const { error } = await updateQuery;
         if (error) throw error;
 
         toast({
