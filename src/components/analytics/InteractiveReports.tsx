@@ -18,15 +18,15 @@ const InteractiveReports: React.FC = () => {
 
       <Tabs defaultValue="drill-down" className="space-y-4">
         <TabsList className="bg-muted/50 p-1 h-auto">
-          <TabsTrigger value="drill-down" className="gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+          <TabsTrigger value="drill-down" className="gap-2 data-[state=active]:bg-background data-[state=active]:!text-foreground data-[state=active]:shadow-sm">
             <BarChart3 className="h-4 w-4" />
             Drill-Down
           </TabsTrigger>
-          <TabsTrigger value="scheduler" className="gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+          <TabsTrigger value="scheduler" className="gap-2 data-[state=active]:bg-background data-[state=active]:!text-foreground data-[state=active]:shadow-sm">
             <Calendar className="h-4 w-4" />
             Scheduled Reports
           </TabsTrigger>
-          <TabsTrigger value="builder" className="gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+          <TabsTrigger value="builder" className="gap-2 data-[state=active]:bg-background data-[state=active]:!text-foreground data-[state=active]:shadow-sm">
             <Settings className="h-4 w-4" />
             Report Builder
           </TabsTrigger>
