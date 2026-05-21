@@ -5,17 +5,20 @@ import { Customer } from '@/components/customers/onsite/types';
 import { CustomerStatus } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
 import { logSecurityEvent, validateEmail, validatePhone, sanitizeInput } from '@/services/securityService';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export const useSecureCustomerData = (isOpen: boolean) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const workspaceId = useActiveWorkspaceId();
 
   useEffect(() => {
     if (isOpen) {
       loadCustomers();
     }
-  }, [isOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, workspaceId]);
 
   const loadCustomers = async () => {
     setLoading(true);
@@ -75,12 +78,17 @@ export const useSecureCustomerData = (isOpen: boolean) => {
         });
       }
 
-      // Get customers with proper RLS enforcement
-      const { data, error } = await supabase
+      // Get customers with proper RLS enforcement + explicit workspace scope
+      let customersQuery = supabase
         .from('customers')
         .select('*')
-        .eq('user_id', companyOwnerId)
-        .order('name');
+        .eq('user_id', companyOwnerId);
+
+      if (workspaceId) {
+        customersQuery = customersQuery.eq('workspace_id', workspaceId);
+      }
+
+      const { data, error } = await customersQuery.order('name');
 
       if (error) {
         await logSecurityEvent({
@@ -158,13 +166,18 @@ export const useSecureCustomerData = (isOpen: boolean) => {
         return [];
       }
 
-      const { data, error } = await supabase
+      let ticketsQuery = supabase
         .from('tickets')
         .select('id, ticket_number, subject, status, priority, created_at')
         .eq('user_id', user.id)
         .eq('customer_id', customerId)
-        .in('status', ['open', 'in-progress'])
-        .order('created_at', { ascending: false });
+        .in('status', ['open', 'in-progress']);
+
+      if (workspaceId) {
+        ticketsQuery = ticketsQuery.eq('workspace_id', workspaceId);
+      }
+
+      const { data, error } = await ticketsQuery.order('created_at', { ascending: false });
 
       if (error) {
         await logSecurityEvent({

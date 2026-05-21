@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export interface TeamMember {
   id: string;
@@ -69,6 +70,7 @@ const DEFAULT_FILTERS: TeamFilters = {
 
 export const useTeamData = (): UseTeamDataReturn => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCompanyOwner, setIsCompanyOwner] = useState(false);
@@ -87,11 +89,16 @@ export const useTeamData = (): UseTeamDataReturn => {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('employees')
         .select('*')
-        .eq('company_owner_id', user.id)
-        .order('created_at', { ascending: false });
+        .eq('company_owner_id', user.id);
+
+      if (workspaceId) {
+        query = query.eq('workspace_id', workspaceId);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         setIsCompanyOwner(false);
@@ -127,7 +134,7 @@ export const useTeamData = (): UseTeamDataReturn => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, workspaceId]);
 
   useEffect(() => {
     fetchMembers();
@@ -227,12 +234,17 @@ export const useTeamData = (): UseTeamDataReturn => {
       if (!user) return;
 
       try {
-        const { error } = await supabase
+        let updateQuery = supabase
           .from('employees')
           .update({ status })
           .in('id', ids)
           .eq('company_owner_id', user.id);
 
+        if (workspaceId) {
+          updateQuery = updateQuery.eq('workspace_id', workspaceId);
+        }
+
+        const { error } = await updateQuery;
         if (error) throw error;
 
         toast({
@@ -250,7 +262,7 @@ export const useTeamData = (): UseTeamDataReturn => {
         });
       }
     },
-    [user, fetchMembers]
+    [user, workspaceId, fetchMembers]
   );
 
   const bulkUpdateRole = useCallback(
@@ -258,12 +270,17 @@ export const useTeamData = (): UseTeamDataReturn => {
       if (!user) return;
 
       try {
-        const { error } = await supabase
+        let updateQuery = supabase
           .from('employees')
           .update({ role })
           .in('id', ids)
           .eq('company_owner_id', user.id);
 
+        if (workspaceId) {
+          updateQuery = updateQuery.eq('workspace_id', workspaceId);
+        }
+
+        const { error } = await updateQuery;
         if (error) throw error;
 
         toast({
@@ -281,7 +298,7 @@ export const useTeamData = (): UseTeamDataReturn => {
         });
       }
     },
-    [user, fetchMembers]
+    [user, workspaceId, fetchMembers]
   );
 
   return {
