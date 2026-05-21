@@ -57,7 +57,7 @@ export const useRealtimeNotifications = () => {
     try {
       let query = supabase
         .from('user_notifications')
-        .select('*')
+        .select('id, user_id, type, title, message, read, link, metadata, created_at, workspace_id')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
