@@ -134,7 +134,7 @@ export const useTeamData = (): UseTeamDataReturn => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, workspaceId]);
 
   useEffect(() => {
     fetchMembers();
