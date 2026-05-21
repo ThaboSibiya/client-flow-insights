@@ -127,7 +127,7 @@ export const useCustomerData = () => {
       try {
         let fallbackQuery = supabase
           .from('customers')
-          .select('*')
+          .select(CUSTOMER_COLUMNS)
           .eq('user_id', user.id);
 
         if (workspaceId) {
