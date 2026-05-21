@@ -46,7 +46,7 @@ export const createTicket = async (
     const { data, error } = await supabase
       .from('tickets')
       .insert([sanitizedData])
-      .select('*')
+      .select('id, ticket_number, subject, description, priority, status, assigned_to_id, assigned_to_name, created_at, updated_at')
       .single();
 
     if (error) {
