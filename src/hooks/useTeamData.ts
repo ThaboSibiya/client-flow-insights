@@ -70,6 +70,7 @@ const DEFAULT_FILTERS: TeamFilters = {
 
 export const useTeamData = (): UseTeamDataReturn => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCompanyOwner, setIsCompanyOwner] = useState(false);
@@ -88,11 +89,16 @@ export const useTeamData = (): UseTeamDataReturn => {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('employees')
         .select('*')
-        .eq('company_owner_id', user.id)
-        .order('created_at', { ascending: false });
+        .eq('company_owner_id', user.id);
+
+      if (workspaceId) {
+        query = query.eq('workspace_id', workspaceId);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         setIsCompanyOwner(false);
