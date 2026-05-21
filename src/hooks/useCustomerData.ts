@@ -182,9 +182,28 @@ export const useCustomerData = () => {
     }
   }, [user, fetchCustomers, setCustomers]);
 
-  // Real-time updates
+  // Real-time updates — targeted mutations instead of full refetch
   useEffect(() => {
     if (!user) return;
+
+    const applyRow = (row: any): Customer => ({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      phone: row.phone || '',
+      status: row.status as CustomerStatus,
+      notes: row.notes || '',
+      address: row.address || '',
+      contact_person: row.contact_person || '',
+      company_address: row.company_address || '',
+      reason: row.reason || '',
+      source: row.source || '',
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+      activeTickets: [],
+      ticketCount: 0,
+      lastTicketDate: undefined,
+    });
 
     const subscription = supabase
       .channel('customers-channel-realtime')
@@ -196,16 +215,35 @@ export const useCustomerData = () => {
           table: 'customers',
           filter: `user_id=eq.${user.id}`,
         },
-        () => {
-          fetchCustomers();
-        }
+        (payload: any) => {
+          // Workspace scope guard
+          const row = payload.new ?? payload.old;
+          if (workspaceId && row?.workspace_id && row.workspace_id !== workspaceId) return;
+
+          const current = customersRef.current;
+          if (payload.eventType === 'INSERT') {
+            if (current.some(c => c.id === payload.new.id)) return;
+            // Merge — preserve existing ticket data if hydrated
+            setCustomers([applyRow(payload.new), ...current]);
+          } else if (payload.eventType === 'UPDATE') {
+            setCustomers(
+              current.map(c =>
+                c.id === payload.new.id
+                  ? { ...c, ...applyRow(payload.new), activeTickets: c.activeTickets, ticketCount: c.ticketCount, lastTicketDate: c.lastTicketDate }
+                  : c,
+              ),
+            );
+          } else if (payload.eventType === 'DELETE') {
+            setCustomers(current.filter(c => c.id !== payload.old.id));
+          }
+        },
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, [user, fetchCustomers]);
+  }, [user, workspaceId, setCustomers]);
 
   return { customers, isLoading, fetchCustomers };
 };
