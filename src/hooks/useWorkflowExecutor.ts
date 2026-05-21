@@ -115,8 +115,22 @@ const executeNodeAction = async (
     case 'database': {
       const operation = config.operation || 'read';
       const table = config.table || 'customers';
+      // Whitelist of tables that workflows are allowed to read.
+      const ALLOWED_TABLES = new Set(['customers', 'tickets', 'invoices', 'payments', 'projects', 'conversations']);
+      if (!ALLOWED_TABLES.has(table)) {
+        throw new Error(`Table "${table}" is not permitted in workflows`);
+      }
       if (operation === 'read') {
-        const { data, error } = await supabase.from(table).select('*').limit(5);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
+
+        let q: any = supabase.from(table as any).select('*').limit(5);
+        // Defense-in-depth: scope to caller. RLS still enforces final access.
+        q = q.eq('user_id', user.id);
+        const workspaceId = (context.workspace_id as string | undefined) ?? undefined;
+        if (workspaceId) q = q.eq('workspace_id', workspaceId);
+
+        const { data, error } = await q;
         if (error) throw new Error(`DB read failed: ${error.message}`);
         return { operation: 'read', table, rowCount: data?.length ?? 0, data };
       }
