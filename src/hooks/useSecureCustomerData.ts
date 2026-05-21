@@ -166,13 +166,18 @@ export const useSecureCustomerData = (isOpen: boolean) => {
         return [];
       }
 
-      const { data, error } = await supabase
+      let ticketsQuery = supabase
         .from('tickets')
         .select('id, ticket_number, subject, status, priority, created_at')
         .eq('user_id', user.id)
         .eq('customer_id', customerId)
-        .in('status', ['open', 'in-progress'])
-        .order('created_at', { ascending: false });
+        .in('status', ['open', 'in-progress']);
+
+      if (workspaceId) {
+        ticketsQuery = ticketsQuery.eq('workspace_id', workspaceId);
+      }
+
+      const { data, error } = await ticketsQuery.order('created_at', { ascending: false });
 
       if (error) {
         await logSecurityEvent({
