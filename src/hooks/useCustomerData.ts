@@ -1,5 +1,5 @@
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, CustomerStatus } from '@/types/customer';
 import { useAuth } from '@/context/AuthContext';
@@ -7,10 +7,15 @@ import { toast } from '@/hooks/use-toast';
 import { useCustomerStore } from '@/stores/customerStore';
 import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
+const CUSTOMER_COLUMNS =
+  'id, name, email, phone, status, notes, address, contact_person, company_address, reason, source, created_at, updated_at, workspace_id';
+
 export const useCustomerData = () => {
   const { user } = useAuth();
   const workspaceId = useActiveWorkspaceId();
   const { customers, setCustomers, setLoading, setError, isLoading } = useCustomerStore();
+  const customersRef = useRef(customers);
+  customersRef.current = customers;
 
   const fetchCustomers = useCallback(async () => {
     if (!user) {
@@ -122,7 +127,7 @@ export const useCustomerData = () => {
       try {
         let fallbackQuery = supabase
           .from('customers')
-          .select('*')
+          .select(CUSTOMER_COLUMNS)
           .eq('user_id', user.id);
 
         if (workspaceId) {
@@ -177,9 +182,28 @@ export const useCustomerData = () => {
     }
   }, [user, fetchCustomers, setCustomers]);
 
-  // Real-time updates
+  // Real-time updates — targeted mutations instead of full refetch
   useEffect(() => {
     if (!user) return;
+
+    const applyRow = (row: any): Customer => ({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      phone: row.phone || '',
+      status: row.status as CustomerStatus,
+      notes: row.notes || '',
+      address: row.address || '',
+      contact_person: row.contact_person || '',
+      company_address: row.company_address || '',
+      reason: row.reason || '',
+      source: row.source || '',
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+      activeTickets: [],
+      ticketCount: 0,
+      lastTicketDate: undefined,
+    });
 
     const subscription = supabase
       .channel('customers-channel-realtime')
@@ -191,16 +215,35 @@ export const useCustomerData = () => {
           table: 'customers',
           filter: `user_id=eq.${user.id}`,
         },
-        () => {
-          fetchCustomers();
-        }
+        (payload: any) => {
+          // Workspace scope guard
+          const row = payload.new ?? payload.old;
+          if (workspaceId && row?.workspace_id && row.workspace_id !== workspaceId) return;
+
+          const current = customersRef.current;
+          if (payload.eventType === 'INSERT') {
+            if (current.some(c => c.id === payload.new.id)) return;
+            // Merge — preserve existing ticket data if hydrated
+            setCustomers([applyRow(payload.new), ...current]);
+          } else if (payload.eventType === 'UPDATE') {
+            setCustomers(
+              current.map(c =>
+                c.id === payload.new.id
+                  ? { ...c, ...applyRow(payload.new), activeTickets: c.activeTickets, ticketCount: c.ticketCount, lastTicketDate: c.lastTicketDate }
+                  : c,
+              ),
+            );
+          } else if (payload.eventType === 'DELETE') {
+            setCustomers(current.filter(c => c.id !== payload.old.id));
+          }
+        },
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, [user, fetchCustomers]);
+  }, [user, workspaceId, setCustomers]);
 
   return { customers, isLoading, fetchCustomers };
 };
