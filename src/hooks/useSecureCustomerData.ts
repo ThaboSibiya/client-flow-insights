@@ -78,12 +78,17 @@ export const useSecureCustomerData = (isOpen: boolean) => {
         });
       }
 
-      // Get customers with proper RLS enforcement
-      const { data, error } = await supabase
+      // Get customers with proper RLS enforcement + explicit workspace scope
+      let customersQuery = supabase
         .from('customers')
         .select('*')
-        .eq('user_id', companyOwnerId)
-        .order('name');
+        .eq('user_id', companyOwnerId);
+
+      if (workspaceId) {
+        customersQuery = customersQuery.eq('workspace_id', workspaceId);
+      }
+
+      const { data, error } = await customersQuery.order('name');
 
       if (error) {
         await logSecurityEvent({
