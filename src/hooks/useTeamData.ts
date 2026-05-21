@@ -262,7 +262,7 @@ export const useTeamData = (): UseTeamDataReturn => {
         });
       }
     },
-    [user, fetchMembers]
+    [user, workspaceId, fetchMembers]
   );
 
   const bulkUpdateRole = useCallback(
