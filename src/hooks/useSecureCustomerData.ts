@@ -5,17 +5,20 @@ import { Customer } from '@/components/customers/onsite/types';
 import { CustomerStatus } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
 import { logSecurityEvent, validateEmail, validatePhone, sanitizeInput } from '@/services/securityService';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export const useSecureCustomerData = (isOpen: boolean) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const workspaceId = useActiveWorkspaceId();
 
   useEffect(() => {
     if (isOpen) {
       loadCustomers();
     }
-  }, [isOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, workspaceId]);
 
   const loadCustomers = async () => {
     setLoading(true);
