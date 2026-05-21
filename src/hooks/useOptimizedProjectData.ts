@@ -1,10 +1,16 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Project, ProjectFilters } from '@/types/project';
+import { useAuth } from '@/context/AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
-// Optimized project data fetching with proper caching and pagination
+// Optimized project data fetching with proper caching and pagination.
+// NOTE: Currently returns mock data; the query is keyed on user+workspace
+// so when the real Supabase query is wired up it will be workspace-scoped.
 export const useOptimizedProjectData = (filters?: ProjectFilters, pageSize: number = 10) => {
   const [page, setPage] = useState(1);
+  const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
 
   const {
     data: projectsData,
@@ -12,7 +18,8 @@ export const useOptimizedProjectData = (filters?: ProjectFilters, pageSize: numb
     error,
     refetch
   } = useQuery({
-    queryKey: ['projects', filters, page, pageSize],
+    queryKey: ['projects', user?.id, workspaceId, filters, page, pageSize],
+    enabled: !!user,
     queryFn: async () => {
       // Simulate optimized API call - in real app this would be Supabase
       const mockProjects: Project[] = [
