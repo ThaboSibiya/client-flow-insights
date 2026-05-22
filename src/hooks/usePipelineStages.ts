@@ -65,7 +65,7 @@ export const usePipelineStages = (pipelineType: 'customer' | 'ticket') => {
     try {
       const { data, error } = await supabase
         .from('pipeline_stages')
-        .select('*')
+        .select('id, user_id, pipeline_type, name, color, position, target, automation_enabled, status_mapping, description, is_default, created_at, updated_at')
         .eq('user_id', user.id)
         .eq('pipeline_type', pipelineType)
         .order('position', { ascending: true });
