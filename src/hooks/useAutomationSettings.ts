@@ -33,7 +33,7 @@ export const useAutomationSettings = () => {
             if (!user) return null;
             const { data, error } = await supabase
                 .from('automation_settings')
-                .select('*')
+                .select('id, user_id, email_auto_send, email_template, email_subject, email_message, whatsapp_enabled, whatsapp_template, follow_up_enabled, first_follow_up_days, second_follow_up_days, final_follow_up_days, reminder_template, auto_create_invoice_from_quote, send_on_create, mark_overdue_after_days, created_at, updated_at')
                 .eq('user_id', user.id)
                 .single();
 
