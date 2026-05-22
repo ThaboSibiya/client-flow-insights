@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { CustomerStatus } from '@/types/customer';
 import { OnSiteStatusUpdateProps, Customer, OnSiteTicket, JobPhoto } from './onsite/types';
-import { useSecureCustomerData } from '@/hooks/useSecureCustomerData';
+import { useOnsiteCustomerData } from '@/hooks/useOnsiteCustomerData';
 import { useCustomerSearch } from './onsite/hooks/useCustomerSearch';
 import { useLocation } from './onsite/hooks/useLocation';
 import { useSecureJobCompletion } from '@/hooks/useSecureJobCompletion';
@@ -39,7 +39,7 @@ const OnSiteStatusUpdate = ({ isOpen, onClose }: OnSiteStatusUpdateProps) => {
   const [photos, setPhotos] = useState<JobPhoto[]>([]);
   const [currentStep, setCurrentStep] = useState<StepId>('customer');
 
-  const { customers, loading, error, loadCustomerTickets } = useSecureCustomerData(isOpen);
+  const { customers, loading, error, loadCustomerTickets } = useOnsiteCustomerData(isOpen);
   const { location, requestLocation } = useLocation();
   const { submitting, handleSubmit } = useSecureJobCompletion();
   const isMobile = useIsMobile();
