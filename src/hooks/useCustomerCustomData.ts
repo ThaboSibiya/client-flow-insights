@@ -88,7 +88,7 @@ export const useCustomerCustomData = (customerId: string) => {
         const templateIds = appliedTemplatesList.map(t => t.id);
         const { data: templateFieldsData, error: fieldsError } = await supabase
           .from('template_fields')
-          .select('*')
+          .select('id, template_id, field_name, field_label, field_type, field_options, is_required, display_order, created_at')
           .in('template_id', templateIds)
           .order('display_order');
 
