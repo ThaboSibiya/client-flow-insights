@@ -3,9 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { IndustryTemplate, TemplateField, CustomerCustomData, CustomerTemplate } from '@/types/templates';
 
 const INDUSTRY_TEMPLATE_COLS = 'id, name, industry, description, is_active, version, user_id, created_at, updated_at';
-const TEMPLATE_FIELD_COLS = 'id, template_id, field_name, field_label, field_type, field_options, is_required, display_order, created_at, updated_at';
+const TEMPLATE_FIELD_COLS = 'id, template_id, field_name, field_label, field_type, field_options, is_required, display_order, created_at';
 const CUSTOMER_CUSTOM_DATA_COLS = 'id, customer_id, field_id, field_value, user_id, created_at, updated_at';
-const CUSTOMER_TEMPLATE_COLS = 'id, customer_id, template_id, user_id, created_at, updated_at';
+const CUSTOMER_TEMPLATE_COLS = 'id, customer_id, template_id, user_id, applied_at';
 
 
 export const templateService = {
