@@ -208,7 +208,7 @@ const ActionCenter = ({ customerId, onAddTransaction, onRefresh }: ActionCenterP
   const handleEmailStatement = async () => {
     setIsProcessing(true);
     try {
-      const result = await financeEmailService.emailStatement(customerId, {
+      const result = await financeApiService.emailStatement(customerId, {
         recipientEmail: recipientEmail || undefined
       });
       
