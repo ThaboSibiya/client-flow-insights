@@ -170,7 +170,7 @@ export const useCustomerCustomData = (customerId: string) => {
       // Load equipment data separately
       const { data: equipment, error: equipmentError } = await supabase
         .from('customer_equipment')
-        .select('*')
+        .select('id, customer_id, user_id, equipment_type, brand, model, serial_number, purchase_date, warranty_expiry, notes, created_at, updated_at, technical_issues, status, last_service_date, next_service_due, total_services')
         .eq('customer_id', customerId)
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false });
