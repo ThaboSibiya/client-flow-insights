@@ -44,7 +44,7 @@ export const useEmployeeAuth = () => {
       // Only if not a company owner, check for employee profile
       const { data: employee, error } = await supabase
         .from('employees')
-        .select('*')
+        .select('id, employee_number, first_name, last_name, email, designation, title, role, status, auth_user_id, company_owner_id')
         .eq('auth_user_id', user.id)
         .single();
 

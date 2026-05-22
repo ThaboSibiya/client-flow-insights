@@ -91,7 +91,7 @@ export const useTeamData = (): UseTeamDataReturn => {
 
       let query = supabase
         .from('employees')
-        .select('*')
+        .select('id, employee_number, first_name, last_name, email, phone, designation, title, department, role, status, hire_date, is_invited, auth_user_id, last_login_at, manager_id, created_at')
         .eq('company_owner_id', user.id);
 
       if (workspaceId) {
