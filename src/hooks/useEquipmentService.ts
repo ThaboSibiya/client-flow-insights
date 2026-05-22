@@ -16,7 +16,7 @@ export const useEquipmentService = (customerId: string) => {
       setLoading(true);
       const { data, error } = await supabase
         .from('customer_equipment')
-        .select('*')
+        .select('id, customer_id, user_id, equipment_type, brand, model, serial_number, purchase_date, warranty_expiry, notes, created_at, updated_at, technical_issues, status, last_service_date, next_service_due, total_services')
         .eq('customer_id', customerId)
         .order('created_at', { ascending: false });
 
