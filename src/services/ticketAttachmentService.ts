@@ -4,6 +4,9 @@ import { toast } from '@/hooks/use-toast';
 import { uploadFile, downloadFile } from './storageService';
 import { logFileAccess } from './auditLogService';
 
+const TICKET_ATTACHMENT_COLS = 'id, ticket_id, file_name, file_path, file_size, file_type, user_id, uploaded_at';
+
+
 export interface TicketAttachment {
   id: string;
   ticket_id: string;
@@ -93,7 +96,7 @@ export const getTicketAttachments = async (ticketId: string) => {
   try {
     const { data, error } = await supabase
       .from('ticket_attachments')
-      .select('*')
+      .select(TICKET_ATTACHMENT_COLS)
       .eq('ticket_id', ticketId)
       .order('uploaded_at', { ascending: false });
 
@@ -116,7 +119,7 @@ export const downloadTicketAttachment = async (attachmentId: string, userId: str
     // Get attachment info
     const { data: attachment, error } = await supabase
       .from('ticket_attachments')
-      .select('*')
+      .select(TICKET_ATTACHMENT_COLS)
       .eq('id', attachmentId)
       .single();
 

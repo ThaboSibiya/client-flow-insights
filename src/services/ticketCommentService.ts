@@ -69,7 +69,7 @@ export const getTicketComments = async (
   try {
     const { data, error } = await supabase
       .from('ticket_comments')
-      .select('*')
+      .select('id, ticket_id, user_id, user_name, comment, is_internal, created_at, updated_at')
       .eq('ticket_id', ticketId)
       .order('created_at', { ascending: true });
 

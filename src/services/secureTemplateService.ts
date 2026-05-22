@@ -73,7 +73,7 @@ export const secureTemplateService = {
   getUserTemplatesSecure: async (userId: string) => {
     const { data, error } = await supabase
       .from('industry_templates')
-      .select('*')
+      .select('id, name, industry, description, is_active, version, user_id, created_at, updated_at')
       .eq('user_id', userId)
       .eq('is_active', true)
       .order('created_at', { ascending: false });
