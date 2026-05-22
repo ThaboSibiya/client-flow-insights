@@ -50,7 +50,7 @@ export const useWorkflowAutomations = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workflow_automations')
-        .select('*')
+        .select('id, user_id, name, description, nodes, edges, is_active, trigger_type, trigger_count, last_triggered_at, created_at, updated_at')
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data as RawRow[]).map(parseRow);
