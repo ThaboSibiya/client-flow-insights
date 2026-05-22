@@ -8,7 +8,7 @@ export const getAutomationPermissions = async (employeeId: string): Promise<Auto
   try {
     const { data, error } = await supabase
       .from('automation_permissions')
-      .select('*')
+      .select('id, automation_id, employee_id, permission_level, granted_by, granted_at, expires_at, created_at')
       .eq('employee_id', employeeId)
       .order('created_at', { ascending: false });
 

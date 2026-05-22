@@ -43,9 +43,9 @@ class AutomationAuditService {
     try {
       let query = supabase
         .from('security_audit_logs')
-        .select('*')
+        .select('id, user_id, action, resource_type, resource_id, success, error_message, metadata, timestamp')
         .eq('resource_type', 'automation')
-        .order('created_at', { ascending: false })
+        .order('timestamp', { ascending: false })
         .limit(100);
 
       if (automationId) {
