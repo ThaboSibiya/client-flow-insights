@@ -1,6 +1,12 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+const EMAIL_THREAD_COLS = 'id, thread_id, subject, participants, last_message_at, message_count, unread_count, labels, provider_id';
+const EMAIL_COLS = 'id, thread_id, provider_message_id, provider_id, subject, from_email, from_name, to_emails, cc_emails, bcc_emails, reply_to, body_text, body_html, is_read, is_sent, is_draft, importance, labels, message_date';
+const EMAIL_ATTACHMENT_COLS = 'id, filename, content_type, size_bytes, attachment_id, file_path, is_downloaded';
+const EMAIL_SYNC_STATUS_COLS = 'id, user_id, provider_id, last_sync_at, sync_status, error_message, total_emails_synced, updated_at';
+
+
 export interface EmailThread {
   id: string;
   thread_id: string;
@@ -67,7 +73,7 @@ export class EmailService {
   async getEmailThreads(limit = 50, offset = 0): Promise<EmailThread[]> {
     const { data, error } = await supabase
       .from('email_threads')
-      .select('*')
+      .select(EMAIL_THREAD_COLS)
       .order('last_message_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -92,8 +98,8 @@ export class EmailService {
     const { data: emails, error: emailsError } = await supabase
       .from('emails')
       .select(`
-        *,
-        email_attachments (*)
+        ${EMAIL_COLS},
+        email_attachments (${EMAIL_ATTACHMENT_COLS})
       `)
       .eq('thread_id', threadId)
       .order('message_date', { ascending: true });
@@ -201,7 +207,7 @@ export class EmailService {
   async getSyncStatus(providerId: string): Promise<any> {
     const { data, error } = await supabase
       .from('email_sync_status')
-      .select('*')
+      .select(EMAIL_SYNC_STATUS_COLS)
       .eq('provider_id', providerId)
       .single();
 
@@ -216,8 +222,8 @@ export class EmailService {
     const { data, error } = await supabase
       .from('emails')
       .select(`
-        *,
-        email_attachments (*)
+        ${EMAIL_COLS},
+        email_attachments (${EMAIL_ATTACHMENT_COLS})
       `)
       .or(`subject.ilike.%${query}%,body_text.ilike.%${query}%,from_email.ilike.%${query}%`)
       .order('message_date', { ascending: false })

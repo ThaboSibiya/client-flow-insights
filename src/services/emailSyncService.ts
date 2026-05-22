@@ -89,7 +89,7 @@ export class EmailSyncService {
   async getSyncStatus(providerId: string): Promise<SyncProgress | null> {
     const { data, error } = await supabase
       .from('email_sync_status')
-      .select('*')
+      .select('sync_status, last_sync_at, error_message, total_emails_synced')
       .eq('provider_id', providerId)
       .single();
 

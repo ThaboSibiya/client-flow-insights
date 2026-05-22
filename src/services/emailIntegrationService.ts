@@ -88,7 +88,7 @@ export class EmailIntegrationService {
   async getEmailConfigurations(): Promise<EmailConfiguration[]> {
     const { data, error } = await supabase
       .from('email_integrations')
-      .select('*')
+      .select('id, provider_id, is_enabled, settings')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -188,7 +188,7 @@ export class EmailIntegrationService {
   async getSyncStatus(providerId: string): Promise<any> {
     const { data, error } = await supabase
       .from('email_sync_status')
-      .select('*')
+      .select('sync_status, last_sync_at, error_message, total_emails_synced, updated_at')
       .eq('provider_id', providerId)
       .single();
 
