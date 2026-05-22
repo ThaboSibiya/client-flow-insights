@@ -50,12 +50,7 @@ export const useEmployeeData = () => {
 
       let query = supabase
         .from('employees')
-        .select(`
-          *,
-          is_invited,
-          auth_user_id,
-          last_login_at
-        `)
+        .select('id, employee_number, first_name, last_name, email, designation, role, status, is_invited, auth_user_id, last_login_at')
         .eq('company_owner_id', user.id);
 
       if (workspaceId) {
