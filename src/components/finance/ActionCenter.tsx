@@ -14,7 +14,6 @@ import { financeBusinessLogic } from '@/services/financeBusinessLogic';
 import { financeApiService } from '@/services/financeApiService';
 import { toast } from '@/hooks/use-toast';
 import { generateStatementPDF } from '@/utils/pdfExport';
-import { financeApiService } from '@/services/financeApiService';
 import { invoiceService } from '@/services/invoiceService';
 import { supabase } from '@/integrations/supabase/client';
 
