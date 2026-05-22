@@ -42,7 +42,7 @@ export const useEquipmentService = (customerId: string) => {
     try {
       const { data, error } = await supabase
         .from('equipment_service_history')
-        .select('*')
+        .select('id, equipment_id, customer_id, user_id, service_type, service_date, performed_by, description, resolution, parts_used, labor_cost, parts_cost, total_cost, ticket_id, status, next_service_due, created_at, updated_at')
         .eq('equipment_id', equipmentId)
         .order('service_date', { ascending: false });
 
