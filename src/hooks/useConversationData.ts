@@ -14,7 +14,7 @@ export const useConversationData = (conversationId: string) => {
     try {
       let query = supabase
         .from('conversations')
-        .select('*')
+        .select('id, company_owner_id, customer_id, employee_id, type, subject, status, last_message_at, created_at, updated_at, last_message_preview, unread_count, recipient_email, recipient_phone, recipient_name, workspace_id')
         .eq('id', conversationId);
 
       if (workspaceId) {
