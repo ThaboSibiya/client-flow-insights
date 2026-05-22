@@ -7,6 +7,11 @@ import { toast } from '@/hooks/use-toast';
 import { financeAuditService } from '@/services/financeAuditService';
 import { financeEventBus, FINANCE_EVENTS, useFinanceStore } from '@/stores/financeStore';
 
+const INVOICE_COLS = 'id, customer_id, user_id, invoice_number, amount, tax_amount, total_amount, status, due_date, issue_date, paid_date, description, terms, notes, created_at, updated_at';
+const PAYMENT_COLS = 'id, customer_id, invoice_id, user_id, payment_number, amount, payment_date, payment_method, reference_number, status, notes, created_at, updated_at';
+const FINANCE_NOTE_COLS = 'id, customer_id, user_id, note, tag, created_by, created_at, updated_at';
+const ACCOUNT_FLAG_COLS = 'id, customer_id, user_id, flag_type, flag_reason, status, priority, flagged_by, resolved_by, resolved_at, created_at, updated_at';
+
 export const useFinanceBackend = (customerId: string) => {
   const { user } = useAuth();
   const workspaceId = useActiveWorkspaceId();
@@ -22,7 +27,7 @@ export const useFinanceBackend = (customerId: string) => {
     try {
       const { data, error } = await supabase
         .from('invoices')
-        .select('*')
+        .select(INVOICE_COLS)
         .eq('customer_id', customerId)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -40,7 +45,7 @@ export const useFinanceBackend = (customerId: string) => {
     try {
       const { data, error } = await supabase
         .from('payments')
-        .select('*')
+        .select(PAYMENT_COLS)
         .eq('customer_id', customerId)
         .eq('user_id', user.id)
         .order('payment_date', { ascending: false });
@@ -58,7 +63,7 @@ export const useFinanceBackend = (customerId: string) => {
     try {
       const { data, error } = await supabase
         .from('finance_notes')
-        .select('*')
+        .select(FINANCE_NOTE_COLS)
         .eq('customer_id', customerId)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -76,7 +81,7 @@ export const useFinanceBackend = (customerId: string) => {
     try {
       const { data, error } = await supabase
         .from('account_flags')
-        .select('*')
+        .select(ACCOUNT_FLAG_COLS)
         .eq('customer_id', customerId)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });

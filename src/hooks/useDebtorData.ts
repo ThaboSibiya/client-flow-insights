@@ -61,7 +61,7 @@ export const useDebtorData = () => {
       // Fetch overdue invoices
       let invQuery = supabase
         .from('invoices')
-        .select('*')
+        .select('id, customer_id, due_date, status, total_amount')
         .eq('user_id', user.id)
         .in('status', ['overdue', 'sent', 'partial']);
 
