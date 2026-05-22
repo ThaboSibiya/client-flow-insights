@@ -33,7 +33,7 @@ export const useWebhookConnections = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('webhook_connections')
-        .select('*')
+        .select('id, user_id, name, platform, webhook_url, is_active, trigger_count, last_triggered_at, connected_apps, created_at, updated_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;

@@ -40,7 +40,7 @@ export const useDataSyncRules = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('data_sync_rules')
-        .select('*')
+        .select('id, user_id, name, source_system, target_system, data_type, sync_direction, frequency, is_active, status, sync_count, last_sync_at, config, created_at, updated_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
