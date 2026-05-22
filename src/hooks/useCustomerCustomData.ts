@@ -147,7 +147,7 @@ export const useCustomerCustomData = (customerId: string) => {
         if (nonEquipmentFieldIds.length > 0) {
           const { data: customDataResult, error: customDataError } = await supabase
             .from('customer_custom_data')
-            .select('*')
+            .select('id, customer_id, field_id, field_value, user_id, created_at, updated_at')
             .eq('customer_id', customerId)
             .eq('user_id', user!.id)
             .in('field_id', nonEquipmentFieldIds);
