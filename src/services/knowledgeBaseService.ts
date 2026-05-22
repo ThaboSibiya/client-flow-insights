@@ -58,7 +58,7 @@ export const listKnowledgeBaseFiles = async (): Promise<KnowledgeBaseFile[]> => 
   try {
     const { data, error } = await supabase
       .from('knowledge_base_files')
-      .select('*')
+      .select('id, file_name, file_path, created_at')
       .order('created_at', { ascending: false });
 
     if (error) {

@@ -46,7 +46,7 @@ export const useNotificationPreferences = () => {
     try {
       const { data, error } = await supabase
         .from('notification_preferences')
-        .select('*')
+        .select('id, email_notifications, push_notifications, desktop_notifications, sound_notifications, notification_frequency, customer_notifications, ticket_notifications, project_notifications, task_notifications, system_notifications')
         .eq('user_id', user.id)
         .maybeSingle();
 
