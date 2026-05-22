@@ -42,7 +42,7 @@ export const useApiTriggers = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('api_triggers')
-        .select('*')
+        .select('id, user_id, name, endpoint_key, method, auth_type, description, sample_payload, is_active, trigger_count, last_triggered_at, created_at, updated_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
