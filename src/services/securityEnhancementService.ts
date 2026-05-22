@@ -41,7 +41,7 @@ export const securityEnhancementService = {
     try {
       const { data, error } = await supabase
         .from('security_audit_logs')
-        .select('*')
+        .select('id, user_id, action, resource_type, resource_id, success, metadata, timestamp')
         .eq('user_id', userId)
         .eq('action', 'employee_role_changed')
         .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
@@ -64,7 +64,7 @@ export const securityEnhancementService = {
     try {
       const { data, error } = await supabase
         .from('security_audit_logs')
-        .select('*')
+        .select('id, user_id, action, resource_type, resource_id, success, metadata, timestamp')
         .eq('resource_type', 'employee')
         .eq('resource_id', employeeId)
         .eq('action', 'employee_role_changed')

@@ -48,7 +48,7 @@ export const readSecureAuditLogs = async (limit: number = 100): Promise<SecureAu
   try {
     const { data, error } = await supabase
       .from('security_audit_logs')
-      .select('*')
+      .select('id, user_id, action, resource_type, resource_id, success, error_message, ip_address, user_agent, metadata, timestamp')
       .order('timestamp', { ascending: false })
       .limit(limit);
 
