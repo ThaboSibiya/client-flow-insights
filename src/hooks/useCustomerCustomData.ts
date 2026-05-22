@@ -99,7 +99,7 @@ export const useCustomerCustomData = (customerId: string) => {
       // Also load custom fields (not tied to templates)
       const { data: customFieldsData, error: customFieldsError } = await supabase
         .from('template_fields')
-        .select('*')
+        .select('id, template_id, field_name, field_label, field_type, field_options, is_required, display_order, created_at')
         .is('template_id', null)
         .order('display_order');
 
