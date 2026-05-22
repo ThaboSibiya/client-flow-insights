@@ -2,6 +2,11 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+const EMPLOYEE_ROUTING_COLS = 'id, first_name, last_name, role, status, department, designation';
+const TICKET_ROUTING_COLS = 'id, ticket_number, status, priority, assigned_to_id, assigned_to_name, user_id, resolved_at, updated_at';
+const TICKET_ACTIVITY_COLS = 'id, ticket_id, activity_type, created_at';
+
+
 export interface TicketRoutingRule {
   id: string;
   name: string;
@@ -34,7 +39,7 @@ class TicketRoutingService {
     try {
       const { data: employees } = await supabase
         .from('employees')
-        .select('*')
+        .select(EMPLOYEE_ROUTING_COLS)
         .eq('status', 'active');
 
       if (!employees?.length) {
@@ -94,7 +99,7 @@ class TicketRoutingService {
 
       const { data: employees } = await supabase
         .from('employees')
-        .select('*')
+        .select(EMPLOYEE_ROUTING_COLS)
         .eq('status', 'active');
 
       if (!employees?.length) {
@@ -187,7 +192,7 @@ class TicketRoutingService {
       // Get all open tickets
       const { data: tickets } = await supabase
         .from('tickets')
-        .select('*')
+        .select(TICKET_ROUTING_COLS)
         .in('status', ['open', 'in-progress']);
 
       if (!tickets) return;
@@ -212,7 +217,7 @@ class TicketRoutingService {
       // Find current assignee and escalate to manager
       const { data: ticket } = await supabase
         .from('tickets')
-        .select('*, assigned_to_id')
+        .select(TICKET_ROUTING_COLS)
         .eq('id', ticketId)
         .single();
 
@@ -221,7 +226,7 @@ class TicketRoutingService {
       // Find a manager to escalate to
       const { data: managers } = await supabase
         .from('employees')
-        .select('*')
+        .select(EMPLOYEE_ROUTING_COLS)
         .eq('role', 'manager')
         .eq('status', 'active')
         .limit(1);
@@ -270,7 +275,7 @@ class TicketRoutingService {
 
       const { data: resolvedTickets } = await supabase
         .from('tickets')
-        .select('*')
+        .select('id, user_id, ticket_number')
         .eq('status', 'resolved')
         .lt('resolved_at', cutoffTime.toISOString());
 
@@ -316,7 +321,7 @@ class TicketRoutingService {
     try {
       const { data: stats } = await supabase
         .from('ticket_activities')
-        .select('*')
+        .select(TICKET_ACTIVITY_COLS)
         .in('activity_type', ['assigned', 'escalated', 'auto-closed'])
         .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
 
