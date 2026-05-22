@@ -81,7 +81,7 @@ export const useSecureCustomerData = (isOpen: boolean) => {
       // Get customers with proper RLS enforcement + explicit workspace scope
       let customersQuery = supabase
         .from('customers')
-        .select('*')
+        .select('id, name, email, phone, status, notes, user_id, workspace_id')
         .eq('user_id', companyOwnerId);
 
       if (workspaceId) {

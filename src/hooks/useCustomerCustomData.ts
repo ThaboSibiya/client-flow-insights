@@ -88,7 +88,7 @@ export const useCustomerCustomData = (customerId: string) => {
         const templateIds = appliedTemplatesList.map(t => t.id);
         const { data: templateFieldsData, error: fieldsError } = await supabase
           .from('template_fields')
-          .select('*')
+          .select('id, template_id, field_name, field_label, field_type, field_options, is_required, display_order, created_at')
           .in('template_id', templateIds)
           .order('display_order');
 
@@ -99,7 +99,7 @@ export const useCustomerCustomData = (customerId: string) => {
       // Also load custom fields (not tied to templates)
       const { data: customFieldsData, error: customFieldsError } = await supabase
         .from('template_fields')
-        .select('*')
+        .select('id, template_id, field_name, field_label, field_type, field_options, is_required, display_order, created_at')
         .is('template_id', null)
         .order('display_order');
 
@@ -147,7 +147,7 @@ export const useCustomerCustomData = (customerId: string) => {
         if (nonEquipmentFieldIds.length > 0) {
           const { data: customDataResult, error: customDataError } = await supabase
             .from('customer_custom_data')
-            .select('*')
+            .select('id, customer_id, field_id, field_value, user_id, created_at, updated_at')
             .eq('customer_id', customerId)
             .eq('user_id', user!.id)
             .in('field_id', nonEquipmentFieldIds);
@@ -170,7 +170,7 @@ export const useCustomerCustomData = (customerId: string) => {
       // Load equipment data separately
       const { data: equipment, error: equipmentError } = await supabase
         .from('customer_equipment')
-        .select('*')
+        .select('id, customer_id, user_id, equipment_type, brand, model, serial_number, purchase_date, warranty_expiry, notes, created_at, updated_at, technical_issues, status, last_service_date, next_service_due, total_services')
         .eq('customer_id', customerId)
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false });
