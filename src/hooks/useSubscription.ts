@@ -21,7 +21,7 @@ export const useSubscription = () => {
 
       const { data, error } = await supabase
         .from('user_subscriptions')
-        .select('*')
+        .select('id, user_id, plan_name, plan_amount, currency, status, paystack_reference, paystack_plan_code, trial_ends_at, current_period_start, current_period_end, cancelled_at, created_at, updated_at')
         .eq('user_id', user.id)
         .in('status', ['active', 'trialing', 'past_due'])
         .maybeSingle();
