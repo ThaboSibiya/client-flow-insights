@@ -126,7 +126,28 @@ export const financeApiService = {
 
     if (error) throw error;
     return data;
-  }
+  },
+
+  /**
+   * Email a customer statement via the `customer-email-statement` edge function.
+   * Merged from the former `financeEmailService`.
+   */
+  async emailStatement(
+    customerId: string,
+    options?: {
+      startDate?: string;
+      endDate?: string;
+      recipientEmail?: string;
+    }
+  ) {
+    const { data, error } = await supabase.functions.invoke('customer-email-statement', {
+      body: { customerId, ...options },
+      method: 'POST',
+    });
+
+    if (error) throw error;
+    return data;
+  },
 };
 
 // Direct URL-based calls (alternative approach if needed)
@@ -204,5 +225,14 @@ export const financeApiDirectService = {
       method: 'POST',
       body: { customerId, ...options }
     });
-  }
+  },
 };
+
+/**
+ * @deprecated Import `financeApiService.emailStatement` instead.
+ * Kept as a thin alias for the single in-tree caller.
+ */
+export const financeEmailService = {
+  emailStatement: financeApiService.emailStatement.bind(financeApiService),
+};
+
