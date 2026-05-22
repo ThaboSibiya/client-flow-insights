@@ -2,12 +2,18 @@
 import { supabase } from '@/integrations/supabase/client';
 import { IndustryTemplate, TemplateField, CustomerCustomData, CustomerTemplate } from '@/types/templates';
 
+const INDUSTRY_TEMPLATE_COLS = 'id, name, industry, description, is_active, version, user_id, created_at, updated_at';
+const TEMPLATE_FIELD_COLS = 'id, template_id, field_name, field_label, field_type, field_options, is_required, display_order, created_at';
+const CUSTOMER_CUSTOM_DATA_COLS = 'id, customer_id, field_id, field_value, user_id, created_at, updated_at';
+const CUSTOMER_TEMPLATE_COLS = 'id, customer_id, template_id, user_id, applied_at';
+
+
 export const templateService = {
   // Fetch all available industry templates (both system and user-created)
   async getIndustryTemplates(): Promise<IndustryTemplate[]> {
     const { data, error } = await supabase
       .from('industry_templates')
-      .select('*')
+      .select(INDUSTRY_TEMPLATE_COLS)
       .eq('is_active', true)
       .order('name');
 
@@ -19,7 +25,7 @@ export const templateService = {
   async getTemplateFields(templateId: string): Promise<TemplateField[]> {
     const { data, error } = await supabase
       .from('template_fields')
-      .select('*')
+      .select(TEMPLATE_FIELD_COLS)
       .eq('template_id', templateId)
       .order('display_order');
 
@@ -78,7 +84,7 @@ export const templateService = {
   async getCustomerCustomData(customerId: string): Promise<CustomerCustomData[]> {
     const { data, error } = await supabase
       .from('customer_custom_data')
-      .select('*')
+      .select(CUSTOMER_CUSTOM_DATA_COLS)
       .eq('customer_id', customerId);
 
     if (error) throw error;
@@ -89,7 +95,7 @@ export const templateService = {
   async getCustomerTemplates(customerId: string): Promise<CustomerTemplate[]> {
     const { data, error } = await supabase
       .from('customer_templates')
-      .select('*')
+      .select(CUSTOMER_TEMPLATE_COLS)
       .eq('customer_id', customerId);
 
     if (error) throw error;
@@ -210,7 +216,7 @@ export const templateService = {
   async getUserCustomTemplates(): Promise<IndustryTemplate[]> {
     const { data, error } = await supabase
       .from('industry_templates')
-      .select('*')
+      .select(INDUSTRY_TEMPLATE_COLS)
       .eq('is_active', true)
       .order('created_at', { ascending: false });
 

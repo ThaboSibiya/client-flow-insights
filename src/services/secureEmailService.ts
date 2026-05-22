@@ -58,7 +58,7 @@ export const secureEmailService = {
   async getEmailHistory(customerId: string): Promise<SecureEmailHistoryEntry[]> {
     const { data, error } = await supabase
       .from('email_history')
-      .select('*')
+      .select('id, customer_id, sender, subject, message, attachments, status, user_id, created_at')
       .eq('customer_id', customerId)
       .order('created_at', { ascending: false });
 
