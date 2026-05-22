@@ -26,7 +26,7 @@ export const loadMessagesPaginated = async (
   try {
     let query = supabase
       .from('messages')
-      .select('*')
+      .select('id, conversation_id, sender_type, sender_id, sender_name, sender_email, sender_phone, content, message_type, metadata, attachments, is_read, created_at, attachment_count')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: false })
       .limit(pageSize + 1); // Get one extra to check if there are more
