@@ -31,7 +31,7 @@ export const useReconciliationData = (filters: ReconciliationFilters) => {
       // Build invoice query
       let invoiceQuery = supabase
         .from('invoices')
-        .select('*')
+        .select('id, customer_id, user_id, invoice_number, amount, tax_amount, total_amount, status, due_date, issue_date, paid_date, description, terms, notes, created_at, updated_at, workspace_id')
         .eq('user_id', user.id);
 
       if (filters.customerId) {
