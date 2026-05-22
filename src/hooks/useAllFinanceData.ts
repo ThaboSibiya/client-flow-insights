@@ -4,6 +4,10 @@ import { useAuth } from '@/context/AuthContext';
 import { Invoice, Payment } from '@/types/financeBackend';
 import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
+const INVOICE_COLS = 'id, customer_id, user_id, invoice_number, amount, tax_amount, total_amount, status, due_date, issue_date, paid_date, description, terms, notes, created_at, updated_at';
+const PAYMENT_COLS = 'id, customer_id, invoice_id, user_id, payment_number, amount, payment_date, payment_method, reference_number, status, notes, created_at, updated_at';
+
+
 export const useAllFinanceData = () => {
   const { user } = useAuth();
   const workspaceId = useActiveWorkspaceId();
@@ -17,7 +21,7 @@ export const useAllFinanceData = () => {
     try {
       let query = supabase
         .from('invoices')
-        .select('*')
+        .select(INVOICE_COLS)
         .eq('user_id', user.id);
       if (workspaceId) query = query.eq('workspace_id', workspaceId);
       const { data, error } = await query
@@ -36,7 +40,7 @@ export const useAllFinanceData = () => {
     try {
       let query = supabase
         .from('payments')
-        .select('*')
+        .select(PAYMENT_COLS)
         .eq('user_id', user.id);
       if (workspaceId) query = query.eq('workspace_id', workspaceId);
       const { data, error } = await query

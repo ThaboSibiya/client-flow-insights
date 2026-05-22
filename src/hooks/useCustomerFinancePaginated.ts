@@ -8,6 +8,10 @@ import { financeCacheService } from '@/services/financeCacheService';
 const TRANSACTIONS_PER_PAGE = 20;
 const NOTES_PER_PAGE = 10;
 
+const SUMMARY_COLS = 'id, customer_id, user_id, account_number, current_balance, total_owed, credit_limit, credit_terms, risk_rating, account_status, last_payment_date, last_payment_amount, next_due_date, created_at, updated_at';
+const DEBTOR_NOTE_COLS = 'id, customer_id, user_id, note_type, note_content, priority, follow_up_date, created_by, created_at, updated_at';
+const TXN_COLS = 'id, customer_id, user_id, transaction_type, reference_number, amount, balance_after, status, due_date, payment_method, description, created_at, updated_at';
+
 export const useCustomerFinancePaginated = (customerId: string) => {
   const { user } = useAuth();
   const [financeSummary, setFinanceSummary] = useState<CustomerFinanceSummary | null>(null);
@@ -35,7 +39,7 @@ export const useCustomerFinancePaginated = (customerId: string) => {
     try {
       const { data, error } = await supabase
         .from('customer_finance_summary')
-        .select('*')
+        .select(SUMMARY_COLS)
         .eq('customer_id', customerId)
         .eq('user_id', user.id)
         .maybeSingle();
@@ -81,7 +85,7 @@ export const useCustomerFinancePaginated = (customerId: string) => {
 
       const { data, error } = await supabase
         .from('debtor_notes')
-        .select('*')
+        .select(DEBTOR_NOTE_COLS)
         .eq('customer_id', customerId)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
@@ -111,7 +115,7 @@ export const useCustomerFinancePaginated = (customerId: string) => {
 
       const { data, error } = await supabase
         .from('customer_transactions')
-        .select('*')
+        .select(TXN_COLS)
         .eq('customer_id', customerId)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
