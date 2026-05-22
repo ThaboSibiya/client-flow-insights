@@ -1,36 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { 
-  Zap, 
-  Webhook, 
-  GitBranch, 
-  Plus, 
-  Search,
-  RefreshCw,
-  CheckCircle2,
-  Copy,
-  Check,
-  Play,
-  Trash2,
-  MoreHorizontal,
-  Code,
-  ChevronDown,
-  ChevronRight,
-  ScrollText,
-} from 'lucide-react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+  Zap, Webhook, GitBranch, Plus, Search, RefreshCw, ScrollText,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 
 // Hooks
 import { useWebhookConnections } from '@/hooks/useWebhookConnections';
@@ -45,27 +20,21 @@ import CreateWebhookSheet from '@/components/pipeline/automation/webhook-workflo
 import CreateSyncRuleDialog from '@/components/integrations/CreateSyncRuleDialog';
 import DeleteConfirmDialog from '@/components/integrations/DeleteConfirmDialog';
 import WebhookLogsPanel from '@/components/integrations/WebhookLogsPanel';
+import ApiTriggerCard from '@/components/integrations/sections/ApiTriggerCard';
+import WebhookCard from '@/components/integrations/sections/WebhookCard';
+import SyncRuleCard from '@/components/integrations/sections/SyncRuleCard';
 
 type FilterChip = 'all' | 'api-triggers' | 'webhooks' | 'sync-rules';
-
-const platformIcons: Record<string, string> = {
-  zapier: '⚡',
-  make: '🔄',
-  n8n: '🔗',
-  custom: '⚙️'
-};
 
 const Integrations = () => {
   const [activeFilter, setActiveFilter] = useState<FilterChip>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showLogs, setShowLogs] = useState(false);
-  
-  // Sheet/Dialog states
+
   const [showWebhookSheet, setShowWebhookSheet] = useState(false);
   const [showApiTriggerSheet, setShowApiTriggerSheet] = useState(false);
   const [showSyncRuleDialog, setShowSyncRuleDialog] = useState(false);
 
-  // Delete confirmation state
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     title: string;
@@ -73,15 +42,14 @@ const Integrations = () => {
     onConfirm: () => void;
   }>({ open: false, title: '', description: '', onConfirm: () => {} });
 
-  // Data hooks
-  const { 
-    connections, 
-    isLoading: webhooksLoading, 
-    createConnection, 
-    toggleConnection, 
-    deleteConnection, 
+  const {
+    connections,
+    isLoading: webhooksLoading,
+    createConnection,
+    toggleConnection,
+    deleteConnection,
     testWebhook,
-    refetch: refetchWebhooks
+    refetch: refetchWebhooks,
   } = useWebhookConnections();
 
   const {
@@ -93,7 +61,7 @@ const Integrations = () => {
     deleteTrigger,
     copyEndpoint,
     testTrigger,
-    refetch: refetchTriggers
+    refetch: refetchTriggers,
   } = useApiTriggers();
 
   const {
@@ -103,20 +71,18 @@ const Integrations = () => {
     toggleSyncRule,
     deleteSyncRule,
     triggerManualSync,
-    refetch: refetchSyncRules
+    refetch: refetchSyncRules,
   } = useDataSyncRules();
 
-  // Stats
   const activeWebhooks = connections.filter(c => c.is_active).length;
   const activeTriggers = triggers.filter(t => t.is_active).length;
   const activeSyncRules = syncRules.filter(r => r.is_active).length;
-  const totalEvents = connections.reduce((sum, c) => sum + c.trigger_count, 0) + 
+  const totalEvents = connections.reduce((sum, c) => sum + c.trigger_count, 0) +
                       triggers.reduce((sum, t) => sum + t.trigger_count, 0);
 
-  // Filter
   const filterBySearch = <T extends { name: string }>(items: T[]): T[] => {
     if (!searchQuery.trim()) return items;
-    return items.filter(item => 
+    return items.filter(item =>
       item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
@@ -148,13 +114,9 @@ const Integrations = () => {
   };
 
   const handleCreateNew = () => {
-    if (activeFilter === 'webhooks') {
-      setShowWebhookSheet(true);
-    } else if (activeFilter === 'sync-rules') {
-      setShowSyncRuleDialog(true);
-    } else {
-      setShowApiTriggerSheet(true);
-    }
+    if (activeFilter === 'webhooks') setShowWebhookSheet(true);
+    else if (activeFilter === 'sync-rules') setShowSyncRuleDialog(true);
+    else setShowApiTriggerSheet(true);
   };
 
   const confirmDelete = (title: string, description: string, onConfirm: () => void) => {
@@ -173,17 +135,15 @@ const Integrations = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            Integrations Hub
-          </h1>
+          <h1 className="text-2xl font-bold text-foreground">Integrations Hub</h1>
           <p className="text-muted-foreground text-sm">
             Connect external systems and automate your workflows
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            variant={showLogs ? 'default' : 'outline'} 
-            size="sm" 
+          <Button
+            variant={showLogs ? 'default' : 'outline'}
+            size="sm"
             onClick={() => setShowLogs(!showLogs)}
           >
             <ScrollText className="h-4 w-4 mr-2" />
@@ -202,56 +162,28 @@ const Integrations = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-green-500" />
-              <div>
-                <div className="text-2xl font-bold text-foreground">{activeTriggers}</div>
-                <div className="text-xs text-muted-foreground">API Triggers</div>
+        {[
+          { label: 'API Triggers', value: activeTriggers, dot: 'bg-green-500' },
+          { label: 'Webhooks', value: activeWebhooks, dot: 'bg-green-500' },
+          { label: 'Sync Rules', value: activeSyncRules, dot: 'bg-green-500' },
+          { label: 'Total Events', value: totalEvents.toLocaleString(), dot: 'bg-primary' },
+        ].map((stat) => (
+          <Card key={stat.label}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className={cn('h-2 w-2 rounded-full', stat.dot)} />
+                <div>
+                  <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                  <div className="text-xs text-muted-foreground">{stat.label}</div>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-green-500" />
-              <div>
-                <div className="text-2xl font-bold text-foreground">{activeWebhooks}</div>
-                <div className="text-xs text-muted-foreground">Webhooks</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-green-500" />
-              <div>
-                <div className="text-2xl font-bold text-foreground">{activeSyncRules}</div>
-                <div className="text-xs text-muted-foreground">Sync Rules</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-primary" />
-              <div>
-                <div className="text-2xl font-bold text-foreground">{totalEvents.toLocaleString()}</div>
-                <div className="text-xs text-muted-foreground">Total Events</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Webhook Logs Panel (toggleable) */}
       {showLogs && <WebhookLogsPanel />}
 
-      {/* Quick Start Guide */}
       <IntegrationsGuide />
 
       {/* Filter Chips + Search */}
@@ -291,9 +223,7 @@ const Integrations = () => {
         </div>
       </div>
 
-      {/* Flat Card List */}
       <div className="space-y-6">
-        {/* API Triggers Section */}
         {showApiTriggers && (
           <div className="space-y-3">
             {activeFilter === 'all' && (
@@ -308,10 +238,7 @@ const Integrations = () => {
             {triggersLoading ? (
               <IntegrationEmptyState type="api-triggers" onCreateFirst={() => {}} isLoading />
             ) : filteredTriggers.length === 0 ? (
-              <IntegrationEmptyState 
-                type="api-triggers" 
-                onCreateFirst={() => setShowApiTriggerSheet(true)} 
-              />
+              <IntegrationEmptyState type="api-triggers" onCreateFirst={() => setShowApiTriggerSheet(true)} />
             ) : (
               <div className="space-y-2">
                 {filteredTriggers.map((trigger) => (
@@ -335,7 +262,6 @@ const Integrations = () => {
           </div>
         )}
 
-        {/* Webhooks Section */}
         {showWebhooks && (
           <div className="space-y-3">
             {activeFilter === 'all' && (
@@ -350,10 +276,7 @@ const Integrations = () => {
             {webhooksLoading ? (
               <IntegrationEmptyState type="webhooks" onCreateFirst={() => {}} isLoading />
             ) : filteredConnections.length === 0 ? (
-              <IntegrationEmptyState 
-                type="webhooks" 
-                onCreateFirst={() => setShowWebhookSheet(true)} 
-              />
+              <IntegrationEmptyState type="webhooks" onCreateFirst={() => setShowWebhookSheet(true)} />
             ) : (
               <div className="space-y-2">
                 {filteredConnections.map((connection) => (
@@ -375,7 +298,6 @@ const Integrations = () => {
           </div>
         )}
 
-        {/* Data Sync Section */}
         {showSyncRulesSection && (
           <div className="space-y-3">
             {activeFilter === 'all' && (
@@ -390,10 +312,7 @@ const Integrations = () => {
             {syncLoading ? (
               <IntegrationEmptyState type="sync-rules" onCreateFirst={() => {}} isLoading />
             ) : filteredSyncRules.length === 0 ? (
-              <IntegrationEmptyState 
-                type="sync-rules" 
-                onCreateFirst={() => setShowSyncRuleDialog(true)} 
-              />
+              <IntegrationEmptyState type="sync-rules" onCreateFirst={() => setShowSyncRuleDialog(true)} />
             ) : (
               <div className="space-y-2">
                 {filteredSyncRules.map((rule) => (
@@ -416,7 +335,6 @@ const Integrations = () => {
         )}
       </div>
 
-      {/* Delete Confirmation */}
       <DeleteConfirmDialog
         open={deleteDialog.open}
         onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
@@ -428,7 +346,6 @@ const Integrations = () => {
         description={deleteDialog.description}
       />
 
-      {/* Sheets (slide-over panels) */}
       <CreateApiTriggerSheet
         open={showApiTriggerSheet}
         onOpenChange={setShowApiTriggerSheet}
@@ -444,307 +361,6 @@ const Integrations = () => {
         onOpenChange={setShowSyncRuleDialog}
         onCreate={createSyncRule}
       />
-    </div>
-  );
-};
-
-// ── API Trigger Card with instant-copy URL + expandable code snippets ──
-interface ApiTriggerCardProps {
-  trigger: ReturnType<typeof useApiTriggers>['triggers'][number];
-  webhookUrl: string;
-  onToggle: () => void;
-  onTest: () => void;
-  onDelete: () => void;
-  onCopy: () => void;
-  formatDate: (d: string | null) => string;
-}
-
-const ApiTriggerCard: React.FC<ApiTriggerCardProps> = ({
-  trigger, webhookUrl, onToggle, onTest, onDelete, onCopy, formatDate
-}) => {
-  const [copied, setCopied] = useState(false);
-  const [showSnippets, setShowSnippets] = useState(false);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(webhookUrl);
-    setCopied(true);
-    toast.success('URL copied');
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const curlSnippet = `curl -X ${trigger.method} "${webhookUrl}" \\
-  -H "Content-Type: application/json" \\
-  -d '{"name": "Jane", "email": "jane@example.com"}'`;
-
-  const jsSnippet = `fetch("${webhookUrl}", {
-  method: "${trigger.method}",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    name: "Jane",
-    email: "jane@example.com"
-  })
-});`;
-
-  return (
-    <Card className="group transition-all hover:shadow-sm">
-      <CardContent className="p-4 space-y-3">
-        {/* Top row */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className={cn(
-              'h-2 w-2 rounded-full shrink-0',
-              trigger.is_active ? 'bg-green-500' : 'bg-muted-foreground/30'
-            )} />
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h4 className="text-sm font-semibold text-foreground truncate">{trigger.name}</h4>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">{trigger.method}</Badge>
-              </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-                <span>{trigger.trigger_count} calls</span>
-                <span>•</span>
-                <span>Last: {formatDate(trigger.last_triggered_at)}</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={trigger.is_active}
-              onCheckedChange={onToggle}
-              className="shrink-0"
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onTest}>
-                  <Play className="h-3.5 w-3.5 mr-2" />
-                  Send Test
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
-                  <Trash2 className="h-3.5 w-3.5 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-
-        {/* URL row — hero element */}
-        <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2">
-          <code className="flex-1 text-xs font-mono text-foreground truncate select-all">
-            {webhookUrl}
-          </code>
-          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={handleCopy}>
-            {copied ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
-          </Button>
-        </div>
-
-        {/* Expandable code snippets */}
-        <Collapsible open={showSnippets} onOpenChange={setShowSnippets}>
-          <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-            <Code className="h-3.5 w-3.5" />
-            Code Snippets
-            {showSnippets ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="mt-2 space-y-2">
-              <SnippetBlock label="cURL" code={curlSnippet} />
-              <SnippetBlock label="JavaScript" code={jsSnippet} />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </CardContent>
-    </Card>
-  );
-};
-
-// ── Webhook Card ──
-interface WebhookCardProps {
-  connection: ReturnType<typeof useWebhookConnections>['connections'][number];
-  onToggle: () => void;
-  onTest: () => void;
-  onDelete: () => void;
-  formatDate: (d: string | null) => string;
-}
-
-const WebhookCard: React.FC<WebhookCardProps> = ({
-  connection, onToggle, onTest, onDelete, formatDate
-}) => {
-  const [copied, setCopied] = useState(false);
-  const platform = platformIcons[connection.platform] || '⚙️';
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(connection.webhook_url);
-    setCopied(true);
-    toast.success('Webhook URL copied');
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <Card className="group transition-all hover:shadow-sm">
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className={cn(
-              'h-2 w-2 rounded-full shrink-0',
-              connection.is_active ? 'bg-green-500' : 'bg-muted-foreground/30'
-            )} />
-            <span className="text-base">{platform}</span>
-            <div className="min-w-0">
-              <h4 className="text-sm font-semibold text-foreground truncate">{connection.name}</h4>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-                <span>{connection.trigger_count} triggers</span>
-                <span>•</span>
-                <span>Last: {formatDate(connection.last_triggered_at)}</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {connection.connected_apps?.length > 0 && (
-              <div className="hidden sm:flex gap-1">
-                {connection.connected_apps.slice(0, 2).map((app) => (
-                  <Badge key={app} variant="outline" className="text-[10px] px-1.5 py-0">
-                    {app}
-                  </Badge>
-                ))}
-                {connection.connected_apps.length > 2 && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                    +{connection.connected_apps.length - 2}
-                  </Badge>
-                )}
-              </div>
-            )}
-            <Switch
-              checked={connection.is_active}
-              onCheckedChange={onToggle}
-              className="shrink-0"
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onTest}>
-                  <Play className="h-3.5 w-3.5 mr-2" />
-                  Send Test
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
-                  <Trash2 className="h-3.5 w-3.5 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-
-        {/* URL row */}
-        <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2">
-          <code className="flex-1 text-xs font-mono text-foreground truncate select-all">
-            {connection.webhook_url}
-          </code>
-          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={handleCopy}>
-            {copied ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// ── Sync Rule Card ──
-interface SyncRuleCardProps {
-  rule: ReturnType<typeof useDataSyncRules>['syncRules'][number];
-  onToggle: () => void;
-  onTest: () => void;
-  onDelete: () => void;
-  formatDate: (d: string | null) => string;
-}
-
-const SyncRuleCard: React.FC<SyncRuleCardProps> = ({
-  rule, onToggle, onTest, onDelete, formatDate
-}) => {
-  return (
-    <Card className="group transition-all hover:shadow-sm">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className={cn(
-              'h-2 w-2 rounded-full shrink-0',
-              rule.is_active ? 'bg-green-500' : 'bg-muted-foreground/30'
-            )} />
-            <GitBranch className="h-4 w-4 text-muted-foreground shrink-0" />
-            <div className="min-w-0">
-              <h4 className="text-sm font-semibold text-foreground truncate">{rule.name}</h4>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                <span>{rule.source_system} → {rule.target_system}</span>
-                <span>•</span>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">{rule.data_type}</Badge>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">{rule.frequency}</Badge>
-                <span>•</span>
-                <span>{rule.sync_count} syncs</span>
-                <span>•</span>
-                <span>Last: {formatDate(rule.last_sync_at)}</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={rule.is_active}
-              onCheckedChange={onToggle}
-              className="shrink-0"
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onTest}>
-                  <Play className="h-3.5 w-3.5 mr-2" />
-                  Manual Sync
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
-                  <Trash2 className="h-3.5 w-3.5 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// ── Reusable Code Snippet Block ──
-const SnippetBlock: React.FC<{ label: string; code: string }> = ({ label, code }) => {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    toast.success(`${label} snippet copied`);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="rounded-md border bg-muted/40 overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-1.5 border-b bg-muted/60">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopy}>
-          {copied ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
-        </Button>
-      </div>
-      <pre className="px-3 py-2 text-[11px] leading-relaxed text-foreground whitespace-pre-wrap font-mono overflow-x-auto">
-        {code}
-      </pre>
     </div>
   );
 };
