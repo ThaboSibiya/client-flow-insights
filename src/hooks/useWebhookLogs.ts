@@ -23,7 +23,7 @@ export const useWebhookLogs = (limit = 50) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('webhook_logs')
-        .select('*')
+        .select('id, user_id, connection_id, trigger_id, request_method, request_payload, response_status, response_body, success, error_message, created_at')
         .order('created_at', { ascending: false })
         .limit(limit);
 
