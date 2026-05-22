@@ -16,7 +16,7 @@ export const useMessageSearch = (conversationId: string) => {
 
       const { data, error } = await supabase
         .from('messages')
-        .select('*')
+        .select('id, conversation_id, sender_type, sender_id, sender_name, sender_email, sender_phone, content, message_type, metadata, attachments, is_read, created_at, attachment_count')
         .eq('conversation_id', conversationId)
         .ilike('content', `%${searchQuery}%`)
         .order('created_at', { ascending: true });
