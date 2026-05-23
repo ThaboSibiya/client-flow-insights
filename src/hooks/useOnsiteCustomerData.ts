@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/components/customers/onsite/types';
 import { CustomerStatus } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
-import { logSecurityEvent, validateEmail, validatePhone, sanitizeInput } from '@/services/securityService';
+import { logSecurityEvent, validateEmail, validatePhone, sanitizeInput } from '@/services/secureSecurityService';
 import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 
 export const useOnsiteCustomerData = (isOpen: boolean) => {

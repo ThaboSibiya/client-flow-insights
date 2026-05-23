@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Customer, OnSiteTicket, JobPhoto } from '@/components/customers/onsite/types';
 import { CustomerStatus } from '@/types/customer';
-import { logSecurityEvent, sanitizeInput } from '@/services/securityService';
+import { logSecurityEvent, sanitizeInput } from '@/services/secureSecurityService';
 import { ticketEventBus, TICKET_EVENTS } from '@/stores/ticketEventBus';
 
 interface JobCompletionPayload {

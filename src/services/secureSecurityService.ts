@@ -1,5 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { validateEmail, validatePhone, sanitizeInput } from '@/utils/securityUtils';
+
+export { validateEmail, validatePhone, sanitizeInput };
 
 export interface SecureSecurityAuditEvent {
   action: string;
@@ -133,4 +136,82 @@ export const hasValidPrivileges = async (requiredPrivilege: string): Promise<boo
     });
     return false;
   }
+};
+
+// ---------------------------------------------------------------------------
+// Legacy alias (formerly securityService.ts)
+// ---------------------------------------------------------------------------
+export interface SecurityAuditEvent {
+  action: string;
+  resource_type: string;
+  resource_id?: string;
+  success?: boolean;
+  error_message?: string;
+  metadata?: Record<string, any>;
+}
+
+export const logSecurityEvent = async (event: SecurityAuditEvent) => {
+  await logSecureSecurityEvent({ ...event, success: event.success ?? true });
+};
+
+// ---------------------------------------------------------------------------
+// Security monitoring (formerly securityMonitoringService.ts)
+// ---------------------------------------------------------------------------
+interface MonitoringSecurityEvent {
+  event_type: string;
+  user_id: string;
+  resource_type: string;
+  resource_id?: string;
+  metadata?: Record<string, any>;
+  user_agent?: string;
+}
+
+const storeSecurityEventServerSide = async (event: MonitoringSecurityEvent): Promise<void> => {
+  try {
+    const { error } = await supabase.from('security_events').insert({
+      user_id: event.user_id,
+      event_type: event.event_type,
+      resource_type: event.resource_type,
+      resource_id: event.resource_id,
+      metadata: event.metadata,
+      user_agent: event.user_agent,
+    });
+    if (error) console.error('Failed to store security event:', error);
+  } catch (error) {
+    console.error('Security event storage error:', error);
+  }
+};
+
+export const securityMonitoringService = {
+  async logTemplateAccess(templateId: string, userId: string, actionType: 'view' | 'create' | 'update' | 'delete') {
+    try {
+      await storeSecurityEventServerSide({
+        event_type: 'template_access',
+        user_id: userId,
+        resource_type: 'industry_template',
+        resource_id: templateId,
+        metadata: { action: actionType, timestamp: new Date().toISOString() },
+        user_agent: navigator.userAgent,
+      });
+    } catch (error) {
+      console.error('Failed to log template access:', error);
+    }
+  },
+
+  async logEmailHistoryOperation(customerId: string, userId: string, actionType: 'create' | 'view' | 'update' | 'delete') {
+    try {
+      await storeSecurityEventServerSide({
+        event_type: 'email_history_operation',
+        user_id: userId,
+        resource_type: 'email_history',
+        resource_id: customerId,
+        metadata: { action: actionType, timestamp: new Date().toISOString() },
+        user_agent: navigator.userAgent,
+      });
+    } catch (error) {
+      console.error('Failed to log email history operation:', error);
+    }
+  },
+
+  storeSecurityEventServerSide,
 };
