@@ -1,5 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { validateEmail, validatePhone, sanitizeInput } from '@/utils/securityUtils';
+
+export { validateEmail, validatePhone, sanitizeInput };
 
 export interface SecureSecurityAuditEvent {
   action: string;
