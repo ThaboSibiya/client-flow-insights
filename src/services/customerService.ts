@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, CustomerStatus } from '@/types/customer';
 import { toast } from '@/components/ui/use-toast';
-import { logSecurityEvent, validateEmail, validatePhone, sanitizeInput } from './securityService';
+import { logSecurityEvent, validateEmail, validatePhone, sanitizeInput } from './secureSecurityService';
 
 export const addCustomer = async (
   customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>, 

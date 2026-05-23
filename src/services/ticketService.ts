@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { CustomerTicket, TicketStatus } from '@/types/customer';
 import { toast } from '@/components/ui/use-toast';
-import { logSecurityEvent, sanitizeInput } from './securityService';
+import { logSecurityEvent, sanitizeInput } from './secureSecurityService';
 
 export const createTicket = async (
   customerId: string,
