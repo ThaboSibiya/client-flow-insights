@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { logSecurityEvent } from './securityService';
+import { logSecurityEvent } from './secureSecurityService';
 
 export const logPrivilegeChange = async (
   employeeId: string,

@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from '@/context/AuthContext';
-import { securityMonitoringService } from '@/services/securityMonitoringService';
+import { securityMonitoringService } from '@/services/secureSecurityService';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 

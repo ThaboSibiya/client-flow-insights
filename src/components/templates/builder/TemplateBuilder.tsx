@@ -14,7 +14,7 @@ import { TemplateField } from '@/types/templates';
 import { toast } from '@/hooks/use-toast';
 import { useSecureTemplates } from '@/hooks/useSecureTemplates';
 import { useAuth } from '@/context/AuthContext';
-import { securityMonitoringService } from '@/services/securityMonitoringService';
+import { securityMonitoringService } from '@/services/secureSecurityService';
 
 interface TemplateBuilderProps {
   onBack?: () => void;
