@@ -67,6 +67,60 @@ export type Database = {
           },
         ]
       }
+      agent_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          dedupe_key: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          message: string
+          metadata: Json
+          resolved_at: string | null
+          severity: string
+          status: string
+          suggested_action: Json | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          dedupe_key?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          message: string
+          metadata?: Json
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          suggested_action?: Json | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          dedupe_key?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          message?: string
+          metadata?: Json
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          suggested_action?: Json | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agent_conversations: {
         Row: {
           created_at: string
