@@ -93,17 +93,18 @@ export function useAgent() {
     const userId = userIdRef.current;
     if (!userId || !conversationId) return;
     try {
+      // Server generates id (UUID). The local `m.id` is kept only as a React key —
+      // we don't try to mutate this row again from the client after insert.
       await supabase.from('agent_messages').insert({
-        id: m.id,
         conversation_id: conversationId,
         user_id: userId,
         role: m.role,
         content: m.content,
         action_taken: m.actionTaken ?? null,
-        action_result: m.actionResult ?? null,
-        meeting_notes: m.meetingNotes ?? null,
-        update_report: m.updateReport ?? null,
-        pending_action: m.pendingAction ?? null,
+        action_result: (m.actionResult ?? null) as any,
+        meeting_notes: (m.meetingNotes ?? null) as any,
+        update_report: (m.updateReport ?? null) as any,
+        pending_action: (m.pendingAction ?? null) as any,
         pending_resolved: m.pendingResolved ?? null,
       });
     } catch (e) {
