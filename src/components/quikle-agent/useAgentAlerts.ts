@@ -36,7 +36,7 @@ export function useAgentAlerts() {
       .eq('status', 'open')
       .order('created_at', { ascending: false })
       .limit(50);
-    setAlerts((data ?? []) as AgentAlert[]);
+    setAlerts(((data ?? []) as unknown) as AgentAlert[]);
     setLoading(false);
   }, []);
 
