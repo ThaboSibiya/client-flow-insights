@@ -43,8 +43,11 @@ AVAILABLE TOOLS:
 — Tasks & follow-ups —
 - create_task: { title, assignee?, due (YYYY-MM-DD)?, priority (low/medium/high)? }
 - create_followup: { contact, date (YYYY-MM-DD)?, method (call/email/meeting)?, notes? }
+- schedule_meeting: { contact, date (YYYY-MM-DD), notes? }   // HIGH-IMPACT
+- log_note: { customer_id_or_name, note, tag? (general/follow_up/reminder/payment) }
 - get_tasks: { status (open/done/all)? }
 - get_followups: { status (pending/done/all)? }
+
 
 — Leads / customers —
 - create_lead: { name, email, phone?, status?, source? }
@@ -86,7 +89,33 @@ type SBClient = ReturnType<typeof createClient>;
 type ToolResult = { ok: boolean; summary: string; data?: unknown; preview?: PendingAction; error?: string };
 interface PendingAction { tool: string; args: Record<string, unknown>; preview: { title: string; lines: string[] } }
 
-const HIGH_IMPACT = new Set(['create_quote', 'create_invoice', 'send_invoice_reminder', 'mark_invoice_paid', 'create_workflow', 'toggle_workflow']);
+const HIGH_IMPACT = new Set(['create_quote', 'create_invoice', 'send_invoice_reminder', 'send_payment_reminder', 'mark_invoice_paid', 'create_workflow', 'toggle_workflow', 'schedule_meeting']);
+
+// Server-side access gate. Owners (no employee row) pass. Employees must have
+// can_use_ai_agent !== false. Mirrors useAIAgentAccess on the client.
+async function checkAgentAccess(supabase: SBClient, userId: string): Promise<{ ok: boolean; reason?: string }> {
+  try {
+    const { data: emp } = await supabase
+      .from('employees')
+      .select('id, role')
+      .eq('auth_user_id', userId)
+      .maybeSingle();
+    if (!emp) return { ok: true }; // owner / standalone user
+    const role = (emp as any).role?.toLowerCase?.();
+    if (role === 'admin') return { ok: true };
+    const { data: priv } = await supabase
+      .from('employee_privileges')
+      .select('can_use_ai_agent')
+      .eq('employee_id', (emp as any).id)
+      .maybeSingle();
+    if (priv && (priv as any).can_use_ai_agent === false) {
+      return { ok: false, reason: 'Ask your administrator for AI Agent access.' };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: true };
+  }
+}
 
 async function callLLM(messages: ChatMessage[], freeOnly = false): Promise<string> {
   const providers = getProviders(freeOnly);
@@ -475,11 +504,12 @@ async function execTool(supabase: SBClient, userId: string, tool: string, args: 
         if (error) throw error;
         return { ok: true, summary: `${data?.length ?? 0} overdue invoice(s).`, data };
       }
-      case 'send_invoice_reminder': {
+      case 'send_invoice_reminder':
+      case 'send_payment_reminder': {
         const inv = await resolveInvoice(supabase, userId, String(args.invoice_id_or_number || ''));
         if (!inv) return { ok: false, summary: 'Invoice not found.', error: 'not_found' };
-        // Best-effort: record a debtor_note as the reminder. (Real send is via Resend edge fn — wire later.)
         const { data: cust } = await supabase.from('customers').select('id').eq('email', inv.customer_email).eq('user_id', userId).maybeSingle();
+        let emailed = false;
         if (cust) {
           await supabase.from('debtor_notes').insert({
             user_id: userId,
@@ -489,9 +519,60 @@ async function execTool(supabase: SBClient, userId: string, tool: string, args: 
             note_content: `Payment reminder sent for invoice ${inv.number} (R${Number(inv.total || 0).toFixed(2)}).`,
             priority: 'medium',
           });
+          // Best-effort: trigger the existing statement-email edge function as the reminder delivery.
+          try {
+            const { error: mailErr } = await supabase.functions.invoke('customer-email-statement', {
+              body: { customerId: cust.id, recipientEmail: inv.customer_email },
+            });
+            emailed = !mailErr;
+          } catch { /* swallow — note already logged */ }
         }
-        return { ok: true, summary: `Reminder logged for invoice ${inv.number}.`, data: inv };
+        return {
+          ok: true,
+          summary: emailed
+            ? `Emailed payment reminder for invoice ${inv.number} to ${inv.customer_email}.`
+            : `Reminder logged for invoice ${inv.number} (email delivery skipped).`,
+          data: inv,
+        };
       }
+
+      case 'log_note': {
+        const cust = await resolveCustomer(supabase, userId, String(args.customer_id_or_name || ''));
+        if (!cust) return { ok: false, summary: 'Customer not found.', error: 'not_found' };
+        const allowedTags = ['general','follow_up','reminder','payment'];
+        const tag = allowedTags.includes(args.tag) ? args.tag : 'general';
+        const note = String(args.note || '').trim();
+        if (!note) return { ok: false, summary: 'Note content is required.', error: 'empty_note' };
+        const { data, error } = await supabase.from('debtor_notes').insert({
+          user_id: userId,
+          customer_id: cust.id,
+          created_by: userId,
+          note_type: tag,
+          note_content: note,
+          priority: 'medium',
+        }).select().single();
+        if (error) throw error;
+        return { ok: true, summary: `Logged note on ${cust.name}.`, data };
+      }
+
+      case 'schedule_meeting': {
+        const contact = String(args.contact || '').trim();
+        if (!contact) return { ok: false, summary: 'Contact name is required.', error: 'no_contact' };
+        const cust = await resolveCustomer(supabase, userId, contact);
+        const insert = {
+          user_id: userId,
+          contact: cust?.name ?? contact,
+          customer_id: cust?.id ?? null,
+          date: args.date ?? null,
+          method: 'meeting',
+          notes: args.notes ?? null,
+          status: 'pending',
+        };
+        const { data, error } = await supabase.from('followups').insert(insert).select().single();
+        if (error) throw error;
+        return { ok: true, summary: `Scheduled meeting with ${insert.contact}${insert.date ? ` on ${insert.date}` : ''}.`, data };
+      }
+
 
       // ─── Workflows ───
       case 'list_workflows': {
@@ -645,8 +726,18 @@ function buildPreview(tool: string, args: Record<string, any>): PendingAction['p
       ],
     };
   }
-  if (tool === 'send_invoice_reminder') {
+  if (tool === 'send_invoice_reminder' || tool === 'send_payment_reminder') {
     return { title: 'Send payment reminder', lines: [`Invoice: ${args.invoice_id_or_number}`] };
+  }
+  if (tool === 'schedule_meeting') {
+    return {
+      title: 'Schedule meeting',
+      lines: [
+        `Contact: ${args.contact ?? '—'}`,
+        `Date: ${args.date ?? 'unspecified'}`,
+        ...(args.notes ? [`Notes: ${args.notes}`] : []),
+      ],
+    };
   }
   if (tool === 'mark_invoice_paid') {
     return { title: 'Mark invoice as paid', lines: [`Invoice: ${args.invoice_id_or_number}`] };
@@ -682,6 +773,13 @@ Deno.serve(async (req) => {
     if (!user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const access = await checkAgentAccess(supabase, user.id);
+    if (!access.ok) {
+      return new Response(JSON.stringify({ error: access.reason || 'Forbidden' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
