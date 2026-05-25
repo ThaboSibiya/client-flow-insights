@@ -112,6 +112,11 @@ const QuikleAgent: React.FC = () => {
             {!canUseAgent
               ? <Lock className="h-5 w-5" />
               : agent.isOpen ? <X className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+            {canUseAgent && !agent.isOpen && alerts.length > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold flex items-center justify-center ring-2 ring-background">
+                {alerts.length > 9 ? '9+' : alerts.length}
+              </span>
+            )}
             <style>{`
               @keyframes quikle-fab-pulse {
                 0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.35), 0 10px 25px -5px hsl(var(--primary) / 0.4); }
