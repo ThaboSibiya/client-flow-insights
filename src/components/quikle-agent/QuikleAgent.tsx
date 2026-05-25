@@ -194,7 +194,17 @@ const QuikleAgent: React.FC = () => {
                     active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  {t.label}
+                  <span className="inline-flex items-center gap-1.5">
+                    {t.label}
+                    {!!t.badge && t.badge > 0 && (
+                      <span className={cn(
+                        'inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-semibold',
+                        active ? 'bg-primary text-primary-foreground' : 'bg-destructive/15 text-destructive'
+                      )}>
+                        {t.badge > 9 ? '9+' : t.badge}
+                      </span>
+                    )}
+                  </span>
                   {active && (
                     <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-t-full bg-primary" />
                   )}
@@ -212,6 +222,17 @@ const QuikleAgent: React.FC = () => {
                 onSuggestion={(t) => agent.sendChat(t)}
                 onConfirm={agent.confirmAction}
                 onCancel={agent.cancelAction}
+              />
+            )}
+            {agent.activeTab === 'inbox' && (
+              <InboxTab
+                onActOnAlert={(alert) => {
+                  agent.setActiveTab('chat');
+                  const sa = alert.suggested_action;
+                  if (!sa) return;
+                  const prompt = `Please ${sa.tool.replace(/_/g, ' ')} with ${JSON.stringify(sa.args)} (re: "${alert.title}")`;
+                  agent.sendChat(prompt);
+                }}
               />
             )}
             {agent.activeTab === 'meeting' && (
