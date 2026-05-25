@@ -504,11 +504,12 @@ async function execTool(supabase: SBClient, userId: string, tool: string, args: 
         if (error) throw error;
         return { ok: true, summary: `${data?.length ?? 0} overdue invoice(s).`, data };
       }
-      case 'send_invoice_reminder': {
+      case 'send_invoice_reminder':
+      case 'send_payment_reminder': {
         const inv = await resolveInvoice(supabase, userId, String(args.invoice_id_or_number || ''));
         if (!inv) return { ok: false, summary: 'Invoice not found.', error: 'not_found' };
-        // Best-effort: record a debtor_note as the reminder. (Real send is via Resend edge fn — wire later.)
         const { data: cust } = await supabase.from('customers').select('id').eq('email', inv.customer_email).eq('user_id', userId).maybeSingle();
+        let emailed = false;
         if (cust) {
           await supabase.from('debtor_notes').insert({
             user_id: userId,
@@ -518,9 +519,60 @@ async function execTool(supabase: SBClient, userId: string, tool: string, args: 
             note_content: `Payment reminder sent for invoice ${inv.number} (R${Number(inv.total || 0).toFixed(2)}).`,
             priority: 'medium',
           });
+          // Best-effort: trigger the existing statement-email edge function as the reminder delivery.
+          try {
+            const { error: mailErr } = await supabase.functions.invoke('customer-email-statement', {
+              body: { customerId: cust.id, recipientEmail: inv.customer_email },
+            });
+            emailed = !mailErr;
+          } catch { /* swallow — note already logged */ }
         }
-        return { ok: true, summary: `Reminder logged for invoice ${inv.number}.`, data: inv };
+        return {
+          ok: true,
+          summary: emailed
+            ? `Emailed payment reminder for invoice ${inv.number} to ${inv.customer_email}.`
+            : `Reminder logged for invoice ${inv.number} (email delivery skipped).`,
+          data: inv,
+        };
       }
+
+      case 'log_note': {
+        const cust = await resolveCustomer(supabase, userId, String(args.customer_id_or_name || ''));
+        if (!cust) return { ok: false, summary: 'Customer not found.', error: 'not_found' };
+        const allowedTags = ['general','follow_up','reminder','payment'];
+        const tag = allowedTags.includes(args.tag) ? args.tag : 'general';
+        const note = String(args.note || '').trim();
+        if (!note) return { ok: false, summary: 'Note content is required.', error: 'empty_note' };
+        const { data, error } = await supabase.from('debtor_notes').insert({
+          user_id: userId,
+          customer_id: cust.id,
+          created_by: userId,
+          note_type: tag,
+          note_content: note,
+          priority: 'medium',
+        }).select().single();
+        if (error) throw error;
+        return { ok: true, summary: `Logged note on ${cust.name}.`, data };
+      }
+
+      case 'schedule_meeting': {
+        const contact = String(args.contact || '').trim();
+        if (!contact) return { ok: false, summary: 'Contact name is required.', error: 'no_contact' };
+        const cust = await resolveCustomer(supabase, userId, contact);
+        const insert = {
+          user_id: userId,
+          contact: cust?.name ?? contact,
+          customer_id: cust?.id ?? null,
+          date: args.date ?? null,
+          method: 'meeting',
+          notes: args.notes ?? null,
+          status: 'pending',
+        };
+        const { data, error } = await supabase.from('followups').insert(insert).select().single();
+        if (error) throw error;
+        return { ok: true, summary: `Scheduled meeting with ${insert.contact}${insert.date ? ` on ${insert.date}` : ''}.`, data };
+      }
+
 
       // ─── Workflows ───
       case 'list_workflows': {
