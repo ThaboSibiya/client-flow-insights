@@ -47,6 +47,7 @@ export function useAgent() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const userIdRef = useRef<string | null>(null);
   const loadedRef = useRef(false);
+  const briefingCheckedRef = useRef(false);
 
   // ─── Load (or create) the active conversation + its messages on mount ───
   useEffect(() => {
