@@ -701,7 +701,9 @@ Deno.serve(async (req) => {
 
     if (type === 'chat') {
       const message: string = body.message ?? '';
-      const history: ChatMessage[] = Array.isArray(body.history) ? body.history.slice(-10) : [];
+      // Phase 1: client trims to a token budget and sends full conversation history.
+      // Hard cap of 200 turns as a final safety net against pathological payloads.
+      const history: ChatMessage[] = Array.isArray(body.history) ? body.history.slice(-200) : [];
       const messages: ChatMessage[] = [
         { role: 'system', content: SYSTEM_PROMPT },
         ...history,

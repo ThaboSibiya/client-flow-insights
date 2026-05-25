@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { CheckCircle2, XCircle, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AgentMessage, PendingAction } from '../types';
@@ -193,7 +195,13 @@ const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion, onConfir
                 : 'bg-muted text-foreground rounded-tl-sm'
             )}
           >
-            <div className="whitespace-pre-wrap">{m.content}</div>
+            {m.role === 'user' ? (
+              <div className="whitespace-pre-wrap">{m.content}</div>
+            ) : (
+              <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-headings:mt-2 prose-headings:mb-1 prose-pre:my-1 prose-pre:bg-background/60 prose-code:text-foreground prose-code:bg-background/60 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-a:text-primary">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+              </div>
+            )}
             {m.actionResult && (
               <ActionCard ok={m.actionResult.ok} summary={m.actionResult.summary} />
             )}
