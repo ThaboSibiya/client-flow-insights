@@ -726,8 +726,18 @@ function buildPreview(tool: string, args: Record<string, any>): PendingAction['p
       ],
     };
   }
-  if (tool === 'send_invoice_reminder') {
+  if (tool === 'send_invoice_reminder' || tool === 'send_payment_reminder') {
     return { title: 'Send payment reminder', lines: [`Invoice: ${args.invoice_id_or_number}`] };
+  }
+  if (tool === 'schedule_meeting') {
+    return {
+      title: 'Schedule meeting',
+      lines: [
+        `Contact: ${args.contact ?? '—'}`,
+        `Date: ${args.date ?? 'unspecified'}`,
+        ...(args.notes ? [`Notes: ${args.notes}`] : []),
+      ],
+    };
   }
   if (tool === 'mark_invoice_paid') {
     return { title: 'Mark invoice as paid', lines: [`Invoice: ${args.invoice_id_or_number}`] };
