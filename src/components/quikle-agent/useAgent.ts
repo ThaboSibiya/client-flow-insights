@@ -47,6 +47,7 @@ export function useAgent() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const userIdRef = useRef<string | null>(null);
   const loadedRef = useRef(false);
+  const briefingCheckedRef = useRef(false);
 
   // ─── Load (or create) the active conversation + its messages on mount ───
   useEffect(() => {
@@ -280,6 +281,53 @@ export function useAgent() {
       console.warn('[useAgent] clear conversation failed:', e);
     }
   }, [workspaceId]);
+
+  // ─── Daily login briefing ───────────────────────────────────────────
+  // First time the panel opens each day, fetch (or generate) today's briefing
+  // and post it as an assistant message. Cached per user per day server-side,
+  // and we skip if today's briefing has already been posted to chat.
+  useEffect(() => {
+    if (!isOpen || briefingCheckedRef.current) return;
+    if (!conversationId || !userIdRef.current) return;
+    briefingCheckedRef.current = true;
+
+    (async () => {
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        // Skip if a briefing was already posted to chat today.
+        const { data: existing } = await supabase
+          .from('agent_daily_briefings')
+          .select('id, posted_to_chat')
+          .eq('user_id', userIdRef.current!)
+          .eq('briefing_date', today)
+          .maybeSingle();
+        if (existing?.posted_to_chat) return;
+
+        const { data, error } = await supabase.functions.invoke('quikle-agent-briefing', {
+          body: {},
+        });
+        if (error) throw error;
+        if (!data?.summary) return;
+
+        append({
+          id: uid(),
+          role: 'assistant',
+          content: data.summary,
+          createdAt: Date.now(),
+        });
+
+        if (data.briefing_id) {
+          await supabase
+            .from('agent_daily_briefings')
+            .update({ posted_to_chat: true })
+            .eq('id', data.briefing_id);
+        }
+      } catch (e) {
+        console.warn('[useAgent] briefing failed:', e);
+      }
+    })();
+  }, [isOpen, conversationId, append]);
+
 
   return {
     messages, isThinking, activeTab, setActiveTab,

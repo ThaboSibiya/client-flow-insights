@@ -151,6 +151,42 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_daily_briefings: {
+        Row: {
+          briefing_date: string
+          created_at: string
+          id: string
+          posted_to_chat: boolean
+          priorities: Json
+          stats: Json
+          summary: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          briefing_date?: string
+          created_at?: string
+          id?: string
+          posted_to_chat?: boolean
+          priorities?: Json
+          stats?: Json
+          summary: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          briefing_date?: string
+          created_at?: string
+          id?: string
+          posted_to_chat?: boolean
+          priorities?: Json
+          stats?: Json
+          summary?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       agent_messages: {
         Row: {
           action_result: Json | null
