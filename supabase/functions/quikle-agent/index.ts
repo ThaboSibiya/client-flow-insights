@@ -43,8 +43,11 @@ AVAILABLE TOOLS:
 — Tasks & follow-ups —
 - create_task: { title, assignee?, due (YYYY-MM-DD)?, priority (low/medium/high)? }
 - create_followup: { contact, date (YYYY-MM-DD)?, method (call/email/meeting)?, notes? }
+- schedule_meeting: { contact, date (YYYY-MM-DD), notes? }   // HIGH-IMPACT
+- log_note: { customer_id_or_name, note, tag? (general/follow_up/reminder/payment) }
 - get_tasks: { status (open/done/all)? }
 - get_followups: { status (pending/done/all)? }
+
 
 — Leads / customers —
 - create_lead: { name, email, phone?, status?, source? }
