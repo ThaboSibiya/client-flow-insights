@@ -117,16 +117,11 @@ export function useAgent() {
     void persist(m);
   }, [persist]);
 
-  const updateResolution = useCallback(async (messageId: string, resolved: 'confirmed' | 'cancelled') => {
+  const updateResolution = useCallback((messageId: string, resolved: 'confirmed' | 'cancelled') => {
+    // Local-only — local message ids do not map 1:1 to DB rows (server generates UUIDs).
+    // Resolution state is ephemeral by design; on reload, the chat re-renders with the
+    // assistant's follow-up message which carries the outcome.
     setMessages(prev => prev.map(m => m.id === messageId ? { ...m, pendingResolved: resolved } : m));
-    try {
-      await supabase
-        .from('agent_messages')
-        .update({ pending_resolved: resolved })
-        .eq('id', messageId);
-    } catch (e) {
-      console.warn('[useAgent] update resolution failed:', e);
-    }
   }, []);
 
   const sendChat = useCallback(async (text: string) => {
