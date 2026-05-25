@@ -3,6 +3,8 @@ import { X, Send, Sparkles, Square, Lock } from 'lucide-react';
 import { useAgent } from './useAgent';
 import ChatTab from './tabs/ChatTab';
 import MeetingTab from './tabs/MeetingTab';
+import InboxTab from './tabs/InboxTab';
+import { useAgentAlerts } from './useAgentAlerts';
 import { cn } from '@/lib/utils';
 import { useAIAgentAccess } from '@/hooks/useAIAgentAccess';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
