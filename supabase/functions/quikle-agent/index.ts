@@ -89,7 +89,33 @@ type SBClient = ReturnType<typeof createClient>;
 type ToolResult = { ok: boolean; summary: string; data?: unknown; preview?: PendingAction; error?: string };
 interface PendingAction { tool: string; args: Record<string, unknown>; preview: { title: string; lines: string[] } }
 
-const HIGH_IMPACT = new Set(['create_quote', 'create_invoice', 'send_invoice_reminder', 'mark_invoice_paid', 'create_workflow', 'toggle_workflow']);
+const HIGH_IMPACT = new Set(['create_quote', 'create_invoice', 'send_invoice_reminder', 'send_payment_reminder', 'mark_invoice_paid', 'create_workflow', 'toggle_workflow', 'schedule_meeting']);
+
+// Server-side access gate. Owners (no employee row) pass. Employees must have
+// can_use_ai_agent !== false. Mirrors useAIAgentAccess on the client.
+async function checkAgentAccess(supabase: SBClient, userId: string): Promise<{ ok: boolean; reason?: string }> {
+  try {
+    const { data: emp } = await supabase
+      .from('employees')
+      .select('id, role')
+      .eq('auth_user_id', userId)
+      .maybeSingle();
+    if (!emp) return { ok: true }; // owner / standalone user
+    const role = (emp as any).role?.toLowerCase?.();
+    if (role === 'admin') return { ok: true };
+    const { data: priv } = await supabase
+      .from('employee_privileges')
+      .select('can_use_ai_agent')
+      .eq('employee_id', (emp as any).id)
+      .maybeSingle();
+    if (priv && (priv as any).can_use_ai_agent === false) {
+      return { ok: false, reason: 'Ask your administrator for AI Agent access.' };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: true };
+  }
+}
 
 async function callLLM(messages: ChatMessage[], freeOnly = false): Promise<string> {
   const providers = getProviders(freeOnly);
