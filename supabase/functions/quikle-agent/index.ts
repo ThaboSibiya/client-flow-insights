@@ -776,6 +776,13 @@ Deno.serve(async (req) => {
       });
     }
 
+    const access = await checkAgentAccess(supabase, user.id);
+    if (!access.ok) {
+      return new Response(JSON.stringify({ error: access.reason || 'Forbidden' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const body = await req.json();
     const type = body?.type as string;
     const freeOnly = await isFreeOnly(supabase, user.id);
