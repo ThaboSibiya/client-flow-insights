@@ -13,6 +13,7 @@ import { toast } from '@/hooks/use-toast';
 const QuikleAgent: React.FC = () => {
   const agent = useAgent();
   const { canUseAgent, canCreateWorkflows, reason } = useAIAgentAccess();
+  const { alerts } = useAgentAlerts();
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
