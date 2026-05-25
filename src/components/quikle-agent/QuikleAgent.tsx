@@ -3,6 +3,8 @@ import { X, Send, Sparkles, Square, Lock } from 'lucide-react';
 import { useAgent } from './useAgent';
 import ChatTab from './tabs/ChatTab';
 import MeetingTab from './tabs/MeetingTab';
+import InboxTab from './tabs/InboxTab';
+import { useAgentAlerts } from './useAgentAlerts';
 import { cn } from '@/lib/utils';
 import { useAIAgentAccess } from '@/hooks/useAIAgentAccess';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -11,6 +13,7 @@ import { toast } from '@/hooks/use-toast';
 const QuikleAgent: React.FC = () => {
   const agent = useAgent();
   const { canUseAgent, canCreateWorkflows, reason } = useAIAgentAccess();
+  const { alerts } = useAgentAlerts();
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -64,8 +67,9 @@ const QuikleAgent: React.FC = () => {
     setDraft('');
   };
 
-  const tabs: Array<{ key: 'chat' | 'meeting'; label: string }> = [
+  const tabs: Array<{ key: 'chat' | 'meeting' | 'inbox'; label: string; badge?: number }> = [
     { key: 'chat', label: 'Chat' },
+    { key: 'inbox', label: 'Inbox', badge: alerts.length },
     { key: 'meeting', label: 'Meeting' },
   ];
 
@@ -108,6 +112,11 @@ const QuikleAgent: React.FC = () => {
             {!canUseAgent
               ? <Lock className="h-5 w-5" />
               : agent.isOpen ? <X className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+            {canUseAgent && !agent.isOpen && alerts.length > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold flex items-center justify-center ring-2 ring-background">
+                {alerts.length > 9 ? '9+' : alerts.length}
+              </span>
+            )}
             <style>{`
               @keyframes quikle-fab-pulse {
                 0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.35), 0 10px 25px -5px hsl(var(--primary) / 0.4); }
@@ -190,7 +199,17 @@ const QuikleAgent: React.FC = () => {
                     active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  {t.label}
+                  <span className="inline-flex items-center gap-1.5">
+                    {t.label}
+                    {!!t.badge && t.badge > 0 && (
+                      <span className={cn(
+                        'inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-semibold',
+                        active ? 'bg-primary text-primary-foreground' : 'bg-destructive/15 text-destructive'
+                      )}>
+                        {t.badge > 9 ? '9+' : t.badge}
+                      </span>
+                    )}
+                  </span>
                   {active && (
                     <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-t-full bg-primary" />
                   )}
@@ -208,6 +227,17 @@ const QuikleAgent: React.FC = () => {
                 onSuggestion={(t) => agent.sendChat(t)}
                 onConfirm={agent.confirmAction}
                 onCancel={agent.cancelAction}
+              />
+            )}
+            {agent.activeTab === 'inbox' && (
+              <InboxTab
+                onActOnAlert={(alert) => {
+                  agent.setActiveTab('chat');
+                  const sa = alert.suggested_action;
+                  if (!sa) return;
+                  const prompt = `Please ${sa.tool.replace(/_/g, ' ')} with ${JSON.stringify(sa.args)} (re: "${alert.title}")`;
+                  agent.sendChat(prompt);
+                }}
               />
             )}
             {agent.activeTab === 'meeting' && (
