@@ -67,6 +67,89 @@ export type Database = {
           },
         ]
       }
+      agent_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          title: string
+          updated_at: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
+      agent_messages: {
+        Row: {
+          action_result: Json | null
+          action_taken: string | null
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          meeting_notes: Json | null
+          pending_action: Json | null
+          pending_resolved: string | null
+          role: string
+          update_report: Json | null
+          user_id: string
+        }
+        Insert: {
+          action_result?: Json | null
+          action_taken?: string | null
+          content?: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          meeting_notes?: Json | null
+          pending_action?: Json | null
+          pending_resolved?: string | null
+          role: string
+          update_report?: Json | null
+          user_id: string
+        }
+        Update: {
+          action_result?: Json | null
+          action_taken?: string | null
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          meeting_notes?: Json | null
+          pending_action?: Json | null
+          pending_resolved?: string | null
+          role?: string
+          update_report?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_triggers: {
         Row: {
           auth_type: string
