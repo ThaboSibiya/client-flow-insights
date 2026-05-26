@@ -16,6 +16,7 @@ const QuikleAgent: React.FC = () => {
   const { canUseAgent, canCreateWorkflows, reason } = useAIAgentAccess();
   const { alerts } = useAgentAlerts();
   const [draft, setDraft] = useState('');
+  const [scheduledOpen, setScheduledOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
