@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { CheckCircle2, XCircle, ChevronDown, ChevronUp, Sparkles, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AgentMessage, PendingAction } from '../types';
+import PlanCard from '../plan/PlanCard';
 
 interface Props {
   messages: AgentMessage[];
@@ -12,6 +13,9 @@ interface Props {
   onConfirm: (messageId: string, action: PendingAction) => void;
   onCancel: (messageId: string) => void;
   onFeedback?: (messageId: string, rating: 1 | -1) => void;
+  onApprovePlan: (planId: string, enabledIndices: number[]) => void;
+  onCancelPlan: (planId: string) => void;
+  onUndoPlan: (planId: string) => void;
 }
 
 const SUGGESTIONS = [
