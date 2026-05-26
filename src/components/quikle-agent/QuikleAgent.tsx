@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Send, Sparkles, Square, Lock, Clock } from 'lucide-react';
+import { X, Send, Sparkles, Square, Lock, Clock, Wand2 } from 'lucide-react';
 import ScheduledPromptsSheet from './scheduled/ScheduledPromptsSheet';
 import { useAgent } from './useAgent';
 import ChatTab from './tabs/ChatTab';
 import MeetingTab from './tabs/MeetingTab';
 import InboxTab from './tabs/InboxTab';
+import ActivityTab from './tabs/ActivityTab';
 import { useAgentAlerts } from './useAgentAlerts';
 import { cn } from '@/lib/utils';
 import { useAIAgentAccess } from '@/hooks/useAIAgentAccess';
