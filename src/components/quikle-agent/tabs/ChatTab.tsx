@@ -161,7 +161,7 @@ const UpdateCard: React.FC<{ r: NonNullable<AgentMessage['updateReport']> }> = (
   );
 };
 
-const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion, onConfirm, onCancel }) => {
+const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion, onConfirm, onCancel, onFeedback }) => {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isThinking]);
 
