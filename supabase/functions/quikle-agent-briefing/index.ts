@@ -79,29 +79,39 @@ Follow-ups due (${ctx.stats.followups_due}): ${JSON.stringify(ctx.followups.slic
 Overdue invoices (${ctx.stats.overdue_invoices}): ${JSON.stringify(ctx.overdue.slice(0, 8))}
 New leads in last 24h (${ctx.stats.new_leads_24h}): ${JSON.stringify(ctx.newLeads.slice(0, 5))}`;
 
-  const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: user },
-      ],
-    }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`AI gateway error ${res.status}: ${text.slice(0, 200)}`);
+  // OpenRouter free-tier only (no paid Lovable Gateway calls).
+  const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
+  if (!OPENROUTER_API_KEY) throw new Error('OPENROUTER_API_KEY not configured');
+  const freeModels = [
+    'deepseek/deepseek-chat-v3.1:free',
+    'meta-llama/llama-3.3-70b-instruct:free',
+    'google/gemini-2.0-flash-exp:free',
+  ];
+  let lastErr = '';
+  for (const model of freeModels) {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://quikle-innovation-suite.lovable.app',
+        'X-Title': 'Quikle AI Briefing',
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
+      }),
+    });
+    if (!res.ok) { lastErr = `${model} ${res.status}: ${(await res.text()).slice(0,200)}`; continue; }
+    const data = await res.json();
+    const summary = data?.choices?.[0]?.message?.content?.trim() ?? '';
+    if (summary) return summary;
+    lastErr = `${model}: empty`;
   }
-  const data = await res.json();
-  const summary = data?.choices?.[0]?.message?.content?.trim() ?? '';
-  if (!summary) throw new Error('Empty briefing from model');
-  return summary;
+  throw new Error(`OpenRouter free briefing failed. Last: ${lastErr}`);
 }
 
 Deno.serve(async (req) => {

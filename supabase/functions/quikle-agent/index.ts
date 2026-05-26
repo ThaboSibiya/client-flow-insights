@@ -11,13 +11,11 @@ const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY') ?? '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 
-// Provider chain: Lovable AI Gateway (primary, paid) → OpenRouter free models.
-// When `freeOnly` is enabled (per-user via company_settings), paid providers
-// (Lovable Gateway) are excluded and only OpenRouter `:free` models are used.
+// Provider chain: OpenRouter free-tier models only. Lovable AI Gateway has
+// been removed to guarantee zero token cost. `freeOnly` is retained for
+// signature compatibility but is effectively always true.
 type Provider = { name: string; url: string; key: string; model: string; free: boolean };
 const ALL_PROVIDERS: Provider[] = [
-  { name: 'lovable-gemini-flash', url: 'https://ai.gateway.lovable.dev/v1/chat/completions', key: LOVABLE_API_KEY, model: 'google/gemini-2.5-flash', free: false },
-  { name: 'lovable-gemini-flash-lite', url: 'https://ai.gateway.lovable.dev/v1/chat/completions', key: LOVABLE_API_KEY, model: 'google/gemini-2.5-flash-lite', free: false },
   { name: 'openrouter-deepseek-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'deepseek/deepseek-chat-v3.1:free', free: true },
   { name: 'openrouter-llama-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'meta-llama/llama-3.3-70b-instruct:free', free: true },
   { name: 'openrouter-qwen-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'qwen/qwen-2.5-72b-instruct:free', free: true },
@@ -25,8 +23,8 @@ const ALL_PROVIDERS: Provider[] = [
   { name: 'openrouter-gemini-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'google/gemini-2.0-flash-exp:free', free: true },
 ].filter(p => p.key);
 
-function getProviders(freeOnly: boolean): Provider[] {
-  return freeOnly ? ALL_PROVIDERS.filter(p => p.free) : ALL_PROVIDERS;
+function getProviders(_freeOnly: boolean): Provider[] {
+  return ALL_PROVIDERS;
 }
 
 const SYSTEM_PROMPT = `You are Quikle AI, an action-taking CRM agent for the Quikle Innovation Suite.
