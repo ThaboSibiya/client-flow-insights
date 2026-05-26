@@ -210,6 +210,16 @@ const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion, onConfir
             {m.actionResult && (
               <ActionCard ok={m.actionResult.ok} summary={m.actionResult.summary} />
             )}
+            {m.plan && (
+              <div className="mt-2">
+                <PlanCard
+                  plan={m.plan}
+                  onApprove={onApprovePlan}
+                  onCancel={onCancelPlan}
+                  onUndo={onUndoPlan}
+                />
+              </div>
+            )}
             {m.pendingAction && (
               <PendingCard
                 msgId={m.id}
