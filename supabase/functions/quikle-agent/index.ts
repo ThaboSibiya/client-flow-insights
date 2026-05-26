@@ -16,11 +16,11 @@ const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 // signature compatibility but is effectively always true.
 type Provider = { name: string; url: string; key: string; model: string; free: boolean };
 const ALL_PROVIDERS: Provider[] = [
-  { name: 'openrouter-deepseek-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'deepseek/deepseek-chat-v3.1:free', free: true },
+  { name: 'openrouter-deepseek-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'deepseek/deepseek-v4-flash:free', free: true },
   { name: 'openrouter-llama-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'meta-llama/llama-3.3-70b-instruct:free', free: true },
-  { name: 'openrouter-qwen-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'qwen/qwen-2.5-72b-instruct:free', free: true },
-  { name: 'openrouter-minimax-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'minimax/minimax-m2:free', free: true },
-  { name: 'openrouter-gemini-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'google/gemini-2.0-flash-exp:free', free: true },
+  { name: 'openrouter-nemotron-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'nvidia/nemotron-3-super-120b-a12b:free', free: true },
+  { name: 'openrouter-qwen-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'qwen/qwen3-next-80b-a3b-instruct:free', free: true },
+  { name: 'openrouter-gpt-oss-free', url: 'https://openrouter.ai/api/v1/chat/completions', key: OPENROUTER_API_KEY, model: 'openai/gpt-oss-120b:free', free: true },
 ].filter(p => p.key);
 
 function getProviders(_freeOnly: boolean): Provider[] {
