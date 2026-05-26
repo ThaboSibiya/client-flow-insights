@@ -76,9 +76,9 @@ Goal: agent learns the user and the workspace.
 ## Phase 6 — Workflow authoring & scheduled prompts
 Goal: agent becomes a workflow designer, not just an executor.
 
-1. **"Create a workflow" intent** — agent uses existing `useWorkflowExecutor` + ReactFlow schema to propose and (on confirm) save a workflow into `workflow_automations`.
-2. **Scheduled user prompts** — "Every Monday 8am, give me a pipeline summary" → stored in new `agent_scheduled_prompts` table, executed via cron, results posted to chat + notification.
-3. **Custom triggers** — "When a deal hits R50k, ping me" → compiled into rules consumed by the scanner in Phase 3.
+1. **"Create a workflow" intent** — agent uses existing `useWorkflowExecutor` + ReactFlow schema to propose and (on confirm) save a workflow into `workflow_automations`. *(deferred)*
+2. ✅ **Scheduled user prompts** — `agent_scheduled_prompts` table + `quikle-agent-scheduled-runner` edge function (pg_cron every 5 min) + Clock icon in agent header → sheet for daily/weekdays/weekly/monthly schedules. Results post as `user_notifications`.
+3. **Custom triggers** — "When a deal hits R50k, ping me" → compiled into rules consumed by the scanner in Phase 3. *(deferred)*
 
 ---
 
