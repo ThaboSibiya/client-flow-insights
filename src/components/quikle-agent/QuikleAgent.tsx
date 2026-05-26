@@ -289,6 +289,19 @@ const QuikleAgent: React.FC = () => {
                   className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
                 />
                 <button
+                  onClick={handlePlan}
+                  disabled={!draft.trim() || agent.isThinking}
+                  aria-label="Plan multi-step actions"
+                  title="Plan multi-step actions"
+                  className={cn(
+                    'h-8 w-8 flex items-center justify-center rounded-full transition-all',
+                    'text-muted-foreground hover:text-foreground hover:bg-muted',
+                    'disabled:opacity-40 disabled:cursor-not-allowed'
+                  )}
+                >
+                  <Wand2 className="h-3.5 w-3.5" />
+                </button>
+                <button
                   onClick={handleSend}
                   disabled={!draft.trim() || agent.isThinking}
                   aria-label="Send"
@@ -303,7 +316,7 @@ const QuikleAgent: React.FC = () => {
                 </button>
               </div>
               <div className="mt-1.5 px-3 text-[10px] text-muted-foreground/70 text-center">
-                Press <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[9px]">Enter</kbd> to send
+                <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[9px]">Enter</kbd> to send · wand icon to plan multi-step
               </div>
             </div>
           )}
