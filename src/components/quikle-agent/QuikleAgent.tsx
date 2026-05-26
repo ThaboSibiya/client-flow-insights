@@ -297,6 +297,8 @@ const QuikleAgent: React.FC = () => {
           )}
         </div>
       )}
+
+      <ScheduledPromptsSheet open={scheduledOpen} onOpenChange={setScheduledOpen} />
     </TooltipProvider>
   );
 };
