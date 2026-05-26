@@ -340,11 +340,234 @@ export function useAgent() {
     }
   }, []);
 
+  // ─── Phase 7: multi-step plans ───────────────────────────────────────
+  // Map of write-tools → the DB table their resulting row lives in.
+  // Used to record inverse_op so the undo edge function can delete it.
+  const TOOL_TO_TABLE: Record<string, string> = {
+    create_task: 'tickets',
+    create_followup: 'followups',
+    create_lead: 'customers',
+    create_quote: 'quotes_invoices',
+    create_invoice: 'quotes_invoices',
+    create_workflow: 'workflow_automations',
+    create_project: 'projects',
+    create_project_task: 'project_tasks',
+    remember: 'agent_memory',
+  };
+
+  const updatePlan = useCallback((messageId: string, mut: (p: AgentPlan) => AgentPlan) => {
+    setMessages(prev => prev.map(m =>
+      m.id === messageId && m.plan ? { ...m, plan: mut(m.plan) } : m
+    ));
+  }, []);
+
+  const proposePlan = useCallback(async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    const userMsg: AgentMessage = { id: uid(), role: 'user', content: `Plan: ${trimmed}`, createdAt: Date.now() };
+    setMessages(prev => [...prev, userMsg]);
+    void persist(userMsg);
+    setIsThinking(true);
+    try {
+      const history = trimHistoryForModel(messages);
+      const { data, error } = await supabase.functions.invoke('quikle-agent', {
+        body: { type: 'plan', message: trimmed, history },
+      });
+      if (error) throw error;
+      const raw = data?.plan;
+      if (!raw?.steps?.length) throw new Error('No plan returned');
+      const plan: AgentPlan = {
+        planId: crypto.randomUUID(),
+        title: String(raw.title || 'Plan'),
+        status: 'proposed',
+        steps: (raw.steps as PlanStep[]).map((s, i) => ({
+          index: typeof s.index === 'number' ? s.index : i,
+          tool: s.tool,
+          args: s.args ?? {},
+          summary: s.summary ?? s.tool,
+          status: 'pending',
+          enabled: true,
+        })),
+      };
+      append({
+        id: uid(),
+        role: 'assistant',
+        content: `Here's the plan I'd run for you. Review and approve when ready.`,
+        plan,
+        createdAt: Date.now(),
+      });
+    } catch (e) {
+      append({
+        id: uid(),
+        role: 'assistant',
+        content: `Couldn't build a plan: ${e instanceof Error ? e.message : String(e)}`,
+        createdAt: Date.now(),
+      });
+    } finally {
+      setIsThinking(false);
+    }
+  }, [messages, append, persist]);
+
+  const findMessageWithPlan = useCallback((planId: string): AgentMessage | undefined => {
+    return messages.find(m => m.plan?.planId === planId);
+  }, [messages]);
+
+  const cancelPlan = useCallback((planId: string) => {
+    const msg = findMessageWithPlan(planId);
+    if (!msg) return;
+    updatePlan(msg.id, p => ({ ...p, status: 'cancelled' }));
+    append({
+      id: uid(), role: 'assistant',
+      content: 'Plan cancelled — nothing was changed.',
+      createdAt: Date.now(),
+    });
+  }, [findMessageWithPlan, updatePlan, append]);
+
+  const approvePlan = useCallback(async (planId: string, enabledIndices: number[]) => {
+    const userId = userIdRef.current;
+    const msg = findMessageWithPlan(planId);
+    if (!msg?.plan || !userId) return;
+    const enabledSet = new Set(enabledIndices);
+    const steps = msg.plan.steps.map(s => ({ ...s, enabled: enabledSet.has(s.index) }));
+    updatePlan(msg.id, p => ({ ...p, status: 'running', steps }));
+
+    // Pre-insert pending log rows for the enabled steps.
+    const toRun = steps.filter(s => s.enabled);
+    const logRows = toRun.map(s => ({
+      user_id: userId,
+      workspace_id: workspaceId ?? null,
+      conversation_id: conversationId,
+      plan_id: planId,
+      plan_title: msg.plan!.title,
+      step_index: s.index,
+      tool_name: s.tool,
+      args: s.args as any,
+      status: 'pending' as const,
+    }));
+    let logIdByIndex = new Map<number, string>();
+    try {
+      const { data: inserted } = await supabase
+        .from('agent_action_log')
+        .insert(logRows)
+        .select('id, step_index');
+      (inserted ?? []).forEach((r: any) => logIdByIndex.set(r.step_index, r.id));
+    } catch (e) {
+      console.warn('[useAgent] action log pre-insert failed:', e);
+    }
+
+    let hasWrites = false;
+    let anyFailed = false;
+
+    for (const step of toRun) {
+      const logId = logIdByIndex.get(step.index);
+      updatePlan(msg.id, p => ({
+        ...p,
+        steps: p.steps.map(s => s.index === step.index ? { ...s, status: 'running', logId } : s),
+      }));
+      if (logId) {
+        await supabase.from('agent_action_log').update({
+          status: 'running',
+          started_at: new Date().toISOString(),
+        }).eq('id', logId);
+      }
+
+      try {
+        const { data, error } = await supabase.functions.invoke('quikle-agent', {
+          body: { type: 'confirm', action: { tool: step.tool, args: step.args } },
+        });
+        if (error) throw error;
+        const result = data?.actionResult ?? { ok: true, summary: data?.reply ?? 'Done.' };
+        const ok = result?.ok !== false;
+        const inverseTable = TOOL_TO_TABLE[step.tool];
+        const createdId = (result?.data as any)?.id;
+        const inverse_op = ok && inverseTable && createdId
+          ? { table: inverseTable, id: createdId }
+          : null;
+        if (ok && inverse_op) hasWrites = true;
+
+        updatePlan(msg.id, p => ({
+          ...p,
+          steps: p.steps.map(s => s.index === step.index
+            ? { ...s, status: ok ? 'done' : 'failed', result, error: ok ? undefined : (result?.error || result?.summary) }
+            : s),
+        }));
+        if (logId) {
+          await supabase.from('agent_action_log').update({
+            status: ok ? 'done' : 'failed',
+            result: result as any,
+            inverse_op: inverse_op as any,
+            error_message: ok ? null : (result?.error ?? result?.summary ?? null),
+            finished_at: new Date().toISOString(),
+          }).eq('id', logId);
+        }
+        if (!ok) { anyFailed = true; break; }
+      } catch (e) {
+        anyFailed = true;
+        const errMsg = e instanceof Error ? e.message : String(e);
+        updatePlan(msg.id, p => ({
+          ...p,
+          steps: p.steps.map(s => s.index === step.index
+            ? { ...s, status: 'failed', error: errMsg }
+            : s),
+        }));
+        if (logId) {
+          await supabase.from('agent_action_log').update({
+            status: 'failed',
+            error_message: errMsg,
+            finished_at: new Date().toISOString(),
+          }).eq('id', logId);
+        }
+        break;
+      }
+    }
+
+    updatePlan(msg.id, p => ({
+      ...p,
+      status: anyFailed ? 'failed' : 'done',
+      hasWrites,
+    }));
+    append({
+      id: uid(), role: 'assistant',
+      content: anyFailed
+        ? `Plan halted. ${toRun.length} step${toRun.length === 1 ? '' : 's'} attempted.`
+        : `All ${toRun.length} step${toRun.length === 1 ? '' : 's'} completed.${hasWrites ? ' You can undo this from the plan card.' : ''}`,
+      createdAt: Date.now(),
+    });
+  }, [findMessageWithPlan, updatePlan, append, workspaceId, conversationId]);
+
+  const undoPlan = useCallback(async (planId: string) => {
+    const msg = findMessageWithPlan(planId);
+    if (!msg) return;
+    try {
+      const { data, error } = await supabase.functions.invoke('quikle-agent-undo', {
+        body: { plan_id: planId },
+      });
+      if (error) throw error;
+      updatePlan(msg.id, p => ({
+        ...p,
+        status: 'undone',
+        steps: p.steps.map(s => s.status === 'done' ? { ...s, status: 'undone' } : s),
+      }));
+      append({
+        id: uid(), role: 'assistant',
+        content: `Undid ${data?.undone ?? 0} of ${data?.total ?? 0} steps.`,
+        createdAt: Date.now(),
+      });
+    } catch (e) {
+      append({
+        id: uid(), role: 'assistant',
+        content: `Undo failed: ${e instanceof Error ? e.message : String(e)}`,
+        createdAt: Date.now(),
+      });
+    }
+  }, [findMessageWithPlan, updatePlan, append]);
+
   return {
     messages, isThinking, activeTab, setActiveTab,
     isOpen, setIsOpen,
     sendChat, saveMeeting, requestUpdate,
     confirmAction, cancelAction,
     clearConversation, sendFeedback,
+    proposePlan, approvePlan, cancelPlan, undoPlan,
   };
 }
