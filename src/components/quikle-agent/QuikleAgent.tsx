@@ -70,6 +70,12 @@ const QuikleAgent: React.FC = () => {
     setDraft('');
   };
 
+  const handlePlan = () => {
+    if (!draft.trim()) return;
+    agent.proposePlan(draft);
+    setDraft('');
+  };
+
   const tabs: Array<{ key: 'chat' | 'meeting' | 'inbox' | 'activity'; label: string; badge?: number }> = [
     { key: 'chat', label: 'Chat' },
     { key: 'inbox', label: 'Inbox', badge: alerts.length },
