@@ -840,10 +840,12 @@ Deno.serve(async (req) => {
 }
 \`\`\`
 
-Use the same tools available in chat mode (create_task, create_followup, schedule_meeting, log_note, create_lead, update_lead_status, assign_lead, move_ticket, assign_ticket, create_quote, create_invoice, mark_invoice_paid, send_invoice_reminder, create_workflow, toggle_workflow, create_project, create_project_task, update_project_status, remember).
+Allowed tools (use ONLY these — anything else will fail):
+create_task, create_followup, schedule_meeting, create_workflow, toggle_workflow, create_project, create_project_task, update_project_status, remember.
 
 Rules:
 - At most 8 steps. Sequential order matters.
+- Never invent tool names outside the allowed list above.
 - Never include destructive bulk operations.
 - Each step must have a clear summary the user will read before approving.
 - Do NOT include any text outside the fenced block.`;
