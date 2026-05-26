@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import VoiceInterface from './VoiceInterface';
+import QuikleVoiceSession from './QuikleVoiceSession';
 import { Mic, Bot } from 'lucide-react';
 
 interface AiVoiceSessionDialogProps {
@@ -24,27 +24,24 @@ const AiVoiceSessionDialog: React.FC<AiVoiceSessionDialogProps> = ({ isOpen, onO
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Bot />
-            AI Voice Agent
+            Quikle Voice Agent
           </DialogTitle>
           <DialogDescription>
-            The AI agent is ready. Start the conversation to interact.
+            Powered by Groq Whisper + OpenRouter free models. Hold the mic to speak.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col items-center justify-center p-8 space-y-4 min-h-[200px]">
+        <div className="flex flex-col items-center justify-center p-6 space-y-4 min-h-[220px]">
           {isAgentSpeaking ? (
-             <div className="flex flex-col items-center text-center text-quikle-primary animate-pulse">
-                <Bot size={48} />
-                <p className="mt-2 font-semibold">Agent is speaking...</p>
+            <div className="flex flex-col items-center text-center text-primary animate-pulse">
+              <Bot size={40} />
+              <p className="mt-2 text-sm font-medium">Agent is speaking…</p>
             </div>
           ) : (
-            <div className="flex flex-col items-center text-center text-quikle-slate">
-                <Mic size={48} />
-                <p className="mt-2">Agent is listening...</p>
+            <div className="flex flex-col items-center text-center text-muted-foreground">
+              <Mic size={40} />
             </div>
           )}
-        </div>
-        <div className="flex justify-center pb-4">
-            <VoiceInterface onSpeakingChange={setIsAgentSpeaking} />
+          <QuikleVoiceSession onSpeakingChange={setIsAgentSpeaking} />
         </div>
       </DialogContent>
     </Dialog>
