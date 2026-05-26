@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Send, Sparkles, Square, Lock } from 'lucide-react';
+import { X, Send, Sparkles, Square, Lock, Clock } from 'lucide-react';
+import ScheduledPromptsSheet from './scheduled/ScheduledPromptsSheet';
 import { useAgent } from './useAgent';
 import ChatTab from './tabs/ChatTab';
 import MeetingTab from './tabs/MeetingTab';
@@ -15,6 +16,7 @@ const QuikleAgent: React.FC = () => {
   const { canUseAgent, canCreateWorkflows, reason } = useAIAgentAccess();
   const { alerts } = useAgentAlerts();
   const [draft, setDraft] = useState('');
+  const [scheduledOpen, setScheduledOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -176,13 +178,23 @@ const QuikleAgent: React.FC = () => {
                   </span>
                 </div>
               </div>
-              <button
-                onClick={() => agent.setIsOpen(false)}
-                aria-label="Close"
-                className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setScheduledOpen(true)}
+                  aria-label="Scheduled prompts"
+                  title="Scheduled prompts"
+                  className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <Clock className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => agent.setIsOpen(false)}
+                  aria-label="Close"
+                  className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -285,6 +297,8 @@ const QuikleAgent: React.FC = () => {
           )}
         </div>
       )}
+
+      <ScheduledPromptsSheet open={scheduledOpen} onOpenChange={setScheduledOpen} />
     </TooltipProvider>
   );
 };
