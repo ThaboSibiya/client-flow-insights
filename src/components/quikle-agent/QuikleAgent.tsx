@@ -242,6 +242,9 @@ const QuikleAgent: React.FC = () => {
                 onConfirm={agent.confirmAction}
                 onCancel={agent.cancelAction}
                 onFeedback={agent.sendFeedback}
+                onApprovePlan={agent.approvePlan}
+                onCancelPlan={agent.cancelPlan}
+                onUndoPlan={agent.undoPlan}
               />
             )}
             {agent.activeTab === 'inbox' && (
@@ -255,6 +258,7 @@ const QuikleAgent: React.FC = () => {
                 }}
               />
             )}
+            {agent.activeTab === 'activity' && <ActivityTab />}
             {agent.activeTab === 'meeting' && (
               <MeetingTab onSave={(t, title) => agent.saveMeeting(t, title)} />
             )}
