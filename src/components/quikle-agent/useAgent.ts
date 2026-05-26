@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
-import type { AgentMessage, AgentTab, PendingAction } from './types';
+import type { AgentMessage, AgentPlan, AgentTab, PendingAction, PlanStep } from './types';
 
 const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 
