@@ -64,12 +64,12 @@ Uses Lovable AI Gateway (`LOVABLE_API_KEY` already set) for summarization.
 
 ---
 
-## Phase 5 — Memory & personalization
+## Phase 5 — Memory & personalization ✅ SHIPPED
 Goal: agent learns the user and the workspace.
 
-1. **Per-user agent memory** table (`agent_memory`): facts the agent extracts ("Sarah prefers WhatsApp follow-ups", "We never call on Fridays"). Injected into system prompt.
-2. **Per-customer memory** keyed to `customer_id`: last touchpoint summary, preferred channel, tone notes. Surfaced when the user opens that customer.
-3. **Feedback loop** — 👍/👎 on each assistant message writes to `agent_feedback`, used to tune retrieval and (later) fine-tune prompts.
+1. ✅ **Per-user agent memory** table (`agent_memory`) with `remember`/`forget` tools; top 20 entries injected into system prompt.
+2. ✅ **Per-customer memory** table (`agent_customer_memory`) keyed to `customer_id`.
+3. ✅ **Feedback loop** — 👍/👎 on each assistant message writes to `agent_feedback`.
 
 ---
 
