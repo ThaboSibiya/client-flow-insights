@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Send, Sparkles, Square, Lock } from 'lucide-react';
+import { X, Send, Sparkles, Square, Lock, Clock } from 'lucide-react';
+import ScheduledPromptsSheet from './scheduled/ScheduledPromptsSheet';
 import { useAgent } from './useAgent';
 import ChatTab from './tabs/ChatTab';
 import MeetingTab from './tabs/MeetingTab';
