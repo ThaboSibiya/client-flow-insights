@@ -67,6 +67,63 @@ export type Database = {
           },
         ]
       }
+      agent_action_log: {
+        Row: {
+          args: Json
+          conversation_id: string | null
+          created_at: string
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          inverse_op: Json | null
+          plan_id: string
+          plan_title: string | null
+          result: Json | null
+          started_at: string | null
+          status: string
+          step_index: number
+          tool_name: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          args?: Json
+          conversation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          inverse_op?: Json | null
+          plan_id: string
+          plan_title?: string | null
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          step_index: number
+          tool_name: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          args?: Json
+          conversation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          inverse_op?: Json | null
+          plan_id?: string
+          plan_title?: string | null
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          step_index?: number
+          tool_name?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       agent_alerts: {
         Row: {
           alert_type: string
