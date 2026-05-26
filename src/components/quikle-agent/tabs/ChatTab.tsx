@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { CheckCircle2, XCircle, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { CheckCircle2, XCircle, ChevronDown, ChevronUp, Sparkles, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AgentMessage, PendingAction } from '../types';
 
@@ -11,6 +11,7 @@ interface Props {
   onSuggestion: (text: string) => void;
   onConfirm: (messageId: string, action: PendingAction) => void;
   onCancel: (messageId: string) => void;
+  onFeedback?: (messageId: string, rating: 1 | -1) => void;
 }
 
 const SUGGESTIONS = [
