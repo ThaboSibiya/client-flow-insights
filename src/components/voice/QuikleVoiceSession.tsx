@@ -66,7 +66,7 @@ const QuikleVoiceSession: React.FC<QuikleVoiceSessionProps> = ({ onSpeakingChang
       if (error) throw error;
       const replyText: string = data?.reply ?? 'Sorry, I had no response.';
       setReply(replyText);
-      setHistory(prev => [...prev, { role: 'user', content: text }, { role: 'assistant', content: replyText }].slice(-20));
+      setHistory(prev => [...prev, { role: 'user' as const, content: text }, { role: 'assistant' as const, content: replyText }].slice(-20));
       speak(replyText);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Agent error';
