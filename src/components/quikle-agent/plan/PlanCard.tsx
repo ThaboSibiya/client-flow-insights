@@ -31,7 +31,7 @@ const PlanCard: React.FC<Props> = ({ plan, onApprove, onCancel, onUndo }) => {
   const isProposed = plan.status === 'proposed';
   const isRunning = plan.status === 'running';
   const isDone = plan.status === 'done' || plan.status === 'failed';
-  const canUndo = (plan.status === 'done' || plan.status === 'failed') && plan.hasWrites && plan.status !== 'undone';
+  const canUndo = (plan.status === 'done' || plan.status === 'failed') && plan.hasWrites;
 
   const approve = () => {
     const indices = plan.steps.filter(s => enabled[s.index] !== false).map(s => s.index);
