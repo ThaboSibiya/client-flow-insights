@@ -345,6 +345,63 @@ export type Database = {
           },
         ]
       }
+      agent_scheduled_prompts: {
+        Row: {
+          created_at: string
+          day_of_month: number | null
+          day_of_week: number | null
+          frequency: string
+          id: string
+          is_active: boolean
+          last_result_summary: string | null
+          last_run_at: string | null
+          name: string
+          next_run_at: string
+          prompt: string
+          time_of_day: string
+          timezone: string
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
+          frequency: string
+          id?: string
+          is_active?: boolean
+          last_result_summary?: string | null
+          last_run_at?: string | null
+          name: string
+          next_run_at?: string
+          prompt: string
+          time_of_day?: string
+          timezone?: string
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_result_summary?: string | null
+          last_run_at?: string | null
+          name?: string
+          next_run_at?: string
+          prompt?: string
+          time_of_day?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       api_triggers: {
         Row: {
           auth_type: string
