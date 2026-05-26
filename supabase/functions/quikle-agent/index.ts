@@ -708,6 +708,25 @@ async function execTool(supabase: SBClient, userId: string, tool: string, args: 
           data,
         };
       }
+
+      // ─── Memory ───
+      case 'remember': {
+        const content = String(args.content || '').trim();
+        if (!content) return { ok: false, summary: 'Nothing to remember.', error: 'empty' };
+        const kind = ['preference', 'fact', 'style'].includes(args.kind) ? args.kind : 'fact';
+        const { data, error } = await supabase.from('agent_memory').insert({
+          user_id: userId, kind, content, source: 'chat', confidence: 0.9,
+        }).select('id').single();
+        if (error) throw error;
+        return { ok: true, summary: `Got it — I'll remember that.`, data };
+      }
+      case 'forget': {
+        const id = String(args.id || '').trim();
+        if (!id) return { ok: false, summary: 'Need a memory id to forget.', error: 'missing_id' };
+        const { error } = await supabase.from('agent_memory').delete().eq('id', id).eq('user_id', userId);
+        if (error) throw error;
+        return { ok: true, summary: 'Forgotten.' };
+      }
     }
     return { ok: false, summary: `Unknown tool: ${tool}`, error: 'unknown_tool' };
   } catch (e) {
