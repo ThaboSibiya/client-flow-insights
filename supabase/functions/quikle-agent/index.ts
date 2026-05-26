@@ -820,13 +820,51 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Phase 5: feedback ingestion (👍 / 👎)
+    if (type === 'feedback') {
+      const messageId = String(body.messageId || '').trim();
+      const rating = body.rating === 1 || body.rating === -1 ? body.rating : null;
+      if (!messageId || rating === null) {
+        return new Response(JSON.stringify({ error: 'Invalid feedback' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const { error } = await supabase.from('agent_feedback').insert({
+        user_id: user.id, message_id: messageId, rating, comment: body.comment ?? null,
+      });
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     if (type === 'chat') {
       const message: string = body.message ?? '';
       // Phase 1: client trims to a token budget and sends full conversation history.
       // Hard cap of 200 turns as a final safety net against pathological payloads.
       const history: ChatMessage[] = Array.isArray(body.history) ? body.history.slice(-200) : [];
+
+      // Phase 5: inject up to 20 personalisation memories into the system prompt.
+      let memoryBlock = '';
+      try {
+        const { data: mems } = await supabase
+          .from('agent_memory')
+          .select('content, kind')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(20);
+        if (mems && mems.length) {
+          memoryBlock = '\n\nUSER MEMORY (apply these unless overridden):\n' +
+            mems.map((m: any) => `- [${m.kind}] ${m.content}`).join('\n');
+        }
+      } catch { /* memory optional */ }
+
       const messages: ChatMessage[] = [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: SYSTEM_PROMPT + memoryBlock },
         ...history,
         { role: 'user', content: message },
       ];
