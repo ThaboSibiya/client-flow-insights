@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { CheckCircle2, XCircle, ChevronDown, ChevronUp, Sparkles, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AgentMessage, PendingAction } from '../types';
+import PlanCard from '../plan/PlanCard';
 
 interface Props {
   messages: AgentMessage[];
@@ -12,6 +13,9 @@ interface Props {
   onConfirm: (messageId: string, action: PendingAction) => void;
   onCancel: (messageId: string) => void;
   onFeedback?: (messageId: string, rating: 1 | -1) => void;
+  onApprovePlan: (planId: string, enabledIndices: number[]) => void;
+  onCancelPlan: (planId: string) => void;
+  onUndoPlan: (planId: string) => void;
 }
 
 const SUGGESTIONS = [
@@ -161,7 +165,7 @@ const UpdateCard: React.FC<{ r: NonNullable<AgentMessage['updateReport']> }> = (
   );
 };
 
-const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion, onConfirm, onCancel, onFeedback }) => {
+const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion, onConfirm, onCancel, onFeedback, onApprovePlan, onCancelPlan, onUndoPlan }) => {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isThinking]);
 
@@ -205,6 +209,16 @@ const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion, onConfir
             )}
             {m.actionResult && (
               <ActionCard ok={m.actionResult.ok} summary={m.actionResult.summary} />
+            )}
+            {m.plan && (
+              <div className="mt-2">
+                <PlanCard
+                  plan={m.plan}
+                  onApprove={onApprovePlan}
+                  onCancel={onCancelPlan}
+                  onUndo={onUndoPlan}
+                />
+              </div>
             )}
             {m.pendingAction && (
               <PendingCard
