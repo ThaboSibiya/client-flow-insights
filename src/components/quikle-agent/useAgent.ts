@@ -373,9 +373,17 @@ export function useAgent() {
       const { data, error } = await supabase.functions.invoke('quikle-agent', {
         body: { type: 'plan', message: trimmed, history },
       });
-      if (error) throw error;
+      if (error) {
+        let detail = error.message;
+        try {
+          const ctx = (error as any).context;
+          const body = ctx && typeof ctx.json === 'function' ? await ctx.json() : null;
+          if (body?.error) detail = body.error;
+        } catch { /* ignore */ }
+        throw new Error(detail);
+      }
       const raw = data?.plan;
-      if (!raw?.steps?.length) throw new Error('No plan returned');
+      if (!raw?.steps?.length) throw new Error(data?.error || 'No plan returned');
       const plan: AgentPlan = {
         planId: crypto.randomUUID(),
         title: String(raw.title || 'Plan'),
