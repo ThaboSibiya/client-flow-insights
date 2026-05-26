@@ -325,6 +325,32 @@ function buildWorkflowGraph(template?: string, trigger?: string, actions?: strin
 // ─── Tool router ─────────────────────────────────────────────────────────
 async function execTool(supabase: SBClient, userId: string, tool: string, args: Record<string, any>): Promise<ToolResult> {
   try {
+    // Normalize common arg aliases produced by the LLM
+    args = { ...(args || {}) };
+    const alias = (from: string, to: string) => {
+      if (args[to] === undefined && args[from] !== undefined) args[to] = args[from];
+    };
+    // customer/lead reference aliases
+    ['customer_name','customer','lead_name','lead','contact_name','name_or_id','customer_id']
+      .forEach((k) => alias(k, 'customer_id_or_name'));
+    ['lead_id','lead_name','lead','customer_name','customer','name_or_id']
+      .forEach((k) => alias(k, 'lead_id_or_name'));
+    // note aliases
+    alias('note_content', 'note');
+    alias('content', 'note');
+    alias('body', 'note');
+    // task aliases
+    alias('description', 'title');
+    alias('subject', 'title');
+    alias('due_date', 'due');
+    alias('due_at', 'due');
+    // followup aliases
+    alias('contact_name', 'contact');
+    alias('customer_name', 'contact');
+    alias('lead_name', 'contact');
+    alias('when', 'date');
+    alias('scheduled_for', 'date');
+
     switch (tool) {
       // ─── Tasks ───
       case 'create_task': {
