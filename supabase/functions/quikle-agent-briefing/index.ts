@@ -83,9 +83,11 @@ New leads in last 24h (${ctx.stats.new_leads_24h}): ${JSON.stringify(ctx.newLead
   const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
   if (!OPENROUTER_API_KEY) throw new Error('OPENROUTER_API_KEY not configured');
   const freeModels = [
-    'deepseek/deepseek-chat-v3.1:free',
+    'deepseek/deepseek-v4-flash:free',
     'meta-llama/llama-3.3-70b-instruct:free',
-    'google/gemini-2.0-flash-exp:free',
+    'nvidia/nemotron-3-super-120b-a12b:free',
+    'qwen/qwen3-next-80b-a3b-instruct:free',
+    'openai/gpt-oss-120b:free',
   ];
   let lastErr = '';
   for (const model of freeModels) {
