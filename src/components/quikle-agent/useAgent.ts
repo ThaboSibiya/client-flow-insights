@@ -329,11 +329,22 @@ export function useAgent() {
   }, [isOpen, conversationId, append]);
 
 
+  const sendFeedback = useCallback(async (messageId: string, rating: 1 | -1, comment?: string) => {
+    try {
+      await supabase.functions.invoke('quikle-agent', {
+        body: { type: 'feedback', messageId, rating, comment: comment ?? null },
+      });
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, feedback: rating } : m));
+    } catch (e) {
+      console.warn('[useAgent] feedback failed:', e);
+    }
+  }, []);
+
   return {
     messages, isThinking, activeTab, setActiveTab,
     isOpen, setIsOpen,
     sendChat, saveMeeting, requestUpdate,
     confirmAction, cancelAction,
-    clearConversation,
+    clearConversation, sendFeedback,
   };
 }
