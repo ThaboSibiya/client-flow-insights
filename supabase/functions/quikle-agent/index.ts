@@ -82,7 +82,11 @@ AVAILABLE TOOLS:
 — Analytics —
 - analytics_summary: {}   // counts of leads, tickets, tasks, invoices, revenue, overdue
 
-If a customer/lead/ticket/invoice/project is referenced by name or partial id, pass the string the user gave — the backend will resolve it. Always prefer action over chat when a clear instruction is given. Keep replies short and friendly.`;
+— Memory (personalization) —
+- remember: { content, kind? (preference/fact/style) }   // saves a fact about the user/workspace
+- forget: { id }   // removes a memory by id
+
+If a customer/lead/ticket/invoice/project is referenced by name or partial id, pass the string the user gave — the backend will resolve it. Always prefer action over chat when a clear instruction is given. Keep replies short and friendly. When the user states a stable preference ("I prefer WhatsApp", "we never call on Fridays", "always cc Sarah"), call \`remember\` to save it.`;
 
 interface ChatMessage { role: 'user' | 'assistant' | 'system'; content: string }
 type SBClient = ReturnType<typeof createClient>;
