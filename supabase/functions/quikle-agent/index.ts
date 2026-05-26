@@ -820,6 +820,65 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Phase 7: multi-step plan proposal. Returns { plan: { title, steps: [{tool,args,summary}] } }.
+    if (type === 'plan') {
+      const message: string = String(body.message ?? '').trim();
+      const history: ChatMessage[] = Array.isArray(body.history) ? body.history.slice(-50) : [];
+      if (!message) {
+        return new Response(JSON.stringify({ error: 'Missing message' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const PLAN_PROMPT = `You are Quikle AI in PLAN MODE. The user has asked you to perform several CRM actions in one go. Break the request into 1–8 atomic tool calls and return ONLY a fenced JSON block tagged "plan":
+
+\`\`\`plan
+{
+  "title": "<short human title>",
+  "steps": [
+    { "tool": "<tool_name>", "args": { }, "summary": "<one-line plain English>" }
+  ]
+}
+\`\`\`
+
+Use the same tools available in chat mode (create_task, create_followup, schedule_meeting, log_note, create_lead, update_lead_status, assign_lead, move_ticket, assign_ticket, create_quote, create_invoice, mark_invoice_paid, send_invoice_reminder, create_workflow, toggle_workflow, create_project, create_project_task, update_project_status, remember).
+
+Rules:
+- At most 8 steps. Sequential order matters.
+- Never include destructive bulk operations.
+- Each step must have a clear summary the user will read before approving.
+- Do NOT include any text outside the fenced block.`;
+
+      const messages: ChatMessage[] = [
+        { role: 'system', content: PLAN_PROMPT },
+        ...history,
+        { role: 'user', content: message },
+      ];
+      const raw = await callLLM(messages, freeOnly);
+      const m = raw.match(/```plan\s*([\s\S]*?)```/i) || raw.match(/```json\s*([\s\S]*?)```/i) || raw.match(/\{[\s\S]*\}/);
+      const jsonText = m ? (m[1] ?? m[0]) : raw;
+      let plan: any = null;
+      try { plan = JSON.parse(jsonText.trim()); } catch { /* ignore */ }
+      if (!plan || !Array.isArray(plan.steps) || plan.steps.length === 0) {
+        return new Response(JSON.stringify({ error: 'Could not produce a plan from that request.', raw }), {
+          status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const steps = (plan.steps as any[]).slice(0, 8).map((s, i) => ({
+        index: i,
+        tool: String(s.tool || ''),
+        args: (s.args && typeof s.args === 'object') ? s.args : {},
+        summary: String(s.summary || s.tool || `Step ${i + 1}`),
+      })).filter(s => s.tool);
+      if (steps.length === 0) {
+        return new Response(JSON.stringify({ error: 'Plan contained no valid steps.' }), {
+          status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({
+        plan: { title: String(plan.title || 'Plan'), steps },
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     // Phase 5: feedback ingestion (👍 / 👎)
     if (type === 'feedback') {
       const messageId = String(body.messageId || '').trim();
