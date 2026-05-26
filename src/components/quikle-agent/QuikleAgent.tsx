@@ -70,9 +70,10 @@ const QuikleAgent: React.FC = () => {
     setDraft('');
   };
 
-  const tabs: Array<{ key: 'chat' | 'meeting' | 'inbox'; label: string; badge?: number }> = [
+  const tabs: Array<{ key: 'chat' | 'meeting' | 'inbox' | 'activity'; label: string; badge?: number }> = [
     { key: 'chat', label: 'Chat' },
     { key: 'inbox', label: 'Inbox', badge: alerts.length },
+    { key: 'activity', label: 'Activity' },
     { key: 'meeting', label: 'Meeting' },
   ];
 
