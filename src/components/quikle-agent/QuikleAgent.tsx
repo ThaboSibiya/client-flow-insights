@@ -178,13 +178,23 @@ const QuikleAgent: React.FC = () => {
                   </span>
                 </div>
               </div>
-              <button
-                onClick={() => agent.setIsOpen(false)}
-                aria-label="Close"
-                className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setScheduledOpen(true)}
+                  aria-label="Scheduled prompts"
+                  title="Scheduled prompts"
+                  className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <Clock className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => agent.setIsOpen(false)}
+                  aria-label="Close"
+                  className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
 
