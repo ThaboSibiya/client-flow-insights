@@ -151,6 +151,45 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_customer_memory: {
+        Row: {
+          created_at: string
+          customer_id: string
+          id: string
+          last_touchpoint_at: string | null
+          preferred_channel: string | null
+          summary: string | null
+          tone_notes: string | null
+          updated_at: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          id?: string
+          last_touchpoint_at?: string | null
+          preferred_channel?: string | null
+          summary?: string | null
+          tone_notes?: string | null
+          updated_at?: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          id?: string
+          last_touchpoint_at?: string | null
+          preferred_channel?: string | null
+          summary?: string | null
+          tone_notes?: string | null
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       agent_daily_briefings: {
         Row: {
           briefing_date: string
@@ -182,6 +221,72 @@ export type Database = {
           priorities?: Json
           stats?: Json
           summary?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
+      agent_feedback: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          message_id: string
+          rating: number
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          message_id: string
+          rating: number
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string
+          rating?: number
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
+      agent_memory: {
+        Row: {
+          confidence: number | null
+          content: string
+          created_at: string
+          id: string
+          kind: string
+          source: string | null
+          updated_at: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          content: string
+          created_at?: string
+          id?: string
+          kind?: string
+          source?: string | null
+          updated_at?: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          content?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          source?: string | null
+          updated_at?: string
           user_id?: string
           workspace_id?: string | null
         }

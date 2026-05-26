@@ -82,7 +82,11 @@ AVAILABLE TOOLS:
 — Analytics —
 - analytics_summary: {}   // counts of leads, tickets, tasks, invoices, revenue, overdue
 
-If a customer/lead/ticket/invoice/project is referenced by name or partial id, pass the string the user gave — the backend will resolve it. Always prefer action over chat when a clear instruction is given. Keep replies short and friendly.`;
+— Memory (personalization) —
+- remember: { content, kind? (preference/fact/style) }   // saves a fact about the user/workspace
+- forget: { id }   // removes a memory by id
+
+If a customer/lead/ticket/invoice/project is referenced by name or partial id, pass the string the user gave — the backend will resolve it. Always prefer action over chat when a clear instruction is given. Keep replies short and friendly. When the user states a stable preference ("I prefer WhatsApp", "we never call on Fridays", "always cc Sarah"), call \`remember\` to save it.`;
 
 interface ChatMessage { role: 'user' | 'assistant' | 'system'; content: string }
 type SBClient = ReturnType<typeof createClient>;
@@ -704,6 +708,25 @@ async function execTool(supabase: SBClient, userId: string, tool: string, args: 
           data,
         };
       }
+
+      // ─── Memory ───
+      case 'remember': {
+        const content = String(args.content || '').trim();
+        if (!content) return { ok: false, summary: 'Nothing to remember.', error: 'empty' };
+        const kind = ['preference', 'fact', 'style'].includes(args.kind) ? args.kind : 'fact';
+        const { data, error } = await supabase.from('agent_memory').insert({
+          user_id: userId, kind, content, source: 'chat', confidence: 0.9,
+        }).select('id').single();
+        if (error) throw error;
+        return { ok: true, summary: `Got it — I'll remember that.`, data };
+      }
+      case 'forget': {
+        const id = String(args.id || '').trim();
+        if (!id) return { ok: false, summary: 'Need a memory id to forget.', error: 'missing_id' };
+        const { error } = await supabase.from('agent_memory').delete().eq('id', id).eq('user_id', userId);
+        if (error) throw error;
+        return { ok: true, summary: 'Forgotten.' };
+      }
     }
     return { ok: false, summary: `Unknown tool: ${tool}`, error: 'unknown_tool' };
   } catch (e) {
@@ -797,13 +820,51 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Phase 5: feedback ingestion (👍 / 👎)
+    if (type === 'feedback') {
+      const messageId = String(body.messageId || '').trim();
+      const rating = body.rating === 1 || body.rating === -1 ? body.rating : null;
+      if (!messageId || rating === null) {
+        return new Response(JSON.stringify({ error: 'Invalid feedback' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const { error } = await supabase.from('agent_feedback').insert({
+        user_id: user.id, message_id: messageId, rating, comment: body.comment ?? null,
+      });
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     if (type === 'chat') {
       const message: string = body.message ?? '';
       // Phase 1: client trims to a token budget and sends full conversation history.
       // Hard cap of 200 turns as a final safety net against pathological payloads.
       const history: ChatMessage[] = Array.isArray(body.history) ? body.history.slice(-200) : [];
+
+      // Phase 5: inject up to 20 personalisation memories into the system prompt.
+      let memoryBlock = '';
+      try {
+        const { data: mems } = await supabase
+          .from('agent_memory')
+          .select('content, kind')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(20);
+        if (mems && mems.length) {
+          memoryBlock = '\n\nUSER MEMORY (apply these unless overridden):\n' +
+            mems.map((m: any) => `- [${m.kind}] ${m.content}`).join('\n');
+        }
+      } catch { /* memory optional */ }
+
       const messages: ChatMessage[] = [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: SYSTEM_PROMPT + memoryBlock },
         ...history,
         { role: 'user', content: message },
       ];

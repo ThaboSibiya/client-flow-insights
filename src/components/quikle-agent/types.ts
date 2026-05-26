@@ -28,6 +28,7 @@ export interface AgentMessage {
   };
   pendingAction?: PendingAction;
   pendingResolved?: 'confirmed' | 'cancelled';
+  feedback?: 1 | -1;
   createdAt: number;
 }
 

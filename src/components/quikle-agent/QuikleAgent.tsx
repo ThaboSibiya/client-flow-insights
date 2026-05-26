@@ -227,6 +227,7 @@ const QuikleAgent: React.FC = () => {
                 onSuggestion={(t) => agent.sendChat(t)}
                 onConfirm={agent.confirmAction}
                 onCancel={agent.cancelAction}
+                onFeedback={agent.sendFeedback}
               />
             )}
             {agent.activeTab === 'inbox' && (
