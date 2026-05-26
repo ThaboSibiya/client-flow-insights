@@ -217,6 +217,32 @@ const ChatTab: React.FC<Props> = ({ messages, isThinking, onSuggestion, onConfir
             )}
             {m.meetingNotes && <MeetingCard m={m.meetingNotes} />}
             {m.updateReport && <UpdateCard r={m.updateReport} />}
+            {m.role === 'assistant' && onFeedback && !m.pendingAction && (
+              <div className="mt-1.5 flex items-center gap-1 opacity-60 hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => onFeedback(m.id, 1)}
+                  disabled={m.feedback !== undefined}
+                  className={cn(
+                    'p-1 rounded transition-colors',
+                    m.feedback === 1 ? 'text-emerald-500' : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  aria-label="Helpful"
+                >
+                  <ThumbsUp className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={() => onFeedback(m.id, -1)}
+                  disabled={m.feedback !== undefined}
+                  className={cn(
+                    'p-1 rounded transition-colors',
+                    m.feedback === -1 ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  aria-label="Not helpful"
+                >
+                  <ThumbsDown className="h-3 w-3" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       ))}
