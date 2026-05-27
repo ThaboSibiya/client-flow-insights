@@ -38,7 +38,6 @@ const Customers: React.FC = () => {
     return (
       <CustomerErrorBoundary>
         <MobileCustomersView />
-        <AiVoiceSessionDialog isOpen={isSessionOpen} onOpenChange={setIsSessionOpen} />
         <OnSiteStatusUpdate isOpen={isOnSiteUpdateOpen} onClose={() => setIsOnSiteUpdateOpen(false)} />
       </CustomerErrorBoundary>
     );
