@@ -140,7 +140,7 @@ const FinanceLayout = () => {
 
   if (loading) {
     return (
-      <div className="h-[calc(100vh-4rem)] flex flex-col">
+      <div className="h-[calc(100dvh-4rem)] flex flex-col">
         <div className="border-b px-4 py-3">
           <Skeleton className="h-8 w-48 mb-2" />
           <Skeleton className="h-4 w-64" />
@@ -162,7 +162,7 @@ const FinanceLayout = () => {
   // Empty state when no debtors
   if (debtors.length === 0) {
     return (
-      <div className="h-[calc(100vh-4rem)] flex flex-col">
+      <div className="h-[calc(100dvh-4rem)] flex flex-col">
         <FinanceHeader
           stats={stats}
           onGenerateReport={handleGenerateReport}
@@ -177,7 +177,7 @@ const FinanceLayout = () => {
   // Mobile: Show list or detail based on selection
   if (isMobile) {
     return (
-      <div className="h-[calc(100vh-4rem)] flex flex-col">
+      <div className="h-[calc(100dvh-4rem)] flex flex-col">
         <FinanceHeader
           stats={stats}
           onGenerateReport={handleGenerateReport}
@@ -224,7 +224,7 @@ const FinanceLayout = () => {
 
   // Desktop: Split pane layout
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
+    <div className="h-[calc(100dvh-4rem)] flex flex-col">
       <FinanceHeader
         stats={stats}
         onGenerateReport={handleGenerateReport}

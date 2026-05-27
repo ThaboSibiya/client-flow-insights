@@ -150,7 +150,7 @@ const QuotesLayout: React.FC = () => {
   // Mobile Layout
   if (isMobile) {
     return (
-      <div className="h-[calc(100vh-4rem)] flex flex-col pb-20">
+      <div className="h-[calc(100dvh-4rem)] flex flex-col">
         {showMobileDetail && selectedDocument ? (
           <div className="flex-1 flex flex-col">
             <div className="p-4 border-b border-border flex items-center gap-2">
@@ -211,7 +211,7 @@ const QuotesLayout: React.FC = () => {
 
   // Desktop Layout with Resizable Panels
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
+    <div className="h-[calc(100dvh-4rem)] flex flex-col">
       <div className="p-6 pb-4">
         <QuotesHeader
           searchQuery={searchQuery}

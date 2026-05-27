@@ -95,7 +95,7 @@ const TeamLayout: React.FC = () => {
 
   return (
     <EmployeeAccessChecker requiredPrivilege="can_manage_employees">
-      <div className="h-[calc(100vh-4rem)] flex flex-col p-6">
+      <div className="h-[calc(100dvh-4rem)] flex flex-col p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
