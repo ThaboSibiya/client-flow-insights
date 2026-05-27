@@ -135,6 +135,13 @@ export function useAgent() {
     setMessages(prev => prev.map(m => m.id === messageId ? { ...m, pendingResolved: resolved } : m));
   }, []);
 
+  // Stop any in-flight LLM request. Bumps requestIdRef so stale replies are dropped,
+  // and clears the thinking indicator immediately for snappy UX.
+  const stop = useCallback(() => {
+    requestIdRef.current += 1;
+    setIsThinking(false);
+  }, []);
+
   const sendChat = useCallback(async (text: string, opts?: { voice?: boolean }) => {
     const trimmed = text.trim();
     if (!trimmed) return;
@@ -142,13 +149,15 @@ export function useAgent() {
     setMessages(prev => [...prev, userMsg]);
     void persist(userMsg);
     setIsThinking(true);
+    const myReq = ++requestIdRef.current;
 
     try {
       const fullHistory = [...messages, userMsg];
       const history = trimHistoryForModel(fullHistory.slice(0, -1));
       const { data, error } = await supabase.functions.invoke('quikle-agent', {
-        body: { type: 'chat', message: trimmed, history, voice: !!opts?.voice },
+        body: { type: 'chat', message: trimmed, history, voice: !!opts?.voice, clientTime: getClientTime() },
       });
+      if (myReq !== requestIdRef.current) return; // stopped/cleared mid-flight
       if (error) throw error;
       append({
         id: uid(),
@@ -160,6 +169,7 @@ export function useAgent() {
         createdAt: Date.now(),
       });
     } catch (e) {
+      if (myReq !== requestIdRef.current) return;
       append({
         id: uid(),
         role: 'assistant',
@@ -167,7 +177,7 @@ export function useAgent() {
         createdAt: Date.now(),
       });
     } finally {
-      setIsThinking(false);
+      if (myReq === requestIdRef.current) setIsThinking(false);
     }
   }, [messages, append, persist]);
 
