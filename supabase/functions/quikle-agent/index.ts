@@ -950,6 +950,7 @@ Rules:
 
     if (type === 'chat') {
       const message: string = body.message ?? '';
+      const voice: boolean = body.voice === true;
       // Phase 1: client trims to a token budget and sends full conversation history.
       // Hard cap of 200 turns as a final safety net against pathological payloads.
       const history: ChatMessage[] = Array.isArray(body.history) ? body.history.slice(-200) : [];
@@ -969,12 +970,18 @@ Rules:
         }
       } catch { /* memory optional */ }
 
+      // Voice mode: keep replies snappy — shorter sentences = less TTS time + faster LLM completion.
+      const voiceStyle = voice
+        ? '\n\nVOICE MODE: The user is speaking. Reply in ONE or TWO short conversational sentences. No markdown, no lists, no code blocks unless emitting an action.'
+        : '';
+      const llmOpts = voice ? { maxTokens: 120 } : {};
+
       const messages: ChatMessage[] = [
-        { role: 'system', content: SYSTEM_PROMPT + memoryBlock },
+        { role: 'system', content: SYSTEM_PROMPT + memoryBlock + voiceStyle },
         ...history,
         { role: 'user', content: message },
       ];
-      const first = await callLLM(messages, freeOnly);
+      const first = await callLLM(messages, freeOnly, llmOpts);
       const action = parseAction(first);
 
       if (!action) {
@@ -999,7 +1006,7 @@ Rules:
           ...messages,
           { role: 'assistant', content: first },
           { role: 'user', content: `Tool result: ${JSON.stringify(result)}. Reply with ONE short plain sentence confirming the outcome (no JSON, no code).` },
-        ], freeOnly);
+        ], freeOnly, { maxTokens: voice ? 80 : 200 });
       } catch { /* fall back to raw summary */ }
 
       return new Response(JSON.stringify({
