@@ -3,9 +3,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import CustomerTable from '@/components/customers/CustomerTable';
 import { MobileCustomersView } from '@/components/customers/mobile';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Phone, MapPin, Settings2, ChevronDown } from 'lucide-react';
+import { UserPlus, MapPin, Settings2, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import AiVoiceSessionDialog from '@/components/voice/AiVoiceSessionDialog';
 import OnSiteStatusUpdate from '@/components/customers/OnSiteStatusUpdate';
 import CustomerErrorBoundary from '@/components/error/CustomerErrorBoundary';
 import {
