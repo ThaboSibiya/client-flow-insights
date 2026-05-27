@@ -606,7 +606,7 @@ export function useAgent() {
     isOpen, setIsOpen,
     sendChat, saveMeeting, requestUpdate,
     confirmAction, cancelAction,
-    clearConversation, sendFeedback,
+    clearConversation, sendFeedback, stop,
     proposePlan, approvePlan, cancelPlan, undoPlan,
   };
 }
