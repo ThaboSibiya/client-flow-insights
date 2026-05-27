@@ -221,6 +221,24 @@ const QuikleAgent: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-1">
+                {statusPill && (
+                  <span className={cn('mr-1 px-2 py-0.5 rounded-full text-[10px] font-medium', statusPill.tone)}>
+                    {statusPill.label}
+                  </span>
+                )}
+                <button
+                  onClick={() => speakReply.setEnabled(!speakReply.enabled)}
+                  aria-label={speakReply.enabled ? 'Disable spoken replies' : 'Enable spoken replies'}
+                  title={speakReply.enabled ? 'Spoken replies on' : 'Spoken replies off'}
+                  className={cn(
+                    'h-7 w-7 flex items-center justify-center rounded-md transition-colors',
+                    speakReply.enabled
+                      ? 'text-primary bg-primary/10 hover:bg-primary/15'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  )}
+                >
+                  {speakReply.enabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                </button>
                 <button
                   onClick={() => setScheduledOpen(true)}
                   aria-label="Scheduled prompts"
