@@ -49,6 +49,8 @@ export function useAgent() {
   const userIdRef = useRef<string | null>(null);
   const loadedRef = useRef(false);
   const briefingCheckedRef = useRef(false);
+  // Monotonic request id — bumped on stop()/clearConversation() to ignore stale replies.
+  const requestIdRef = useRef(0);
 
   // ─── Load (or create) the active conversation + its messages on mount ───
   useEffect(() => {
@@ -62,31 +64,38 @@ export function useAgent() {
       // Most-recent conversation, or create one.
       const { data: existing } = await supabase
         .from('agent_conversations')
-        .select('id')
+        .select('id, last_message_at')
         .eq('user_id', user.id)
         .order('last_message_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
+      const today = getClientTime().localDate;
       let convoId = existing?.id ?? null;
-      if (!convoId) {
+      const lastIso = (existing as any)?.last_message_at as string | null | undefined;
+      // Morning reset: if the most recent convo is from a previous local day,
+      // start a fresh thread so the morning briefing posts cleanly.
+      const isStale = !!lastIso && localDateFromIso(lastIso) < today;
+
+      if (!convoId || isStale) {
         const { data: created } = await supabase
           .from('agent_conversations')
           .insert({ user_id: user.id, workspace_id: workspaceId ?? null })
           .select('id')
           .single();
-        convoId = created?.id ?? null;
+        convoId = created?.id ?? convoId;
       }
       if (!convoId) return;
       setConversationId(convoId);
 
-      const { data: rows } = await supabase
-        .from('agent_messages')
-        .select('*')
-        .eq('conversation_id', convoId)
-        .order('created_at', { ascending: true });
-
-      if (rows?.length) setMessages(rows.map(rowToMessage));
+      if (!isStale) {
+        const { data: rows } = await supabase
+          .from('agent_messages')
+          .select('*')
+          .eq('conversation_id', convoId)
+          .order('created_at', { ascending: true });
+        if (rows?.length) setMessages(rows.map(rowToMessage));
+      }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
