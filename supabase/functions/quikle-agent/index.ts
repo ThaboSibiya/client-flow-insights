@@ -119,16 +119,36 @@ async function checkAgentAccess(supabase: SBClient, userId: string): Promise<{ o
   }
 }
 
-async function callLLM(messages: ChatMessage[], freeOnly = false): Promise<string> {
-  const providers = getProviders(freeOnly);
-  if (providers.length === 0) {
+// In-memory cooldown to skip recently-throttled providers (per isolate, ~minutes).
+// This eliminates the 1–2s wasted per request on free-tier 429s.
+const providerCooldownUntil = new Map<string, number>();
+const COOLDOWN_MS = 60_000;
+
+async function callLLM(
+  messages: ChatMessage[],
+  freeOnly = false,
+  opts: { maxTokens?: number; temperature?: number } = {},
+): Promise<string> {
+  const all = getProviders(freeOnly);
+  if (all.length === 0) {
     throw new Error(freeOnly
       ? 'Free-only mode enabled but no OpenRouter free providers configured. Add OPENROUTER_API_KEY.'
       : 'No LLM providers configured');
   }
+  const now = Date.now();
+  // Try non-cooled-down providers first; keep cooled ones as a last resort.
+  const fresh = all.filter(p => (providerCooldownUntil.get(p.name) ?? 0) <= now);
+  const cooled = all.filter(p => (providerCooldownUntil.get(p.name) ?? 0) > now);
+  const providers = fresh.length ? [...fresh, ...cooled] : all;
+
+  const temperature = opts.temperature ?? 0.3;
+  const maxTokens = opts.maxTokens;
+
   let lastErr = '';
   for (const p of providers) {
     try {
+      const body: Record<string, unknown> = { model: p.model, messages, temperature };
+      if (maxTokens) body.max_tokens = maxTokens;
       const res = await fetch(p.url, {
         method: 'POST',
         headers: {
@@ -139,13 +159,14 @@ async function callLLM(messages: ChatMessage[], freeOnly = false): Promise<strin
             'X-Title': 'Quikle AI Agent',
           } : {}),
         },
-        body: JSON.stringify({ model: p.model, messages, temperature: 0.3 }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const t = await res.text();
         lastErr = `${p.name} ${res.status}: ${t.slice(0, 200)}`;
-        if (res.status >= 500 || res.status === 429 || res.status === 408) {
-          console.warn(`[quikle-agent] ${p.name} (${res.status}) → fallback`);
+        if (res.status === 429 || res.status === 408 || res.status >= 500) {
+          providerCooldownUntil.set(p.name, Date.now() + COOLDOWN_MS);
+          console.warn(`[quikle-agent] ${p.name} (${res.status}) → cooldown ${COOLDOWN_MS}ms, fallback`);
           continue;
         }
         throw new Error(lastErr);
