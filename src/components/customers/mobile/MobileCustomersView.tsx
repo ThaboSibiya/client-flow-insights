@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Phone, Mail, Plus, Users, ClipboardCheck } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
@@ -6,15 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { 
-  MobileCard, 
-  MobileEmptyState, 
+import {
+  MobileCard,
+  MobileEmptyState,
   FloatingActionButton,
   PullToRefresh,
   SwipeableRow
 } from '@/components/mobile';
 import { cn } from '@/lib/utils';
 import OnSiteStatusUpdate from '@/components/customers/OnSiteStatusUpdate';
+import type { Customer } from '@/types/customer';
+
+const CustomerDetailsDialog = lazy(() => import('@/components/customers/forms/CustomerDetailsDialog'));
 
 const MobileCustomersView: React.FC = () => {
   const navigate = useNavigate();
@@ -22,6 +25,7 @@ const MobileCustomersView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isJobCompleteOpen, setIsJobCompleteOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   const handleRefresh = useCallback(async () => {
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -69,7 +73,7 @@ const MobileCustomersView: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Header */}
       <div className="px-4 py-3 bg-background border-b border-border/50 space-y-3">
         <div className="flex items-center justify-between">
@@ -159,16 +163,16 @@ const MobileCustomersView: React.FC = () => {
                   leftActions={customer.phone ? [{
                     icon: <Phone className="h-4 w-4" />,
                     label: 'Call',
-                    color: 'text-white',
-                    bgColor: 'bg-green-500',
-                    onClick: () => window.location.href = `tel:${customer.phone}`,
+                    color: 'text-primary-foreground',
+                    bgColor: 'bg-primary',
+                    onClick: () => { window.location.href = `tel:${customer.phone}`; },
                   }] : []}
                   rightActions={[{
                     icon: <Mail className="h-4 w-4" />,
                     label: 'Email',
-                    color: 'text-white',
-                    bgColor: 'bg-blue-500',
-                    onClick: () => window.location.href = `mailto:${customer.email}`,
+                    color: 'text-secondary-foreground',
+                    bgColor: 'bg-secondary',
+                    onClick: () => { window.location.href = `mailto:${customer.email}`; },
                   }]}
                 >
                   <MobileCard
@@ -184,7 +188,7 @@ const MobileCustomersView: React.FC = () => {
                         variant: getStatusBadgeVariant(customer.status),
                       },
                     ]}
-                    onClick={() => {}}
+                    onClick={() => setSelectedCustomer(customer)}
                     showChevron
                   />
                 </SwipeableRow>
@@ -202,10 +206,21 @@ const MobileCustomersView: React.FC = () => {
       />
 
       {/* Job Completion Dialog */}
-      <OnSiteStatusUpdate 
-        isOpen={isJobCompleteOpen} 
-        onClose={() => setIsJobCompleteOpen(false)} 
+      <OnSiteStatusUpdate
+        isOpen={isJobCompleteOpen}
+        onClose={() => setIsJobCompleteOpen(false)}
       />
+
+      {/* Customer Details */}
+      {selectedCustomer && (
+        <Suspense fallback={null}>
+          <CustomerDetailsDialog
+            customer={selectedCustomer}
+            isOpen={!!selectedCustomer}
+            onClose={() => setSelectedCustomer(null)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

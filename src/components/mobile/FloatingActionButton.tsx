@@ -33,15 +33,18 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   return (
     <Button
       onClick={handleClick}
+      style={{
+        bottom: `calc(env(safe-area-inset-bottom, 0px) + 9.5rem)`,
+      }}
       className={cn(
         'fixed z-40 shadow-lg transition-all duration-200 active:scale-95',
         // Size based on extended state
         extended ? 'h-14 px-6 rounded-full gap-2' : 'h-14 w-14 rounded-full p-0',
-        // Position
-        position === 'bottom-right' && 'bottom-24 right-4',
-        position === 'bottom-center' && 'bottom-24 left-1/2 -translate-x-1/2',
-        // Variant
-        variant === 'primary' && 'bg-gradient-to-r from-quikle-primary to-quikle-secondary text-white hover:opacity-90',
+        // Position (horizontal only; vertical handled via inline style to stack above bottom nav + QuikleAgent FAB)
+        position === 'bottom-right' && 'right-4',
+        position === 'bottom-center' && 'left-1/2 -translate-x-1/2',
+        // Variant — semantic tokens only
+        variant === 'primary' && 'bg-primary text-primary-foreground hover:bg-primary/90',
         variant === 'secondary' && 'bg-card border border-border text-foreground hover:bg-accent',
         className
       )}
