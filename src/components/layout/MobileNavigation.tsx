@@ -1,12 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import quikleLogo from '@/assets/quikle-logo.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { 
-  LayoutDashboard, 
-  Users, 
-  MessageCircle, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  Users,
+  MessageCircle,
+  BarChart3,
   UserPlus,
   Menu,
   Workflow,
@@ -17,7 +17,9 @@ import {
   Bell,
   X,
   Settings,
-  LogOut
+  LogOut,
+  MoreHorizontal,
+  Briefcase,
 } from 'lucide-react';
 import {
   Sheet,
@@ -39,18 +41,28 @@ import NotificationBell from '@/components/notifications/NotificationBell';
 const MobileNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { unreadCount: notificationCount } = useRealtimeNotifications();
   const { unreadCount: conversationCount } = useConversationsOptimized();
 
-  // Dynamic bottom nav - always show core 4 plus most contextual
+  // Core 4 + "More" tab. Keeps Home/Clients/Chat/Pipeline as fixed primary destinations,
+  // while exposing Finance/Quotes/Projects/Onboarding via a bottom-sheet menu.
   const bottomNavItems = useMemo(() => [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Home' },
     { path: '/customers', icon: Users, label: 'Clients' },
     { path: '/conversations', icon: MessageCircle, label: 'Chat', badge: conversationCount || undefined },
     { path: '/pipeline', icon: Bot, label: 'Pipeline' },
   ], [conversationCount]);
+
+  const moreItems = [
+    { path: '/finance', icon: DollarSign, label: 'Finance' },
+    { path: '/quotes', icon: FileText, label: 'Quotes & Invoices' },
+    { path: '/projects', icon: Briefcase, label: 'Projects' },
+    { path: '/onboarding', icon: UserPlus, label: 'Add Customer' },
+    { path: '/analytics', icon: BarChart3, label: 'Analytics' },
+  ];
 
   const drawerNavItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
