@@ -267,8 +267,56 @@ const MobileNavigation = () => {
               </Link>
             );
           })}
+
+          {/* More tab — exposes secondary destinations */}
+          <button
+            type="button"
+            onClick={() => setIsMoreOpen(true)}
+            className={cn(
+              "flex flex-col items-center justify-center py-2 px-3 min-w-[64px] min-h-[56px] relative transition-all rounded-lg",
+              isMoreOpen ? "text-primary" : "text-muted-foreground"
+            )}
+            aria-label="More"
+          >
+            <MoreHorizontal className="h-5 w-5" />
+            <span className="text-[10px] font-medium mt-1">More</span>
+          </button>
         </div>
       </div>
+
+      {/* "More" bottom-sheet */}
+      <Sheet open={isMoreOpen} onOpenChange={setIsMoreOpen}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-2xl p-0 pb-[env(safe-area-inset-bottom)]"
+        >
+          <SheetHeader className="px-4 pt-4 pb-2">
+            <SheetTitle className="text-left text-base">Quick Access</SheetTitle>
+          </SheetHeader>
+          <nav className="px-2 pb-3">
+            {moreItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setIsMoreOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-3 rounded-lg min-h-[48px] text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-foreground hover:bg-accent"
+                  )}
+                >
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </SheetContent>
+      </Sheet>
     </>
   );
 };
