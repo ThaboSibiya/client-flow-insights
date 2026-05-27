@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
+import { getClientTime, localDateFromIso } from './clientTime';
 import type { AgentMessage, AgentPlan, AgentTab, PendingAction, PlanStep } from './types';
 
 const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -48,6 +49,8 @@ export function useAgent() {
   const userIdRef = useRef<string | null>(null);
   const loadedRef = useRef(false);
   const briefingCheckedRef = useRef(false);
+  // Monotonic request id — bumped on stop()/clearConversation() to ignore stale replies.
+  const requestIdRef = useRef(0);
 
   // ─── Load (or create) the active conversation + its messages on mount ───
   useEffect(() => {
@@ -61,31 +64,38 @@ export function useAgent() {
       // Most-recent conversation, or create one.
       const { data: existing } = await supabase
         .from('agent_conversations')
-        .select('id')
+        .select('id, last_message_at')
         .eq('user_id', user.id)
         .order('last_message_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
+      const today = getClientTime().localDate;
       let convoId = existing?.id ?? null;
-      if (!convoId) {
+      const lastIso = (existing as any)?.last_message_at as string | null | undefined;
+      // Morning reset: if the most recent convo is from a previous local day,
+      // start a fresh thread so the morning briefing posts cleanly.
+      const isStale = !!lastIso && localDateFromIso(lastIso) < today;
+
+      if (!convoId || isStale) {
         const { data: created } = await supabase
           .from('agent_conversations')
           .insert({ user_id: user.id, workspace_id: workspaceId ?? null })
           .select('id')
           .single();
-        convoId = created?.id ?? null;
+        convoId = created?.id ?? convoId;
       }
       if (!convoId) return;
       setConversationId(convoId);
 
-      const { data: rows } = await supabase
-        .from('agent_messages')
-        .select('*')
-        .eq('conversation_id', convoId)
-        .order('created_at', { ascending: true });
-
-      if (rows?.length) setMessages(rows.map(rowToMessage));
+      if (!isStale) {
+        const { data: rows } = await supabase
+          .from('agent_messages')
+          .select('*')
+          .eq('conversation_id', convoId)
+          .order('created_at', { ascending: true });
+        if (rows?.length) setMessages(rows.map(rowToMessage));
+      }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -125,6 +135,13 @@ export function useAgent() {
     setMessages(prev => prev.map(m => m.id === messageId ? { ...m, pendingResolved: resolved } : m));
   }, []);
 
+  // Stop any in-flight LLM request. Bumps requestIdRef so stale replies are dropped,
+  // and clears the thinking indicator immediately for snappy UX.
+  const stop = useCallback(() => {
+    requestIdRef.current += 1;
+    setIsThinking(false);
+  }, []);
+
   const sendChat = useCallback(async (text: string, opts?: { voice?: boolean }) => {
     const trimmed = text.trim();
     if (!trimmed) return;
@@ -132,13 +149,15 @@ export function useAgent() {
     setMessages(prev => [...prev, userMsg]);
     void persist(userMsg);
     setIsThinking(true);
+    const myReq = ++requestIdRef.current;
 
     try {
       const fullHistory = [...messages, userMsg];
       const history = trimHistoryForModel(fullHistory.slice(0, -1));
       const { data, error } = await supabase.functions.invoke('quikle-agent', {
-        body: { type: 'chat', message: trimmed, history, voice: !!opts?.voice },
+        body: { type: 'chat', message: trimmed, history, voice: !!opts?.voice, clientTime: getClientTime() },
       });
+      if (myReq !== requestIdRef.current) return; // stopped/cleared mid-flight
       if (error) throw error;
       append({
         id: uid(),
@@ -150,6 +169,7 @@ export function useAgent() {
         createdAt: Date.now(),
       });
     } catch (e) {
+      if (myReq !== requestIdRef.current) return;
       append({
         id: uid(),
         role: 'assistant',
@@ -157,17 +177,19 @@ export function useAgent() {
         createdAt: Date.now(),
       });
     } finally {
-      setIsThinking(false);
+      if (myReq === requestIdRef.current) setIsThinking(false);
     }
   }, [messages, append, persist]);
 
   const confirmAction = useCallback(async (messageId: string, action: PendingAction) => {
     setIsThinking(true);
     void updateResolution(messageId, 'confirmed');
+    const myReq = ++requestIdRef.current;
     try {
       const { data, error } = await supabase.functions.invoke('quikle-agent', {
-        body: { type: 'confirm', action },
+        body: { type: 'confirm', action, clientTime: getClientTime() },
       });
+      if (myReq !== requestIdRef.current) return;
       if (error) throw error;
       append({
         id: uid(), role: 'assistant',
@@ -177,13 +199,14 @@ export function useAgent() {
         createdAt: Date.now(),
       });
     } catch (e) {
+      if (myReq !== requestIdRef.current) return;
       append({
         id: uid(), role: 'assistant',
         content: `Error: ${e instanceof Error ? e.message : String(e)}`,
         createdAt: Date.now(),
       });
     } finally {
-      setIsThinking(false);
+      if (myReq === requestIdRef.current) setIsThinking(false);
     }
   }, [append, updateResolution]);
 
@@ -269,7 +292,12 @@ export function useAgent() {
   const clearConversation = useCallback(async () => {
     const userId = userIdRef.current;
     if (!userId) return;
+    // Cancel any in-flight LLM call so its reply doesn't appear in the new thread.
+    requestIdRef.current += 1;
+    setIsThinking(false);
     setMessages([]);
+    // Allow the next morning briefing to be re-posted into the fresh thread if relevant.
+    briefingCheckedRef.current = false;
     try {
       const { data: created } = await supabase
         .from('agent_conversations')
@@ -368,11 +396,13 @@ export function useAgent() {
     setMessages(prev => [...prev, userMsg]);
     void persist(userMsg);
     setIsThinking(true);
+    const myReq = ++requestIdRef.current;
     try {
       const history = trimHistoryForModel(messages);
       const { data, error } = await supabase.functions.invoke('quikle-agent', {
-        body: { type: 'plan', message: trimmed, history },
+        body: { type: 'plan', message: trimmed, history, clientTime: getClientTime() },
       });
+      if (myReq !== requestIdRef.current) return;
       if (error) {
         let detail = error.message;
         try {
@@ -405,6 +435,7 @@ export function useAgent() {
         createdAt: Date.now(),
       });
     } catch (e) {
+      if (myReq !== requestIdRef.current) return;
       append({
         id: uid(),
         role: 'assistant',
@@ -412,7 +443,7 @@ export function useAgent() {
         createdAt: Date.now(),
       });
     } finally {
-      setIsThinking(false);
+      if (myReq === requestIdRef.current) setIsThinking(false);
     }
   }, [messages, append, persist]);
 
@@ -575,7 +606,7 @@ export function useAgent() {
     isOpen, setIsOpen,
     sendChat, saveMeeting, requestUpdate,
     confirmAction, cancelAction,
-    clearConversation, sendFeedback,
+    clearConversation, sendFeedback, stop,
     proposePlan, approvePlan, cancelPlan, undoPlan,
   };
 }

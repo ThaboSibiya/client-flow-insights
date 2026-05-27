@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { X, Send, Sparkles, Square, Lock, Clock, Wand2, Mic, Loader2, Volume2, VolumeX } from 'lucide-react';
+import { X, Send, Sparkles, Square, Lock, Clock, Wand2, Mic, Loader2, Volume2, VolumeX, Trash2 } from 'lucide-react';
 import ScheduledPromptsSheet from './scheduled/ScheduledPromptsSheet';
 import { useAgent } from './useAgent';
 import ChatTab from './tabs/ChatTab';
@@ -244,6 +244,19 @@ const QuikleAgent: React.FC = () => {
                   {speakReply.enabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
                 </button>
                 <button
+                  onClick={() => {
+                    if (agent.messages.length === 0) return;
+                    if (confirm('Clear this conversation? A new chat will be started.')) {
+                      void agent.clearConversation();
+                    }
+                  }}
+                  aria-label="Clear chat"
+                  title="Clear chat"
+                  className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+                <button
                   onClick={() => setScheduledOpen(true)}
                   aria-label="Scheduled prompts"
                   title="Scheduled prompts"
@@ -376,19 +389,33 @@ const QuikleAgent: React.FC = () => {
                 >
                   <Wand2 className="h-3.5 w-3.5" />
                 </button>
-                <button
-                  onClick={handleSend}
-                  disabled={!draft.trim() || agent.isThinking}
-                  aria-label="Send"
-                  className={cn(
-                    'h-8 w-8 flex items-center justify-center rounded-full transition-all',
-                    'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground',
-                    'hover:shadow-md hover:scale-105 active:scale-95',
-                    'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none'
-                  )}
-                >
-                  {agent.isThinking ? <Square className="h-3 w-3 fill-current" /> : <Send className="h-3.5 w-3.5" />}
-                </button>
+                {agent.isThinking ? (
+                  <button
+                    onClick={() => { agent.stop(); voice.stop(); speakReply.cancel(); }}
+                    aria-label="Stop"
+                    title="Stop"
+                    className={cn(
+                      'h-8 w-8 flex items-center justify-center rounded-full transition-all',
+                      'bg-destructive text-destructive-foreground hover:bg-destructive/90 active:scale-95'
+                    )}
+                  >
+                    <Square className="h-3 w-3 fill-current" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSend}
+                    disabled={!draft.trim()}
+                    aria-label="Send"
+                    className={cn(
+                      'h-8 w-8 flex items-center justify-center rounded-full transition-all',
+                      'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground',
+                      'hover:shadow-md hover:scale-105 active:scale-95',
+                      'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none'
+                    )}
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
               <div className="mt-1.5 px-3 text-[10px] text-muted-foreground/70 text-center">
                 <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[9px]">Enter</kbd> to send · mic to talk · wand to plan

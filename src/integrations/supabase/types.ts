@@ -459,6 +459,66 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage_log: {
+        Row: {
+          completion_chars: number
+          completion_tokens: number | null
+          conversation_id: string | null
+          created_at: string
+          error_code: string | null
+          id: string
+          latency_ms: number | null
+          metadata: Json
+          model: string | null
+          prompt_chars: number
+          prompt_tokens: number | null
+          provider: string | null
+          request_type: string
+          status: string
+          user_id: string
+          voice: boolean
+          workspace_id: string | null
+        }
+        Insert: {
+          completion_chars?: number
+          completion_tokens?: number | null
+          conversation_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          latency_ms?: number | null
+          metadata?: Json
+          model?: string | null
+          prompt_chars?: number
+          prompt_tokens?: number | null
+          provider?: string | null
+          request_type: string
+          status?: string
+          user_id: string
+          voice?: boolean
+          workspace_id?: string | null
+        }
+        Update: {
+          completion_chars?: number
+          completion_tokens?: number | null
+          conversation_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          latency_ms?: number | null
+          metadata?: Json
+          model?: string | null
+          prompt_chars?: number
+          prompt_tokens?: number | null
+          provider?: string | null
+          request_type?: string
+          status?: string
+          user_id?: string
+          voice?: boolean
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       api_triggers: {
         Row: {
           auth_type: string
