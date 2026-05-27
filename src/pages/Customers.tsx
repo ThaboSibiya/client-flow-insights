@@ -77,10 +77,6 @@ const Customers: React.FC = () => {
                   <MapPin className="h-4 w-4 mr-2" />
                   Job Complete
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setIsSessionOpen(true)}>
-                  <Phone className="h-4 w-4 mr-2" />
-                  AI Voice Agent
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setIsAiConfigOpen(!isAiConfigOpen)}>
                   <Settings2 className="h-4 w-4 mr-2" />
                   AI Configuration
