@@ -140,9 +140,6 @@ const Customers: React.FC = () => {
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Voice Session Dialog */}
-        <AiVoiceSessionDialog isOpen={isSessionOpen} onOpenChange={setIsSessionOpen} />
-        
         {/* On-Site Status Update Dialog */}
         <OnSiteStatusUpdate isOpen={isOnSiteUpdateOpen} onClose={() => setIsOnSiteUpdateOpen(false)} />
       </div>
