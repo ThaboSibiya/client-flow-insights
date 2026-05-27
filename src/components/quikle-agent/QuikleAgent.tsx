@@ -387,7 +387,7 @@ const QuikleAgent: React.FC = () => {
                 </button>
               </div>
               <div className="mt-1.5 px-3 text-[10px] text-muted-foreground/70 text-center">
-                <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[9px]">Enter</kbd> to send · wand icon to plan multi-step
+                <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[9px]">Enter</kbd> to send · mic to talk · wand to plan
               </div>
             </div>
           )}
