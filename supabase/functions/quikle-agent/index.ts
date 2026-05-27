@@ -10,6 +10,48 @@ const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY') ?? '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+interface ClientTime { iso?: string; timezone?: string; localHour?: number; partOfDay?: string; localDate?: string }
+function buildTimeBlock(ct?: ClientTime): string {
+  if (!ct) return '';
+  const parts: string[] = [];
+  if (ct.iso) parts.push(`Current time: ${ct.iso}`);
+  if (ct.timezone) parts.push(`Timezone: ${ct.timezone}`);
+  if (typeof ct.localHour === 'number') parts.push(`Local hour: ${ct.localHour}`);
+  if (ct.partOfDay) parts.push(`Part of day: ${ct.partOfDay}`);
+  if (ct.localDate) parts.push(`Local date: ${ct.localDate}`);
+  if (!parts.length) return '';
+  return `\n\nCURRENT CONTEXT (use this for time-sensitive replies and greetings):\n- ${parts.join('\n- ')}`;
+}
+
+async function logUsage(opts: {
+  userId: string; workspaceId?: string | null; conversationId?: string | null;
+  requestType: string; voice?: boolean; model?: string; provider?: string;
+  promptChars: number; completionChars: number; latencyMs: number;
+  status: 'success' | 'error'; errorCode?: string | null;
+}) {
+  if (!SUPABASE_SERVICE_ROLE_KEY) return;
+  try {
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    await admin.from('ai_usage_log').insert({
+      user_id: opts.userId,
+      workspace_id: opts.workspaceId ?? null,
+      conversation_id: opts.conversationId ?? null,
+      request_type: opts.requestType,
+      model: opts.model ?? null,
+      provider: opts.provider ?? null,
+      voice: !!opts.voice,
+      prompt_chars: opts.promptChars,
+      completion_chars: opts.completionChars,
+      latency_ms: opts.latencyMs,
+      status: opts.status,
+      error_code: opts.errorCode ?? null,
+    });
+  } catch (e) {
+    console.warn('[quikle-agent] usage log failed:', e);
+  }
+}
 
 // Provider chain: OpenRouter free-tier models only. Lovable AI Gateway has
 // been removed to guarantee zero token cost. `freeOnly` is retained for
