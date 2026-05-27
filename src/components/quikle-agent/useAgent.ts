@@ -396,11 +396,13 @@ export function useAgent() {
     setMessages(prev => [...prev, userMsg]);
     void persist(userMsg);
     setIsThinking(true);
+    const myReq = ++requestIdRef.current;
     try {
       const history = trimHistoryForModel(messages);
       const { data, error } = await supabase.functions.invoke('quikle-agent', {
-        body: { type: 'plan', message: trimmed, history },
+        body: { type: 'plan', message: trimmed, history, clientTime: getClientTime() },
       });
+      if (myReq !== requestIdRef.current) return;
       if (error) {
         let detail = error.message;
         try {
@@ -433,6 +435,7 @@ export function useAgent() {
         createdAt: Date.now(),
       });
     } catch (e) {
+      if (myReq !== requestIdRef.current) return;
       append({
         id: uid(),
         role: 'assistant',
@@ -440,7 +443,7 @@ export function useAgent() {
         createdAt: Date.now(),
       });
     } finally {
-      setIsThinking(false);
+      if (myReq === requestIdRef.current) setIsThinking(false);
     }
   }, [messages, append, persist]);
 
