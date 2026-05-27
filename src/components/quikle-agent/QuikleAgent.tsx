@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { X, Send, Sparkles, Square, Lock, Clock, Wand2 } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { X, Send, Sparkles, Square, Lock, Clock, Wand2, Mic, Loader2, Volume2, VolumeX } from 'lucide-react';
 import ScheduledPromptsSheet from './scheduled/ScheduledPromptsSheet';
 import { useAgent } from './useAgent';
 import ChatTab from './tabs/ChatTab';
@@ -7,6 +7,8 @@ import MeetingTab from './tabs/MeetingTab';
 import InboxTab from './tabs/InboxTab';
 import ActivityTab from './tabs/ActivityTab';
 import { useAgentAlerts } from './useAgentAlerts';
+import { useVoiceInput } from './useVoiceInput';
+import { useSpeakReply } from './useSpeakReply';
 import { cn } from '@/lib/utils';
 import { useAIAgentAccess } from '@/hooks/useAIAgentAccess';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -19,6 +21,38 @@ const QuikleAgent: React.FC = () => {
   const [draft, setDraft] = useState('');
   const [scheduledOpen, setScheduledOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const speakReply = useSpeakReply();
+  const lastSpokenIdRef = useRef<string | null>(null);
+
+  const voice = useVoiceInput({
+    onTranscript: (text) => {
+      // Voice and text share the same brain.
+      agent.sendChat(text);
+    },
+  });
+
+  // Speak the latest assistant reply when "speak replies" is on.
+  useEffect(() => {
+    if (!speakReply.enabled) return;
+    const last = agent.messages[agent.messages.length - 1];
+    if (!last || last.role !== 'assistant' || !last.content) return;
+    if (lastSpokenIdRef.current === last.id) return;
+    lastSpokenIdRef.current = last.id;
+    speakReply.speak(last.content);
+  }, [agent.messages, speakReply]);
+
+  // Cancel any ongoing TTS when the panel closes.
+  useEffect(() => {
+    if (!agent.isOpen) speakReply.cancel();
+  }, [agent.isOpen, speakReply]);
+
+  const statusPill = useMemo(() => {
+    if (voice.phase === 'listening') return { label: 'Listening…', tone: 'bg-destructive/15 text-destructive' };
+    if (voice.phase === 'transcribing') return { label: 'Transcribing…', tone: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' };
+    if (agent.isThinking) return { label: 'Thinking…', tone: 'bg-primary/15 text-primary' };
+    if (speakReply.enabled && window.speechSynthesis?.speaking) return { label: 'Speaking…', tone: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' };
+    return null;
+  }, [voice.phase, agent.isThinking, speakReply.enabled]);
 
   useEffect(() => {
     if (agent.isOpen && agent.activeTab === 'chat') {
