@@ -244,6 +244,19 @@ const QuikleAgent: React.FC = () => {
                   {speakReply.enabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
                 </button>
                 <button
+                  onClick={() => {
+                    if (agent.messages.length === 0) return;
+                    if (confirm('Clear this conversation? A new chat will be started.')) {
+                      void agent.clearConversation();
+                    }
+                  }}
+                  aria-label="Clear chat"
+                  title="Clear chat"
+                  className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+                <button
                   onClick={() => setScheduledOpen(true)}
                   aria-label="Scheduled prompts"
                   title="Scheduled prompts"
