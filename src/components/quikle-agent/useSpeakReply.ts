@@ -50,7 +50,7 @@ export function useSpeakReply() {
       .trim();
     if (!clean) return;
     const u = new SpeechSynthesisUtterance(clean);
-    u.rate = 1.0;
+    u.rate = 1.1;
     u.pitch = 1.0;
     if (voiceRef.current) u.voice = voiceRef.current;
     window.speechSynthesis.speak(u);
