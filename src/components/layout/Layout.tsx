@@ -17,10 +17,13 @@ const Layout = () => {
 
   if (isMobile) {
     return (
-      <div className="min-h-screen flex flex-col w-full bg-background overflow-y-auto overflow-x-hidden">
+      <div className="flex flex-col w-full bg-background overflow-x-hidden" style={{ minHeight: '100dvh' }}>
         <MobileNavigation />
         <TrialBanner />
-        <main className="flex-1 pb-20 ios-scroll">
+        <main
+          className="flex-1 flex flex-col ios-scroll"
+          style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 5rem)` }}
+        >
           <Outlet />
         </main>
         <HelpButton />

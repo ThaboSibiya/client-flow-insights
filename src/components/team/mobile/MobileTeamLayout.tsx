@@ -104,7 +104,7 @@ const MobileTeamLayout: React.FC = () => {
   // List View
   return (
     <EmployeeAccessChecker requiredPrivilege="can_manage_employees">
-      <div className="flex flex-col h-[calc(100vh-8rem)]">
+      <div className="flex flex-col flex-1 min-h-0">
         {/* Header */}
         <div className="px-4 py-3 bg-background border-b border-border/50">
           <div className="flex items-center justify-between mb-3">

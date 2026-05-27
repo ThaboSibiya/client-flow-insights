@@ -136,7 +136,7 @@ const MobileNavigation = () => {
                 </div>
               </SheetHeader>
               
-              <ScrollArea className="h-[calc(100vh-180px)]">
+              <ScrollArea className="h-[calc(100dvh-180px)]">
                 {/* Workstation Quick Panel */}
                 <div className="p-3 border-b border-border/50">
                   <WorkstationQuickPanel variant="mobile" onItemClick={() => setIsOpen(false)} />
