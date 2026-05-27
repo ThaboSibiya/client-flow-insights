@@ -341,6 +341,25 @@ const QuikleAgent: React.FC = () => {
                   className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
                 />
                 <button
+                  onClick={voice.toggle}
+                  disabled={agent.isThinking && voice.phase === 'idle'}
+                  aria-label={voice.phase === 'listening' ? 'Stop listening' : 'Speak to Quikle'}
+                  title={voice.phase === 'listening' ? 'Stop' : 'Speak'}
+                  className={cn(
+                    'h-8 w-8 flex items-center justify-center rounded-full transition-all',
+                    voice.phase === 'listening'
+                      ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 animate-pulse'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                    'disabled:opacity-40 disabled:cursor-not-allowed'
+                  )}
+                >
+                  {voice.phase === 'transcribing'
+                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    : voice.phase === 'listening'
+                      ? <Square className="h-3 w-3 fill-current" />
+                      : <Mic className="h-3.5 w-3.5" />}
+                </button>
+                <button
                   onClick={handlePlan}
                   disabled={!draft.trim() || agent.isThinking}
                   aria-label="Plan multi-step actions"
