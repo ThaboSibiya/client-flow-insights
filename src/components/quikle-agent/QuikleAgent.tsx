@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { X, Send, Sparkles, Square, Lock, Clock, Wand2, Mic, Loader2, Volume2, VolumeX } from 'lucide-react';
+import { X, Send, Sparkles, Square, Lock, Clock, Wand2, Mic, Loader2, Volume2, VolumeX, Trash2 } from 'lucide-react';
 import ScheduledPromptsSheet from './scheduled/ScheduledPromptsSheet';
 import { useAgent } from './useAgent';
 import ChatTab from './tabs/ChatTab';
