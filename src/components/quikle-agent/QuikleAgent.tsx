@@ -378,7 +378,7 @@ const QuikleAgent: React.FC = () => {
                 </button>
                 {agent.isThinking ? (
                   <button
-                    onClick={() => { agent.stop(); voice.cancel(); speakReply.cancel(); }}
+                    onClick={() => { agent.stop(); voice.stop(); speakReply.cancel(); }}
                     aria-label="Stop"
                     title="Stop"
                     className={cn(
