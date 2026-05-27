@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { X, Send, Sparkles, Square, Lock, Clock, Wand2 } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { X, Send, Sparkles, Square, Lock, Clock, Wand2, Mic, Loader2, Volume2, VolumeX } from 'lucide-react';
 import ScheduledPromptsSheet from './scheduled/ScheduledPromptsSheet';
 import { useAgent } from './useAgent';
 import ChatTab from './tabs/ChatTab';
@@ -7,6 +7,8 @@ import MeetingTab from './tabs/MeetingTab';
 import InboxTab from './tabs/InboxTab';
 import ActivityTab from './tabs/ActivityTab';
 import { useAgentAlerts } from './useAgentAlerts';
+import { useVoiceInput } from './useVoiceInput';
+import { useSpeakReply } from './useSpeakReply';
 import { cn } from '@/lib/utils';
 import { useAIAgentAccess } from '@/hooks/useAIAgentAccess';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -19,6 +21,38 @@ const QuikleAgent: React.FC = () => {
   const [draft, setDraft] = useState('');
   const [scheduledOpen, setScheduledOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const speakReply = useSpeakReply();
+  const lastSpokenIdRef = useRef<string | null>(null);
+
+  const voice = useVoiceInput({
+    onTranscript: (text) => {
+      // Voice and text share the same brain.
+      agent.sendChat(text);
+    },
+  });
+
+  // Speak the latest assistant reply when "speak replies" is on.
+  useEffect(() => {
+    if (!speakReply.enabled) return;
+    const last = agent.messages[agent.messages.length - 1];
+    if (!last || last.role !== 'assistant' || !last.content) return;
+    if (lastSpokenIdRef.current === last.id) return;
+    lastSpokenIdRef.current = last.id;
+    speakReply.speak(last.content);
+  }, [agent.messages, speakReply]);
+
+  // Cancel any ongoing TTS when the panel closes.
+  useEffect(() => {
+    if (!agent.isOpen) speakReply.cancel();
+  }, [agent.isOpen, speakReply]);
+
+  const statusPill = useMemo(() => {
+    if (voice.phase === 'listening') return { label: 'Listening…', tone: 'bg-destructive/15 text-destructive' };
+    if (voice.phase === 'transcribing') return { label: 'Transcribing…', tone: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' };
+    if (agent.isThinking) return { label: 'Thinking…', tone: 'bg-primary/15 text-primary' };
+    if (speakReply.enabled && window.speechSynthesis?.speaking) return { label: 'Speaking…', tone: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' };
+    return null;
+  }, [voice.phase, agent.isThinking, speakReply.enabled]);
 
   useEffect(() => {
     if (agent.isOpen && agent.activeTab === 'chat') {
@@ -187,6 +221,24 @@ const QuikleAgent: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-1">
+                {statusPill && (
+                  <span className={cn('mr-1 px-2 py-0.5 rounded-full text-[10px] font-medium', statusPill.tone)}>
+                    {statusPill.label}
+                  </span>
+                )}
+                <button
+                  onClick={() => speakReply.setEnabled(!speakReply.enabled)}
+                  aria-label={speakReply.enabled ? 'Disable spoken replies' : 'Enable spoken replies'}
+                  title={speakReply.enabled ? 'Spoken replies on' : 'Spoken replies off'}
+                  className={cn(
+                    'h-7 w-7 flex items-center justify-center rounded-md transition-colors',
+                    speakReply.enabled
+                      ? 'text-primary bg-primary/10 hover:bg-primary/15'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  )}
+                >
+                  {speakReply.enabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                </button>
                 <button
                   onClick={() => setScheduledOpen(true)}
                   aria-label="Scheduled prompts"
@@ -289,6 +341,25 @@ const QuikleAgent: React.FC = () => {
                   className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
                 />
                 <button
+                  onClick={voice.toggle}
+                  disabled={agent.isThinking && voice.phase === 'idle'}
+                  aria-label={voice.phase === 'listening' ? 'Stop listening' : 'Speak to Quikle'}
+                  title={voice.phase === 'listening' ? 'Stop' : 'Speak'}
+                  className={cn(
+                    'h-8 w-8 flex items-center justify-center rounded-full transition-all',
+                    voice.phase === 'listening'
+                      ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 animate-pulse'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                    'disabled:opacity-40 disabled:cursor-not-allowed'
+                  )}
+                >
+                  {voice.phase === 'transcribing'
+                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    : voice.phase === 'listening'
+                      ? <Square className="h-3 w-3 fill-current" />
+                      : <Mic className="h-3.5 w-3.5" />}
+                </button>
+                <button
                   onClick={handlePlan}
                   disabled={!draft.trim() || agent.isThinking}
                   aria-label="Plan multi-step actions"
@@ -316,7 +387,7 @@ const QuikleAgent: React.FC = () => {
                 </button>
               </div>
               <div className="mt-1.5 px-3 text-[10px] text-muted-foreground/70 text-center">
-                <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[9px]">Enter</kbd> to send · wand icon to plan multi-step
+                <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[9px]">Enter</kbd> to send · mic to talk · wand to plan
               </div>
             </div>
           )}

@@ -3,9 +3,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import CustomerTable from '@/components/customers/CustomerTable';
 import { MobileCustomersView } from '@/components/customers/mobile';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Phone, MapPin, Settings2, ChevronDown } from 'lucide-react';
+import { UserPlus, MapPin, Settings2, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import AiVoiceSessionDialog from '@/components/voice/AiVoiceSessionDialog';
 import OnSiteStatusUpdate from '@/components/customers/OnSiteStatusUpdate';
 import CustomerErrorBoundary from '@/components/error/CustomerErrorBoundary';
 import {
@@ -23,7 +22,6 @@ import {
 const Customers: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [isSessionOpen, setIsSessionOpen] = useState<boolean>(false);
   const [isOnSiteUpdateOpen, setIsOnSiteUpdateOpen] = useState<boolean>(false);
   const [isAiConfigOpen, setIsAiConfigOpen] = useState<boolean>(false);
   
@@ -40,7 +38,6 @@ const Customers: React.FC = () => {
     return (
       <CustomerErrorBoundary>
         <MobileCustomersView />
-        <AiVoiceSessionDialog isOpen={isSessionOpen} onOpenChange={setIsSessionOpen} />
         <OnSiteStatusUpdate isOpen={isOnSiteUpdateOpen} onClose={() => setIsOnSiteUpdateOpen(false)} />
       </CustomerErrorBoundary>
     );
@@ -79,10 +76,6 @@ const Customers: React.FC = () => {
                 <DropdownMenuItem onClick={() => setIsOnSiteUpdateOpen(true)}>
                   <MapPin className="h-4 w-4 mr-2" />
                   Job Complete
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setIsSessionOpen(true)}>
-                  <Phone className="h-4 w-4 mr-2" />
-                  AI Voice Agent
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setIsAiConfigOpen(!isAiConfigOpen)}>
                   <Settings2 className="h-4 w-4 mr-2" />
@@ -147,9 +140,6 @@ const Customers: React.FC = () => {
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Voice Session Dialog */}
-        <AiVoiceSessionDialog isOpen={isSessionOpen} onOpenChange={setIsSessionOpen} />
-        
         {/* On-Site Status Update Dialog */}
         <OnSiteStatusUpdate isOpen={isOnSiteUpdateOpen} onClose={() => setIsOnSiteUpdateOpen(false)} />
       </div>
