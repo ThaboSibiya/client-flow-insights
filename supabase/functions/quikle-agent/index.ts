@@ -993,11 +993,9 @@ Rules:
     if (type === 'chat') {
       const message: string = body.message ?? '';
       const voice: boolean = body.voice === true;
-      // Phase 1: client trims to a token budget and sends full conversation history.
-      // Hard cap of 200 turns as a final safety net against pathological payloads.
+      const clientTime: ClientTime | undefined = body.clientTime;
       const history: ChatMessage[] = Array.isArray(body.history) ? body.history.slice(-200) : [];
 
-      // Phase 5: inject up to 20 personalisation memories into the system prompt.
       let memoryBlock = '';
       try {
         const { data: mems } = await supabase
@@ -1012,29 +1010,50 @@ Rules:
         }
       } catch { /* memory optional */ }
 
-      // Voice mode: keep replies snappy — shorter sentences = less TTS time + faster LLM completion.
       const voiceStyle = voice
         ? '\n\nVOICE MODE: The user is speaking. Reply in ONE or TWO short conversational sentences. No markdown, no lists, no code blocks unless emitting an action.'
         : '';
+      const timeBlock = buildTimeBlock(clientTime);
       const llmOpts = voice ? { maxTokens: 120 } : {};
 
       const messages: ChatMessage[] = [
-        { role: 'system', content: SYSTEM_PROMPT + memoryBlock + voiceStyle },
+        { role: 'system', content: SYSTEM_PROMPT + memoryBlock + timeBlock + voiceStyle },
         ...history,
         { role: 'user', content: message },
       ];
-      const first = await callLLM(messages, freeOnly, llmOpts);
+      const t0 = Date.now();
+      let first = '';
+      try {
+        first = await callLLM(messages, freeOnly, llmOpts);
+      } catch (e) {
+        await logUsage({
+          userId: user.id, requestType: 'chat', voice,
+          promptChars: message.length, completionChars: 0,
+          latencyMs: Date.now() - t0, status: 'error',
+          errorCode: e instanceof Error ? e.message.slice(0, 200) : 'unknown',
+        });
+        throw e;
+      }
       const action = parseAction(first);
 
       if (!action) {
+        await logUsage({
+          userId: user.id, requestType: 'chat', voice,
+          promptChars: message.length, completionChars: first.length,
+          latencyMs: Date.now() - t0, status: 'success',
+        });
         return new Response(JSON.stringify({ reply: first }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      // High-impact: return preview without executing.
       if (HIGH_IMPACT.has(action.tool)) {
         const preview = buildPreview(action.tool, action.args);
+        await logUsage({
+          userId: user.id, requestType: 'chat_preview', voice,
+          promptChars: message.length, completionChars: first.length,
+          latencyMs: Date.now() - t0, status: 'success',
+        });
         return new Response(JSON.stringify({
           reply: `Ready to run: **${preview.title}**. Confirm below to proceed.`,
           pendingAction: { tool: action.tool, args: action.args, preview },
@@ -1050,6 +1069,13 @@ Rules:
           { role: 'user', content: `Tool result: ${JSON.stringify(result)}. Reply with ONE short plain sentence confirming the outcome (no JSON, no code).` },
         ], freeOnly, { maxTokens: voice ? 80 : 200 });
       } catch { /* fall back to raw summary */ }
+
+      await logUsage({
+        userId: user.id, requestType: `chat:${action.tool}`, voice,
+        promptChars: message.length, completionChars: (reply || result.summary).length,
+        latencyMs: Date.now() - t0, status: result.ok === false ? 'error' : 'success',
+        errorCode: result.ok === false ? (result.error ?? null) : null,
+      });
 
       return new Response(JSON.stringify({
         reply: reply || result.summary,
