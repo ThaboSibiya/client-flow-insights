@@ -184,10 +184,12 @@ export function useAgent() {
   const confirmAction = useCallback(async (messageId: string, action: PendingAction) => {
     setIsThinking(true);
     void updateResolution(messageId, 'confirmed');
+    const myReq = ++requestIdRef.current;
     try {
       const { data, error } = await supabase.functions.invoke('quikle-agent', {
-        body: { type: 'confirm', action },
+        body: { type: 'confirm', action, clientTime: getClientTime() },
       });
+      if (myReq !== requestIdRef.current) return;
       if (error) throw error;
       append({
         id: uid(), role: 'assistant',
@@ -197,13 +199,14 @@ export function useAgent() {
         createdAt: Date.now(),
       });
     } catch (e) {
+      if (myReq !== requestIdRef.current) return;
       append({
         id: uid(), role: 'assistant',
         content: `Error: ${e instanceof Error ? e.message : String(e)}`,
         createdAt: Date.now(),
       });
     } finally {
-      setIsThinking(false);
+      if (myReq === requestIdRef.current) setIsThinking(false);
     }
   }, [append, updateResolution]);
 
