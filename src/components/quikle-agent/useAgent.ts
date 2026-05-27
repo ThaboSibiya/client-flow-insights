@@ -292,7 +292,12 @@ export function useAgent() {
   const clearConversation = useCallback(async () => {
     const userId = userIdRef.current;
     if (!userId) return;
+    // Cancel any in-flight LLM call so its reply doesn't appear in the new thread.
+    requestIdRef.current += 1;
+    setIsThinking(false);
     setMessages([]);
+    // Allow the next morning briefing to be re-posted into the fresh thread if relevant.
+    briefingCheckedRef.current = false;
     try {
       const { data: created } = await supabase
         .from('agent_conversations')
