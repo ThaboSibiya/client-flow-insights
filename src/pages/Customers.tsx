@@ -23,7 +23,6 @@ const Customers: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [isOnSiteUpdateOpen, setIsOnSiteUpdateOpen] = useState<boolean>(false);
-  const [isOnSiteUpdateOpen, setIsOnSiteUpdateOpen] = useState<boolean>(false);
   const [isAiConfigOpen, setIsAiConfigOpen] = useState<boolean>(false);
   
   const handleOnboardNewCustomer = (): void => {
