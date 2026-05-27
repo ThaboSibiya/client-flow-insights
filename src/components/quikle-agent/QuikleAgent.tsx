@@ -26,9 +26,13 @@ const QuikleAgent: React.FC = () => {
 
   const voice = useVoiceInput({
     onTranscript: (text) => {
-      // Voice and text share the same brain.
-      agent.sendChat(text);
+      // Voice and text share the same brain. `voice: true` tells the edge fn
+      // to keep the reply to 1–2 short sentences (snappier TTS + smaller LLM completion).
+      agent.sendChat(text, { voice: true });
+      // Auto-enable TTS for the upcoming reply so users actually hear it back.
+      if (!speakReply.enabled) speakReply.setEnabled(true);
     },
+    silenceMs: 800,
   });
 
   // Speak the latest assistant reply when "speak replies" is on.

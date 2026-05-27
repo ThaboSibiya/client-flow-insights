@@ -125,7 +125,7 @@ export function useAgent() {
     setMessages(prev => prev.map(m => m.id === messageId ? { ...m, pendingResolved: resolved } : m));
   }, []);
 
-  const sendChat = useCallback(async (text: string) => {
+  const sendChat = useCallback(async (text: string, opts?: { voice?: boolean }) => {
     const trimmed = text.trim();
     if (!trimmed) return;
     const userMsg: AgentMessage = { id: uid(), role: 'user', content: trimmed, createdAt: Date.now() };
@@ -137,7 +137,7 @@ export function useAgent() {
       const fullHistory = [...messages, userMsg];
       const history = trimHistoryForModel(fullHistory.slice(0, -1));
       const { data, error } = await supabase.functions.invoke('quikle-agent', {
-        body: { type: 'chat', message: trimmed, history },
+        body: { type: 'chat', message: trimmed, history, voice: !!opts?.voice },
       });
       if (error) throw error;
       append({
