@@ -698,6 +698,119 @@ async function execTool(supabase: SBClient, userId: string, tool: string, args: 
         if (error) throw error;
         return { ok: true, summary: `${active ? 'Activated' : 'Paused'} workflow “${wf.name}”.`, data };
       }
+      case 'audit_workflows': {
+        // Fetch one workflow (if a reference is provided) or all of the user's workflows.
+        const ref = String(args.workflow_id_or_name || '').trim();
+        let rows: any[] = [];
+        if (ref) {
+          const wf = await resolveWorkflow(supabase, userId, ref);
+          if (!wf) return { ok: false, summary: 'Workflow not found.', error: 'not_found' };
+          const { data } = await supabase.from('workflow_automations')
+            .select('id, name, description, is_active, trigger_type, trigger_count, last_triggered_at, nodes, edges, created_at')
+            .eq('id', wf.id).eq('user_id', userId).maybeSingle();
+          if (data) rows = [data];
+        } else {
+          const { data, error } = await supabase.from('workflow_automations')
+            .select('id, name, description, is_active, trigger_type, trigger_count, last_triggered_at, nodes, edges, created_at')
+            .eq('user_id', userId).order('created_at', { ascending: false }).limit(25);
+          if (error) throw error;
+          rows = data || [];
+        }
+        if (rows.length === 0) {
+          return { ok: true, summary: 'No workflows to audit yet — create one first.', data: { audits: [] } };
+        }
+
+        const TRIGGER_CATS = new Set(['triggers', 'trigger']);
+        const audits = rows.map((wf) => {
+          const nodes: any[] = Array.isArray(wf.nodes) ? wf.nodes : [];
+          const edges: any[] = Array.isArray(wf.edges) ? wf.edges : [];
+          const issues: { severity: 'high' | 'medium' | 'low'; message: string }[] = [];
+          const suggestions: string[] = [];
+
+          // Structural checks
+          if (nodes.length === 0) {
+            issues.push({ severity: 'high', message: 'Empty workflow — no nodes have been added.' });
+            suggestions.push('Add at least a trigger and one action, or start from a template (welcome/support/pipeline/webhook).');
+          } else {
+            const triggers = nodes.filter(n => TRIGGER_CATS.has(String(n?.data?.category || '').toLowerCase()) || String(n?.data?.type || '').toLowerCase().includes('trigger') || String(n?.data?.type || '').toLowerCase() === 'webhook');
+            if (triggers.length === 0) {
+              issues.push({ severity: 'high', message: 'No trigger node — this workflow can never start.' });
+              suggestions.push('Add a trigger (e.g. "New Customer Added", "Stage Changed", or a webhook).');
+            }
+            if (triggers.length > 1) {
+              issues.push({ severity: 'low', message: `Multiple triggers (${triggers.length}) detected.` });
+              suggestions.push('Split into separate workflows so each trigger has a clear path.');
+            }
+
+            const nodeIds = new Set(nodes.map(n => String(n.id)));
+            const connected = new Set<string>();
+            edges.forEach(e => { if (e?.source) connected.add(String(e.source)); if (e?.target) connected.add(String(e.target)); });
+            const orphans = nodes.filter(n => !connected.has(String(n.id)));
+            if (orphans.length > 0 && nodes.length > 1) {
+              issues.push({ severity: 'medium', message: `${orphans.length} disconnected node(s): ${orphans.map(n => n?.data?.name || n.id).slice(0,3).join(', ')}.` });
+              suggestions.push('Connect every node to the flow or remove unused ones.');
+            }
+
+            const actionLike = nodes.filter(n => !TRIGGER_CATS.has(String(n?.data?.category || '').toLowerCase()) && !String(n?.data?.type || '').toLowerCase().includes('trigger'));
+            if (triggers.length > 0 && actionLike.length === 0) {
+              issues.push({ severity: 'high', message: 'Trigger has no follow-up actions.' });
+              suggestions.push('Add an action after the trigger (send email, assign rep, classify, etc.).');
+            }
+
+            const unconfigured = nodes.filter(n => {
+              const cfg = n?.data?.config;
+              return !cfg || (typeof cfg === 'object' && Object.keys(cfg).length === 0);
+            });
+            if (unconfigured.length > 0) {
+              issues.push({ severity: 'medium', message: `${unconfigured.length} node(s) have empty configuration: ${unconfigured.map(n => n?.data?.name || n.id).slice(0,3).join(', ')}.` });
+              suggestions.push('Open each unconfigured node and fill in its template, condition, or action details.');
+            }
+
+            const hasCondition = nodes.some(n => String(n?.data?.type || '').toLowerCase() === 'condition' || String(n?.data?.category || '').toLowerCase() === 'logic');
+            if (nodes.length >= 4 && !hasCondition) {
+              suggestions.push('Consider adding a condition/branch so the workflow can react differently to edge cases.');
+            }
+          }
+
+          // Operational checks
+          const triggerCount = Number(wf.trigger_count || 0);
+          const ageDays = wf.created_at ? Math.max(0, Math.round((Date.now() - new Date(wf.created_at).getTime()) / 86400000)) : 0;
+          if (!wf.is_active) {
+            issues.push({ severity: 'low', message: 'Workflow is currently paused.' });
+            if (issues.filter(i => i.severity === 'high').length === 0) {
+              suggestions.push(`Activate "${wf.name}" once you're happy with the steps.`);
+            }
+          } else if (triggerCount === 0 && ageDays >= 7) {
+            issues.push({ severity: 'medium', message: `Active for ${ageDays} days but has never fired.` });
+            suggestions.push('Verify the trigger event actually occurs, or simulate a run to test the flow.');
+          }
+
+          if (!wf.description) {
+            suggestions.push('Add a short description so teammates know what this workflow is for.');
+          }
+
+          const score = Math.max(0, 100 - issues.reduce((s, i) => s + (i.severity === 'high' ? 35 : i.severity === 'medium' ? 15 : 5), 0));
+          return {
+            id: wf.id,
+            name: wf.name,
+            is_active: wf.is_active,
+            node_count: nodes.length,
+            edge_count: edges.length,
+            trigger_count: triggerCount,
+            health_score: score,
+            issues,
+            suggestions: Array.from(new Set(suggestions)),
+          };
+        });
+
+        const totalIssues = audits.reduce((s, a) => s + a.issues.length, 0);
+        const avg = Math.round(audits.reduce((s, a) => s + a.health_score, 0) / audits.length);
+        const summary = ref
+          ? `Audited "${audits[0].name}" — health ${audits[0].health_score}/100, ${audits[0].issues.length} issue(s).`
+          : `Audited ${audits.length} workflow(s) — avg health ${avg}/100, ${totalIssues} issue(s) found.`;
+        return { ok: true, summary, data: { audits } };
+      }
+
 
       // ─── Projects ───
       case 'list_projects': {
