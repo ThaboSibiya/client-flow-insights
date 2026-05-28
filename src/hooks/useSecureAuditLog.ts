@@ -51,14 +51,6 @@ export const useSecureAuditLog = () => {
   };
 };
 
-// Helper function to get client IP (best effort)
-const getClientIP = async (): Promise<string | undefined> => {
-  try {
-    // This is a simple approach - in production you might want to use a more reliable service
-    const response = await fetch('https://api.ipify.org?format=json');
-    const data = await response.json();
-    return data.ip;
-  } catch {
-    return undefined;
-  }
-};
+// Client IP is resolved server-side by the edge function (x-forwarded-for).
+// Avoid blocking the UI on a third-party HTTP call.
+const getClientIP = async (): Promise<string | undefined> => undefined;
