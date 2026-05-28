@@ -1,7 +1,7 @@
 
 import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Customer, CustomerStatus } from '@/types/customer';
+import { Customer, CustomerStatus, CustomerTicket } from '@/types/customer';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useCustomerStore } from '@/stores/customerStore';
@@ -27,14 +27,9 @@ export const useCustomerData = () => {
     setError(null);
 
     try {
-      // Lean initial fetch — heavy related data (templates, custom_data, equipment)
-      // is loaded on-demand by the pages that need it. Tickets kept minimal for
-      // dashboard/pipeline aggregates.
       let query = supabase
         .from('customers')
-        .select(`${CUSTOMER_COLUMNS},
-          tickets(id, ticket_number, status, priority, subject, created_at, updated_at)
-        `)
+        .select(CUSTOMER_COLUMNS)
         .eq('user_id', user.id);
 
       if (workspaceId) {
@@ -50,68 +45,7 @@ export const useCustomerData = () => {
 
       if (data) {
         const formattedCustomers: Customer[] = data.map(item => {
-          const tickets = (item as any).tickets || [];
-
-          const activeTickets = tickets.map((t: any) => ({
-            id: t.id,
-            ticketNumber: t.ticket_number,
-            status: t.status,
-            priority: t.priority,
-            subject: t.subject,
-            timeEntries: [],
-            totalTimeSpent: 0,
-            createdAt: new Date(t.created_at),
-            updatedAt: new Date(t.updated_at),
-          }));
-
-          const lastTicket = activeTickets.length > 0
-            ? activeTickets.reduce((latest: any, t: any) => t.createdAt > latest.createdAt ? t : latest, activeTickets[0])
-            : undefined;
-
           return {
-            id: item.id,
-            name: item.name,
-            email: item.email,
-            phone: item.phone || '',
-            status: item.status as CustomerStatus,
-            notes: item.notes || '',
-            address: item.address || '',
-            contact_person: item.contact_person || '',
-            company_address: item.company_address || '',
-            reason: item.reason || '',
-            source: item.source || '',
-            createdAt: new Date(item.created_at),
-            updatedAt: new Date(item.updated_at),
-            activeTickets,
-            ticketCount: activeTickets.length,
-            lastTicketDate: lastTicket?.createdAt,
-          };
-        });
-        setCustomers(formattedCustomers);
-      }
-
-    } catch (error: any) {
-      console.error('Error fetching customers:', error.message);
-      setError('Failed to load customers');
-      
-      // Fallback to basic query if complex query fails
-      try {
-        let fallbackQuery = supabase
-          .from('customers')
-          .select(CUSTOMER_COLUMNS)
-          .eq('user_id', user.id);
-
-        if (workspaceId) {
-          fallbackQuery = fallbackQuery.eq('workspace_id', workspaceId);
-        }
-
-        const { data: basicData, error: basicError } = await fallbackQuery
-          .order('created_at', { ascending: false });
-
-        if (basicError) throw basicError;
-
-        if (basicData) {
-          const formattedCustomers: Customer[] = basicData.map(item => ({
             id: item.id,
             name: item.name,
             email: item.email,
@@ -128,17 +62,20 @@ export const useCustomerData = () => {
             activeTickets: [],
             ticketCount: 0,
             lastTicketDate: undefined,
-          }));
-          setCustomers(formattedCustomers);
-        }
-      } catch (fallbackError: any) {
-        console.error('Fallback query also failed:', fallbackError.message);
-        toast({
-          title: "Error",
-          description: "Failed to load customers",
-          variant: "destructive",
+          };
         });
+        setCustomers(formattedCustomers);
+        void hydrateTickets(formattedCustomers.map(customer => customer.id));
       }
+
+    } catch (error: any) {
+      console.error('Error fetching customers:', error.message);
+      setError('Failed to load customers');
+      toast({
+        title: "Error",
+        description: "Failed to load customers",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
