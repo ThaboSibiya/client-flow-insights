@@ -1,14 +1,14 @@
 import React from 'react';
-import { Sparkles, ArrowRight, Lock } from 'lucide-react';
+import { Sparkles, ArrowRight, Lock, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAIAgentAccess } from '@/hooks/useAIAgentAccess';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const EXAMPLES = [
-  'Welcome new leads with a 3-step email series',
-  'Notify me when an invoice is overdue 7+ days',
-  'Move tickets to In Progress when assigned',
-  'Send a reminder 24h before a follow-up',
+  'Build a workflow that welcomes new leads with a 3-step email series',
+  'Create an automation to notify me when an invoice is overdue 7+ days',
+  'Audit my workflows and suggest improvements',
+  'Review my welcome flow and tell me what to fix',
 ];
 
 /**
@@ -62,36 +62,64 @@ const AIAgentBanner: React.FC = () => {
               <p className="text-xs text-muted-foreground mt-0.5">
                 {disabled
                   ? (reason ?? 'Your account does not have AI workflow access.')
-                  : 'Describe your workflow in plain English — Quikle AI will draft it for you.'}
+                  : 'Describe a workflow in plain English, or ask Quikle AI to audit your existing ones and suggest improvements.'}
               </p>
             </div>
           </div>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => openAgentWith()}
-                aria-disabled={disabled}
-                className={cn(
-                  'flex-shrink-0 inline-flex items-center gap-1.5 h-9 px-4 text-xs font-semibold rounded-full',
-                  'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground',
-                  'shadow-sm transition-all',
-                  disabled
-                    ? 'opacity-50 grayscale cursor-not-allowed'
-                    : 'hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'
-                )}
-              >
-                {disabled ? <Lock className="h-3.5 w-3.5" /> : null}
-                Open AI Builder
-                {!disabled && <ArrowRight className="h-3.5 w-3.5" />}
-              </button>
-            </TooltipTrigger>
-            {disabled && (
-              <TooltipContent side="top" className="max-w-[220px] text-xs">
-                {reason ?? 'Ask your administrator for AI Agent access.'}
-              </TooltipContent>
-            )}
-          </Tooltip>
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => openAgentWith('Audit my workflows and suggest improvements')}
+                  aria-disabled={disabled}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 h-9 px-3 text-xs font-semibold rounded-full',
+                    'bg-background text-foreground border border-border',
+                    'transition-all',
+                    disabled
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'hover:bg-muted active:scale-[0.98]'
+                  )}
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Audit & Improve
+                </button>
+              </TooltipTrigger>
+              {disabled && (
+                <TooltipContent side="top" className="max-w-[220px] text-xs">
+                  {reason ?? 'Ask your administrator for AI Agent access.'}
+                </TooltipContent>
+              )}
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => openAgentWith()}
+                  aria-disabled={disabled}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 h-9 px-4 text-xs font-semibold rounded-full',
+                    'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground',
+                    'shadow-sm transition-all',
+                    disabled
+                      ? 'opacity-50 grayscale cursor-not-allowed'
+                      : 'hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'
+                  )}
+                >
+                  {disabled ? <Lock className="h-3.5 w-3.5" /> : null}
+                  Open AI Builder
+                  {!disabled && <ArrowRight className="h-3.5 w-3.5" />}
+                </button>
+              </TooltipTrigger>
+              {disabled && (
+                <TooltipContent side="top" className="max-w-[220px] text-xs">
+                  {reason ?? 'Ask your administrator for AI Agent access.'}
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </div>
+
         </div>
 
         <div className="relative mt-3 flex flex-wrap gap-1.5">
