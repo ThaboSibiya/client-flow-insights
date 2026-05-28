@@ -20,12 +20,8 @@ export const useWorkspaceFetch = (
     }
 
     try {
-      // Ensure auth session is ready before querying RLS-protected tables
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session) {
-        setLoading(false);
-        return;
-      }
+      // userId from AuthContext already guarantees a valid session — skip the
+      // extra getSession() round-trip that previously serialized this fetch.
 
       const { data, error } = await supabase
         .from('workspace_members')
