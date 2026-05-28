@@ -17,6 +17,51 @@ export const useCustomerData = () => {
   const customersRef = useRef(customers);
   customersRef.current = customers;
 
+  const hydrateTickets = useCallback(async (customerIds: string[]) => {
+    if (!user || customerIds.length === 0) return;
+
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('id, customer_id, ticket_number, status, priority, subject, created_at, updated_at')
+      .eq('user_id', user.id)
+      .in('customer_id', customerIds)
+      .order('created_at', { ascending: false })
+      .limit(1000);
+
+    if (error) {
+      console.warn('Ticket hydration skipped:', error.message);
+      return;
+    }
+
+    const ticketsByCustomer = new Map<string, CustomerTicket[]>();
+    (data ?? []).forEach((ticket: any) => {
+      const formattedTicket: CustomerTicket = {
+        id: ticket.id,
+        ticketNumber: ticket.ticket_number,
+        status: ticket.status,
+        priority: ticket.priority,
+        subject: ticket.subject,
+        timeEntries: [],
+        totalTimeSpent: 0,
+        createdAt: new Date(ticket.created_at),
+        updatedAt: new Date(ticket.updated_at),
+      };
+      const existing = ticketsByCustomer.get(ticket.customer_id) ?? [];
+      ticketsByCustomer.set(ticket.customer_id, [...existing, formattedTicket]);
+    });
+
+    setCustomers(customersRef.current.map(customer => {
+      const activeTickets = ticketsByCustomer.get(customer.id) ?? [];
+      const lastTicket = activeTickets[0];
+      return {
+        ...customer,
+        activeTickets,
+        ticketCount: activeTickets.length,
+        lastTicketDate: lastTicket?.createdAt,
+      };
+    }));
+  }, [user, setCustomers]);
+
   const fetchCustomers = useCallback(async () => {
     if (!user) {
       setCustomers([]);
@@ -79,7 +124,7 @@ export const useCustomerData = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, workspaceId, setCustomers, setLoading, setError]);
+  }, [user, workspaceId, setCustomers, setLoading, setError, hydrateTickets]);
 
   useEffect(() => {
     if (user) {
