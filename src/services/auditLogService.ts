@@ -154,11 +154,7 @@ export const auditLogService = {
   // Log user login for security monitoring
   logLoginHistory: async (userId: string) => {
     try {
-      // Get user's IP (simplified - in production use a proper service)
-      const response = await fetch('https://api.ipify.org?format=json');
-      const { ip } = await response.json();
-
-      // Log to security events table
+      // IP is captured server-side from request headers; skip blocking external lookup.
       await supabase
         .from('security_events')
         .insert({
@@ -167,12 +163,11 @@ export const auditLogService = {
           resource_type: 'auth',
           metadata: {
             login_time: new Date().toISOString(),
-            ip_address: ip,
             user_agent: navigator.userAgent
           },
-          ip_address: ip,
           user_agent: navigator.userAgent
         });
+
     } catch (error) {
       console.error('Failed to log login history:', error);
     }

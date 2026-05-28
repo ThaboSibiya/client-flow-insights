@@ -47,16 +47,10 @@ export const logSecureSecurityEvent = async (event: SecureSecurityAuditEvent) =>
   }
 };
 
-// Helper function to get client IP (best effort)
-const getClientIP = async (): Promise<string | undefined> => {
-  try {
-    const response = await fetch('https://api.ipify.org?format=json');
-    const data = await response.json();
-    return data.ip;
-  } catch {
-    return undefined;
-  }
-};
+// Client IP is resolved server-side (edge function reads x-forwarded-for).
+// Avoid blocking page interactions on an external HTTP call.
+const getClientIP = async (): Promise<string | undefined> => undefined;
+
 
 // Fallback client-side logging (less secure but better than nothing)
 const fallbackSecurityLogging = (event: SecureSecurityAuditEvent) => {

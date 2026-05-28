@@ -27,37 +27,13 @@ export const useCustomerData = () => {
     setError(null);
 
     try {
-      // Fetch customers with related data in one query
+      // Lean initial fetch — heavy related data (templates, custom_data, equipment)
+      // is loaded on-demand by the pages that need it. Tickets kept minimal for
+      // dashboard/pipeline aggregates.
       let query = supabase
         .from('customers')
-        .select(`
-          *,
-          customer_templates(
-            template_id,
-            industry_templates(id, name, industry)
-          ),
-          customer_custom_data(
-            id,
-            field_id,
-            field_value,
-            template_fields(id, field_name, field_label, field_type, is_required)
-          ),
-          customer_equipment(
-            id,
-            equipment_type,
-            brand,
-            model,
-            status
-          ),
-          tickets(
-            id,
-            ticket_number,
-            status,
-            priority,
-            subject,
-            created_at,
-            updated_at
-          )
+        .select(`${CUSTOMER_COLUMNS},
+          tickets(id, ticket_number, status, priority, subject, created_at, updated_at)
         `)
         .eq('user_id', user.id);
 
@@ -66,18 +42,16 @@ export const useCustomerData = () => {
       }
 
       const { data, error } = await query
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(500);
+
 
       if (error) throw error;
 
       if (data) {
         const formattedCustomers: Customer[] = data.map(item => {
-          const customData = item.customer_custom_data || [];
-          const appliedTemplates = item.customer_templates || [];
-          const equipment = item.customer_equipment || [];
           const tickets = (item as any).tickets || [];
 
-          // Map real tickets to CustomerTicket shape
           const activeTickets = tickets.map((t: any) => ({
             id: t.id,
             ticketNumber: t.ticket_number,
@@ -90,7 +64,6 @@ export const useCustomerData = () => {
             updatedAt: new Date(t.updated_at),
           }));
 
-          const openTicketStatuses = ['open', 'in-progress', 'in_progress'];
           const lastTicket = activeTickets.length > 0
             ? activeTickets.reduce((latest: any, t: any) => t.createdAt > latest.createdAt ? t : latest, activeTickets[0])
             : undefined;
@@ -112,13 +85,11 @@ export const useCustomerData = () => {
             activeTickets,
             ticketCount: activeTickets.length,
             lastTicketDate: lastTicket?.createdAt,
-            _customData: customData,
-            _appliedTemplates: appliedTemplates,
-            _equipment: equipment,
           };
         });
         setCustomers(formattedCustomers);
       }
+
     } catch (error: any) {
       console.error('Error fetching customers:', error.message);
       setError('Failed to load customers');
@@ -171,7 +142,7 @@ export const useCustomerData = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, setCustomers, setLoading, setError]);
+  }, [user, workspaceId, setCustomers, setLoading, setError]);
 
   useEffect(() => {
     if (user) {
