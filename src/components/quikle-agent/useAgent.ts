@@ -54,6 +54,7 @@ export function useAgent() {
 
   // ─── Load (or create) the active conversation + its messages on mount ───
   useEffect(() => {
+    if (!isOpen) return;
     if (loadedRef.current) return;
     loadedRef.current = true;
     (async () => {
@@ -98,7 +99,7 @@ export function useAgent() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isOpen, workspaceId]);
 
   const persist = useCallback(async (m: AgentMessage) => {
     const userId = userIdRef.current;

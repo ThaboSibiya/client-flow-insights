@@ -9,9 +9,9 @@ import { useEnhancedPrivileges } from './useEnhancedPrivileges';
  * Default for employees (set in DB): both true. Owners can flip them off
  * per-employee from the Employee Privileges editor.
  */
-export const useAIAgentAccess = () => {
-  const { isCompanyOwner, employeeProfile, loading: authLoading } = useEmployeeAuth();
-  const { privileges, loading: privLoading } = useEnhancedPrivileges();
+export const useAIAgentAccess = (enabled = true) => {
+  const { isCompanyOwner, employeeProfile, loading: authLoading } = useEmployeeAuth(enabled);
+  const { privileges, loading: privLoading } = useEnhancedPrivileges(enabled);
 
   return useMemo(() => {
     const loading = authLoading || (!!employeeProfile && privLoading);

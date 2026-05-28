@@ -4,19 +4,24 @@ import { getEnhancedUserPrivileges, getDefaultPrivileges } from '@/services/priv
 import { EnhancedEmployeePrivileges } from '@/types/enhancedSecurity';
 import { useAuth } from '@/context/AuthContext';
 
-export const useEnhancedPrivileges = () => {
+export const useEnhancedPrivileges = (enabled = true) => {
   const { user } = useAuth();
   const [privileges, setPrivileges] = useState<EnhancedEmployeePrivileges>(getDefaultPrivileges());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
+
     if (user) {
       loadPrivileges();
     } else {
       setPrivileges(getDefaultPrivileges());
       setLoading(false);
     }
-  }, [user]);
+  }, [user, enabled]);
 
   const loadPrivileges = async () => {
     try {
