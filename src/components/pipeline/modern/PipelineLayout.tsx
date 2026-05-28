@@ -4,6 +4,7 @@ import {
   ResizablePanel,
   ResizableHandle,
 } from "@/components/ui/resizable";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import PipelineHeader from './PipelineHeader';
 import PipelineKanban from './PipelineKanban';
 import PipelineDetailPanel from './PipelineDetailPanel';
