@@ -83,3 +83,5 @@ export const useWorkspace = () => {
   }
   return context;
 };
+
+export const useOptionalWorkspace = () => useContext(WorkspaceContext);
