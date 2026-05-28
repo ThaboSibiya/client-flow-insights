@@ -140,7 +140,7 @@ export const useCustomerData = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, setCustomers, setLoading, setError]);
+  }, [user, workspaceId, setCustomers, setLoading, setError]);
 
   useEffect(() => {
     if (user) {
