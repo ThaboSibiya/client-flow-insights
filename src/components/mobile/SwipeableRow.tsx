@@ -93,7 +93,7 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
           }}
         >
           {showLeftActions && (
-            <div className="flex items-center gap-1 px-3 text-white">
+            <div className="flex items-center gap-1 px-3 text-primary-foreground">
               {leftActions[0]?.icon}
               <span className="text-xs font-medium">{leftActions[0]?.label}</span>
             </div>
@@ -106,7 +106,7 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
         <div
           className={cn(
             'absolute inset-y-0 right-0 flex items-center justify-end transition-opacity',
-            rightActions[0]?.bgColor || 'bg-blue-500'
+            rightActions[0]?.bgColor || 'bg-secondary'
           )}
           style={{ 
             width: actionWidth,
@@ -114,7 +114,7 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
           }}
         >
           {showRightActions && (
-            <div className="flex items-center gap-1 px-3 text-white">
+            <div className="flex items-center gap-1 px-3 text-secondary-foreground">
               <span className="text-xs font-medium">{rightActions[0]?.label}</span>
               {rightActions[0]?.icon}
             </div>
