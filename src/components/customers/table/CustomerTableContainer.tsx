@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useCustomerData } from '@/hooks/useCustomerData';
+import { useCustomerStore } from '@/stores/customerStore';
 import { useCustomerFilters } from '@/hooks/useCustomerFilters';
 import { useTableSelection } from '@/hooks/useTableSelection';
 import { useCustomerExport } from '@/hooks/useCustomerExport';
@@ -14,7 +14,7 @@ const CustomerTableContainer = React.memo(() => {
   const {
     customers,
     isLoading,
-  } = useCustomerData();
+  } = useCustomerStore();
 
   const {
     filteredCustomers,
