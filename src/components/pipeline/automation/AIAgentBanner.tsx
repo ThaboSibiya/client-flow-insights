@@ -1,14 +1,14 @@
 import React from 'react';
-import { Sparkles, ArrowRight, Lock } from 'lucide-react';
+import { Sparkles, ArrowRight, Lock, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAIAgentAccess } from '@/hooks/useAIAgentAccess';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const EXAMPLES = [
-  'Welcome new leads with a 3-step email series',
-  'Notify me when an invoice is overdue 7+ days',
-  'Move tickets to In Progress when assigned',
-  'Send a reminder 24h before a follow-up',
+  'Build a workflow that welcomes new leads with a 3-step email series',
+  'Create an automation to notify me when an invoice is overdue 7+ days',
+  'Audit my workflows and suggest improvements',
+  'Review my welcome flow and tell me what to fix',
 ];
 
 /**
