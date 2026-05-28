@@ -18,7 +18,7 @@ export interface EmployeeProfile {
   last_login_at?: string;
 }
 
-export const useEmployeeAuth = () => {
+export const useEmployeeAuth = (enabled = true) => {
   const { user } = useAuth();
   const [employeeProfile, setEmployeeProfile] = useState<EmployeeProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,6 +26,7 @@ export const useEmployeeAuth = () => {
 
   const fetchEmployeeProfile = useCallback(async () => {
     try {
+      if (!enabled) return;
       if (!user) return;
 
       // First, quickly check if user is a company owner by checking if they have customers
@@ -65,17 +66,19 @@ export const useEmployeeAuth = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, enabled]);
 
   useEffect(() => {
-    if (user) {
+    if (!enabled) {
+      setLoading(false);
+    } else if (user) {
       fetchEmployeeProfile();
     } else {
       setEmployeeProfile(null);
       setIsCompanyOwner(false);
       setLoading(false);
     }
-  }, [user, fetchEmployeeProfile]);
+  }, [user, enabled, fetchEmployeeProfile]);
 
   const getAccessLevel = useCallback((): string => {
     if (isCompanyOwner) return 'owner';
