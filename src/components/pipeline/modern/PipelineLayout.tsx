@@ -107,15 +107,23 @@ const PipelineLayout = () => {
         </div>
 
         {/* Mobile detail slide-over */}
-        {pipeline.selectedItem && (
-          <div className="fixed inset-0 z-50 bg-background">
-            <PipelineDetailPanel
-              item={pipeline.selectedItem}
-              type={pipeline.type}
-              onClose={() => pipeline.setSelectedItem(null)}
-            />
-          </div>
-        )}
+        <Sheet
+          open={!!pipeline.selectedItem}
+          onOpenChange={(open) => !open && pipeline.setSelectedItem(null)}
+        >
+          <SheetContent
+            side="right"
+            className="w-full sm:max-w-md p-0 flex flex-col"
+          >
+            {pipeline.selectedItem && (
+              <PipelineDetailPanel
+                item={pipeline.selectedItem}
+                type={pipeline.type}
+                onClose={() => pipeline.setSelectedItem(null)}
+              />
+            )}
+          </SheetContent>
+        </Sheet>
 
         {/* Dialogs */}
         <AddStageDialog
