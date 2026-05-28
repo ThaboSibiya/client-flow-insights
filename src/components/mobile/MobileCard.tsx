@@ -3,6 +3,8 @@ import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { useHaptic } from '@/hooks/use-haptic';
+
 
 interface MobileCardProps {
   title: string;

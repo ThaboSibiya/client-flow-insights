@@ -120,10 +120,10 @@ const MobileNavigation = () => {
             </SheetTrigger>
             <SheetContent 
               side="right" 
-              className="w-[85vw] max-w-sm bg-background border-l border-border p-0"
+              className="w-[85vw] max-w-sm bg-background border-l border-border p-0 flex flex-col"
             >
               {/* Header with User Info */}
-              <SheetHeader className="p-4 border-b border-border bg-muted/30">
+              <SheetHeader className="p-4 border-b border-border bg-muted/30 shrink-0">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
                     <AvatarImage src={undefined} />
@@ -140,15 +140,16 @@ const MobileNavigation = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-11 w-11"
                     onClick={() => setIsOpen(false)}
+                    aria-label="Close menu"
                   >
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
               </SheetHeader>
               
-              <ScrollArea className="h-[calc(100dvh-180px)]">
+              <ScrollArea className="flex-1 min-h-0">
                 {/* Workstation Quick Panel */}
                 <div className="p-3 border-b border-border/50">
                   <WorkstationQuickPanel variant="mobile" onItemClick={() => setIsOpen(false)} />
@@ -192,13 +193,15 @@ const MobileNavigation = () => {
                 </nav>
               </ScrollArea>
 
-              {/* Footer Actions */}
-              <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-border bg-background">
+              {/* Footer Actions — flex shrink, safe-area aware */}
+              <div
+                className="shrink-0 p-3 border-t border-border bg-background"
+                style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 0.75rem)` }}
+              >
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="flex-1"
+                    className="flex-1 min-h-11"
                     onClick={() => {
                       setIsOpen(false);
                       navigate('/settings');
@@ -209,14 +212,15 @@ const MobileNavigation = () => {
                   </Button>
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    className="min-h-11 min-w-11 text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={handleSignOut}
+                    aria-label="Sign out"
                   >
                     <LogOut className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
+
             </SheetContent>
           </Sheet>
         </div>
