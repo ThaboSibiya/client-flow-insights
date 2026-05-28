@@ -111,6 +111,7 @@ AVAILABLE TOOLS:
 - list_workflows: {}
 - create_workflow: { name, description, template? (welcome/support/pipeline/webhook), trigger?, actions? }
 - toggle_workflow: { workflow_id_or_name, active (true/false) }
+- audit_workflows: { workflow_id_or_name? }   // inspects workflows and returns issues + improvement suggestions. Omit the arg to audit all. After calling, summarise the findings as a concise bullet list grouped by workflow, and proactively recommend next steps the user can approve (e.g. "Want me to add a fallback step?").
 
 — Projects —
 - list_projects: { status? (not-started/in-progress/on-hold/completed/cancelled) }
