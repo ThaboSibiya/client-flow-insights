@@ -33,7 +33,6 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import WorkstationQuickPanel from '@/components/sidebar/WorkstationQuickPanel';
-import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useConversationsOptimized } from '@/hooks/useConversationsOptimized';
 import { useAuth } from '@/context/AuthContext';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -44,7 +43,6 @@ const MobileNavigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const { user, signOut } = useAuth();
-  const { unreadCount: notificationCount } = useRealtimeNotifications();
   const { unreadCount: conversationCount } = useConversationsOptimized();
 
   // Core 4 + "More" tab. Keeps Home/Clients/Chat/Pipeline as fixed primary destinations,

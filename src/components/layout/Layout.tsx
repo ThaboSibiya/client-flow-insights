@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from './AppSidebar';
@@ -6,11 +6,12 @@ import MobileNavigation from './MobileNavigation';
 import HelpButton from '@/components/help/HelpButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import NotificationBell from '@/components/notifications/NotificationBell';
-import CommandPalette from '@/components/command/CommandPalette';
 import TrialBanner from '@/components/billing/TrialBanner';
 import HardPaywall from '@/components/billing/HardPaywall';
-import QuikleAgent from '@/components/quikle-agent/QuikleAgent';
 import { Search } from 'lucide-react';
+
+const CommandPalette = lazy(() => import('@/components/command/CommandPalette'));
+const QuikleAgent = lazy(() => import('@/components/quikle-agent/QuikleAgent'));
 
 const Layout = () => {
   const isMobile = useIsMobile();
@@ -27,9 +28,9 @@ const Layout = () => {
           <Outlet />
         </main>
         <HelpButton />
-        <CommandPalette />
+        <Suspense fallback={null}><CommandPalette /></Suspense>
         <HardPaywall />
-        <QuikleAgent />
+        <Suspense fallback={null}><QuikleAgent /></Suspense>
       </div>
     );
   }
@@ -63,9 +64,9 @@ const Layout = () => {
         </SidebarInset>
 
         <HelpButton />
-        <CommandPalette />
+        <Suspense fallback={null}><CommandPalette /></Suspense>
         <HardPaywall />
-        <QuikleAgent />
+        <Suspense fallback={null}><QuikleAgent /></Suspense>
       </div>
     </SidebarProvider>
   );
