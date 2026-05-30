@@ -110,15 +110,11 @@ export const useRealtimeNotifications = (enabled = true) => {
             setUnreadCount(prev => prev + 1);
           } else if (payload.eventType === 'UPDATE') {
             const updated = mapNotification(payload.new as DatabaseNotification);
-            let unreadDelta = 0;
-            setNotifications(prev => prev.map(n => {
-              if (n.id !== updated.id) return n;
-              if (n.read !== updated.read) unreadDelta = updated.read ? -1 : 1;
-              return updated;
-            }));
-            if (unreadDelta !== 0) {
-              setUnreadCount(prev => Math.max(0, prev + unreadDelta));
-            }
+            setNotifications(prev => {
+              const next = prev.map(n => (n.id === updated.id ? updated : n));
+              setUnreadCount(next.filter(n => !n.read).length);
+              return next;
+            });
           } else if (payload.eventType === 'DELETE') {
             const oldData = payload.old as DatabaseNotification;
             setNotifications(prev => prev.filter(n => n.id !== oldData.id));
