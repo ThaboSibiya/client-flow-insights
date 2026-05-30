@@ -43,7 +43,6 @@ import WorkspaceSwitcher from '@/components/workspace/WorkspaceSwitcher';
 import PendingWorkspaceInvitations from '@/components/workspace/PendingWorkspaceInvitations';
 import WorkspaceOnboarding from '@/components/workspace/WorkspaceOnboarding';
 import { useWorkspace } from '@/context/WorkspaceContext';
-import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
 interface NavItem {
   path: string;
@@ -64,7 +63,6 @@ const AppSidebar = () => {
   const { data: employee } = useEmployeeProfile();
   const { state, toggleSidebar } = useSidebar();
   const { needsOnboarding, setNeedsOnboarding } = useWorkspace();
-  const { unreadCount } = useRealtimeNotifications();
   const isCollapsed = state === 'collapsed';
   const navRef = useRef<HTMLDivElement>(null);
 
@@ -277,15 +275,10 @@ const AppSidebar = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 relative"
+                  className="h-8 w-8"
                   onClick={() => navigate('/notifications')}
                 >
                   <Bell className="h-4 w-4" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 text-[9px] font-bold bg-destructive text-destructive-foreground rounded-full flex items-center justify-center">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="right">Notifications</TooltipContent>
