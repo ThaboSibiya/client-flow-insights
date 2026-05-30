@@ -10,7 +10,7 @@ import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 const CUSTOMER_COLUMNS =
   'id, name, email, phone, status, notes, address, contact_person, company_address, reason, source, created_at, updated_at, workspace_id';
 
-export const useCustomerData = () => {
+export const useCustomerData = (enabled = true) => {
   const { user } = useAuth();
   const workspaceId = useActiveWorkspaceId();
   const { customers, setCustomers, setLoading, setError, isLoading, loadedKey, setLoadedKey } = useCustomerStore();
@@ -64,6 +64,8 @@ export const useCustomerData = () => {
   }, [user, setCustomers]);
 
   const fetchCustomers = useCallback(async () => {
+    if (!enabled) return;
+
     if (!user) {
       setCustomers([]);
       setLoadedKey(null);
@@ -127,9 +129,11 @@ export const useCustomerData = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, workspaceId, setCustomers, setLoading, setError, setLoadedKey, hydrateTickets]);
+  }, [enabled, user, workspaceId, setCustomers, setLoading, setError, setLoadedKey, hydrateTickets]);
 
   useEffect(() => {
+    if (!enabled) return;
+
     if (user && scopeKey !== loadedKey) {
       fetchCustomers();
     }
@@ -137,10 +141,11 @@ export const useCustomerData = () => {
       setCustomers([]);
       setLoadedKey(null);
     }
-  }, [user, scopeKey, loadedKey, fetchCustomers, setCustomers, setLoadedKey]);
+  }, [enabled, user, scopeKey, loadedKey, fetchCustomers, setCustomers, setLoadedKey]);
 
   // Real-time updates — targeted mutations instead of full refetch
   useEffect(() => {
+    if (!enabled) return;
     if (!user) return;
 
     const applyRow = (row: any): Customer => ({
