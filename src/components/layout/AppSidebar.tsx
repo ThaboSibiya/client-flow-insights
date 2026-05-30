@@ -37,7 +37,6 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
 import UserProfile from '@/components/auth/UserProfile';
-import NotificationBell from '@/components/notifications/NotificationBell';
 import HelpPanel from '@/components/help/HelpPanel';
 import WorkspaceSwitcher from '@/components/workspace/WorkspaceSwitcher';
 import PendingWorkspaceInvitations from '@/components/workspace/PendingWorkspaceInvitations';
@@ -226,7 +225,6 @@ const AppSidebar = () => {
         {!isCollapsed ? (
           <div className="flex items-center justify-between px-0.5">
             <div className="flex items-center gap-0.5">
-              <NotificationBell />
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
