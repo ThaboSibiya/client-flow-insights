@@ -145,18 +145,18 @@ const UnifiedActivityStream = ({ customers }: UnifiedActivityStreamProps) => {
         </div>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="mt-3">
           <TabsList className="h-8 p-0.5 bg-muted/50">
-            <TabsTrigger value="all" className="text-xs h-7 px-3 data-[state=active]:bg-background">
+            <TabsTrigger value="all" className="text-xs h-7 px-3 data-[state=active]:bg-background data-[state=active]:text-foreground">
               All
             </TabsTrigger>
-            <TabsTrigger value="customers" className="text-xs h-7 px-3 data-[state=active]:bg-background">
+            <TabsTrigger value="customers" className="text-xs h-7 px-3 data-[state=active]:bg-background data-[state=active]:text-foreground">
               <Users className="h-3 w-3 mr-1" />
               {tabCounts.customers}
             </TabsTrigger>
-            <TabsTrigger value="tickets" className="text-xs h-7 px-3 data-[state=active]:bg-background">
+            <TabsTrigger value="tickets" className="text-xs h-7 px-3 data-[state=active]:bg-background data-[state=active]:text-foreground">
               <Ticket className="h-3 w-3 mr-1" />
               {tabCounts.tickets}
             </TabsTrigger>
-            <TabsTrigger value="system" className="text-xs h-7 px-3 data-[state=active]:bg-background">
+            <TabsTrigger value="system" className="text-xs h-7 px-3 data-[state=active]:bg-background data-[state=active]:text-foreground">
               <Bell className="h-3 w-3 mr-1" />
               {tabCounts.system}
             </TabsTrigger>
