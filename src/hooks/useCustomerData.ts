@@ -10,12 +10,13 @@ import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 const CUSTOMER_COLUMNS =
   'id, name, email, phone, status, notes, address, contact_person, company_address, reason, source, created_at, updated_at, workspace_id';
 
-export const useCustomerData = () => {
+export const useCustomerData = (enabled = true) => {
   const { user } = useAuth();
   const workspaceId = useActiveWorkspaceId();
-  const { customers, setCustomers, setLoading, setError, isLoading } = useCustomerStore();
+  const { customers, setCustomers, setLoading, setError, isLoading, loadedKey, setLoadedKey } = useCustomerStore();
   const customersRef = useRef(customers);
   customersRef.current = customers;
+  const scopeKey = user ? `${user.id}:${workspaceId ?? 'all'}` : null;
 
   const hydrateTickets = useCallback(async (customerIds: string[]) => {
     if (!user || customerIds.length === 0) return;
@@ -63,8 +64,11 @@ export const useCustomerData = () => {
   }, [user, setCustomers]);
 
   const fetchCustomers = useCallback(async () => {
+    if (!enabled) return;
+
     if (!user) {
       setCustomers([]);
+      setLoadedKey(null);
       return;
     }
 
@@ -110,6 +114,7 @@ export const useCustomerData = () => {
           };
         });
         setCustomers(formattedCustomers);
+        setLoadedKey(`${user.id}:${workspaceId ?? 'all'}`);
         void hydrateTickets(formattedCustomers.map(customer => customer.id));
       }
 
@@ -124,19 +129,23 @@ export const useCustomerData = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, workspaceId, setCustomers, setLoading, setError, hydrateTickets]);
+  }, [enabled, user, workspaceId, setCustomers, setLoading, setError, setLoadedKey, hydrateTickets]);
 
   useEffect(() => {
-    if (user) {
+    if (!enabled) return;
+
+    if (user && scopeKey !== loadedKey) {
       fetchCustomers();
     }
     if (!user) {
       setCustomers([]);
+      setLoadedKey(null);
     }
-  }, [user, fetchCustomers, setCustomers]);
+  }, [enabled, user, scopeKey, loadedKey, fetchCustomers, setCustomers, setLoadedKey]);
 
   // Real-time updates — targeted mutations instead of full refetch
   useEffect(() => {
+    if (!enabled) return;
     if (!user) return;
 
     const applyRow = (row: any): Customer => ({

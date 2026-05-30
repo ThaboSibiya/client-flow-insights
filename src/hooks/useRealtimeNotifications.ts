@@ -28,7 +28,7 @@ interface DatabaseNotification {
   workspace_id: string | null;
 }
 
-export const useRealtimeNotifications = () => {
+export const useRealtimeNotifications = (enabled = true) => {
   const { user } = useAuth();
   const workspaceId = useActiveWorkspaceId();
   const [notifications, setNotifications] = useState<RealtimeNotification[]>([]);
@@ -47,6 +47,11 @@ export const useRealtimeNotifications = () => {
   });
 
   const fetchNotifications = useCallback(async () => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
       setNotifications([]);
       setUnreadCount(0);
@@ -79,10 +84,11 @@ export const useRealtimeNotifications = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, workspaceId]);
+  }, [enabled, user, workspaceId]);
 
   // Subscribe to real-time changes
   useEffect(() => {
+    if (!enabled) return;
     if (!user) return;
 
     fetchNotifications();
@@ -104,13 +110,10 @@ export const useRealtimeNotifications = () => {
             setUnreadCount(prev => prev + 1);
           } else if (payload.eventType === 'UPDATE') {
             const updated = mapNotification(payload.new as DatabaseNotification);
-            setNotifications(prev =>
-              prev.map(n => (n.id === updated.id ? updated : n))
-            );
-            // Recalculate unread count
             setNotifications(prev => {
-              setUnreadCount(prev.filter(n => !n.read).length);
-              return prev;
+              const next = prev.map(n => (n.id === updated.id ? updated : n));
+              setUnreadCount(next.filter(n => !n.read).length);
+              return next;
             });
           } else if (payload.eventType === 'DELETE') {
             const oldData = payload.old as DatabaseNotification;
@@ -124,7 +127,7 @@ export const useRealtimeNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, fetchNotifications]);
+  }, [enabled, user, fetchNotifications]);
 
   const markAsRead = useCallback(async (notificationId: string) => {
     if (!user) return;

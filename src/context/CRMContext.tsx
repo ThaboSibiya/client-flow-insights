@@ -1,4 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useCustomerData } from '@/hooks/useCustomerData';
 import { useCustomerStore } from '@/stores/customerStore';
 import { useTicketStore } from '@/stores/ticketStore';
@@ -21,7 +22,9 @@ import { Customer, CustomerStatus, CustomerTicket, TicketStatus, CRMContextType,
 const CRMContext = createContext<CRMContextType | undefined>(undefined);
 
 export const CRMProvider = ({ children }: { children: ReactNode }) => {
-  const { fetchCustomers } = useCustomerData(); // This hook now manages data fetching and updates the customer store.
+  const location = useLocation();
+  const shouldLoadCustomers = /^\/(dashboard|customers|pipeline|analytics|quotes)(\/|$)/.test(location.pathname);
+  const { fetchCustomers } = useCustomerData(shouldLoadCustomers); // Loads only on CRM routes that need customer data.
   const customerStore = useCustomerStore();
   const ticketStore = useTicketStore();
   const { updateCustomerOptimistically, deleteCustomerOptimistically, updateTicketOptimistically } = useOptimisticUpdates();

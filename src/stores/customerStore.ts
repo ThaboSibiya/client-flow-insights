@@ -8,11 +8,13 @@ interface CustomerState {
   isLoading: boolean;
   error: string | null;
   optimisticUpdates: Record<string, Partial<Customer>>;
+  loadedKey: string | null;
   
   // Actions
   setCustomers: (customers: Customer[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setLoadedKey: (key: string | null) => void;
   
   // Optimistic updates
   optimisticUpdateCustomer: (id: string, updates: Partial<Customer>) => void;
@@ -29,10 +31,12 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
   isLoading: false,
   error: null,
   optimisticUpdates: {},
+  loadedKey: null,
 
   setCustomers: (customers) => set({ customers }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
+  setLoadedKey: (loadedKey) => set({ loadedKey }),
 
   optimisticUpdateCustomer: (id, updates) => {
     const { customers, optimisticUpdates } = get();

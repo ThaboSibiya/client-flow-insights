@@ -19,13 +19,14 @@ export type AgentAlert = {
  * Subscribes to the user's open agent alerts and exposes resolve/dismiss/scan helpers.
  * Realtime updates keep the inbox in sync across tabs.
  */
-export function useAgentAlerts() {
+export function useAgentAlerts(enabled = true) {
   const [alerts, setAlerts] = useState<AgentAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const userIdRef = useRef<string | null>(null);
 
   const load = useCallback(async () => {
+    if (!enabled) { setLoading(false); return; }
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
     userIdRef.current = user.id;
@@ -38,12 +39,13 @@ export function useAgentAlerts() {
       .limit(50);
     setAlerts(((data ?? []) as unknown) as AgentAlert[]);
     setLoading(false);
-  }, []);
+  }, [enabled]);
 
   useEffect(() => { void load(); }, [load]);
 
   // Realtime subscription
   useEffect(() => {
+    if (!enabled) return;
     const channel = supabase
       .channel('agent_alerts_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'agent_alerts' }, () => {
@@ -51,7 +53,7 @@ export function useAgentAlerts() {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [load]);
+  }, [enabled, load]);
 
   const scan = useCallback(async () => {
     setScanning(true);

@@ -26,6 +26,7 @@ export const useSessionTimeout = ({
   const warningRef = useRef<NodeJS.Timeout>();
   const countdownRef = useRef<NodeJS.Timeout>();
   const lastActivityRef = useRef<number>(Date.now());
+  const lastTimerResetRef = useRef<number>(0);
 
   const resetTimers = useCallback(() => {
     lastActivityRef.current = Date.now();
@@ -101,7 +102,11 @@ export const useSessionTimeout = ({
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
     
     const handleActivity = () => {
+      lastActivityRef.current = Date.now();
       if (!showWarning) {
+        const now = Date.now();
+        if (now - lastTimerResetRef.current < 60_000) return;
+        lastTimerResetRef.current = now;
         resetTimers();
       }
     };
