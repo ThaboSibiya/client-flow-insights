@@ -40,6 +40,7 @@ const WorkspaceSwitcher = () => {
   const [error, setError] = useState<string | null>(null);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [createdWsName, setCreatedWsName] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Fetch plan badges for all workspaces
   const wsIds = workspaces.map(ws => ws.id);
@@ -59,7 +60,7 @@ const WorkspaceSwitcher = () => {
       }
       return map;
     },
-    enabled: wsIds.length > 0,
+    enabled: menuOpen && wsIds.length > 0,
   });
 
   const handleCreate = async () => {
@@ -183,7 +184,7 @@ const WorkspaceSwitcher = () => {
       <>
         <Tooltip>
           <TooltipTrigger asChild>
-            <DropdownMenu>
+              <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="w-full h-9">
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary text-xs font-bold">
@@ -246,7 +247,7 @@ const WorkspaceSwitcher = () => {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
