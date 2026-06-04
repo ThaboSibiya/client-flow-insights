@@ -177,36 +177,34 @@ const PipelineLayout = () => {
       />
 
       <div className="flex-1 overflow-hidden mt-4">
-        {pipeline.selectedItem ? (
-          <ResizablePanelGroup direction="horizontal" className="h-full">
-            <ResizablePanel defaultSize={65} minSize={50}>
-              <PipelineKanban
-                pipeline={pipeline}
-                onStageEdit={handleStageEdit}
-                onStageDelete={handleStageDelete}
-                onSetTarget={handleSetTarget}
-                onSetAutomation={handleSetAutomation}
-              />
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={35} minSize={25} maxSize={45}>
-              <PipelineDetailPanel
-                item={pipeline.selectedItem}
-                type={pipeline.type}
-                onClose={() => pipeline.setSelectedItem(null)}
-              />
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        ) : (
-          <PipelineKanban
-            pipeline={pipeline}
-            onStageEdit={handleStageEdit}
-            onStageDelete={handleStageDelete}
-            onSetTarget={handleSetTarget}
-            onSetAutomation={handleSetAutomation}
-          />
-        )}
+        <PipelineKanban
+          pipeline={pipeline}
+          onStageEdit={handleStageEdit}
+          onStageDelete={handleStageDelete}
+          onSetTarget={handleSetTarget}
+          onSetAutomation={handleSetAutomation}
+        />
       </div>
+
+      {/* Desktop detail slide-over (overlay, does not shrink kanban) */}
+      <Sheet
+        open={!!pipeline.selectedItem}
+        onOpenChange={(open) => !open && pipeline.setSelectedItem(null)}
+      >
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-sm p-0 flex flex-col"
+        >
+          {pipeline.selectedItem && (
+            <PipelineDetailPanel
+              item={pipeline.selectedItem}
+              type={pipeline.type}
+              onClose={() => pipeline.setSelectedItem(null)}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
+
 
       {/* Dialogs */}
       <AddStageDialog
