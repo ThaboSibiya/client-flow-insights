@@ -84,10 +84,17 @@ const PipelineDetailPanel = ({
               className="gap-2"
               onClick={() => {
                 if (!customer?.email) {
-                  toast({ title: 'No email on file', description: 'Add an email to this customer first.', variant: 'destructive' });
+                  toast({
+                    title: 'No email on file',
+                    description: 'Add an email to this customer first.',
+                    variant: 'destructive',
+                  });
                   return;
                 }
-                window.open(`mailto:${customer.email}`, '_self');
+                onClose();
+                navigate(
+                  `/customers/${customer.id}?tab=conversations&action=new&channel=email`
+                );
               }}
             >
               <Mail className="h-4 w-4" />
@@ -99,10 +106,17 @@ const PipelineDetailPanel = ({
               className="gap-2"
               onClick={() => {
                 if (!customer?.phone) {
-                  toast({ title: 'No phone on file', description: 'Add a phone number to this customer first.', variant: 'destructive' });
+                  toast({
+                    title: 'No phone on file',
+                    description: 'Add a phone number to this customer first.',
+                    variant: 'destructive',
+                  });
                   return;
                 }
-                window.open(`tel:${customer.phone}`, '_self');
+                onClose();
+                navigate(
+                  `/customers/${customer.id}?tab=conversations&action=new&channel=voice`
+                );
               }}
             >
               <Phone className="h-4 w-4" />
@@ -121,6 +135,7 @@ const PipelineDetailPanel = ({
               New Ticket
             </Button>
           </div>
+
 
         </CardHeader>
 
