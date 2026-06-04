@@ -188,9 +188,8 @@ const PipelineCard = memo(({
         </HoverCardContent>
       </HoverCard>
     );
-
-    );
   }
+
 
   // Ticket card
   const ticket = item as CustomerTicket;
