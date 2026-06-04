@@ -4,11 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { 
+import {
   Clock, Mail, Phone, GripVertical, MoreHorizontal,
   Eye, ArrowRight
 } from "lucide-react";
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,8 +16,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { Customer, CustomerTicket } from '@/types/customer';
 import { PipelineType, PipelineStage } from '@/hooks/usePipeline';
+
 
 interface PipelineCardProps {
   item: Customer | CustomerTicket;
