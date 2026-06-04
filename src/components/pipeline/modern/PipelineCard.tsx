@@ -71,78 +71,124 @@ const PipelineCard = memo(({
     const customer = item as Customer;
 
     return (
-      <Card
-        ref={setNodeRef}
-        style={style}
-        onClick={() => onSelect(customer)}
-        className={`group relative cursor-pointer transition-[border-color,box-shadow] duration-100 border-border/50 hover:border-primary/30 ${
-          isDragging ? 'shadow-xl scale-105 ring-2 ring-primary/20' : 'hover:shadow-sm'
-        } ${isSelected ? 'ring-2 ring-primary border-primary' : ''}`}
-      >
-        {/* Drag handle */}
-        <div 
-          {...listeners} {...attributes}
-          className="absolute top-2 left-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
-        </div>
+      <HoverCard openDelay={350} closeDelay={80}>
+        <HoverCardTrigger asChild>
+          <Card
+            ref={setNodeRef}
+            style={style}
+            onClick={() => onSelect(customer)}
+            className={`group relative cursor-pointer transition-[border-color,box-shadow] duration-100 border-border/50 hover:border-primary/30 ${
+              isDragging ? 'shadow-xl scale-105 ring-2 ring-primary/20' : 'hover:shadow-sm'
+            } ${isSelected ? 'ring-2 ring-primary border-primary' : ''}`}
+          >
+            {/* Drag handle */}
+            <div
+              {...listeners} {...attributes}
+              className="absolute top-2 left-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
 
-        {/* Quick actions */}
-        <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-6 w-6">
-                <MoreHorizontal className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem onClick={() => onSelect(customer)}>
-                <Eye className="h-3.5 w-3.5 mr-2" />
-                View Details
-              </DropdownMenuItem>
-              {otherStages.length > 0 && (
-                <>
-                  <DropdownMenuSeparator />
-                  <div className="px-2 py-1 text-xs font-medium text-muted-foreground">Move to</div>
-                  {otherStages.map(stage => (
-                    <DropdownMenuItem 
-                      key={stage.id}
-                      onClick={() => onMove(customer.id, stageId, stage.id)}
-                    >
-                      <ArrowRight className="h-3.5 w-3.5 mr-2" />
-                      {stage.name}
-                    </DropdownMenuItem>
-                  ))}
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            {/* Quick actions */}
+            <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <MoreHorizontal className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem onClick={() => onSelect(customer)}>
+                    <Eye className="h-3.5 w-3.5 mr-2" />
+                    View Details
+                  </DropdownMenuItem>
+                  {otherStages.length > 0 && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <div className="px-2 py-1 text-xs font-medium text-muted-foreground">Move to</div>
+                      {otherStages.map(stage => (
+                        <DropdownMenuItem
+                          key={stage.id}
+                          onClick={() => onMove(customer.id, stageId, stage.id)}
+                        >
+                          <ArrowRight className="h-3.5 w-3.5 mr-2" />
+                          {stage.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
-        <CardContent className="p-2.5 pl-6">
-          <div className="flex items-center gap-2.5 mb-1">
-            <Avatar className="h-7 w-7">
-              <AvatarFallback className="bg-primary/10 text-primary text-xs">
+            <CardContent className="p-2.5 pl-6">
+              <div className="flex items-center gap-2.5 mb-1">
+                <Avatar className="h-7 w-7">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                    {getInitials(customer?.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-xs truncate">{customer?.name || 'Unknown'}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{customer?.email || 'No email'}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground pl-9">
+                <span>{getTimeAgo(customer?.createdAt)}</span>
+                {customer?.phone && (
+                  <div className="flex items-center gap-0.5">
+                    <Phone className="h-2.5 w-2.5" />
+                    <span className="truncate max-w-[80px]">{customer.phone}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </HoverCardTrigger>
+        <HoverCardContent side="right" align="start" className="w-72 p-3">
+          <div className="flex items-center gap-2.5 mb-2">
+            <Avatar className="h-9 w-9">
+              <AvatarFallback className="bg-primary/10 text-primary text-sm">
                 {getInitials(customer?.name)}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-xs truncate">{customer?.name || 'Unknown'}</p>
-              <p className="text-[11px] text-muted-foreground truncate">{customer?.email || 'No email'}</p>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-sm truncate">{customer?.name || 'Unknown'}</p>
+              <Badge variant="outline" className="mt-0.5 capitalize text-[10px] h-4 px-1.5">
+                {customer?.status || 'unknown'}
+              </Badge>
             </div>
           </div>
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground pl-9">
-            <span>{getTimeAgo(customer?.createdAt)}</span>
-            {customer?.phone && (
-              <div className="flex items-center gap-0.5">
-                <Phone className="h-2.5 w-2.5" />
-                <span className="truncate max-w-[80px]">{customer.phone}</span>
+          <div className="space-y-1 text-xs">
+            {customer?.email && (
+              <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                <Mail className="h-3 w-3 shrink-0" />
+                <span className="truncate">{customer.email}</span>
               </div>
             )}
+            {customer?.phone && (
+              <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                <Phone className="h-3 w-3 shrink-0" />
+                <span className="truncate">{customer.phone}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Clock className="h-3 w-3 shrink-0" />
+              <span>
+                {customer?.createdAt
+                  ? `Added ${format(new Date(customer.createdAt), 'MMM d, yyyy')}`
+                  : 'No date'}
+              </span>
+            </div>
+            <p className="pt-1 text-[11px] text-muted-foreground/80">
+              {(customer as any)?.ticketCount ?? 0} ticket(s) · click for full details
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </HoverCardContent>
+      </HoverCard>
+    );
+
     );
   }
 
