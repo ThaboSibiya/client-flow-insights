@@ -82,8 +82,13 @@ const PipelineDetailPanel = ({
             <Button
               size="sm"
               className="gap-2"
-              disabled={!customer?.email}
-              onClick={() => customer?.email && (window.location.href = `mailto:${customer.email}`)}
+              onClick={() => {
+                if (!customer?.email) {
+                  toast({ title: 'No email on file', description: 'Add an email to this customer first.', variant: 'destructive' });
+                  return;
+                }
+                window.open(`mailto:${customer.email}`, '_self');
+              }}
             >
               <Mail className="h-4 w-4" />
               Email
@@ -92,8 +97,13 @@ const PipelineDetailPanel = ({
               size="sm"
               variant="outline"
               className="gap-2"
-              disabled={!customer?.phone}
-              onClick={() => customer?.phone && (window.location.href = `tel:${customer.phone}`)}
+              onClick={() => {
+                if (!customer?.phone) {
+                  toast({ title: 'No phone on file', description: 'Add a phone number to this customer first.', variant: 'destructive' });
+                  return;
+                }
+                window.open(`tel:${customer.phone}`, '_self');
+              }}
             >
               <Phone className="h-4 w-4" />
               Call
@@ -102,12 +112,16 @@ const PipelineDetailPanel = ({
               size="sm"
               variant="outline"
               className="gap-2"
-              onClick={() => navigate(`/customers/${customer.id}?tab=tickets&action=new`)}
+              onClick={() => {
+                onClose();
+                navigate(`/customers/${customer.id}?tab=tickets&action=new`);
+              }}
             >
               <Ticket className="h-4 w-4" />
               New Ticket
             </Button>
           </div>
+
         </CardHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 min-h-0 flex flex-col">
