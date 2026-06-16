@@ -98,10 +98,12 @@ const WorkspacePlanPaywall: React.FC<WorkspacePlanPaywallProps> = ({
 
                   <p className="font-semibold text-sm text-foreground">{plan.name}</p>
 
-                  <div className="my-2">
-                    <span className="text-2xl font-bold text-foreground">{priceInfo.label}</span>
-                    <span className="text-xs text-muted-foreground">/mo</span>
-                  </div>
+                  {priceInfo.label && (
+                    <div className="my-2">
+                      <span className="text-2xl font-bold text-foreground">{priceInfo.label}</span>
+                      <span className="text-xs text-muted-foreground">/mo</span>
+                    </div>
+                  )}
 
                   <ul className="text-xs text-muted-foreground space-y-1 mb-3">
                     <li className="flex items-center gap-1 justify-center">
