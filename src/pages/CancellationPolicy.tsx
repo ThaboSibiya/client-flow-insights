@@ -152,8 +152,8 @@ const CancellationPolicy = () => {
             <p className="font-medium text-sm text-foreground">Questions about cancellation?</p>
             <p className="text-xs text-muted-foreground">
               Contact our support team at{' '}
-              <a href="mailto:support@quikle.com" className="text-primary hover:underline">
-                support@quikle.com
+              <a href="mailto:support@quikle.co.za" className="text-primary hover:underline">
+                support@quikle.co.za
               </a>{' '}
               or reach out through the in-app Help button for assistance.
             </p>

@@ -246,7 +246,7 @@ const TOS_SECTIONS = [
     title: '21. Contact Information',
     items: [
       'Legal Entity: Quikle (Pty) Ltd, registered in the Republic of South Africa.',
-      'General Enquiries & Support: support@quikle.com',
+      'General Enquiries & Support: support@quikle.co.za',
       'Legal Matters: legal@quikle.com',
       'POPIA & Privacy Queries: privacy@quikle.com',
     ],
@@ -374,8 +374,8 @@ const TermsOfService = () => {
                 legal@quikle.com
               </a>{' '}
               or our support team at{' '}
-              <a href="mailto:support@quikle.com" className="text-primary hover:underline">
-                support@quikle.com
+              <a href="mailto:support@quikle.co.za" className="text-primary hover:underline">
+                support@quikle.co.za
               </a>
               .
             </p>
