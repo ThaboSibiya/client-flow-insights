@@ -38,10 +38,10 @@ export const useWorkspaceSubscription = (overrideWorkspaceId?: string) => {
   const initializePayment = useMutation({
     mutationFn: async ({ planName, amount, currency, workspaceId: wsId }: InitializePaymentParams) => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
+      if (!session) throw new Error('You must be signed in to start a payment.');
 
       const targetWsId = wsId || workspaceId;
-      if (!targetWsId) throw new Error('No workspace selected');
+      if (!targetWsId) throw new Error('No active workspace. Please select a workspace and try again.');
 
       const callbackUrl = `${window.location.origin}/settings/billing`;
 
@@ -55,7 +55,24 @@ export const useWorkspaceSubscription = (overrideWorkspaceId?: string) => {
         },
       });
 
-      if (response.error) throw new Error(response.error.message);
+      if (response.error) {
+        // Surface the real error body from the edge function instead of the generic message
+        let detail = response.error.message || 'Failed to initialize payment';
+        try {
+          const ctx: any = (response.error as any).context;
+          if (ctx && typeof ctx.json === 'function') {
+            const body = await ctx.json();
+            if (body?.error) detail = typeof body.error === 'string' ? body.error : JSON.stringify(body.error);
+          } else if (ctx && typeof ctx.text === 'function') {
+            const text = await ctx.text();
+            if (text) detail = text;
+          }
+        } catch { /* ignore parse errors */ }
+        throw new Error(detail);
+      }
+      if (!response.data?.authorization_url) {
+        throw new Error('Payment service did not return a checkout URL. Please try again.');
+      }
       return response.data;
     },
     onSuccess: (data) => {

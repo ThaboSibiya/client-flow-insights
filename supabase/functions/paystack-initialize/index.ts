@@ -1,16 +1,26 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
-const allowedOrigins = [
+const allowedOriginExact = new Set([
   'https://quikle-innovation-suite.lovable.app',
-  'https://id-preview--e1036b92-283a-4a65-9473-d759ed300ea1.lovable.app',
+  'https://crm.quikle.co.za',
+  'https://quikle.co.za',
+  'https://www.quikle.co.za',
   'http://localhost:5173',
   'http://localhost:3000',
+]);
+const allowedOriginPatterns = [
+  /^https:\/\/[a-z0-9-]+\.lovable\.app$/,
+  /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/,
 ];
 
 const getCorsHeaders = (origin: string | null) => {
-  const isAllowed = origin && allowedOrigins.includes(origin);
+  const isAllowed = !!origin && (
+    allowedOriginExact.has(origin) ||
+    allowedOriginPatterns.some((re) => re.test(origin))
+  );
   return {
-    'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],
+    'Access-Control-Allow-Origin': isAllowed ? origin! : 'https://crm.quikle.co.za',
+    'Vary': 'Origin',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
     'Access-Control-Allow-Credentials': 'true',
