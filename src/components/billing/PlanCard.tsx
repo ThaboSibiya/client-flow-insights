@@ -59,10 +59,12 @@ const PlanCard: React.FC<PlanCardProps> = ({
           {icon}
         </div>
         <CardTitle className="text-lg">{name}</CardTitle>
-        <div className="mt-3">
-          <span className="text-3xl font-bold text-quikle-charcoal">{priceLabel}</span>
-          <span className="text-sm text-quikle-slate/70">/mo</span>
-        </div>
+        {priceLabel && (
+          <div className="mt-3">
+            <span className="text-3xl font-bold text-quikle-charcoal">{priceLabel}</span>
+            <span className="text-sm text-quikle-slate/70">/mo</span>
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col pt-4">
@@ -84,7 +86,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
         <Button
           className="w-full mt-6"
           variant={isCurrent ? 'outline' : highlighted ? 'default' : 'secondary'}
-          disabled={isCurrent || isLoading}
+          disabled={(isCurrent && name !== 'Enterprise') || isLoading}
           onClick={!isLoading ? onSelect : undefined}
         >
           {isLoading ? (

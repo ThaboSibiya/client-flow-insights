@@ -23,7 +23,7 @@ const OnboardingPlanStep: React.FC<OnboardingPlanStepProps> = ({ onSkip }) => {
 
   const handleSelect = (plan: PlanTier) => {
     if (plan.name === 'Enterprise') {
-      window.open('mailto:sales@quikle.com?subject=Enterprise Plan Inquiry', '_blank');
+      window.open('mailto:lance@quikle.co.za?subject=Enterprise Plan Inquiry', '_blank');
       return;
     }
     setSelectedPlan(plan.name);
