@@ -54,8 +54,8 @@ export const PLANS: PlanTier[] = [
     name: 'Enterprise',
     iconName: 'Building2',
     price: {
-      ZAR: { amount: 999, label: 'From R999' },
-      USD: { amount: 59, label: 'From $59' },
+      ZAR: { amount: 999, label: '' },
+      USD: { amount: 59, label: '' },
     },
     users: 'Unlimited users',
     customers: 'Unlimited customers',
