@@ -79,13 +79,13 @@ const HelpPanel = ({ isOpen, onClose }: HelpPanelProps) => {
     }
     setIsSending(true);
     try {
-      const mailtoLink = `mailto:support@quikle.com?subject=${encodeURIComponent(contactForm.subject)}&body=${encodeURIComponent(contactForm.message)}`;
+      const mailtoLink = `mailto:support@quikle.co.za?subject=${encodeURIComponent(contactForm.subject)}&body=${encodeURIComponent(contactForm.message)}`;
       window.open(mailtoLink, '_blank');
       toast({ title: 'Message ready to send', description: 'Your email client has been opened.' });
       setContactForm({ subject: '', message: '' });
       setPanelView('help');
     } catch {
-      toast({ title: 'Error', description: 'Please email support@quikle.com directly.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Please email support@quikle.co.za directly.', variant: 'destructive' });
     } finally {
       setIsSending(false);
     }
@@ -246,7 +246,7 @@ const HelpPanel = ({ isOpen, onClose }: HelpPanelProps) => {
               <div className="space-y-2">
                 <p className="text-sm font-medium text-foreground">Get in touch</p>
                 <a
-                  href="mailto:support@quikle.com"
+                  href="mailto:support@quikle.co.za"
                   className="flex items-center gap-3 p-3 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors"
                 >
                   <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -254,7 +254,7 @@ const HelpPanel = ({ isOpen, onClose }: HelpPanelProps) => {
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground">Email Support</p>
-                    <p className="text-xs text-muted-foreground truncate">support@quikle.com</p>
+                    <p className="text-xs text-muted-foreground truncate">support@quikle.co.za</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 ml-auto" />
                 </a>
