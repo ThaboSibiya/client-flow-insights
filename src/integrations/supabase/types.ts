@@ -4616,6 +4616,10 @@ export type Database = {
         Args: { p_invitation_id: string }
         Returns: boolean
       }
+      can_access_ticket_attachment: {
+        Args: { _object_name: string; _user_id: string }
+        Returns: boolean
+      }
       check_rate_limit: {
         Args: {
           p_max_attempts?: number
