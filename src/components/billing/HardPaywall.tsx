@@ -32,7 +32,7 @@ const HardPaywall: React.FC = () => {
 
   const handleSelect = (plan: PlanTier) => {
     if (plan.name === 'Enterprise') {
-      window.open('mailto:sales@quikle.com?subject=Enterprise Plan Inquiry', '_blank');
+      window.open('mailto:lance@quikle.co.za?subject=Enterprise Plan Inquiry', '_blank');
       return;
     }
     if (!workspaceId) return;
@@ -89,10 +89,12 @@ const HardPaywall: React.FC = () => {
                   <div className="text-2xl mb-2">{ICON_MAP[plan.iconName]}</div>
                   <p className="font-semibold text-sm text-foreground">{plan.name}</p>
 
-                  <div className="my-2">
-                    <span className="text-2xl font-bold text-foreground">{priceInfo.label}</span>
-                    <span className="text-xs text-muted-foreground">/mo</span>
-                  </div>
+                  {priceInfo.label && (
+                    <div className="my-2">
+                      <span className="text-2xl font-bold text-foreground">{priceInfo.label}</span>
+                      <span className="text-xs text-muted-foreground">/mo</span>
+                    </div>
+                  )}
 
                   <ul className="text-xs text-muted-foreground space-y-1 mb-3">
                     <li className="flex items-center gap-1 justify-center">
