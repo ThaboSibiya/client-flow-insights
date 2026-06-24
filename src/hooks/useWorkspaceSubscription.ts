@@ -162,13 +162,21 @@ export const useWorkspaceSubscription = (overrideWorkspaceId?: string) => {
 
   const sub = subscription as any;
   const currentPlan = sub?.plan_name || 'free';
-  const isActive = sub?.status === 'active' || sub?.status === 'trialing';
+  const isPaidPlan = currentPlan && currentPlan !== 'free';
+  const isActive = (sub?.status === 'active' && isPaidPlan) || sub?.status === 'trialing';
   const isPastDue = sub?.status === 'past_due';
 
   const trialEndsAt = sub?.trial_ends_at ? new Date(sub.trial_ends_at) : null;
   const now = new Date();
-  const isTrialing = sub?.status === 'trialing' || (currentPlan === 'free' && trialEndsAt && trialEndsAt > now);
-  const isTrialExpired = currentPlan === 'free' && trialEndsAt ? trialEndsAt <= now : false;
+  const isTrialing = currentPlan === 'free' && !!trialEndsAt && trialEndsAt > now;
+  // Free plan with no valid trial remaining → expired. Treat missing subscription
+  // row or missing trial_ends_at as expired so access is gated (DB trigger should
+  // always create one, but never trust the absence client-side).
+  const isTrialExpired =
+    !isLoading &&
+    !!workspaceId &&
+    currentPlan === 'free' &&
+    (!trialEndsAt || trialEndsAt <= now);
   const trialDaysLeft = trialEndsAt && trialEndsAt > now
     ? Math.ceil((trialEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
     : 0;
