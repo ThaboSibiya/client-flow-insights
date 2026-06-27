@@ -43,6 +43,7 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const CyberLSICallback = lazy(() => import("./pages/CyberLSICallback"));
 const ProjectManagement = lazy(() => import('./pages/ProjectManagement'));
+const DemoLanding = lazy(() => import('./pages/DemoLanding'));
 
 // Settings sections — lazy
 const GeneralSettings = lazy(() => import("./components/settings/sections/GeneralSettings"));
@@ -110,6 +111,7 @@ const App = () => (
                           <Route path="/auth" element={lazyRoute(<Auth />)} />
                           <Route path="/auth/cyberlsi/callback" element={lazyRoute(<CyberLSICallback />)} />
                           <Route path="/reset-password" element={lazyRoute(<ResetPassword />)} />
+                          <Route path="/demo" element={lazyRoute(<DemoLanding />)} />
                           <Route path="/" element={<ProtectedRoute element={<Layout />} />}>
                             <Route index element={lazyRoute(<Index />)} />
                             <Route path="dashboard" element={lazyRoute(<Dashboard />)} />

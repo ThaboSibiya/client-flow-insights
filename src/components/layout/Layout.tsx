@@ -7,6 +7,7 @@ import HelpButton from '@/components/help/HelpButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import TrialBanner from '@/components/billing/TrialBanner';
+import DemoBanner from '@/components/demo/DemoBanner';
 import HardPaywall from '@/components/billing/HardPaywall';
 import { Search } from 'lucide-react';
 
