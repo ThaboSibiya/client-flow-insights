@@ -83,23 +83,23 @@ Deno.serve(async (req) => {
     // 4. Seed (always — gives every prospect a fresh slate)
     await admin.rpc("seed_demo_workspace", { p_workspace_id: workspaceId });
 
-    // 5. Sign in via password to get a session
-    const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-    const { data: sessionData, error: signInErr } = await userClient.auth.signInWithPassword({
+    // 5. Generate a magic link and extract the hashed token; client will verifyOtp.
+    const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
+      type: "magiclink",
       email: DEMO_EMAIL,
-      password,
     });
-    if (signInErr || !sessionData.session) throw signInErr ?? new Error("Sign-in failed");
+    if (linkErr || !linkData?.properties?.hashed_token) {
+      throw linkErr ?? new Error("Failed to generate demo session");
+    }
 
     return new Response(
       JSON.stringify({
-        access_token: sessionData.session.access_token,
-        refresh_token: sessionData.session.refresh_token,
+        token_hash: linkData.properties.hashed_token,
+        type: "magiclink",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+
   } catch (err) {
     console.error("demo-signin error:", err);
     return new Response(
