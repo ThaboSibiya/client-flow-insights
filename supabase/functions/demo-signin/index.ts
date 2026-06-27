@@ -28,23 +28,18 @@ Deno.serve(async (req) => {
     const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
     const existing = list?.users?.find((u) => u.email === DEMO_EMAIL);
 
-    // Generate a random password each time (we sign in with it immediately, no one stores it)
-    const password = crypto.randomUUID() + crypto.randomUUID();
-
     if (existing) {
       demoUserId = existing.id;
-      // Reset password so we can sign in
-      await admin.auth.admin.updateUserById(existing.id, { password });
     } else {
       const { data: created, error: createErr } = await admin.auth.admin.createUser({
         email: DEMO_EMAIL,
-        password,
         email_confirm: true,
         user_metadata: { full_name: "Demo User", is_demo: true },
       });
       if (createErr || !created.user) throw createErr ?? new Error("Failed to create demo user");
       demoUserId = created.user.id;
     }
+
 
     // 2. Mark profile as demo
     await admin
@@ -88,23 +83,23 @@ Deno.serve(async (req) => {
     // 4. Seed (always — gives every prospect a fresh slate)
     await admin.rpc("seed_demo_workspace", { p_workspace_id: workspaceId });
 
-    // 5. Sign in via password to get a session
-    const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-    const { data: sessionData, error: signInErr } = await userClient.auth.signInWithPassword({
+    // 5. Generate a magic link and extract the hashed token; client will verifyOtp.
+    const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
+      type: "magiclink",
       email: DEMO_EMAIL,
-      password,
     });
-    if (signInErr || !sessionData.session) throw signInErr ?? new Error("Sign-in failed");
+    if (linkErr || !linkData?.properties?.hashed_token) {
+      throw linkErr ?? new Error("Failed to generate demo session");
+    }
 
     return new Response(
       JSON.stringify({
-        access_token: sessionData.session.access_token,
-        refresh_token: sessionData.session.refresh_token,
+        token_hash: linkData.properties.hashed_token,
+        type: "magiclink",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+
   } catch (err) {
     console.error("demo-signin error:", err);
     return new Response(
