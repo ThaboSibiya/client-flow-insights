@@ -12,26 +12,29 @@ const DemoLanding = () => {
   const launchDemo = async () => {
     setLoading(true);
     try {
+      // Sign out any existing session first so the demo lands cleanly.
+      await supabase.auth.signOut();
+
       const { data, error } = await supabase.functions.invoke("demo-signin");
-      if (error || !data?.access_token) {
+      if (error || !data?.token_hash) {
         throw error ?? new Error("Could not launch demo");
       }
-      const { error: sessionErr } = await supabase.auth.setSession({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
+      const { error: verifyErr } = await supabase.auth.verifyOtp({
+        token_hash: data.token_hash,
+        type: "magiclink",
       });
-      if (sessionErr) throw sessionErr;
+      if (verifyErr) throw verifyErr;
 
       toast.success("Demo ready — enjoy!");
-      navigate("/", { replace: true });
-      // Hard reload so providers pick up the new session cleanly
-      setTimeout(() => window.location.reload(), 100);
+      // Hard reload so providers re-init with the new session
+      window.location.assign("/");
     } catch (err) {
       console.error(err);
       toast.error("Could not launch demo. Please try again.");
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
