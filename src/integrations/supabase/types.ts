@@ -2939,6 +2939,7 @@ export type Database = {
           first_name: string | null
           id: string
           industry: string | null
+          is_demo: boolean
           last_name: string | null
           onboarding_completed: boolean | null
           phone: string | null
@@ -2963,6 +2964,7 @@ export type Database = {
           first_name?: string | null
           id: string
           industry?: string | null
+          is_demo?: boolean
           last_name?: string | null
           onboarding_completed?: boolean | null
           phone?: string | null
@@ -2987,6 +2989,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           industry?: string | null
+          is_demo?: boolean
           last_name?: string | null
           onboarding_completed?: boolean | null
           phone?: string | null
@@ -4543,6 +4546,7 @@ export type Database = {
           created_by: string
           id: string
           industry: string | null
+          is_demo: boolean
           logo_url: string | null
           name: string
           slug: string
@@ -4553,6 +4557,7 @@ export type Database = {
           created_by: string
           id?: string
           industry?: string | null
+          is_demo?: boolean
           logo_url?: string | null
           name: string
           slug: string
@@ -4563,6 +4568,7 @@ export type Database = {
           created_by?: string
           id?: string
           industry?: string | null
+          is_demo?: boolean
           logo_url?: string | null
           name?: string
           slug?: string
@@ -4716,6 +4722,7 @@ export type Database = {
         Args: { _employee_id: string }
         Returns: boolean
       }
+      is_demo_user: { Args: never; Returns: boolean }
       is_workspace_member: {
         Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
@@ -4757,8 +4764,13 @@ export type Database = {
         Returns: string
       }
       mark_overdue_invoices: { Args: never; Returns: undefined }
+      reset_all_demo_workspaces: { Args: never; Returns: undefined }
       reset_conversation_unread: {
         Args: { p_conversation_id: string }
+        Returns: undefined
+      }
+      seed_demo_workspace: {
+        Args: { p_workspace_id: string }
         Returns: undefined
       }
       validate_invitation_token: {
