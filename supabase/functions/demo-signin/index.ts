@@ -28,23 +28,18 @@ Deno.serve(async (req) => {
     const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
     const existing = list?.users?.find((u) => u.email === DEMO_EMAIL);
 
-    // Generate a random password each time (we sign in with it immediately, no one stores it)
-    const password = crypto.randomUUID() + crypto.randomUUID();
-
     if (existing) {
       demoUserId = existing.id;
-      // Reset password so we can sign in
-      await admin.auth.admin.updateUserById(existing.id, { password });
     } else {
       const { data: created, error: createErr } = await admin.auth.admin.createUser({
         email: DEMO_EMAIL,
-        password,
         email_confirm: true,
         user_metadata: { full_name: "Demo User", is_demo: true },
       });
       if (createErr || !created.user) throw createErr ?? new Error("Failed to create demo user");
       demoUserId = created.user.id;
     }
+
 
     // 2. Mark profile as demo
     await admin
