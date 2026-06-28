@@ -33,6 +33,7 @@ interface TicketCardProps {
 const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, customerName, customerId }: TicketCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showSatisfactionRating, setShowSatisfactionRating] = useState(false);
+  const [assignOpen, setAssignOpen] = useState(false);
   const { escalateTicket, isProcessing } = useTicketRouting();
 
   const handleStatusUpdate = async (newStatus: TicketStatus) => {
