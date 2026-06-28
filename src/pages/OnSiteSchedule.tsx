@@ -17,7 +17,6 @@ interface Appointment {
   id: string;
   scheduled_at: string;
   call_type: string;
-  duration_minutes: number | null;
   status: string | null;
   notes: string | null;
   location: string | null;
@@ -27,6 +26,7 @@ interface Appointment {
     ticket_number?: string | null;
     subject?: string | null;
     priority?: string | null;
+    status?: string | null;
     location?: string | null;
   } | null;
   customers?: {
