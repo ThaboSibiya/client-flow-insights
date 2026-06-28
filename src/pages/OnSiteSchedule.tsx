@@ -67,7 +67,7 @@ const OnSiteSchedule = () => {
       try {
         let query = supabase
           .from('scheduled_calls')
-          .select('*, tickets(ticket_number, subject, priority, location), customers(name, address, phone)')
+          .select('*, tickets(ticket_number, subject, priority, status, location), customers(name, address, phone)')
           .eq('call_type', 'on_site')
           .eq('assigned_employee_id', employee.id)
           .gte('scheduled_at', dayStart)
@@ -89,22 +89,31 @@ const OnSiteSchedule = () => {
     return () => { cancelled = true; };
   }, [employee?.id, workspaceId, dayStart, dayEnd]);
 
-  // Realtime updates for assignments
+  // Realtime updates for assignments and linked tickets
   useEffect(() => {
     if (!employee?.id) return;
-    const channel = supabase
-      .channel(`onsite-schedule-${employee.id}`)
+    const refetch = () => setDate((d) => new Date(d));
+    const callsChannel = supabase
+      .channel(`onsite-schedule-calls-${employee.id}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'scheduled_calls',
         filter: `assigned_employee_id=eq.${employee.id}`,
-      }, () => {
-        // Trigger refetch by bumping date state reference
-        setDate((d) => new Date(d));
-      })
+      }, refetch)
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const ticketsChannel = supabase
+      .channel(`onsite-schedule-tickets-${employee.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'tickets',
+      }, refetch)
+      .subscribe();
+    return () => {
+      supabase.removeChannel(callsChannel);
+      supabase.removeChannel(ticketsChannel);
+    };
   }, [employee?.id]);
 
   if (employeeLoading) {
