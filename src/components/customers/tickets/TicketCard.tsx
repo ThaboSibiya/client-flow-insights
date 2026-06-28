@@ -140,13 +140,29 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
             <Clock className="h-3 w-3" />
             {formatTicketDate(ticket.createdAt)}
           </span>
-          {ticket.assignedTo && (
+          {ticket.assignedTo ? (
             <span className="flex items-center gap-1">
               <User className="h-3 w-3" />
               {ticket.assignedTo.name}
             </span>
-          )}
+          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 ml-auto text-xs gap-1"
+            onClick={(e) => { e.stopPropagation(); setAssignOpen(true); }}
+          >
+            <UserPlus className="h-3 w-3" />
+            {ticket.assignedTo ? 'Reassign' : 'Assign'}
+          </Button>
         </div>
+        <AssignTicketDialog
+          ticket={ticket}
+          customerId={customerId}
+          isOpen={assignOpen}
+          onClose={() => setAssignOpen(false)}
+        />
 
         {/* Expanded content — consolidated to 3 tabs */}
         {isExpanded && (
