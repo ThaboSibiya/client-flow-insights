@@ -153,8 +153,14 @@ const OnSiteSchedule = () => {
           </Popover>
           <Button variant="outline" size="sm" onClick={() => setDate(addDays(date, 1))}>Next</Button>
           <Button variant="ghost" size="sm" onClick={() => setDate(new Date())}>Today</Button>
+          <Button size="sm" onClick={() => setJobCompleteOpen(true)}>
+            <ClipboardCheck className="h-4 w-4 mr-1.5" />
+            Complete Job
+          </Button>
         </div>
       </div>
+
+      <OnSiteStatusUpdate isOpen={jobCompleteOpen} onClose={() => setJobCompleteOpen(false)} />
 
       {error && (
         <Card className="border-destructive/50">
