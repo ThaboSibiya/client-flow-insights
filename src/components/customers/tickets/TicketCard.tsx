@@ -10,11 +10,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CustomerTicket, TicketStatus } from '@/types/customer';
-import { User, Clock, AlertCircle, Timer, ChevronDown, ChevronUp, ArrowUp, Paperclip, MessageSquare } from 'lucide-react';
+import { User, Clock, AlertCircle, Timer, ChevronDown, ChevronUp, ArrowUp, Paperclip, MessageSquare, UserPlus } from 'lucide-react';
 import TimeTracker from './TimeTracker';
 import TicketAttachments from './TicketAttachments';
 import TicketComments from './TicketComments';
 import SLAStatus from '../../tickets/SLAStatus';
+import AssignTicketDialog from '@/components/tickets/AssignTicketDialog';
 import { sendTicketNotification } from '@/services/ticketNotificationService';
 import { useTicketRouting } from '@/hooks/useTicketRouting';
 import { getPriorityColor, getStatusColor, formatTicketDate, formatDuration } from '@/utils/ticketFormatters';
