@@ -76,7 +76,7 @@ const OnSiteSchedule = () => {
 
         const { data, error: qErr } = await query;
         if (qErr) throw qErr;
-        if (!cancelled) setAppointments((data as Appointment[]) || []);
+        if (!cancelled) setAppointments((data as unknown as Appointment[]) || []);
       } catch (e: any) {
         if (!cancelled) setError(e?.message || 'Failed to load appointments');
       } finally {
