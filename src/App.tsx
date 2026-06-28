@@ -44,6 +44,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const CyberLSICallback = lazy(() => import("./pages/CyberLSICallback"));
 const ProjectManagement = lazy(() => import('./pages/ProjectManagement'));
 const DemoLanding = lazy(() => import('./pages/DemoLanding'));
+const OnSiteSchedule = lazy(() => import('./pages/OnSiteSchedule'));
 
 // Settings sections — lazy
 const GeneralSettings = lazy(() => import("./components/settings/sections/GeneralSettings"));
@@ -120,6 +121,7 @@ const App = () => (
                             <Route path="email" element={lazyRoute(<EmailIntegration />)} />
                             <Route path="onboarding" element={lazyRoute(<Onboarding />)} />
                             <Route path="pipeline" element={lazyRoute(<Pipeline />)} />
+                            <Route path="on-site-schedule" element={lazyRoute(<OnSiteSchedule />)} />
                             <Route path="analytics" element={lazyRoute(<Analytics />)} />
                             <Route path="projects" element={lazyRoute(<ProjectManagement />)} />
                             <Route path="quotes" element={lazyRoute(<QuoteInvoice />)} />

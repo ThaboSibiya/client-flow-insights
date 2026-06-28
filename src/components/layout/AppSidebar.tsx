@@ -20,6 +20,7 @@ import {
   PanelLeft,
   LifeBuoy,
   Search,
+  MapPin,
 } from 'lucide-react';
 import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import {
@@ -82,6 +83,7 @@ const AppSidebar = () => {
         { path: '/quotes', icon: FileText, label: 'Quotes & Invoices' },
         { path: '/finance', icon: DollarSign, label: 'Finance' },
         { path: '/employees', icon: Users, label: 'Team' },
+        ...(employee?.id ? [{ path: '/on-site-schedule', icon: MapPin, label: 'My Schedule' }] : []),
       ],
     },
     {
