@@ -116,11 +116,16 @@ const AssignTicketDialog: React.FC<AssignTicketDialogProps> = ({ ticket, custome
         const { error: schedErr } = await supabase.from('scheduled_calls').insert({
           user_id: user.id,
           customer_id: customerId,
+          workspace_id: workspaceId || null,
+          ticket_id: ticket.id,
+          assigned_employee_id: employee.id,
+          assigned_employee_name: assigneeName,
+          location: location || null,
           scheduled_at: scheduledAt,
           call_type: 'on_site',
           priority: ticket.priority || 'medium',
           status: 'scheduled',
-          notes: `On-site visit for ticket #${ticket.ticketNumber} — ${ticket.subject}. Assigned to ${assigneeName}.`,
+          notes: `On-site visit for ticket #${ticket.ticketNumber} — ${ticket.subject}. Assigned to ${assigneeName}.${location ? ` Location: ${location}` : ''}`,
         });
         if (schedErr) {
           console.error('Scheduling error', schedErr);
