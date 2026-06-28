@@ -165,6 +165,20 @@ export const useSecureJobCompletion = () => {
           });
           ticketEventBus.emit(TICKET_EVENTS.PIPELINE_REFRESH);
         }
+
+        // Mark any scheduled on-site appointments linked to this ticket as completed
+        const { error: callError } = await supabase
+          .from('scheduled_calls')
+          .update({
+            status: 'completed',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('ticket_id', selectedTicket.id)
+          .neq('status', 'completed');
+
+        if (callError) {
+          console.error('Failed to update scheduled call status:', callError);
+        }
       }
 
       // 3. Record job completion with photos and ticket link
