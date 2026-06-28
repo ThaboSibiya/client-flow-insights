@@ -317,11 +317,17 @@ const PipelineDetailPanel = ({
             <MessageSquare className="h-4 w-4" />
             Reply
           </Button>
-          <Button size="sm" variant="outline" className="gap-2" onClick={() => handleNotImplemented('Assign ticket')}>
+          <Button size="sm" variant="outline" className="gap-2" onClick={() => setAssignOpen(true)}>
             <User className="h-4 w-4" />
-            Assign
+            {ticket.assignedTo?.name ? 'Reassign' : 'Assign'}
           </Button>
         </div>
+        <AssignTicketDialog
+          ticket={ticket}
+          customerId={(ticket as any).customerId || (ticket as any).customer_id}
+          isOpen={assignOpen}
+          onClose={() => setAssignOpen(false)}
+        />
       </CardHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 min-h-0 flex flex-col">
