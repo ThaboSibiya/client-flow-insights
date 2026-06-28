@@ -195,14 +195,25 @@ const AssignTicketDialog: React.FC<AssignTicketDialogProps> = ({ ticket, custome
           </div>
 
           {scheduleOnSite && (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Date</Label>
-                <Input type="date" value={appointmentDate} onChange={(e) => setAppointmentDate(e.target.value)} disabled={submitting} />
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Date</Label>
+                  <Input type="date" value={appointmentDate} onChange={(e) => setAppointmentDate(e.target.value)} disabled={submitting} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Time</Label>
+                  <Input type="time" value={appointmentTime} onChange={(e) => setAppointmentTime(e.target.value)} disabled={submitting} />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label>Time</Label>
-                <Input type="time" value={appointmentTime} onChange={(e) => setAppointmentTime(e.target.value)} disabled={submitting} />
+                <Label>Location (optional)</Label>
+                <Input
+                  placeholder="Site address or unit number"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  disabled={submitting}
+                />
               </div>
             </div>
           )}
