@@ -52,6 +52,7 @@ const OnSiteSchedule = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [jobCompleteOpen, setJobCompleteOpen] = useState(false);
 
   const dayStart = useMemo(() => startOfDay(date).toISOString(), [date]);
   const dayEnd = useMemo(() => endOfDay(date).toISOString(), [date]);
