@@ -3503,44 +3503,80 @@ export type Database = {
       }
       scheduled_calls: {
         Row: {
+          assigned_employee_id: string | null
+          assigned_employee_name: string | null
           call_type: string
           created_at: string
           customer_id: string
           id: string
+          location: string | null
           notes: string | null
           priority: string
           scheduled_at: string
           status: string
+          ticket_id: string | null
           updated_at: string
+          workspace_id: string | null
         }
         Insert: {
+          assigned_employee_id?: string | null
+          assigned_employee_name?: string | null
           call_type: string
           created_at?: string
           customer_id: string
           id?: string
+          location?: string | null
           notes?: string | null
           priority?: string
           scheduled_at: string
           status?: string
+          ticket_id?: string | null
           updated_at?: string
+          workspace_id?: string | null
         }
         Update: {
+          assigned_employee_id?: string | null
+          assigned_employee_name?: string | null
           call_type?: string
           created_at?: string
           customer_id?: string
           id?: string
+          location?: string | null
           notes?: string | null
           priority?: string
           scheduled_at?: string
           status?: string
+          ticket_id?: string | null
           updated_at?: string
+          workspace_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "scheduled_calls_assigned_employee_id_fkey"
+            columns: ["assigned_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "scheduled_calls_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_calls_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_calls_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -3906,12 +3942,14 @@ export type Database = {
         Row: {
           assigned_to_id: string | null
           assigned_to_name: string | null
+          category: string | null
           closed_at: string | null
           created_at: string
           customer_id: string
           description: string | null
           estimated_time_minutes: number | null
           id: string
+          location: string | null
           priority: string
           resolution_time_minutes: number | null
           resolved_at: string | null
@@ -3925,12 +3963,14 @@ export type Database = {
         Insert: {
           assigned_to_id?: string | null
           assigned_to_name?: string | null
+          category?: string | null
           closed_at?: string | null
           created_at?: string
           customer_id: string
           description?: string | null
           estimated_time_minutes?: number | null
           id?: string
+          location?: string | null
           priority?: string
           resolution_time_minutes?: number | null
           resolved_at?: string | null
@@ -3944,12 +3984,14 @@ export type Database = {
         Update: {
           assigned_to_id?: string | null
           assigned_to_name?: string | null
+          category?: string | null
           closed_at?: string | null
           created_at?: string
           customer_id?: string
           description?: string | null
           estimated_time_minutes?: number | null
           id?: string
+          location?: string | null
           priority?: string
           resolution_time_minutes?: number | null
           resolved_at?: string | null
