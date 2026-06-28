@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { format, startOfDay, endOfDay, addDays } from 'date-fns';
-import { Calendar as CalendarIcon, MapPin, Phone, Clock, User, Ticket as TicketIcon, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Phone, Clock, User, Ticket as TicketIcon, AlertCircle, ClipboardCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
@@ -11,6 +11,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import OnSiteStatusUpdate from '@/components/customers/OnSiteStatusUpdate';
 
 interface Appointment {
   id: string;
