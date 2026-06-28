@@ -202,8 +202,8 @@ const OnSiteSchedule = () => {
                     <div className="flex items-center gap-3">
                       <div className="flex flex-col items-center justify-center rounded-md bg-muted px-3 py-2 min-w-[64px]">
                         <span className="text-xs text-muted-foreground">{format(when, 'HH:mm')}</span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {a.duration_minutes ? `${a.duration_minutes}m` : ''}
+                        <span className="text-[10px] text-muted-foreground uppercase">
+                          {format(when, 'a')}
                         </span>
                       </div>
                       <div>
@@ -229,8 +229,16 @@ const OnSiteSchedule = () => {
                           {a.tickets.priority}
                         </Badge>
                       )}
-                      {a.status && (
-                        <Badge variant="outline" className="capitalize">{a.status}</Badge>
+                      {a.tickets?.status && (
+                        <Badge
+                          variant={a.tickets.status === 'resolved' || a.tickets.status === 'closed' ? 'default' : 'outline'}
+                          className="capitalize"
+                        >
+                          {a.tickets.status.replace('_', ' ')}
+                        </Badge>
+                      )}
+                      {a.status && a.status !== 'scheduled' && (
+                        <Badge variant="secondary" className="capitalize">{a.status}</Badge>
                       )}
                     </div>
                   </div>
