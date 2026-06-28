@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { format, startOfDay, endOfDay, addDays } from 'date-fns';
-import { Calendar as CalendarIcon, MapPin, Phone, Clock, User, Ticket as TicketIcon, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Phone, Clock, User, Ticket as TicketIcon, AlertCircle, ClipboardCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmployeeProfile } from '@/hooks/useEmployeeProfile';
 import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
@@ -11,6 +11,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import OnSiteStatusUpdate from '@/components/customers/OnSiteStatusUpdate';
 
 interface Appointment {
   id: string;
@@ -51,6 +52,7 @@ const OnSiteSchedule = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [jobCompleteOpen, setJobCompleteOpen] = useState(false);
 
   const dayStart = useMemo(() => startOfDay(date).toISOString(), [date]);
   const dayEnd = useMemo(() => endOfDay(date).toISOString(), [date]);
@@ -151,8 +153,14 @@ const OnSiteSchedule = () => {
           </Popover>
           <Button variant="outline" size="sm" onClick={() => setDate(addDays(date, 1))}>Next</Button>
           <Button variant="ghost" size="sm" onClick={() => setDate(new Date())}>Today</Button>
+          <Button size="sm" onClick={() => setJobCompleteOpen(true)}>
+            <ClipboardCheck className="h-4 w-4 mr-1.5" />
+            Complete Job
+          </Button>
         </div>
       </div>
+
+      <OnSiteStatusUpdate isOpen={jobCompleteOpen} onClose={() => setJobCompleteOpen(false)} />
 
       {error && (
         <Card className="border-destructive/50">

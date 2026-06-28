@@ -1,6 +1,6 @@
 import React, { useState, useCallback, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Phone, Mail, Plus, Users, ClipboardCheck } from 'lucide-react';
+import { Search, Phone, Mail, Plus, Users } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import {
   SwipeableRow
 } from '@/components/mobile';
 import { cn } from '@/lib/utils';
-import OnSiteStatusUpdate from '@/components/customers/OnSiteStatusUpdate';
+
 import type { Customer } from '@/types/customer';
 
 const CustomerDetailsDialog = lazy(() => import('@/components/customers/forms/CustomerDetailsDialog'));
@@ -24,7 +24,7 @@ const MobileCustomersView: React.FC = () => {
   const { customers } = useCRM();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isJobCompleteOpen, setIsJobCompleteOpen] = useState(false);
+  
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   const handleRefresh = useCallback(async () => {
@@ -83,15 +83,6 @@ const MobileCustomersView: React.FC = () => {
               {filteredCustomers.length} of {customers.length} clients
             </p>
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            className="gap-1.5 text-xs"
-            onClick={() => setIsJobCompleteOpen(true)}
-          >
-            <ClipboardCheck className="h-3.5 w-3.5" />
-            Job Complete
-          </Button>
         </div>
 
         {/* Search */}
@@ -205,11 +196,6 @@ const MobileCustomersView: React.FC = () => {
         position="bottom-right"
       />
 
-      {/* Job Completion Dialog */}
-      <OnSiteStatusUpdate
-        isOpen={isJobCompleteOpen}
-        onClose={() => setIsJobCompleteOpen(false)}
-      />
 
       {/* Customer Details */}
       {selectedCustomer && (
