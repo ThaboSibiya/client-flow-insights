@@ -60,7 +60,8 @@ const AssignTicketDialog: React.FC<AssignTicketDialogProps> = ({ ticket, custome
     today.setDate(today.getDate() + 1);
     setAppointmentDate(today.toISOString().slice(0, 10));
     setAppointmentTime('09:00');
-  }, [isOpen, isOnSiteSuggested, ticket?.assignedTo?.id]);
+    setLocation((ticket as any)?.location || '');
+  }, [isOpen, isOnSiteSuggested, ticket?.assignedTo?.id, ticket]);
 
   useEffect(() => {
     if (!isOpen || !user) return;
