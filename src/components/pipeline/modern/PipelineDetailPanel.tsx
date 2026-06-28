@@ -37,6 +37,7 @@ const PipelineDetailPanel = ({
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [newNote, setNewNote] = useState('');
+  const [assignOpen, setAssignOpen] = useState(false);
 
   const handleNotImplemented = (label: string) =>
     toast({ title: `${label}`, description: 'Coming soon.' });
