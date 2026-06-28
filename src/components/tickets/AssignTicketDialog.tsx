@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Loader2, MapPin, UserCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 import { toast } from '@/hooks/use-toast';
 import { updateTicket } from '@/services/ticketService';
 import { ticketEventBus, TICKET_EVENTS } from '@/stores/ticketEventBus';
