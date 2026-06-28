@@ -10,11 +10,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CustomerTicket, TicketStatus } from '@/types/customer';
-import { User, Clock, AlertCircle, Timer, ChevronDown, ChevronUp, ArrowUp, Paperclip, MessageSquare } from 'lucide-react';
+import { User, Clock, AlertCircle, Timer, ChevronDown, ChevronUp, ArrowUp, Paperclip, MessageSquare, UserPlus } from 'lucide-react';
 import TimeTracker from './TimeTracker';
 import TicketAttachments from './TicketAttachments';
 import TicketComments from './TicketComments';
 import SLAStatus from '../../tickets/SLAStatus';
+import AssignTicketDialog from '@/components/tickets/AssignTicketDialog';
 import { sendTicketNotification } from '@/services/ticketNotificationService';
 import { useTicketRouting } from '@/hooks/useTicketRouting';
 import { getPriorityColor, getStatusColor, formatTicketDate, formatDuration } from '@/utils/ticketFormatters';
@@ -32,6 +33,7 @@ interface TicketCardProps {
 const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, customerName, customerId }: TicketCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showSatisfactionRating, setShowSatisfactionRating] = useState(false);
+  const [assignOpen, setAssignOpen] = useState(false);
   const { escalateTicket, isProcessing } = useTicketRouting();
 
   const handleStatusUpdate = async (newStatus: TicketStatus) => {
@@ -138,13 +140,29 @@ const TicketCard = ({ ticket, onStatusUpdate, onAddTimeEntry, customerEmail, cus
             <Clock className="h-3 w-3" />
             {formatTicketDate(ticket.createdAt)}
           </span>
-          {ticket.assignedTo && (
+          {ticket.assignedTo ? (
             <span className="flex items-center gap-1">
               <User className="h-3 w-3" />
               {ticket.assignedTo.name}
             </span>
-          )}
+          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 ml-auto text-xs gap-1"
+            onClick={(e) => { e.stopPropagation(); setAssignOpen(true); }}
+          >
+            <UserPlus className="h-3 w-3" />
+            {ticket.assignedTo ? 'Reassign' : 'Assign'}
+          </Button>
         </div>
+        <AssignTicketDialog
+          ticket={ticket}
+          customerId={customerId}
+          isOpen={assignOpen}
+          onClose={() => setAssignOpen(false)}
+        />
 
         {/* Expanded content — consolidated to 3 tabs */}
         {isExpanded && (

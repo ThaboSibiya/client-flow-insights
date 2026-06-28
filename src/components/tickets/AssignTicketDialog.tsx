@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Loader2, MapPin, UserCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useActiveWorkspaceId } from '@/hooks/useActiveWorkspaceId';
 import { toast } from '@/hooks/use-toast';
 import { updateTicket } from '@/services/ticketService';
 import { ticketEventBus, TICKET_EVENTS } from '@/stores/ticketEventBus';
@@ -39,6 +40,7 @@ const looksLikeOnSite = (ticket: CustomerTicket | null) => {
 
 const AssignTicketDialog: React.FC<AssignTicketDialogProps> = ({ ticket, customerId, isOpen, onClose, onAssigned }) => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -46,6 +48,7 @@ const AssignTicketDialog: React.FC<AssignTicketDialogProps> = ({ ticket, custome
   const [scheduleOnSite, setScheduleOnSite] = useState(false);
   const [appointmentDate, setAppointmentDate] = useState('');
   const [appointmentTime, setAppointmentTime] = useState('09:00');
+  const [location, setLocation] = useState('');
 
   const isOnSiteSuggested = useMemo(() => looksLikeOnSite(ticket), [ticket]);
 
@@ -57,7 +60,8 @@ const AssignTicketDialog: React.FC<AssignTicketDialogProps> = ({ ticket, custome
     today.setDate(today.getDate() + 1);
     setAppointmentDate(today.toISOString().slice(0, 10));
     setAppointmentTime('09:00');
-  }, [isOpen, isOnSiteSuggested, ticket?.assignedTo?.id]);
+    setLocation((ticket as any)?.location || '');
+  }, [isOpen, isOnSiteSuggested, ticket?.assignedTo?.id, ticket]);
 
   useEffect(() => {
     if (!isOpen || !user) return;
@@ -112,11 +116,16 @@ const AssignTicketDialog: React.FC<AssignTicketDialogProps> = ({ ticket, custome
         const { error: schedErr } = await supabase.from('scheduled_calls').insert({
           user_id: user.id,
           customer_id: customerId,
+          workspace_id: workspaceId || null,
+          ticket_id: ticket.id,
+          assigned_employee_id: employee.id,
+          assigned_employee_name: assigneeName,
+          location: location || null,
           scheduled_at: scheduledAt,
           call_type: 'on_site',
           priority: ticket.priority || 'medium',
           status: 'scheduled',
-          notes: `On-site visit for ticket #${ticket.ticketNumber} — ${ticket.subject}. Assigned to ${assigneeName}.`,
+          notes: `On-site visit for ticket #${ticket.ticketNumber} — ${ticket.subject}. Assigned to ${assigneeName}.${location ? ` Location: ${location}` : ''}`,
         });
         if (schedErr) {
           console.error('Scheduling error', schedErr);
@@ -186,14 +195,25 @@ const AssignTicketDialog: React.FC<AssignTicketDialogProps> = ({ ticket, custome
           </div>
 
           {scheduleOnSite && (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Date</Label>
-                <Input type="date" value={appointmentDate} onChange={(e) => setAppointmentDate(e.target.value)} disabled={submitting} />
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Date</Label>
+                  <Input type="date" value={appointmentDate} onChange={(e) => setAppointmentDate(e.target.value)} disabled={submitting} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Time</Label>
+                  <Input type="time" value={appointmentTime} onChange={(e) => setAppointmentTime(e.target.value)} disabled={submitting} />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label>Time</Label>
-                <Input type="time" value={appointmentTime} onChange={(e) => setAppointmentTime(e.target.value)} disabled={submitting} />
+                <Label>Location (optional)</Label>
+                <Input
+                  placeholder="Site address or unit number"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  disabled={submitting}
+                />
               </div>
             </div>
           )}
