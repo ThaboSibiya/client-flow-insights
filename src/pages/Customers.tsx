@@ -132,8 +132,6 @@ const Customers: React.FC = () => {
             </React.Suspense>
           </CollapsibleContent>
         </Collapsible>
-
-        </Collapsible>
       </div>
     </CustomerErrorBoundary>
   );
