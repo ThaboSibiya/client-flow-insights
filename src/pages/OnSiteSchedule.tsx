@@ -17,7 +17,6 @@ interface Appointment {
   id: string;
   scheduled_at: string;
   call_type: string;
-  duration_minutes: number | null;
   status: string | null;
   notes: string | null;
   location: string | null;
@@ -27,6 +26,7 @@ interface Appointment {
     ticket_number?: string | null;
     subject?: string | null;
     priority?: string | null;
+    status?: string | null;
     location?: string | null;
   } | null;
   customers?: {
@@ -67,7 +67,7 @@ const OnSiteSchedule = () => {
       try {
         let query = supabase
           .from('scheduled_calls')
-          .select('*, tickets(ticket_number, subject, priority, location), customers(name, address, phone)')
+          .select('*, tickets(ticket_number, subject, priority, status, location), customers(name, address, phone)')
           .eq('call_type', 'on_site')
           .eq('assigned_employee_id', employee.id)
           .gte('scheduled_at', dayStart)
@@ -89,22 +89,31 @@ const OnSiteSchedule = () => {
     return () => { cancelled = true; };
   }, [employee?.id, workspaceId, dayStart, dayEnd]);
 
-  // Realtime updates for assignments
+  // Realtime updates for assignments and linked tickets
   useEffect(() => {
     if (!employee?.id) return;
-    const channel = supabase
-      .channel(`onsite-schedule-${employee.id}`)
+    const refetch = () => setDate((d) => new Date(d));
+    const callsChannel = supabase
+      .channel(`onsite-schedule-calls-${employee.id}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'scheduled_calls',
         filter: `assigned_employee_id=eq.${employee.id}`,
-      }, () => {
-        // Trigger refetch by bumping date state reference
-        setDate((d) => new Date(d));
-      })
+      }, refetch)
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const ticketsChannel = supabase
+      .channel(`onsite-schedule-tickets-${employee.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'tickets',
+      }, refetch)
+      .subscribe();
+    return () => {
+      supabase.removeChannel(callsChannel);
+      supabase.removeChannel(ticketsChannel);
+    };
   }, [employee?.id]);
 
   if (employeeLoading) {
@@ -193,8 +202,8 @@ const OnSiteSchedule = () => {
                     <div className="flex items-center gap-3">
                       <div className="flex flex-col items-center justify-center rounded-md bg-muted px-3 py-2 min-w-[64px]">
                         <span className="text-xs text-muted-foreground">{format(when, 'HH:mm')}</span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {a.duration_minutes ? `${a.duration_minutes}m` : ''}
+                        <span className="text-[10px] text-muted-foreground uppercase">
+                          {format(when, 'a')}
                         </span>
                       </div>
                       <div>
@@ -220,8 +229,16 @@ const OnSiteSchedule = () => {
                           {a.tickets.priority}
                         </Badge>
                       )}
-                      {a.status && (
-                        <Badge variant="outline" className="capitalize">{a.status}</Badge>
+                      {a.tickets?.status && (
+                        <Badge
+                          variant={a.tickets.status === 'resolved' || a.tickets.status === 'closed' ? 'default' : 'outline'}
+                          className="capitalize"
+                        >
+                          {a.tickets.status.replace('_', ' ')}
+                        </Badge>
+                      )}
+                      {a.status && a.status !== 'scheduled' && (
+                        <Badge variant="secondary" className="capitalize">{a.status}</Badge>
                       )}
                     </div>
                   </div>
