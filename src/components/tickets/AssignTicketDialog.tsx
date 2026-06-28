@@ -40,6 +40,7 @@ const looksLikeOnSite = (ticket: CustomerTicket | null) => {
 
 const AssignTicketDialog: React.FC<AssignTicketDialogProps> = ({ ticket, customerId, isOpen, onClose, onAssigned }) => {
   const { user } = useAuth();
+  const workspaceId = useActiveWorkspaceId();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -47,6 +48,7 @@ const AssignTicketDialog: React.FC<AssignTicketDialogProps> = ({ ticket, custome
   const [scheduleOnSite, setScheduleOnSite] = useState(false);
   const [appointmentDate, setAppointmentDate] = useState('');
   const [appointmentTime, setAppointmentTime] = useState('09:00');
+  const [location, setLocation] = useState('');
 
   const isOnSiteSuggested = useMemo(() => looksLikeOnSite(ticket), [ticket]);
 
