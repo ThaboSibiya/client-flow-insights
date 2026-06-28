@@ -15,6 +15,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { Customer, CustomerTicket } from '@/types/customer';
 import { PipelineType } from '@/hooks/usePipeline';
 import { toast } from '@/hooks/use-toast';
+import AssignTicketDialog from '@/components/tickets/AssignTicketDialog';
 
 interface PipelineDetailPanelProps {
   item: Customer | CustomerTicket;
