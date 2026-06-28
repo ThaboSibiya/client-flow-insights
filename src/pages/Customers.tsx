@@ -3,9 +3,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import CustomerTable from '@/components/customers/CustomerTable';
 import { MobileCustomersView } from '@/components/customers/mobile';
 import { Button } from '@/components/ui/button';
-import { UserPlus, MapPin, Settings2, ChevronDown } from 'lucide-react';
+import { UserPlus, Settings2, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import OnSiteStatusUpdate from '@/components/customers/OnSiteStatusUpdate';
 import CustomerErrorBoundary from '@/components/error/CustomerErrorBoundary';
 import {
   Collapsible,
@@ -22,7 +21,6 @@ import {
 const Customers: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [isOnSiteUpdateOpen, setIsOnSiteUpdateOpen] = useState<boolean>(false);
   const [isAiConfigOpen, setIsAiConfigOpen] = useState<boolean>(false);
   
   const handleOnboardNewCustomer = (): void => {
@@ -38,7 +36,6 @@ const Customers: React.FC = () => {
     return (
       <CustomerErrorBoundary>
         <MobileCustomersView />
-        <OnSiteStatusUpdate isOpen={isOnSiteUpdateOpen} onClose={() => setIsOnSiteUpdateOpen(false)} />
       </CustomerErrorBoundary>
     );
   }
@@ -73,10 +70,6 @@ const Customers: React.FC = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => setIsOnSiteUpdateOpen(true)}>
-                  <MapPin className="h-4 w-4 mr-2" />
-                  Job Complete
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setIsAiConfigOpen(!isAiConfigOpen)}>
                   <Settings2 className="h-4 w-4 mr-2" />
                   AI Configuration
@@ -140,8 +133,7 @@ const Customers: React.FC = () => {
           </CollapsibleContent>
         </Collapsible>
 
-        {/* On-Site Status Update Dialog */}
-        <OnSiteStatusUpdate isOpen={isOnSiteUpdateOpen} onClose={() => setIsOnSiteUpdateOpen(false)} />
+        </Collapsible>
       </div>
     </CustomerErrorBoundary>
   );
